@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getFitErrors</title>
+  <meta name="keywords" content="getFitErrors">
+  <meta name="description" content=" calculates all relevant fitting erros for the NMR inversion">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>getFitErrors
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> calculates all relevant fitting erros for the NMR inversion</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = getFitErrors(s,sfit,noise,varargin) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getFitErrors calculates all relevant fitting erros for the NMR inversion
+routines
+
+ Syntax:
+       getFitErrors(signal,fit,noise,varargin)
+
+ Inputs:
+       s - NMR signal
+       sfit - fitted NMR signal
+       noise - data noise
+       varargin - 'W' error weighing matrix after gating
+
+ Outputs:
+       out - output structure
+             residual: residual vector
+             errnorm1: L1 norm
+             errnorm2: L2 norm
+             resnorm : L2 norm
+             mse     : mean squared error
+             rms     : root mean square error
+             chi2    : &quot;chi-square&quot; estimate
+
+ Example:
+       errors = getFitErrors(signal,fit,noise)
+
+ Other m-files required:
+       getChi2
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>	 the chi2 of a NMR fit (noise weighted error quality)</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="fitDataFree_fmin.html" class="code" title="function [fitdata] = fitDataFree_fmin(time,signal,flag,parameter,nExp)">fitDataFree_fmin</a>	 is a control routine that uses 'fminsearchbnd' to fit NMR</li><li><a href="fitDataInvLaplace.html" class="code" title="function fitdata = fitDataInvLaplace(time,signal,parameter)">fitDataInvLaplace</a>	 is a control routine that uses an Inverse Laplace</li><li><a href="fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>	 is a control routine that uses the 'Regularization Toolbox'</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = getFitErrors(s,sfit,noise,varargin)</a>
+0002 <span class="comment">%getFitErrors calculates all relevant fitting erros for the NMR inversion</span>
+0003 <span class="comment">%routines</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       getFitErrors(signal,fit,noise,varargin)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       s - NMR signal</span>
+0010 <span class="comment">%       sfit - fitted NMR signal</span>
+0011 <span class="comment">%       noise - data noise</span>
+0012 <span class="comment">%       varargin - 'W' error weighing matrix after gating</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Outputs:</span>
+0015 <span class="comment">%       out - output structure</span>
+0016 <span class="comment">%             residual: residual vector</span>
+0017 <span class="comment">%             errnorm1: L1 norm</span>
+0018 <span class="comment">%             errnorm2: L2 norm</span>
+0019 <span class="comment">%             resnorm : L2 norm</span>
+0020 <span class="comment">%             mse     : mean squared error</span>
+0021 <span class="comment">%             rms     : root mean square error</span>
+0022 <span class="comment">%             chi2    : &quot;chi-square&quot; estimate</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Example:</span>
+0025 <span class="comment">%       errors = getFitErrors(signal,fit,noise)</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% Other m-files required:</span>
+0028 <span class="comment">%       getChi2</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% Subfunctions:</span>
+0031 <span class="comment">%       none</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% MAT-files required:</span>
+0034 <span class="comment">%       none</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% See also:</span>
+0037 <span class="comment">% Author: Thomas Hiller</span>
+0038 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0039 <span class="comment">% License: MIT License (at end)</span>
+0040 
+0041 <span class="comment">%------------- BEGIN CODE --------------</span>
+0042 
+0043 <span class="comment">%% check for weighing matrix W</span>
+0044 isW = false;
+0045 <span class="keyword">if</span> nargin &gt; 3
+0046     <span class="comment">% error weighing matrix from time gating</span>
+0047     W = varargin{1};
+0048     isW = true;
+0049 <span class="keyword">end</span>
+0050 
+0051 <span class="comment">%% residuals</span>
+0052 residual = s-sfit;
+0053 
+0054 <span class="comment">%% L1 norm</span>
+0055 errnorm1 = sum(abs(residual));
+0056 
+0057 <span class="comment">%% L2 norm (squared residual norm)</span>
+0058 <span class="comment">% in general the output of the Matlab fitting functions (&quot;resnorm&quot;)</span>
+0059 <span class="comment">% is similar as to write &quot;norm(residual).^2&quot;</span>
+0060 errnorm2 = sum(abs(residual.^2));
+0061 
+0062 <span class="comment">%% MSE (mean squared error)</span>
+0063 mse = mean(residual.^2);
+0064 
+0065 <span class="comment">%% RMS and X2</span>
+0066 <span class="keyword">if</span> isW
+0067     <span class="comment">% weighted RMS error</span>
+0068     <span class="comment">% residual is weighted with the amount of echos N per time gate</span>
+0069     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
+0070     N = (noise./diag(W)).^2;    
+0071     rms = sqrt (sum(N.*(residual).^2) / length(residual));
+0072     <span class="comment">% X2 estimate</span>
+0073     chi2 = <a href="getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(s,sfit,diag(W));
+0074 <span class="keyword">else</span>    
+0075     <span class="comment">% RMS error</span>
+0076     rms = sqrt( sum(residual.^2) / length(residual) );
+0077     <span class="comment">% X2 estimate</span>
+0078     chi2 = <a href="getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(s,sfit,noise);
+0079 <span class="keyword">end</span>
+0080 
+0081 <span class="comment">%% output struct</span>
+0082 out.residual = residual;
+0083 out.errnorm1 = errnorm1;
+0084 out.errnorm2 = errnorm2;
+0085 out.resnorm = errnorm2;
+0086 out.mse = mse;
+0087 out.rms = rms;
+0088 out.chi2 = chi2;
+0089 
+0090 <span class="keyword">return</span>
+0091 
+0092 <span class="comment">%------------- END OF CODE --------------</span>
+0093 
+0094 <span class="comment">%% License:</span>
+0095 <span class="comment">% MIT License</span>
+0096 <span class="comment">%</span>
+0097 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0098 <span class="comment">%</span>
+0099 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0100 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0101 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0102 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0103 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0104 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0105 <span class="comment">%</span>
+0106 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0107 <span class="comment">% copies or substantial portions of the Software.</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0110 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0111 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0112 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0113 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0114 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0115 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getGeometryParameter</title>
+  <meta name="keywords" content="getGeometryParameter">
+  <meta name="description" content=" calculates geometric parameters for the three possible">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html modeling -->
+<h1>getGeometryParameter
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> calculates geometric parameters for the three possible</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function geom = getGeometryParameter(geom) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getGeometryParameter calculates geometric parameters for the three possible
+pore shapes: 'cyl', 'ang' and 'poly'. For the types 'ang' &amp; 'poly' the
+'radius' is used to calculate an equivalent area and subsequently,
+according to the given 'angles' ('ang') or number of polygon sides 'polyN'
+('poly'), the side lengths and other parameters are calculated.
+
+ Syntax:
+       getGeometryParameter(geom)
+
+ Inputs:
+       geom - struct with fields:
+           type   : 'cyl','ang' or,'poly'
+           radius : radius
+           angles : angles (only needed for 'ang')
+
+ Outputs:
+       geom - struct with fields:
+           A0       : area
+           P0       : perimeter
+           a        : NMR geometry parameter
+           side(s)  : (only 'ang' and 'poly')
+           inRadius : inscribing circle radius (only 'ang' and 'poly')
+           AngulFac : angularity factor (only 'ang' and 'poly')
+           ShapeFac : shape factor (only 'ang' and 'poly')
+           Points   : coordinates of corner points (only 'ang' and 'poly')
+
+ Example:
+       geom = getGeometryParameter(geom)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="getAngularityFactor.html" class="code" title="function F = getAngularityFactor(angles)">getAngularityFactor</a>	 calculates the angularity factor of a triangle after</li><li><a href="getPointCoordinates.html" class="code" title="function points = getPointCoordinates(geom)">getPointCoordinates</a>	 calculates the coordinates of the N corner points</li><li><a href="getShapeFactor.html" class="code" title="function G = getShapeFactor(A,P)">getShapeFactor</a>	 calculates he shape factor G according to G = A / P^2</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/calculateGeometry.html" class="code" title="function calculateGeometry">calculateGeometry</a>	 calculates the shape dependent geometry parameters</li><li><a href="../../../nucleus/functions/interface/runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>	 performs the "fixed" joint inversion using the RTD of</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>	 performs the "shape" joint inversion using the RTD of</li><li><a href="getPressureRangeFromPSD.html" class="code" title="function prange = getPressureRangeFromPSD(geom,psddata)">getPressureRangeFromPSD</a>	 estimates pressure range for the CPS curve</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function geom = getGeometryParameter(geom)</a>
+0002 <span class="comment">%getGeometryParameter calculates geometric parameters for the three possible</span>
+0003 <span class="comment">%pore shapes: 'cyl', 'ang' and 'poly'. For the types 'ang' &amp; 'poly' the</span>
+0004 <span class="comment">%'radius' is used to calculate an equivalent area and subsequently,</span>
+0005 <span class="comment">%according to the given 'angles' ('ang') or number of polygon sides 'polyN'</span>
+0006 <span class="comment">%('poly'), the side lengths and other parameters are calculated.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Syntax:</span>
+0009 <span class="comment">%       getGeometryParameter(geom)</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Inputs:</span>
+0012 <span class="comment">%       geom - struct with fields:</span>
+0013 <span class="comment">%           type   : 'cyl','ang' or,'poly'</span>
+0014 <span class="comment">%           radius : radius</span>
+0015 <span class="comment">%           angles : angles (only needed for 'ang')</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Outputs:</span>
+0018 <span class="comment">%       geom - struct with fields:</span>
+0019 <span class="comment">%           A0       : area</span>
+0020 <span class="comment">%           P0       : perimeter</span>
+0021 <span class="comment">%           a        : NMR geometry parameter</span>
+0022 <span class="comment">%           side(s)  : (only 'ang' and 'poly')</span>
+0023 <span class="comment">%           inRadius : inscribing circle radius (only 'ang' and 'poly')</span>
+0024 <span class="comment">%           AngulFac : angularity factor (only 'ang' and 'poly')</span>
+0025 <span class="comment">%           ShapeFac : shape factor (only 'ang' and 'poly')</span>
+0026 <span class="comment">%           Points   : coordinates of corner points (only 'ang' and 'poly')</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% Example:</span>
+0029 <span class="comment">%       geom = getGeometryParameter(geom)</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% Other m-files required:</span>
+0032 <span class="comment">%       none</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% Subfunctions:</span>
+0035 <span class="comment">%       none</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">% MAT-files required:</span>
+0038 <span class="comment">%       none</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% See also:</span>
+0041 <span class="comment">% Author: Thomas Hiller</span>
+0042 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0043 <span class="comment">% License: MIT License (at end)</span>
+0044 
+0045 <span class="comment">%------------- BEGIN CODE --------------</span>
+0046 
+0047 <span class="keyword">switch</span> geom.type    
+0048     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0049         <span class="comment">% cross sectional area A0 and perimeter P0</span>
+0050         geom.A0 = geom.radius.^2*pi;
+0051         geom.P0 = 2.*geom.radius.*pi;
+0052         geom.a = 2;
+0053         
+0054     <span class="keyword">case</span> <span class="string">'ang'</span>
+0055         <span class="comment">% cross sectional equivalent area A0</span>
+0056         geom.A0 = geom.radius.^2*pi;
+0057         
+0058         <span class="comment">% check if the sum of angles is really 180°</span>
+0059         <span class="keyword">if</span> sum(geom.angles) == 180
+0060             
+0061             <span class="comment">% the three inner angles</span>
+0062             alpha = geom.angles(1);
+0063             beta  = geom.angles(2);
+0064             gamma = geom.angles(3);
+0065             
+0066             <span class="comment">% the triangle sides</span>
+0067             a = sqrt((2*geom.A0*sind(alpha))/(sind(beta) *sind(gamma)));
+0068             b = sqrt((2*geom.A0*sind(beta)) /(sind(alpha)*sind(gamma)));
+0069             c = sqrt((2*geom.A0*sind(gamma))/(sind(alpha)*sind(beta)));
+0070             geom.sides = [a(:) b(:) c(:)];
+0071             
+0072             <span class="comment">% perimeter P0</span>
+0073             geom.P0 = sum(geom.sides,2);
+0074             
+0075             <span class="comment">% NMR geometry parameter a</span>
+0076             geom.a = (geom.P0(1)/geom.A0(1)) * geom.radius(1);
+0077             
+0078             <span class="comment">% inscribing circle radius</span>
+0079             geom.inRadius = (2.*geom.A0) ./ (geom.P0);
+0080             
+0081             <span class="comment">% the angularity factor for all angles</span>
+0082             geom.AngulFac = <a href="getAngularityFactor.html" class="code" title="function F = getAngularityFactor(angles)">getAngularityFactor</a>(geom.angles);
+0083             
+0084             <span class="comment">% triangle shape factor</span>
+0085             geom.ShapeFac = <a href="getShapeFactor.html" class="code" title="function G = getShapeFactor(A,P)">getShapeFactor</a>(geom.A0(1),geom.P0(1));
+0086             
+0087             <span class="comment">% for plotting get the coordinates of the three corner points</span>
+0088             geom.Points = <a href="getPointCoordinates.html" class="code" title="function points = getPointCoordinates(geom)">getPointCoordinates</a>(geom);
+0089             
+0090         <span class="keyword">else</span>
+0091             errordlg(<span class="string">'Check angles! sum(angles)~=180°'</span>,<span class="string">'getGeomParams: Error!'</span>);
+0092         <span class="keyword">end</span>
+0093         
+0094     <span class="keyword">case</span> <span class="string">'poly'</span>        
+0095         <span class="comment">% cross sectional equivalent area A0</span>
+0096         geom.A0 = geom.radius.^2*pi;
+0097         
+0098         <span class="comment">% only for polygons with 3 to 12 sides</span>
+0099         <span class="keyword">if</span> geom.polyN &gt;= 3 &amp;&amp; geom.polyN &lt;= 12            
+0100             <span class="comment">% inscribing circle radius / apothem</span>
+0101             geom.inRadius = sqrt((geom.A0./geom.polyN) ./ tand(180./geom.polyN));
+0102             
+0103             <span class="comment">% side length</span>
+0104             geom.side = (2.*geom.A0)./(geom.polyN.*geom.inRadius);
+0105             
+0106             <span class="comment">% perimeter P0</span>
+0107             geom.P0 = geom.side.*geom.polyN;
+0108             
+0109             <span class="comment">% NMR geometry parameter a</span>
+0110             geom.a = (geom.P0(1)/geom.A0(1)) * geom.radius(1);
+0111             
+0112             <span class="comment">% the interior angles</span>
+0113             geom.angles = (((geom.polyN-2)/geom.polyN) * 180) .* ones(1,geom.polyN);
+0114             
+0115             <span class="comment">% the angularity factor for all angles</span>
+0116             geom.AngulFac = <a href="getAngularityFactor.html" class="code" title="function F = getAngularityFactor(angles)">getAngularityFactor</a>(geom.angles);
+0117             
+0118             <span class="comment">% polygon shape factor</span>
+0119             geom.ShapeFac = <a href="getShapeFactor.html" class="code" title="function G = getShapeFactor(A,P)">getShapeFactor</a>(geom.A0,geom.P0);
+0120             
+0121             <span class="comment">% for plotting get the coordinates of the three corner points</span>
+0122             geom.Points = <a href="getPointCoordinates.html" class="code" title="function points = getPointCoordinates(geom)">getPointCoordinates</a>(geom);
+0123         <span class="keyword">else</span>
+0124             errordlg(<span class="string">'Check polygon No. polyN! polyN~=[3 12]'</span>,<span class="string">'getGeomParams: Error!'</span>);
+0125         <span class="keyword">end</span>
+0126 <span class="keyword">end</span>
+0127 
+0128 <span class="keyword">return</span>
+0129 
+0130 <span class="comment">%------------- END OF CODE --------------</span>
+0131 
+0132 <span class="comment">%% License:</span>
+0133 <span class="comment">% MIT License</span>
+0134 <span class="comment">%</span>
+0135 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0136 <span class="comment">%</span>
+0137 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0138 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0139 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0140 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0141 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0142 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0143 <span class="comment">%</span>
+0144 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0145 <span class="comment">% copies or substantial portions of the Software.</span>
+0146 <span class="comment">%</span>
+0147 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0148 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0149 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0150 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0151 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0152 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0153 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

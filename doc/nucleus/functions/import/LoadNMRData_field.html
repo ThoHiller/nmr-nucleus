@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of LoadNMRData_field</title>
+  <meta name="keywords" content="LoadNMRData_field">
+  <meta name="description" content=" loads RWTH field NMR data (Blümich group borehole tool)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html import -->
+<h1>LoadNMRData_field
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> loads RWTH field NMR data (Blümich group borehole tool)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = LoadNMRData_field(in) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">LoadNMRData_field loads RWTH field NMR data (Blümich group borehole tool)
+
+ Syntax:
+       out = LoadNMRData_field(in)
+
+ Inputs:
+       in - input structure
+       in.path - data path
+       in.name - file name
+       in.fileformat - 'field'
+
+ Outputs:
+       out - output structure
+       out.parData - parameter file data
+       out.nmrData - NMR data
+
+ Example:
+       out = LoadNMRData_field(in)
+
+ Other m-files required:
+       rotateT2phase
+       fixParameterString
+
+ Subfunctions:
+       LoadDataFile
+       LoadParameterFile
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>	 cleans parameter file lines when the properties have a</li><li><a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [data] = LoadDataFile(datapath,fname)</a></li><li><a href="#_sub2" class="code">function [data] = LoadParameterFile(datapath,fname)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_field(in)</a>
+0002 <span class="comment">%LoadNMRData_field loads RWTH field NMR data (Blümich group borehole tool)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       out = LoadNMRData_field(in)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       in - input structure</span>
+0009 <span class="comment">%       in.path - data path</span>
+0010 <span class="comment">%       in.name - file name</span>
+0011 <span class="comment">%       in.fileformat - 'field'</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Outputs:</span>
+0014 <span class="comment">%       out - output structure</span>
+0015 <span class="comment">%       out.parData - parameter file data</span>
+0016 <span class="comment">%       out.nmrData - NMR data</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% Example:</span>
+0019 <span class="comment">%       out = LoadNMRData_field(in)</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Other m-files required:</span>
+0022 <span class="comment">%       rotateT2phase</span>
+0023 <span class="comment">%       fixParameterString</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Subfunctions:</span>
+0026 <span class="comment">%       LoadDataFile</span>
+0027 <span class="comment">%       LoadParameterFile</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% MAT-files required:</span>
+0030 <span class="comment">%       none</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">% See also: NUCLEUSinv</span>
+0033 <span class="comment">% Author: Thomas Hiller</span>
+0034 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0035 <span class="comment">% License: MIT License (at end)</span>
+0036 
+0037 <span class="comment">%------------- BEGIN CODE --------------</span>
+0038 
+0039 <span class="comment">%% start processing the files</span>
+0040 <span class="comment">% load Parameter file</span>
+0041 [parData] = <a href="#_sub2" class="code" title="subfunction [data] = LoadParameterFile(datapath,fname)">LoadParameterFile</a>(in.path,[in.name,<span class="string">'.par'</span>]);
+0042 <span class="comment">% check if T1 or T2 data</span>
+0043 <span class="keyword">if</span> strcmpi(parData.experiment,<span class="string">'t1'</span>)
+0044     T1T2flag = <span class="string">'T1'</span>;
+0045 <span class="keyword">elseif</span> strcmpi(parData.experiment,<span class="string">'cpmgfast'</span>) ||<span class="keyword">...</span>
+0046         strcmpi(parData.experiment,<span class="string">'CPMG_drying2D'</span>)
+0047     T1T2flag = <span class="string">'T2'</span>;
+0048 <span class="keyword">end</span>
+0049 
+0050 <span class="keyword">switch</span> T1T2flag
+0051     <span class="keyword">case</span> <span class="string">'T1'</span>
+0052         parData = [];
+0053         nmrData = [];
+0054         
+0055         helpdlg({<span class="string">'function: LoadNMRData_field'</span>,<span class="keyword">...</span>
+0056             <span class="string">'T1 data import not yet implemented'</span>},<span class="string">'not implemented yet'</span>);
+0057         
+0058     <span class="keyword">case</span> <span class="string">'T2'</span>        
+0059         <span class="comment">% find all data files</span>
+0060         files1 = dir(fullfile(in.path,[in.name,<span class="string">'*.dat'</span>]));
+0061         
+0062         <span class="comment">% check if it is a single or multiple measurement(s)</span>
+0063         <span class="keyword">if</span> numel(files1) &gt; 1            
+0064             <span class="comment">% commandline output</span>
+0065             disp([in.name,<span class="string">': importing NMR files ...'</span>]);
+0066             
+0067             nmrData = cell(1,size(files1,1));
+0068             <span class="keyword">for</span> i = 1:numel(files1)
+0069                 <span class="comment">% read the data file</span>
+0070                 data = <a href="#_sub1" class="code" title="subfunction [data] = LoadDataFile(datapath,fname)">LoadDataFile</a>(in.path,files1(i).name);
+0071                 
+0072                 <span class="comment">% get file statistics</span>
+0073                 nmrData{i}.datfile = files1(i).name;
+0074                 nmrData{i}.date = files1(i).date;
+0075                 nmrData{i}.datenum = files1(i).datenum;
+0076                 nmrData{i}.bytes = files1(i).bytes;
+0077                 
+0078                 <span class="comment">% save the NMR data</span>
+0079                 nmrData{i}.flag = data.flag;
+0080                 nmrData{i}.T1IRfac = 1;
+0081                 nmrData{i}.time = data.time;
+0082                 nmrData{i}.signal = data.signal;
+0083                 nmrData{i}.raw = data.raw;                
+0084                 clear data
+0085                 
+0086                 <span class="comment">% commandline output</span>
+0087                 disp([in.name,<span class="string">': importing NMR files '</span>,sprintf(<span class="string">'%03d'</span>,i),<span class="keyword">...</span>
+0088                     <span class="string">' / '</span>,sprintf(<span class="string">'%03d'</span>,numel(files1))]);
+0089             <span class="keyword">end</span>
+0090             
+0091         <span class="keyword">else</span>
+0092             <span class="comment">% single measurement</span>
+0093             <span class="keyword">if</span> isempty(files1)
+0094                 files2 = dir(fullfile(in.path,<span class="string">'data.dat'</span>));
+0095                 files = files2;
+0096             <span class="keyword">else</span>
+0097                 files = files1;
+0098             <span class="keyword">end</span>
+0099             
+0100             <span class="keyword">if</span> ~isempty(files)
+0101                 <span class="comment">% read the data file</span>
+0102                 data = <a href="#_sub1" class="code" title="subfunction [data] = LoadDataFile(datapath,fname)">LoadDataFile</a>(in.path,files.name);
+0103                 
+0104                 <span class="comment">% get file statistics</span>
+0105                 nmrData{1}.datfile = files.name;
+0106                 nmrData{1}.date = files.date;
+0107                 nmrData{1}.datenum = files.datenum;
+0108                 nmrData{1}.bytes = files.bytes;
+0109                 
+0110                 <span class="comment">% save the NMR data</span>
+0111                 nmrData{1}.flag = data.flag;
+0112                 nmrData{1}.T1IRfac = 1;
+0113                 nmrData{1}.time = data.time;
+0114                 nmrData{1}.signal = data.signal;
+0115                 nmrData{1}.raw = data.raw;                
+0116                 clear data
+0117             <span class="keyword">end</span>            
+0118         <span class="keyword">end</span>
+0119 <span class="keyword">end</span>
+0120 
+0121 <span class="comment">% save data to output struct</span>
+0122 out.parData = parData;
+0123 out.nmrData = nmrData;
+0124 
+0125 <span class="keyword">end</span>
+0126 
+0127 <span class="comment">%% load NMR data file</span>
+0128 <a name="_sub1" href="#_subfunctions" class="code">function [data] = LoadDataFile(datapath,fname)</a>
+0129 
+0130 d = load(fullfile(datapath,fname));
+0131 
+0132 <span class="keyword">if</span> size(d,2) == 3
+0133     data.flag = <span class="string">'T2'</span>;
+0134     <span class="comment">% [ms] to [s]</span>
+0135     <span class="keyword">if</span> d(1,1) &gt; 1e-2
+0136         data.time = d(:,1)/1000;
+0137     <span class="keyword">else</span>
+0138         data.time = d(:,1);
+0139     <span class="keyword">end</span>
+0140     data.signal = complex(d(:,2),d(:,3));
+0141     data.signal = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(data.signal);
+0142 <span class="keyword">else</span>
+0143     data.flag = <span class="string">'0'</span>;
+0144     data.time = 0;
+0145     data.signal = 0;
+0146 <span class="keyword">end</span>
+0147 
+0148 data.raw.time = data.time;
+0149 data.raw.signal = data.signal;
+0150 
+0151 <span class="keyword">end</span>
+0152 
+0153 <span class="comment">%% load parameter file</span>
+0154 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0155 
+0156 fid = fopen(fullfile(datapath,fname));
+0157 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0158 fclose(fid);
+0159 
+0160 <span class="keyword">for</span> i = 1:size(d{1},1)
+0161     str = char(d{1}(i));
+0162     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0163     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
+0164 <span class="keyword">end</span>
+0165 data.all = d;
+0166 
+0167 <span class="keyword">end</span>
+0168 
+0169 <span class="comment">%------------- END OF CODE --------------</span>
+0170 
+0171 <span class="comment">%% License:</span>
+0172 <span class="comment">% MIT License</span>
+0173 <span class="comment">%</span>
+0174 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0175 <span class="comment">%</span>
+0176 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0177 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0178 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0179 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0180 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0181 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0182 <span class="comment">%</span>
+0183 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0184 <span class="comment">% copies or substantial portions of the Software.</span>
+0185 <span class="comment">%</span>
+0186 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0187 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0188 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0189 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0190 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0191 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0192 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

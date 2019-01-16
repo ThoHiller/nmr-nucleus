@@ -1,0 +1,650 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of exportData</title>
+  <meta name="keywords" content="exportData">
+  <meta name="description" content=" exports data from both GUIs into various formats">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>exportData
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> exports data from both GUIs into various formats</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function exportData(fig_tag,format) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">exportData exports data from both GUIs into various formats
+
+ Syntax:
+       exportData(fig_tag,format)
+
+ Inputs:
+       fig_tag - 'MOD' or 'INV'
+       format - 'matS', 'matA', 'excelS' or 'LIAG'
+
+ Outputs:
+       none
+
+ Example:
+       exportData('INV','matS')
+
+ Other m-files required:
+       clearSingleAxis
+
+ Subfunctions:
+       checkINV
+       checkMOD
+       exportINV_EXCEL
+       exportINV_CSV
+       exportMOD_EXCEL
+       findApproxTlgmAmplitude
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv, NUCLEUSmod
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 clears all axes of a given figure</li><li><a href="exportGraphics.html" class="code" title="function varargout = exportGraphics(fig_tag,format)">exportGraphics</a>	 exports graphics from both GUIs into various formats</li><li><a href="exportINV.html" class="code" title="function exportINV(format,varargin)">exportINV</a>	 exports NUCLEUSinv GUI data to a mat-file</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/contextmenus/onContextSignalList.html" class="code" title="function onContextSignalList(src,~)">onContextSignalList</a>	 handles the calls from the context menu of the data</li><li><a href="../../../nucleus/callbacks/menus/onMenuExportData.html" class="code" title="function onMenuExportData(src,~)">onMenuExportData</a>	 handles the calls from the export menu</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function exportINV_EXCEL(gui,INVdata,id,sfile,spath)</a></li><li><a href="#_sub2" class="code">function exportINV_CSV(INVdata,sfile)</a></li><li><a href="#_sub3" class="code">function exportMOD_EXCEL()</a></li><li><a href="#_sub4" class="code">function doexport = checkINV(INVdata,id)</a></li><li><a href="#_sub5" class="code">function doexport = checkMOD(data)</a></li><li><a href="#_sub6" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function exportData(fig_tag,format)</a>
+0002 <span class="comment">%exportData exports data from both GUIs into various formats</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       exportData(fig_tag,format)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       fig_tag - 'MOD' or 'INV'</span>
+0009 <span class="comment">%       format - 'matS', 'matA', 'excelS' or 'LIAG'</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       none</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       exportData('INV','matS')</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       clearSingleAxis</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       checkINV</span>
+0022 <span class="comment">%       checkMOD</span>
+0023 <span class="comment">%       exportINV_EXCEL</span>
+0024 <span class="comment">%       exportINV_CSV</span>
+0025 <span class="comment">%       exportMOD_EXCEL</span>
+0026 <span class="comment">%       findApproxTlgmAmplitude</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% MAT-files required:</span>
+0029 <span class="comment">%       none</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% See also: NUCLEUSinv, NUCLEUSmod</span>
+0032 <span class="comment">% Author: Thomas Hiller</span>
+0033 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0034 <span class="comment">% License: MIT License (at end)</span>
+0035 
+0036 <span class="comment">%------------- BEGIN CODE --------------</span>
+0037 
+0038 <span class="comment">%% get GUI handle and data</span>
+0039 fig = findobj(<span class="string">'Tag'</span>,fig_tag);
+0040 gui = getappdata(fig,<span class="string">'gui'</span>);
+0041 data = getappdata(fig,<span class="string">'data'</span>);
+0042 
+0043 <span class="keyword">switch</span> fig_tag
+0044     <span class="keyword">case</span> <span class="string">'INV'</span>
+0045         <span class="comment">% get inversion data</span>
+0046         INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0047         
+0048         <span class="comment">% which NMR signal</span>
+0049         id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0050         
+0051         <span class="comment">% check if data can be exported</span>
+0052         doexport = <a href="#_sub4" class="code" title="subfunction doexport = checkINV(INVdata,id)">checkINV</a>(INVdata,id);
+0053         
+0054         <span class="keyword">if</span> doexport
+0055             <span class="comment">% get the new file name</span>
+0056             sfilename = data.import.NMR.filesShort{id};
+0057             ind1 = strfind(sfilename,<span class="string">'.'</span>);
+0058             <span class="keyword">if</span> isempty(ind1)
+0059                 sfilename = [sfilename,<span class="string">'_INV'</span>];
+0060             <span class="keyword">else</span>
+0061                 sfilename = [sfilename(1:ind1-1),<span class="string">'_INV'</span>];
+0062             <span class="keyword">end</span>
+0063             
+0064             <span class="comment">% different export formats</span>
+0065             <span class="keyword">switch</span> format
+0066                 <span class="keyword">case</span> <span class="string">'excelS'</span>
+0067                     <span class="comment">% get the file name</span>
+0068                     [sfile,spath] = uiputfile(<span class="string">'*.xlsx'</span>,<span class="keyword">...</span>
+0069                         <span class="string">'Save inversion to Excel-file'</span>,<span class="keyword">...</span>
+0070                         fullfile(data.import.path,[sfilename,<span class="string">'.xlsx'</span>]));
+0071                     
+0072                     <span class="comment">% if user didn't cancel</span>
+0073                     <span class="keyword">if</span> sum([sfile spath]) &gt; 0
+0074                         <a href="#_sub1" class="code" title="subfunction exportINV_EXCEL(gui,INVdata,id,sfile,spath)">exportINV_EXCEL</a>(gui,INVdata,id,sfile,spath);
+0075                     <span class="keyword">end</span>
+0076                     
+0077                 <span class="keyword">case</span> <span class="string">'matS'</span>
+0078                     <span class="comment">% get the file name</span>
+0079                     [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="keyword">...</span>
+0080                         <span class="string">'Save inversion to mat-file'</span>,<span class="keyword">...</span>
+0081                         fullfile(data.import.path,[sfilename,<span class="string">'.mat'</span>]));
+0082                     
+0083                     <span class="comment">% if user didn't cancel</span>
+0084                     <span class="keyword">if</span> sum([sfile spath]) &gt; 0
+0085                         <span class="comment">% display info text</span>
+0086                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0087                             <span class="string">'Exporting inversion data to mat-file ...'</span>);
+0088                         <span class="comment">% gather all data</span>
+0089                         idata.NMRdata = data.import.NMR.data{id};
+0090                         idata.results = INVdata{id}.results;
+0091                         idata.NUCLEUSinv_GUI = INVdata{id};
+0092                         idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,<span class="string">'results'</span>);
+0093                         
+0094                         <span class="comment">% save to file</span>
+0095                         save(fullfile(spath,sfile),<span class="string">'idata'</span>);
+0096                         
+0097                         <span class="comment">% display info text</span>
+0098                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0099                             <span class="string">'Exporting inversion data to mat-file ... done'</span>);
+0100                     <span class="keyword">else</span>
+0101                         <span class="comment">% display info text</span>
+0102                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0103                             <span class="string">'Exporting inversion data to mat-file ... canceled'</span>);
+0104                     <span class="keyword">end</span>
+0105                     
+0106                 <span class="keyword">case</span> <span class="string">'matA'</span>
+0107                     <span class="comment">% get the file name</span>
+0108                     [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="keyword">...</span>
+0109                         <span class="string">'Save inversion to mat-file'</span>,<span class="keyword">...</span>
+0110                         fullfile(data.import.path,<span class="string">'inversion_set.mat'</span>));
+0111                     <span class="comment">% if user didn't cancel</span>
+0112                     <span class="keyword">if</span> sum([sfile spath]) &gt; 0
+0113                         <span class="comment">% display info text</span>
+0114                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0115                             <span class="string">'Exporting inversion set to mat-file ...'</span>);
+0116                         idata = struct;
+0117                         <span class="keyword">for</span> id = 1:size(INVdata,1)
+0118                             <span class="keyword">if</span> isstruct(INVdata{id})
+0119                                 results = INVdata{id}.results;
+0120                                 results = rmfield(results,<span class="string">'nmrraw'</span>);
+0121                                 results.nmraw = data.import.NMR.data{id};
+0122                                 idata.results(id) = results;                                
+0123                             <span class="keyword">end</span>
+0124                         <span class="keyword">end</span>
+0125                         idata.NUCLEUSinv_GUI = INVdata{1};
+0126                         idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,<span class="string">'results'</span>);
+0127                         
+0128                         <span class="comment">% save to file</span>
+0129                         save(fullfile(spath,sfile),<span class="string">'idata'</span>);
+0130                         
+0131                         <span class="comment">% display info text</span>
+0132                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0133                             <span class="string">'Exporting inversion set to mat-file ... done'</span>);
+0134                     <span class="keyword">else</span>
+0135                         <span class="comment">% display info text</span>
+0136                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0137                             <span class="string">'Exporting inversion set to mat-file ... canceled'</span>);
+0138                     <span class="keyword">end</span>                    
+0139                     
+0140                 <span class="keyword">case</span> <span class="string">'LIAG'</span>
+0141                     
+0142                     <span class="keyword">if</span> isfield(data.import,<span class="string">'LIAG'</span>)                    
+0143                         <span class="comment">% find id of sample</span>
+0144                         id = 1;
+0145                         spath = data.import.LIAG.workpaths{id};
+0146                         sfilename = [<span class="string">'INV_'</span>,data.import.NMR.filesShort{id}];
+0147                         
+0148                         <span class="comment">% session output</span>
+0149                         silent.sname = fullfile(spath,[sfilename,<span class="string">'_session.mat'</span>]);
+0150                         <a href="exportINV.html" class="code" title="function exportINV(format,varargin)">exportINV</a>(<span class="string">'session'</span>,silent);
+0151                         
+0152                         <span class="comment">% csv output</span>
+0153                         csvname = fullfile(spath,[sfilename,<span class="string">'.csv'</span>]);
+0154                         <a href="#_sub2" class="code" title="subfunction exportINV_CSV(INVdata,sfile)">exportINV_CSV</a>(INVdata{id},csvname);
+0155                         
+0156                         <span class="comment">% png graphics</span>
+0157                         pngname = fullfile(spath,[sfilename,<span class="string">'.png'</span>]);
+0158                         [f,ax]=<a href="exportGraphics.html" class="code" title="function varargout = exportGraphics(fig_tag,format)">exportGraphics</a>(<span class="string">'INV'</span>,<span class="string">'fig'</span>);
+0159                         
+0160                         figure(f);
+0161                         por = INVdata{id}.invstd.porosity;
+0162                         tname = [sfilename(5:end),<span class="string">' (porosity: '</span>,<span class="keyword">...</span>
+0163                             sprintf(<span class="string">'%2.1f'</span>,por*100),<span class="string">' vol. %)'</span>];
+0164                         set(get(ax(1),<span class="string">'Title'</span>),<span class="string">'String'</span>,tname,<span class="string">'Interpreter'</span>,<span class="string">'none'</span>);
+0165                         
+0166                         yy = get(ax(2),<span class="string">'YLim'</span>);
+0167                         TLGM = INVdata{id}.results.invstd.Tlgm;
+0168                         T = INVdata{id}.results.invstd.T1T2me;
+0169                         F = INVdata{id}.results.invstd.T1T2f;
+0170                         F = por.*F./sum(F);
+0171                         amp = <a href="#_sub6" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(T,F,TLGM);
+0172                         stem(TLGM,amp,<span class="keyword">...</span>
+0173                             <span class="string">'x-'</span>,<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineWidth'</span>,2,<span class="keyword">...</span>
+0174                             <span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax(2));
+0175                         
+0176                         <span class="keyword">switch</span> INVdata{id}.process.timescale
+0177                             <span class="keyword">case</span> <span class="string">'s'</span>
+0178                                 CBW = INVdata{id}.param.CBWcutoff/1000;
+0179                                 BVI = INVdata{id}.param.BVIcutoff/1000;
+0180                             <span class="keyword">case</span> <span class="string">'ms'</span>
+0181                                 CBW = INVdata{id}.param.CBWcutoff;
+0182                                 BVI = INVdata{id}.param.BVIcutoff;
+0183                         <span class="keyword">end</span>
+0184                         line([CBW CBW],[yy(1) yy(2)],<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0185                             <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax(2),<span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0186                         line([BVI BVI],[yy(1) yy(2)],<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0187                             <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax(2),<span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0188                         legend(ax(2),<span class="string">'RTD'</span>,<span class="string">'TLGM'</span>,<span class="string">'cutoffs'</span>);
+0189                         
+0190                         CBWa = abs(sum(F(T&lt;=CBW))/sum(F));
+0191                         BVIa = abs(sum(F(T&gt;CBW &amp; T&lt;=BVI))/sum(F));
+0192                         BVMa = abs(sum(F(T&gt;BVI))/sum(F));
+0193 <span class="comment">%                         tname2 = ['CBW: ',sprintf('%2.1f',por*100*CBWa),...</span>
+0194 <span class="comment">%                             ' | BVI: ',sprintf('%2.1f',por*100*BVIa),...</span>
+0195 <span class="comment">%                             ' | BVM: ',sprintf('%2.1f',por*100*BVMa),...</span>
+0196 <span class="comment">%                             ' vol. % | TLGM: ',sprintf('%4.3f',TLGM),' [s]'];</span>
+0197                         tname2 = [<span class="string">'CBW / BVI / BVM: '</span>,sprintf(<span class="string">'%2.1f'</span>,por*100*CBWa),<span class="keyword">...</span>
+0198                             <span class="string">' / '</span>,sprintf(<span class="string">'%2.1f'</span>,por*100*BVIa),<span class="keyword">...</span>
+0199                             <span class="string">' / '</span>,sprintf(<span class="string">'%2.1f'</span>,por*100*BVMa),<span class="keyword">...</span>
+0200                             <span class="string">' vol. % | TLGM: '</span>,sprintf(<span class="string">'%4.3f'</span>,TLGM),<span class="string">' [s]'</span>];
+0201                         set(get(ax(2),<span class="string">'Title'</span>),<span class="string">'String'</span>,tname2,<span class="string">'Interpreter'</span>,<span class="string">'none'</span>);
+0202                         
+0203                         set(f,<span class="string">'PaperType'</span>,<span class="string">'A4'</span>,<span class="string">'PaperUnits'</span>,<span class="string">'centimeters'</span>,<span class="keyword">...</span>
+0204                             <span class="string">'PaperOrientation'</span>,<span class="string">'portrait'</span>);
+0205                         set(f,<span class="string">'PaperPositionMode'</span>,<span class="string">'manual'</span>,<span class="keyword">...</span>
+0206                             <span class="string">'PaperPosition'</span>,[0.6 6.2 19.7 17.2]);
+0207                         set(f,<span class="string">'Renderer'</span>,<span class="string">'painter'</span>);
+0208                         print(f,pngname,<span class="string">'-r300'</span>,<span class="string">'-dpng'</span>);
+0209                         close(f);
+0210                         
+0211                     <span class="keyword">else</span>
+0212                         helpdlg({<span class="string">'function: exportData'</span>,<span class="keyword">...</span>
+0213                             <span class="string">'This routine works only on LIAG specific project data.'</span>},<span class="keyword">...</span>
+0214                             <span class="string">'No LIAG data'</span>);
+0215                     <span class="keyword">end</span>
+0216             <span class="keyword">end</span>
+0217         <span class="keyword">end</span>
+0218         
+0219     <span class="keyword">case</span> <span class="string">'MOD'</span>
+0220         <span class="comment">% check if data can be exported</span>
+0221         doexport = <a href="#_sub5" class="code" title="subfunction doexport = checkMOD(data)">checkMOD</a>(data);
+0222         <span class="keyword">if</span> doexport
+0223             <span class="comment">% different export formats</span>
+0224             <span class="keyword">switch</span> format
+0225                 <span class="keyword">case</span> <span class="string">'mat'</span>                    
+0226                     <span class="comment">% gather all relevant data</span>
+0227                     out = data.results;
+0228                     <span class="keyword">if</span> isfield(out.NMR.raw,<span class="string">'Tb'</span>)
+0229                         out.NMR.raw = rmfield(out.NMR.raw,<span class="string">'Tb'</span>);
+0230                     <span class="keyword">end</span>
+0231                     <span class="keyword">if</span> isfield(out.NMR.raw,<span class="string">'rho'</span>)
+0232                         out.NMR.raw = rmfield(out.NMR.raw,<span class="string">'rho'</span>);
+0233                     <span class="keyword">end</span>
+0234                     out.NMRMOD_GUI.geometry = data.geometry;
+0235                     out.NMRMOD_GUI.pressure = data.pressure;
+0236                     out.NMRMOD_GUI.nmr = data.nmr;
+0237                     out.NMRMOD_GUI.myui = gui.myui;
+0238                     
+0239                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Saving to MAT-file ...'</span>);
+0240                     [FileName,PathName,~] = uiputfile({<span class="string">'*.mat'</span>,<span class="string">'Matlab file'</span>},<span class="string">'NUCLEUSmod: Save Data'</span>,fullfile(pwd,<span class="string">'NUCLEUSmod_forward.mat'</span>));
+0241                     
+0242                     <span class="keyword">if</span> ~isequal(FileName,0) || ~isequal(PathName,0)
+0243                         clear data
+0244                         data = out; <span class="comment">%#ok&lt;NASGU&gt;</span>
+0245                         save(fullfile(PathName,FileName),<span class="string">'data'</span>);
+0246                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Saving to MAT-file ... done.'</span>);
+0247                     <span class="keyword">else</span>
+0248                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Saving to MAT-file ... cancelled.'</span>);
+0249                     <span class="keyword">end</span>
+0250                     
+0251                 <span class="keyword">case</span> <span class="string">'xls'</span>                    
+0252                     indd = data.pressure.DrainLevels;
+0253                     indi = data.pressure.ImbLevels;
+0254                     results = data.results;
+0255                     
+0256                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Saving to XLS-file ...'</span>);
+0257                     [FileName,PathName,~] = uiputfile({<span class="string">'*.xls'</span>,<span class="string">'XLS file'</span>},<span class="string">'NUCLEUSmod: Save Data'</span>,fullfile(pwd,<span class="string">'NUCLEUSmod_forward.xls'</span>));
+0258                     
+0259                     <span class="keyword">if</span> ~isequal(FileName,0) || ~isequal(PathName,0)
+0260                         <a href="#_sub3" class="code" title="subfunction exportMOD_EXCEL()">exportMOD_EXCEL</a>;
+0261                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Saving to XLS-file ... done.'</span>);
+0262                     <span class="keyword">else</span>
+0263                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Saving to XLS-file ... cancelled.'</span>);
+0264                     <span class="keyword">end</span>
+0265                     
+0266                 <span class="keyword">otherwise</span>
+0267                     helpdlg({<span class="string">'exportData:'</span>,<span class="string">'Not yet implemented.'</span>},<span class="string">'NUCLEUSmod info:'</span>);
+0268                     
+0269             <span class="keyword">end</span>
+0270         <span class="keyword">end</span>
+0271 <span class="keyword">end</span>
+0272 
+0273 <span class="keyword">end</span>
+0274 
+0275 <span class="comment">%%</span>
+0276 <a name="_sub1" href="#_subfunctions" class="code">function exportINV_EXCEL(gui,INVdata,id,sfile,spath)</a>
+0277 unit = INVdata{id}.process.timescale;
+0278 
+0279 <span class="comment">% gather all data</span>
+0280 <span class="comment">% raw data</span>
+0281 tmp1(:,1) = INVdata{id}.results.nmrraw.t(:);
+0282 header1{1} = [<span class="string">'time ['</span>,unit,<span class="string">']'</span>];
+0283 <span class="keyword">if</span> isreal(INVdata{id}.results.nmrraw.s(:))
+0284     header1{2} = <span class="string">'amplitude [a.u.]'</span>;
+0285     tmp1(:,2) = INVdata{id}.results.nmrraw.s(:);
+0286     
+0287     b1 = {<span class="string">'raw data'</span>,<span class="string">''</span>};
+0288     b1(2,:) = header1;
+0289     b1(3:2+size(tmp1,1),:) = [num2cell(tmp1(:,1)),num2cell(tmp1(:,2))];
+0290 <span class="keyword">else</span>
+0291     header1{2} = <span class="string">'real [a.u.]'</span>;
+0292     header1{3} = <span class="string">'imag [a.u.]'</span>;
+0293     tmp1(:,2) = real(INVdata{id}.results.nmrraw.s(:));
+0294     tmp1(:,3) = imag(INVdata{id}.results.nmrraw.s(:));
+0295     
+0296     b1 = {<span class="string">'raw data'</span>,<span class="string">''</span>,<span class="string">''</span>};
+0297     b1(2,:) = header1;
+0298     b1(3:2+size(tmp1,1),:) = [num2cell(tmp1(:,1)),num2cell(tmp1(:,2)),<span class="keyword">...</span>
+0299         num2cell(tmp1(:,3))];
+0300 <span class="keyword">end</span>
+0301 
+0302 <span class="comment">% proc data</span>
+0303 tmp2(:,1) = INVdata{id}.results.nmrproc.t(:);
+0304 tmp2(:,2) = INVdata{id}.results.nmrproc.s(:);
+0305 header2{1} = [<span class="string">'time ['</span>,unit,<span class="string">']'</span>];
+0306 header2{2} = <span class="string">'amplitude [a.u.]'</span>;
+0307 
+0308 b2 = {<span class="string">'proc data'</span>,<span class="string">''</span>};
+0309 b2(2,:) = header2;
+0310 b2(3:2+size(tmp2,1),:) = [num2cell(tmp2(:,1)),num2cell(tmp2(:,2))];
+0311 
+0312 <span class="comment">% fit data (incl. residuals)</span>
+0313 tmp3(:,1) = INVdata{id}.results.invstd.fit_t(:);
+0314 tmp3(:,2) = INVdata{id}.results.invstd.fit_s(:);
+0315 tmp3(:,3) = INVdata{id}.results.invstd.residual(:);
+0316 header3{1} = [<span class="string">'time ['</span>,unit,<span class="string">']'</span>];
+0317 header3{2} = <span class="string">'amplitude [a.u.]'</span>;
+0318 header3{3} = <span class="string">'residual [-]'</span>;
+0319 
+0320 b3 = {<span class="string">'fit data'</span>,<span class="string">''</span>,<span class="string">''</span>};
+0321 b3(2,:) = header3;
+0322 b3(3:2+size(tmp3,1),:) = [num2cell(tmp3(:,1)),num2cell(tmp3(:,2)),<span class="keyword">...</span>
+0323     num2cell(tmp3(:,3))];
+0324 
+0325 <span class="comment">% relaxation times</span>
+0326 <span class="keyword">switch</span> INVdata{id}.invstd.invtype
+0327     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
+0328         <span class="keyword">switch</span> INVdata{id}.results.nmrproc.T1T2
+0329             <span class="keyword">case</span> <span class="string">'T1'</span>
+0330                 tmp4 = [INVdata{id}.results.invstd.T1(:)<span class="keyword">...</span>
+0331                     INVdata{id}.results.invstd.E0(:)];
+0332                 header4 = {[<span class="string">'T1 ['</span>,unit,<span class="string">']'</span>],<span class="string">'amplitude [a.u.]'</span>};
+0333             <span class="keyword">case</span> <span class="string">'T2'</span>
+0334                 tmp4 = [INVdata{id}.results.invstd.T2(:)<span class="keyword">...</span>
+0335                     INVdata{id}.results.invstd.E0(:)];
+0336                 header4 = {[<span class="string">'T2 ['</span>,unit,<span class="string">']'</span>],<span class="string">'amplitude [a.u.]'</span>};
+0337         <span class="keyword">end</span>
+0338         
+0339     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
+0340         tmp4 = [INVdata{id}.results.invstd.T1T2me(:)<span class="keyword">...</span>
+0341             INVdata{id}.results.invstd.T1T2f(:)];
+0342         header4 = {[<span class="string">'relaxation times ['</span>,unit,<span class="string">']'</span>],<span class="string">'amplitudes [a.u.]'</span>};
+0343         
+0344     <span class="keyword">otherwise</span>
+0345         disp(<span class="string">'Something is utterly wrong.'</span>)
+0346 <span class="keyword">end</span>
+0347 
+0348 b4 = {<span class="string">'relaxation times'</span>,<span class="string">''</span>};
+0349 b4(2,:) = header4;
+0350 b4(3:2+size(tmp4,1),:) = [num2cell(tmp4(:,1)),num2cell(tmp4(:,2))];
+0351 
+0352 <span class="comment">% glue together the output matrix</span>
+0353 out(1:size(b1,1),1:size(b1,2)) = b1;
+0354 yi = size(b1,2)+2;
+0355 out(1:size(b2,1),yi:yi-1+size(b2,2)) = b2;
+0356 yi = yi + size(b2,2)+1;
+0357 out(1:size(b3,1),yi:yi-1+size(b3,2)) = b3;
+0358 yi = yi + size(b3,2)+1;
+0359 out(1:size(b4,1),yi:yi-1+size(b4,2)) = b4;
+0360 
+0361 <span class="comment">% display info text</span>
+0362 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0363     <span class="string">'Exporting inversion data to Excel-file ...'</span>);
+0364 <span class="comment">% save to file</span>
+0365 xlswrite(fullfile(spath,sfile),out,<span class="string">'NMRdata'</span>,<span class="string">'A1'</span>);
+0366 
+0367 <span class="comment">% remove the first standard excel sheet</span>
+0368 [~,sheets] = xlsfinfo(fullfile(spath,sfile));
+0369 objExcel = actxserver(<span class="string">'Excel.Application'</span>);
+0370 objExcel.Workbooks.Open(fullfile(spath,sfile));
+0371 objExcel.ActiveWorkbook.Worksheets.Item(sheets{1}).Delete;
+0372 objExcel.ActiveWorkbook.Save;
+0373 objExcel.ActiveWorkbook.Close;
+0374 objExcel.Quit;
+0375 objExcel.delete;
+0376 <span class="comment">% display info text</span>
+0377 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="keyword">...</span>
+0378     <span class="string">'Exporting inversion data to Excel-file ... done'</span>);
+0379 <span class="keyword">end</span>
+0380 
+0381 <span class="comment">%%</span>
+0382 <a name="_sub2" href="#_subfunctions" class="code">function exportINV_CSV(INVdata,sfile)</a>
+0383 unit = INVdata.process.timescale;
+0384 
+0385 <span class="comment">% gather all data</span>
+0386 <span class="comment">% proc data</span>
+0387 tmp2(:,1) = INVdata.results.nmrproc.t(:);
+0388 tmp2(:,2) = INVdata.results.nmrproc.s(:);
+0389 header2{1} = [<span class="string">'time ['</span>,unit,<span class="string">']'</span>];
+0390 header2{2} = <span class="string">'signal [a.u.]'</span>;
+0391 
+0392 <span class="comment">% fit data (incl. residuals)</span>
+0393 tmp3(:,1) = INVdata.results.invstd.fit_t(:);
+0394 tmp3(:,2) = INVdata.results.invstd.fit_s(:);
+0395 tmp3(:,3) = INVdata.results.invstd.residual(:);
+0396 header3{1} = [<span class="string">'time ['</span>,unit,<span class="string">']'</span>];
+0397 header3{2} = <span class="string">'fit [a.u.]'</span>;
+0398 header3{3} = <span class="string">'residual [-]'</span>;
+0399 
+0400 <span class="comment">% relaxation times</span>
+0401 <span class="keyword">switch</span> INVdata.invstd.invtype
+0402     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
+0403         tmp4 = [INVdata.results.invstd.T1T2me(:)<span class="keyword">...</span>
+0404             INVdata.results.invstd.T1T2f(:)];
+0405         header4 = {[<span class="string">'relaxation times ['</span>,unit,<span class="string">']'</span>],<span class="string">'frequency [-]'</span>};
+0406         
+0407     <span class="keyword">otherwise</span>
+0408         <span class="comment">% Nothing to do</span>
+0409 <span class="keyword">end</span>
+0410 
+0411 <span class="comment">% glue together headers</span>
+0412 cHeader = [header2 header3 header4];
+0413 <span class="comment">% insert commas</span>
+0414 commaHeader = [cHeader;repmat({<span class="string">','</span>},1,numel(cHeader))]; 
+0415 commaHeader = commaHeader(:)';
+0416 <span class="comment">% cHeader as string with commas</span>
+0417 textHeader = cell2mat(commaHeader(1:numel(commaHeader)-1)); 
+0418 
+0419 maxrows = max([size(tmp2,1) size(tmp3,1) size(tmp4,1)]);
+0420 <span class="comment">% glue together data</span>
+0421 <span class="keyword">if</span> size(tmp2,1) &lt; maxrows
+0422     tmp2(end+1:maxrows,:) = NaN;
+0423 <span class="keyword">end</span>
+0424 <span class="keyword">if</span> size(tmp3,1) &lt; maxrows
+0425     tmp3(end+1:maxrows,:) = NaN;
+0426 <span class="keyword">end</span>
+0427 <span class="keyword">if</span> size(tmp4,1) &lt; maxrows
+0428     tmp4(end+1:maxrows,:) = NaN;
+0429 <span class="keyword">end</span>
+0430 out(1:maxrows,1:size(tmp2,2)) = tmp2;
+0431 yi = size(tmp2,2)+1;
+0432 out(1:maxrows,yi:yi-1+size(tmp3,2)) = tmp3;
+0433 yi = yi + size(tmp3,2);
+0434 out(1:maxrows,yi:yi-1+size(tmp4,2)) = tmp4;
+0435 
+0436 <span class="comment">% save to file</span>
+0437 <span class="comment">%write header to file</span>
+0438 fid = fopen(sfile,<span class="string">'w'</span>); 
+0439 fprintf(fid,<span class="string">'%s\n'</span>,textHeader);
+0440 fclose(fid);
+0441 <span class="comment">%write data to end of file</span>
+0442 dlmwrite(sfile,out,<span class="string">'-append'</span>,<span class="string">'precision'</span>,<span class="string">'%.5f'</span>);
+0443 
+0444 <span class="keyword">end</span>
+0445 
+0446 <span class="comment">%%</span>
+0447 <a name="_sub3" href="#_subfunctions" class="code">function exportMOD_EXCEL()</a>
+0448 xlswrite(fullfile(PathName,FileName),{<span class="string">'pressure [Pa]'</span>,<span class="string">'saturation (drain)'</span>,<span class="string">'saturation (imb)'</span>},<span class="string">'CPS'</span>,<span class="string">'A1'</span>);
+0449 xlswrite(fullfile(PathName,FileName),[results.SAT.pressure(:) results.SAT.Sdfull(:) results.SAT.Sifull(:)],<span class="string">'CPS'</span>,<span class="string">'A2'</span>);
+0450 
+0451 out = zeros(numel(results.NMR.t),numel(indd)+1);
+0452 out(:,1) = results.NMR.t(:);
+0453 header = cell(1,1);
+0454 header{1} = <span class="string">'time [s]'</span>;
+0455 <span class="keyword">for</span> i = 1:numel(indd)
+0456     out(:,i+1) = results.NMR.EdT1(indd(i),:)';
+0457     header{i+1} = [<span class="string">'S'</span>,num2str(i)];
+0458 <span class="keyword">end</span>
+0459 xlswrite(fullfile(PathName,FileName),header,<span class="string">'NMR_T1_drain'</span>,<span class="string">'A1'</span>);
+0460 xlswrite(fullfile(PathName,FileName),out,<span class="string">'NMR_T1_drain'</span>,<span class="string">'A2'</span>);
+0461 out = zeros(numel(results.NMR.t),numel(indd)+1);
+0462 out(:,1) = results.NMR.t(:);
+0463 header = cell(1,1);
+0464 header{1} = <span class="string">'time [s]'</span>;
+0465 <span class="keyword">for</span> i = 1:numel(indd)
+0466     out(:,i+1) = results.NMR.EdT2(indd(i),:)';
+0467     header{i+1} = [<span class="string">'S'</span>,num2str(i)];
+0468 <span class="keyword">end</span>
+0469 xlswrite(fullfile(PathName,FileName),header,<span class="string">'NMR_T2_drain'</span>,<span class="string">'A1'</span>);
+0470 xlswrite(fullfile(PathName,FileName),out,<span class="string">'NMR_T2_drain'</span>,<span class="string">'A2'</span>);
+0471 
+0472 out = zeros(numel(results.NMR.t),numel(indi)+1);
+0473 out(:,1) = results.NMR.t(:);
+0474 header = cell(1,1);
+0475 header{1} = <span class="string">'time [s]'</span>;
+0476 <span class="keyword">for</span> i = 1:numel(indi)
+0477     out(:,i+1) = results.NMR.EiT1(indi(i),:)';
+0478     header{i+1} = [<span class="string">'S'</span>,num2str(i)];
+0479 <span class="keyword">end</span>
+0480 xlswrite(fullfile(PathName,FileName),header,<span class="string">'NMR_T1_imb'</span>,<span class="string">'A1'</span>);
+0481 xlswrite(fullfile(PathName,FileName),out,<span class="string">'NMR_T1_imb'</span>,<span class="string">'A2'</span>);
+0482 
+0483 out = zeros(numel(results.NMR.t),numel(indi)+1);
+0484 out(:,1) = results.NMR.t(:);
+0485 header = cell(1,1);
+0486 header{1} = <span class="string">'time [s]'</span>;
+0487 <span class="keyword">for</span> i = 1:numel(indi)
+0488     out(:,i+1) = results.NMR.EiT2(indi(i),:)';
+0489     header{i+1} = [<span class="string">'S'</span>,num2str(i)];
+0490 <span class="keyword">end</span>
+0491 xlswrite(fullfile(PathName,FileName),header,<span class="string">'NMR_T2_imb'</span>,<span class="string">'A1'</span>);
+0492 xlswrite(fullfile(PathName,FileName),out,<span class="string">'NMR_T2_imb'</span>,<span class="string">'A2'</span>);
+0493 
+0494 <span class="comment">% remove the first standard excel sheet</span>
+0495 [~,sheets] = xlsfinfo(fullfile(PathName,FileName));
+0496 objExcel = actxserver(<span class="string">'Excel.Application'</span>);
+0497 objExcel.Workbooks.Open(fullfile(PathName,FileName));
+0498 objExcel.ActiveWorkbook.Worksheets.Item(sheets{1}).Delete;
+0499 objExcel.ActiveWorkbook.Save;
+0500 objExcel.ActiveWorkbook.Close;
+0501 objExcel.Quit;
+0502 objExcel.delete;
+0503 <span class="keyword">end</span>
+0504 
+0505 <span class="comment">%%</span>
+0506 <a name="_sub4" href="#_subfunctions" class="code">function doexport = checkINV(INVdata,id)</a>
+0507 
+0508 doexport = false;
+0509 <span class="keyword">if</span> ~isempty(INVdata) &amp;&amp; ~isempty(id)
+0510     <span class="keyword">if</span> isstruct(INVdata{id})
+0511         doexport = true;
+0512     <span class="keyword">else</span>
+0513         helpdlg({<span class="string">'exportData:'</span>,<span class="string">'No inversion data to save'</span>},<span class="keyword">...</span>
+0514             <span class="string">'Nothing to save'</span>);
+0515     <span class="keyword">end</span>
+0516 <span class="keyword">else</span>
+0517     helpdlg({<span class="string">'exportData:'</span>,<span class="string">'No inversion data to save'</span>},<span class="keyword">...</span>
+0518         <span class="string">'Nothing to save'</span>);
+0519 <span class="keyword">end</span>
+0520 
+0521 <span class="keyword">end</span>
+0522 
+0523 <span class="comment">%%</span>
+0524 <a name="_sub5" href="#_subfunctions" class="code">function doexport = checkMOD(data)</a>
+0525 
+0526 doexport = false;
+0527 <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
+0528     <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)
+0529         doexport = true;
+0530     <span class="keyword">else</span>
+0531         helpdlg({<span class="string">'exportData:'</span>,<span class="keyword">...</span>
+0532             <span class="string">'No data to save. Generate some data first.'</span>},<span class="string">'NUCLEUSmod info:'</span>);
+0533     <span class="keyword">end</span>
+0534 <span class="keyword">else</span>
+0535     helpdlg({<span class="string">'exportData:'</span>,<span class="keyword">...</span>
+0536         <span class="string">'No data to save. Generate some data first.'</span>},<span class="string">'NUCLEUSmod info:'</span>);
+0537 <span class="keyword">end</span>
+0538 
+0539 <span class="keyword">end</span>
+0540 
+0541 <span class="comment">%%</span>
+0542 <a name="_sub6" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
+0543 index = find(abs(t-TLGM)==min(abs(t-TLGM)));
+0544 amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
+0545 <span class="keyword">end</span>
+0546 
+0547 <span class="comment">%------------- END OF CODE --------------</span>
+0548 
+0549 <span class="comment">%% License:</span>
+0550 <span class="comment">% MIT License</span>
+0551 <span class="comment">%</span>
+0552 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0553 <span class="comment">%</span>
+0554 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0555 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0556 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0557 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0558 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0559 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0560 <span class="comment">%</span>
+0561 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0562 <span class="comment">% copies or substantial portions of the Software.</span>
+0563 <span class="comment">%</span>
+0564 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0565 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0566 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0567 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0568 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0569 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0570 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of createPSD</title>
+  <meta name="keywords" content="createPSD">
+  <meta name="description" content=" adds noise with mean 'mu' and standard deviation 'sigma' to">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html modeling -->
+<h1>createPSD
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> adds noise with mean 'mu' and standard deviation 'sigma' to</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function data = createPSD(range,modes,N,normswitch) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">createPSD adds noise with mean 'mu' and standard deviation 'sigma' to
+a synthetic NMR signal
+
+ Syntax:
+       createPSD(range,modes,N,normswitch)
+
+ Inputs:
+       range - min and max &quot;radii&quot; of the PSD
+       modes - [mu sigma amp] (e.g. [1e-5 2e-1 1;4e-5 2e-1 0.1])
+       N - points per decade
+       normswitch - normalize everything to 1
+
+ Outputs:
+       data - output struct with fields:
+           r   : x-values of the PSD
+           psd : amplitudes of the PSD
+
+ Example:
+       data = createPSD([1e-9 1e-4],[1e-6 0.3 1],30,0)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/calculateGeometry.html" class="code" title="function calculateGeometry">calculateGeometry</a>	 calculates the shape dependent geometry parameters</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function data = createPSD(range,modes,N,normswitch)</a>
+0002 <span class="comment">%createPSD adds noise with mean 'mu' and standard deviation 'sigma' to</span>
+0003 <span class="comment">%a synthetic NMR signal</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       createPSD(range,modes,N,normswitch)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       range - min and max &quot;radii&quot; of the PSD</span>
+0010 <span class="comment">%       modes - [mu sigma amp] (e.g. [1e-5 2e-1 1;4e-5 2e-1 0.1])</span>
+0011 <span class="comment">%       N - points per decade</span>
+0012 <span class="comment">%       normswitch - normalize everything to 1</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Outputs:</span>
+0015 <span class="comment">%       data - output struct with fields:</span>
+0016 <span class="comment">%           r   : x-values of the PSD</span>
+0017 <span class="comment">%           psd : amplitudes of the PSD</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Example:</span>
+0020 <span class="comment">%       data = createPSD([1e-9 1e-4],[1e-6 0.3 1],30,0)</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Other m-files required:</span>
+0023 <span class="comment">%       none</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Subfunctions:</span>
+0026 <span class="comment">%       none</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% MAT-files required:</span>
+0029 <span class="comment">%       none</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% See also:</span>
+0032 <span class="comment">% Author: Thomas Hiller</span>
+0033 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0034 <span class="comment">% License: MIT License (at end)</span>
+0035 
+0036 <span class="comment">%------------- BEGIN CODE --------------</span>
+0037 
+0038 <span class="comment">%% create the sampling points of the PSD</span>
+0039 a = log10(range(1));
+0040 b = log10(range(2));
+0041 Ndec = abs(a-b);
+0042 p = logspace(a,b,ceil(Ndec*N));
+0043 
+0044 <span class="comment">%% gather the PSD</span>
+0045 psd = zeros(size(modes,1),length(p));
+0046 PSD = zeros(1,length(p));
+0047 <span class="keyword">for</span> i = 1:size(modes,1)
+0048     mu = modes(i,1);
+0049     sigma = modes(i,2);
+0050     psd(i,:) = 1./( sigma*sqrt(2*pi)).*exp(-((log(p) - log(mu))/ sqrt(2)/sigma).^2);
+0051     
+0052     <span class="comment">% scale to amplitude</span>
+0053     psd(i,:) = (psd(i,:)/max(psd(i,:))) * modes(i,3);
+0054     
+0055     <span class="comment">% add the psd per mode</span>
+0056     PSD = PSD + psd(i,:);
+0057 <span class="keyword">end</span>
+0058 
+0059 <span class="comment">%% normalize so that everything adds up to 1</span>
+0060 <span class="keyword">if</span> normswitch == 1
+0061     PSD = PSD./sum(PSD);
+0062 <span class="keyword">end</span>
+0063 
+0064 data.r = p;
+0065 data.psd = PSD;
+0066 
+0067 <span class="keyword">return</span>
+0068 
+0069 <span class="comment">%------------- END OF CODE --------------</span>
+0070 
+0071 <span class="comment">%% License:</span>
+0072 <span class="comment">% MIT License</span>
+0073 <span class="comment">%</span>
+0074 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0075 <span class="comment">%</span>
+0076 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0077 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0078 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0079 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0080 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0081 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0082 <span class="comment">%</span>
+0083 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0084 <span class="comment">% copies or substantial portions of the Software.</span>
+0085 <span class="comment">%</span>
+0086 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0087 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0088 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0089 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0090 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0091 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0092 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

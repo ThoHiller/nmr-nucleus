@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of minimizePanel</title>
+  <meta name="keywords" content="minimizePanel">
+  <meta name="description" content=" handles the minimization/maximization of all box-panels for">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>minimizePanel
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> handles the minimization/maximization of all box-panels for</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function minimizePanel(src,~) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">minimizePanel handles the minimization/maximization of all box-panels for
+both GUIs
+
+ Syntax:
+       minimizePanel
+
+ Inputs:
+       src - handle of the calling object
+
+ Outputs:
+       none
+
+ Example:
+       minimizePanel(src,~)
+
+ Other m-files required:
+       findParentOfType
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv, NUCLEUSmod
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="findParentOfType.html" class="code" title="function ph = findParentOfType(h,type)">findParentOfType</a>	 is a "hack" because Matlab changed the parent-child</li><li><a href="onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>	 fixes an ugly Matlab bug when resizing a box-panel</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_createGUI.html" class="code" title="function NUCLEUSinv_createGUI(h,wbon)">NUCLEUSinv_createGUI</a>	 controls the creation of all GUI elements</li><li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_createPanelPlots.html" class="code" title="function [gui,myui] = NUCLEUSinv_createPanelPlots(gui,myui)">NUCLEUSinv_createPanelPlots</a>	 creates graphics panel</li><li><a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod_createGUI.html" class="code" title="function NUCLEUSmod_createGUI(h,wbon)">NUCLEUSmod_createGUI</a>	 controls the creation of all GUI elements</li><li><a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod_createPanelPlots.html" class="code" title="function [gui,myui] = NUCLEUSmod_createPanelPlots(gui,myui)">NUCLEUSmod_createPanelPlots</a>	 creates graphics panel</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function minimizePanel(src,~)</a>
+0002 <span class="comment">%minimizePanel handles the minimization/maximization of all box-panels for</span>
+0003 <span class="comment">%both GUIs</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       minimizePanel</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       src - handle of the calling object</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       none</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       minimizePanel(src,~)</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       findParentOfType</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       none</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% MAT-files required:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% See also: NUCLEUSinv, NUCLEUSmod</span>
+0027 <span class="comment">% Author: Thomas Hiller</span>
+0028 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0029 <span class="comment">% License: MIT License (at end)</span>
+0030 
+0031 <span class="comment">%------------- BEGIN CODE --------------</span>
+0032 
+0033 <span class="comment">%% get GUI handle and data</span>
+0034 fig = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0035 fig_tag = get(fig,<span class="string">'Tag'</span>);
+0036 gui = getappdata(fig,<span class="string">'gui'</span>);
+0037 
+0038 <span class="comment">% get the corresponding box-panel to be minimized / maximized</span>
+0039 panel = <a href="findParentOfType.html" class="code" title="function ph = findParentOfType(h,type)">findParentOfType</a>(src,<span class="string">'uix.BoxPanel'</span>);
+0040 <span class="comment">% panel title</span>
+0041 paneltitle = get(panel,<span class="string">'Title'</span>);
+0042 <span class="comment">% check if panel is minimized (true)</span>
+0043 isminimized = get(panel,<span class="string">'Minimized'</span>);
+0044 
+0045 <span class="comment">% minimized height (defualt value for all box-panels)</span>
+0046 pheightmin = 22;
+0047 <span class="comment">% default heights</span>
+0048 def_heights = gui.myui.heights;
+0049 
+0050 <span class="comment">% switch depending on figure tag</span>
+0051 <span class="keyword">switch</span> fig_tag    
+0052     <span class="keyword">case</span> <span class="string">'INV'</span>        
+0053         panel_1 = <span class="string">'Simple Processing'</span>;
+0054         panel_2 = <span class="string">'Petro Parameter'</span>;
+0055         panel_3 = <span class="string">'Standard Inversion'</span>;
+0056         panel_4 = <span class="string">'Joint Inversion'</span>;
+0057         panel_5 = <span class="string">'CPS (joint)'</span>;
+0058         
+0059         <span class="keyword">switch</span> paneltitle
+0060             <span class="keyword">case</span> panel_1
+0061                 id = 2;
+0062             <span class="keyword">case</span> {panel_2,panel_5}
+0063                 id = 3;
+0064             <span class="keyword">case</span> panel_3
+0065                 id = 4;
+0066             <span class="keyword">case</span> panel_4
+0067                 id = 5;    
+0068             <span class="keyword">otherwise</span>
+0069                 helpdlg({<span class="string">'function: minimizePanel'</span>,<span class="keyword">...</span>
+0070                     <span class="string">'Soemthing is utterly wrong.'</span>},<span class="string">'Info'</span>);
+0071         <span class="keyword">end</span>
+0072         
+0073         <span class="keyword">switch</span> paneltitle
+0074             <span class="keyword">case</span> {panel_1,panel_2,panel_3,panel_4}
+0075                 <span class="comment">% all heights of the left panels</span>
+0076                 heights = get(gui.panels.main,<span class="string">'Heights'</span>);
+0077                 <span class="comment">% default height of this panel</span>
+0078                 pheight = def_heights(2,id);
+0079                 <span class="keyword">if</span> isminimized <span class="comment">% maximize panel</span>
+0080                     heights(id) = pheight;
+0081                     set(gui.panels.main,<span class="string">'Heights'</span>,heights);
+0082                     set(panel,<span class="string">'Minimized'</span>,false);
+0083                 <span class="keyword">else</span> <span class="comment">% minimize panel</span>
+0084                     heights(id) = pheightmin;
+0085                     set(gui.panels.main,<span class="string">'Heights'</span>,heights);
+0086                     set(panel,<span class="string">'Minimized'</span>,true)
+0087                 <span class="keyword">end</span>
+0088                 <a href="onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>(fig);
+0089             <span class="keyword">case</span> panel_5
+0090                 <span class="comment">% all heights of the graphic panels</span>
+0091                 heights = get(gui.center,<span class="string">'Heights'</span>);
+0092                 <span class="comment">% default height of all graphic panels</span>
+0093                 pheight = -1;
+0094                 <span class="keyword">if</span> isminimized <span class="comment">% maximize panel</span>
+0095                     heights(id) = pheight;
+0096                     set(gui.center,<span class="string">'Heights'</span>,heights);
+0097                     set(panel,<span class="string">'Minimized'</span>,false);
+0098                     set(gui.panels.info.main,<span class="string">'Heights'</span>,[-1 -1 -1]);
+0099                 <span class="keyword">else</span> <span class="comment">% minimize panel</span>
+0100                     heights(id) = pheightmin;
+0101                     set(gui.center,<span class="string">'Heights'</span>,heights);
+0102                     set(panel,<span class="string">'Minimized'</span>,true);
+0103                     set(gui.panels.info.main,<span class="string">'Heights'</span>,[-1 -1 0]);
+0104                 <span class="keyword">end</span>
+0105                 <a href="onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>(fig);
+0106             <span class="keyword">otherwise</span>
+0107                 helpdlg({<span class="string">'function: minimizePanel'</span>,<span class="keyword">...</span>
+0108                     <span class="string">'Soemthing is utterly wrong.'</span>},<span class="string">'Info'</span>);
+0109         <span class="keyword">end</span>
+0110         
+0111     <span class="keyword">case</span> <span class="string">'MOD'</span>        
+0112         panel_1 = <span class="string">'Geometry'</span>;
+0113         panel_2 = <span class="string">'Pressure / Saturation'</span>;
+0114         panel_3 = <span class="string">'NMR'</span>;
+0115         panel_4 = <span class="string">'Pore Size Distribution'</span>;
+0116         panel_5 = <span class="string">'Capillary Pressure Saturation Curve'</span>;
+0117         panel_6 = <span class="string">'NMR Signals'</span>;
+0118         
+0119         <span class="keyword">switch</span> paneltitle
+0120             <span class="keyword">case</span> {panel_1,panel_4}
+0121                 id = 1;
+0122             <span class="keyword">case</span> {panel_2,panel_5}
+0123                 id = 2;
+0124             <span class="keyword">case</span> {panel_3,panel_6}
+0125                 id = 3;
+0126             <span class="keyword">otherwise</span>
+0127                 helpdlg({<span class="string">'function: minimizePanel'</span>,<span class="keyword">...</span>
+0128                     <span class="string">'Soemthing is utterly wrong.'</span>},<span class="string">'Info'</span>);
+0129         <span class="keyword">end</span>
+0130         
+0131         <span class="keyword">switch</span> paneltitle
+0132             <span class="keyword">case</span> {panel_1,panel_2,panel_3}
+0133                 <span class="comment">% all heights of the left panels</span>
+0134                 heights = get(gui.panels.main,<span class="string">'Heights'</span>);
+0135                 <span class="comment">% default height of this panel</span>
+0136                 pheight = def_heights(2,id);
+0137                 <span class="keyword">if</span> isminimized <span class="comment">% maximize panel</span>
+0138                     heights(id) = pheight;
+0139                     set(gui.panels.main,<span class="string">'Heights'</span>,heights);
+0140                     set(panel,<span class="string">'Minimized'</span>,false);
+0141                 <span class="keyword">else</span> <span class="comment">% minimize panel</span>
+0142                     heights(id) = pheightmin;
+0143                     set(gui.panels.main,<span class="string">'Heights'</span>,heights);
+0144                     set(panel,<span class="string">'Minimized'</span>,true)
+0145                 <span class="keyword">end</span>
+0146             <span class="keyword">case</span> {panel_4,panel_5,panel_6}
+0147                 <span class="comment">% all heights of the graphic panels</span>
+0148                 heights = get(gui.right,<span class="string">'Heights'</span>);
+0149                 <span class="comment">% default height of all graphic panels</span>
+0150                 pheight = -1;
+0151                 <span class="keyword">if</span> isminimized <span class="comment">% maximize panel</span>
+0152                     heights(id) = pheight;
+0153                     set(gui.right,<span class="string">'Heights'</span>,heights);
+0154                     set(panel,<span class="string">'Minimized'</span>,false);
+0155                 <span class="keyword">else</span> <span class="comment">% minimize panel</span>
+0156                     heights(id) = pheightmin;
+0157                     set(gui.right,<span class="string">'Heights'</span>,heights);
+0158                     set(panel,<span class="string">'Minimized'</span>,true)
+0159                 <span class="keyword">end</span>
+0160             <span class="keyword">otherwise</span>
+0161                 helpdlg({<span class="string">'function: minimizePanel'</span>,<span class="keyword">...</span>
+0162                     <span class="string">'Soemthing is utterly wrong.'</span>},<span class="string">'Info'</span>);
+0163         <span class="keyword">end</span>
+0164 <span class="keyword">end</span>
+0165 <span class="comment">% update GUI data</span>
+0166 setappdata(fig,<span class="string">'gui'</span>,gui);
+0167 
+0168 <span class="keyword">end</span>
+0169 
+0170 <span class="comment">%------------- END OF CODE --------------</span>
+0171 
+0172 <span class="comment">%% License:</span>
+0173 <span class="comment">% MIT License</span>
+0174 <span class="comment">%</span>
+0175 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0176 <span class="comment">%</span>
+0177 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0178 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0179 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0180 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0181 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0182 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0183 <span class="comment">%</span>
+0184 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0185 <span class="comment">% copies or substantial portions of the Software.</span>
+0186 <span class="comment">%</span>
+0187 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0188 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0189 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0190 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0191 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0192 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0193 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

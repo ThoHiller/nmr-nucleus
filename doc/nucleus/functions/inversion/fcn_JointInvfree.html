@@ -1,0 +1,317 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fcn_JointInvfree</title>
+  <meta name="keywords" content="fcn_JointInvfree">
+  <meta name="description" content=" jointly estimates the pore size distribution and surface">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>fcn_JointInvfree
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> jointly estimates the pore size distribution and surface</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [F,J,ig,XX] = fcn_JointInvfree(X,iparam) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">fcn_JointInvfree jointly estimates the pore size distribution and surface
+relaxivity &quot;rho&quot; via a non-linear multi-exponential fit
+
+ Syntax:
+       fcn_JointInvfree(T,f)
+
+ Inputs:
+       X - [PSD; rho]
+       iparam - struct that hold additional parameters:
+                t : augmented time vector
+                g : augmented signal vector
+                Tb : bulk relaxation time
+                T1T2 : 'T1' / 'T2' flag
+                T1IRfac : either '1' or '2' depending on T1 method
+                L : smoothness constraint
+                lambda : regularization parameter
+                igeom : geometry structure data
+                IPS : stauration status matrix
+                SVdata : corner saturation data
+
+ Outputs:
+       F - residual
+       J - Jacobian (optional)
+       ig - fitted signal (optional)
+       XX - augmented Kernel matrix (optional)
+
+ Example:
+       [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)</a>
+0002 <span class="comment">%fcn_JointInvfree jointly estimates the pore size distribution and surface</span>
+0003 <span class="comment">%relaxivity &quot;rho&quot; via a non-linear multi-exponential fit</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       fcn_JointInvfree(T,f)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       X - [PSD; rho]</span>
+0010 <span class="comment">%       iparam - struct that hold additional parameters:</span>
+0011 <span class="comment">%                t : augmented time vector</span>
+0012 <span class="comment">%                g : augmented signal vector</span>
+0013 <span class="comment">%                Tb : bulk relaxation time</span>
+0014 <span class="comment">%                T1T2 : 'T1' / 'T2' flag</span>
+0015 <span class="comment">%                T1IRfac : either '1' or '2' depending on T1 method</span>
+0016 <span class="comment">%                L : smoothness constraint</span>
+0017 <span class="comment">%                lambda : regularization parameter</span>
+0018 <span class="comment">%                igeom : geometry structure data</span>
+0019 <span class="comment">%                IPS : stauration status matrix</span>
+0020 <span class="comment">%                SVdata : corner saturation data</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Outputs:</span>
+0023 <span class="comment">%       F - residual</span>
+0024 <span class="comment">%       J - Jacobian (optional)</span>
+0025 <span class="comment">%       ig - fitted signal (optional)</span>
+0026 <span class="comment">%       XX - augmented Kernel matrix (optional)</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% Example:</span>
+0029 <span class="comment">%       [F,J,ig,XX] = fcn_JointInvfree(X,iparam)</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% Other m-files required:</span>
+0032 <span class="comment">%       none</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% Subfunctions:</span>
+0035 <span class="comment">%       none</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">% MAT-files required:</span>
+0038 <span class="comment">%       none</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% See also:</span>
+0041 <span class="comment">% Author: Thomas Hiller</span>
+0042 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0043 <span class="comment">% License: MIT License (at end)</span>
+0044 
+0045 <span class="comment">%------------- BEGIN CODE --------------</span>
+0046 
+0047 <span class="comment">%% input parameters</span>
+0048 t = iparam.t;
+0049 g = iparam.g;
+0050 Tb = iparam.Tb;
+0051 T1T2 = iparam.T1T2;
+0052 T1IRfac = iparam.T1IRfac;
+0053 L = iparam.L;
+0054 lambda = iparam.lambda;
+0055 igeom = iparam.igeom;
+0056 IPS = iparam.IPS;
+0057 
+0058 <span class="comment">% length of relaxation time distr.</span>
+0059 n = length(X)-1;
+0060 <span class="comment">% amplitude of relaxation time distr.</span>
+0061 x = X(1:n);
+0062 <span class="comment">% surface relaxivity as scaled log10 value</span>
+0063 rhos = 10^X(n+1);
+0064 
+0065 <span class="comment">%% switch depending on geometry</span>
+0066 <span class="keyword">switch</span> igeom.type
+0067     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0068         <span class="comment">% for cylindrical pores SV is simply the full saturated S/V ratio</span>
+0069         SV = iparam.SVdata.SVF;
+0070         
+0071         <span class="comment">% Kernel matrix</span>
+0072         Kf = zeros(length(t),length(SV));
+0073         <span class="keyword">switch</span> T1T2
+0074             <span class="keyword">case</span> <span class="string">'T1'</span>
+0075                 <span class="keyword">for</span> i=1:length(SV)
+0076                     Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb));
+0077                 <span class="keyword">end</span>
+0078             <span class="keyword">case</span> <span class="string">'T2'</span>
+0079                 <span class="keyword">for</span> i=1:length(SV)
+0080                     Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+0081                 <span class="keyword">end</span>
+0082         <span class="keyword">end</span>
+0083         K = Kf;
+0084         <span class="comment">% Kernel matrix times saturation matrix</span>
+0085         XX = K.*IPS;
+0086         
+0087     <span class="keyword">case</span> {<span class="string">'ang'</span>,<span class="string">'poly'</span>}
+0088         <span class="comment">% for angular and polygonal pores there are full saturation S/V and</span>
+0089         <span class="comment">% partial saturation S/V ratios and amplitudes</span>
+0090         SV = iparam.SVdata.SVF;
+0091         SVC = iparam.SVdata.SVC;
+0092         Amp = iparam.SVdata.Ampl;
+0093         TT = iparam.SVdata.TT;
+0094         
+0095         <span class="comment">% Kernel matrix</span>
+0096         Kf = zeros(length(t),length(SV));
+0097         <span class="keyword">switch</span> T1T2
+0098             <span class="keyword">case</span> <span class="string">'T1'</span>
+0099                 <span class="keyword">for</span> i=1:length(SV)
+0100                     Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb));
+0101                 <span class="keyword">end</span>
+0102                 <span class="comment">% Kernel matrix for partial saturation</span>
+0103                 Kc = zeros(length(t),length(SV));
+0104                 <span class="keyword">for</span> i=1:size(SVC,1)
+0105                     Kc = Kc + ( squeeze(Amp(i,:,:)) .*<span class="keyword">...</span>
+0106                         ( 1-T1IRfac.*exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb)) ));
+0107                 <span class="keyword">end</span>
+0108             <span class="keyword">case</span> <span class="string">'T2'</span>
+0109                 <span class="keyword">for</span> i=1:length(SV)
+0110                     Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+0111                 <span class="keyword">end</span>
+0112                 <span class="comment">% Kernel matrix for partial saturation</span>
+0113                 Kc = zeros(length(t),length(SV));
+0114                 <span class="keyword">for</span> i=1:size(SVC,1)
+0115                     Kc = Kc + ( squeeze(Amp(i,:,:)) .*<span class="keyword">...</span>
+0116                         exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb)) );
+0117                 <span class="keyword">end</span>
+0118         <span class="keyword">end</span>
+0119         <span class="comment">% full saturation matrix</span>
+0120         K = Kf;
+0121         <span class="comment">% for partial saturation points use the Kc values</span>
+0122         K(IPS~=1) = Kc(IPS~=1);
+0123         <span class="comment">% Kernel matrix times saturation matrix</span>
+0124         XX = K;
+0125 <span class="keyword">end</span>
+0126 
+0127 <span class="comment">% error weighing</span>
+0128 <span class="keyword">if</span> isfield(iparam,<span class="string">'W'</span>)
+0129     g = iparam.W*g';
+0130     XX = iparam.W*XX;
+0131     g = g';
+0132 <span class="keyword">end</span>
+0133 
+0134 <span class="comment">% corresponding signal g = Kf</span>
+0135 ig = XX*x';
+0136 <span class="comment">% residual</span>
+0137 F1 = (ig - g');
+0138 <span class="comment">% regularization</span>
+0139 F2 = (lambda*L)*x';
+0140 <span class="comment">% fcn should return the residual as output for lsqnonlin</span>
+0141 <span class="comment">% see e.g. Aster et al. S. 240 eq.10.4</span>
+0142 F  = [F1; F2];
+0143 
+0144 <span class="comment">% jacobian - speeds up inversion!</span>
+0145 J = 0;
+0146 <span class="keyword">if</span> nargout &gt; 1
+0147     <span class="comment">% see Mohnke, 2014 WRR paper for info</span>
+0148     
+0149     <span class="comment">% J = dGAMMA/df</span>
+0150     J = XX;
+0151     
+0152     <span class="keyword">switch</span> T1T2
+0153         <span class="keyword">case</span> <span class="string">'T1'</span>
+0154             <span class="comment">% Jr = dGAMMA/drho</span>
+0155             <span class="comment">% for T1 it's a bit more tricky because</span>
+0156             <span class="comment">% d/drho 1-exp(-t*rho*SV) = t*SV * exp(-t*rho*SV)</span>
+0157             <span class="comment">% where exp(-t*rho*SV) is essentially the T2 Kernel matrix</span>
+0158             
+0159             <span class="comment">% DD = exp(-t*rho*SV)</span>
+0160             <span class="keyword">switch</span> igeom.type
+0161                 <span class="keyword">case</span> <span class="string">'cyl'</span>
+0162                     DD = zeros(length(t),length(SV));
+0163                     <span class="keyword">for</span> i=1:length(SV)
+0164                         DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+0165                     <span class="keyword">end</span>
+0166                     
+0167                 <span class="keyword">case</span> {<span class="string">'ang'</span>,<span class="string">'poly'</span>}
+0168                     <span class="comment">% Kernel matrix for full saturation</span>
+0169                     DD = zeros(length(t),length(SV));
+0170                     <span class="keyword">for</span> i=1:length(SV)
+0171                         DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+0172                     <span class="keyword">end</span>
+0173                     <span class="comment">% Kernel matrix for partial saturation</span>
+0174                     D = zeros(length(t),length(SV));
+0175                     <span class="keyword">for</span> i=1:size(SVC,1)
+0176                         D = D + ( squeeze(Amp(i,:,:)).* exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb)) );
+0177                     <span class="keyword">end</span>
+0178                     DD(IPS~=1) = D(IPS~=1);
+0179             <span class="keyword">end</span>
+0180             
+0181             <span class="comment">% and now using DD in the derivative:</span>
+0182             Jr = zeros(1,length(t));
+0183             <span class="keyword">for</span> i = 1:length(t)
+0184                 Jr(i) = t(i).*sum(x.*SV.*rhos.*DD(i,:));
+0185             <span class="keyword">end</span>
+0186             
+0187         <span class="keyword">case</span> <span class="string">'T2'</span>
+0188             <span class="comment">% Jr = dGAMMA/drho</span>
+0189             <span class="comment">% in the case of T2 the derivate of dGAMMA/drho is simple</span>
+0190             Jr = zeros(1,length(t));
+0191             <span class="keyword">for</span> i = 1:length(t)
+0192                 Jr(i) = t(i).*sum(-x.*SV.*rhos.*XX(i,:));
+0193             <span class="keyword">end</span>
+0194     <span class="keyword">end</span>
+0195     
+0196     JJ = [J Jr'];
+0197     LL = [lambda*L 0*L(:,1)];
+0198     J = [JJ;LL];
+0199     
+0200     <span class="keyword">if</span> isfield(iparam,<span class="string">'W'</span>)
+0201         ig = diag(1./diag(iparam.W))*eye(size(iparam.W)) * ig;
+0202     <span class="keyword">end</span>
+0203 <span class="keyword">end</span>
+0204 
+0205 <span class="keyword">return</span>
+0206 
+0207 <span class="comment">%------------- END OF CODE --------------</span>
+0208 
+0209 <span class="comment">%% License:</span>
+0210 <span class="comment">% MIT License</span>
+0211 <span class="comment">%</span>
+0212 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0213 <span class="comment">%</span>
+0214 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0215 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0216 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0217 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0218 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0219 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0220 <span class="comment">%</span>
+0221 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0222 <span class="comment">% copies or substantial portions of the Software.</span>
+0223 <span class="comment">%</span>
+0224 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0225 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0226 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0227 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0228 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0229 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0230 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

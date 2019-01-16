@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of showParameterInfo</title>
+  <meta name="keywords" content="showParameterInfo">
+  <meta name="description" content=" shows the parameter file info (if available)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>showParameterInfo
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> shows the parameter file info (if available)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function showParameterInfo </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">showParameterInfo shows the parameter file info (if available)
+in an extra figure
+
+ Syntax:
+       showParameterInfo
+
+ Inputs:
+       none
+
+ Outputs:
+       none
+
+ Example:
+       showParameterInfo
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/menus/onMenuExtraShow.html" class="code" title="function onMenuExtraShow(src,~)">onMenuExtraShow</a>	 handles the extra menu entries to show additional</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function showParameterInfo</a>
+0002 <span class="comment">%showParameterInfo shows the parameter file info (if available)</span>
+0003 <span class="comment">%in an extra figure</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       showParameterInfo</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       none</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       none</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       showParameterInfo</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       none</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       none</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% MAT-files required:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% See also: NUCLEUSinv</span>
+0027 <span class="comment">% Author: Thomas Hiller</span>
+0028 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0029 <span class="comment">% License: MIT License (at end)</span>
+0030 
+0031 <span class="comment">%------------- BEGIN CODE --------------</span>
+0032 
+0033 <span class="comment">%% get GUI handle and data</span>
+0034 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0035 fig_tag = get(fig,<span class="string">'Tag'</span>);
+0036 data = getappdata(fig,<span class="string">'data'</span>);
+0037 gui = getappdata(fig,<span class="string">'gui'</span>);
+0038 
+0039 <span class="comment">%% proceed if there is data</span>
+0040 <span class="keyword">if</span> isfield(data.import,<span class="string">'NMR'</span>)
+0041     <span class="comment">% gather the parameter data for the current selected file</span>
+0042     id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0043     <span class="keyword">if</span> ~isempty(id)
+0044         <span class="keyword">if</span> isfield(data.import.NMR.para{id},<span class="string">'all'</span>)
+0045             all = data.import.NMR.para{id}.all{1};
+0046             
+0047             fname = data.import.NMR.filesShort{id};
+0048             info = cell(1,1);
+0049             <span class="keyword">for</span> i = 1:size(all,1)
+0050                 tmpstr = all{i,1};
+0051                 ind = strfind(tmpstr,<span class="string">'='</span>);
+0052                 info{i,1} = tmpstr(1:ind(1)-1);
+0053                 info{i,2} = tmpstr(ind(1)+1:end);
+0054             <span class="keyword">end</span>
+0055             f1 = figure(<span class="string">'Name'</span>,[fname,<span class="string">' Parameter Info'</span>],<span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0056                 <span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'MenuBar'</span>,<span class="string">'none'</span>);
+0057             pos0 = get(fig,<span class="string">'Position'</span>);
+0058             pos1 = get(f1,<span class="string">'Position'</span>);
+0059             cent(1) = (pos0(1)+pos0(3)/2);
+0060             cent(2) = (pos0(2)+pos0(4)/2);
+0061             set(f1,<span class="string">'Position'</span>,[cent(1)-pos1(3)/2 pos0(2) pos1(3) pos0(4)+25]);
+0062             <span class="comment">% draw the uitable</span>
+0063             th = uitable(<span class="string">'Parent'</span>,f1,<span class="string">'Data'</span>,info,<span class="string">'ColumnName'</span>,{<span class="string">'Property'</span>,<span class="string">'Value'</span>});
+0064             <span class="comment">% adjust the cloumn widths</span>
+0065             pos = get(f1,<span class="string">'Position'</span>);
+0066             w = (pos(3)-80)/2;
+0067             set(th,<span class="string">'Position'</span>,[20 20 pos(3)-40 pos(4)-40],<span class="string">'ColumnWidth'</span>,{w w});
+0068         <span class="keyword">end</span>
+0069     <span class="keyword">else</span>
+0070         helpdlg({<span class="string">'function: showParameterInfo'</span>,<span class="keyword">...</span>
+0071             <span class="string">'Cannot continue because no data is selected!'</span>},<span class="keyword">...</span>
+0072             <span class="string">'Select NMR data first.'</span>);
+0073     <span class="keyword">end</span>
+0074 <span class="keyword">else</span>
+0075     helpdlg({<span class="string">'function: showParameterInfo'</span>,<span class="keyword">...</span>
+0076             <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
+0077             <span class="string">'Load NMR data first.'</span>);
+0078 <span class="keyword">end</span>
+0079 
+0080 <span class="keyword">end</span>
+0081 
+0082 <span class="comment">%------------- END OF CODE --------------</span>
+0083 
+0084 <span class="comment">%% License:</span>
+0085 <span class="comment">% MIT License</span>
+0086 <span class="comment">%</span>
+0087 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0088 <span class="comment">%</span>
+0089 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0090 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0091 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0092 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0093 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0094 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0095 <span class="comment">%</span>
+0096 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0097 <span class="comment">% copies or substantial portions of the Software.</span>
+0098 <span class="comment">%</span>
+0099 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0100 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0101 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0102 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0103 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0104 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0105 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

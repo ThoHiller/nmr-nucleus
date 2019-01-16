@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of applyRegularization</title>
+  <meta name="keywords" content="applyRegularization">
+  <meta name="description" content=" applies regularization procedures from the">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>applyRegularization
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> applies regularization procedures from the</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">applyRegularization applies regularization procedures from the
+Regularization toolbox from P. Hansen -- for all methods (except &quot;manual&quot;)
+the regularization parameter lambda is determined by different criterias
+and using a SVD
+
+ Syntax:
+       applyRegularization(K,g,L,lambda_in,flag,order,noise_level)
+
+ Inputs:
+       K - Kernel matrix
+       g - signal
+       lambda_in - regularization parameter
+       flag - flag for regularization method:
+              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep', 
+       order - smoothnes constraint: '0', '1' or '2'
+       noise_level - noise level for 'discrep' method (discrepancy principle)
+
+ Outputs:
+       Kreg - expanded (regularized) Kernel matrix
+       lambda - determined lambda
+
+ Example:
+       [Kr,lam] = applyRegularization(K,s,L,lambdain,flag,Lorder,noise)
+
+ Other m-files required:
+       Regularization Toolbox
+       csvd
+       cgsvd
+       gcv
+       discrep
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>	 is a control routine that uses the 'Regularization Toolbox'</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)</a>
+0002 <span class="comment">%applyRegularization applies regularization procedures from the</span>
+0003 <span class="comment">%Regularization toolbox from P. Hansen -- for all methods (except &quot;manual&quot;)</span>
+0004 <span class="comment">%the regularization parameter lambda is determined by different criterias</span>
+0005 <span class="comment">%and using a SVD</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Syntax:</span>
+0008 <span class="comment">%       applyRegularization(K,g,L,lambda_in,flag,order,noise_level)</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Inputs:</span>
+0011 <span class="comment">%       K - Kernel matrix</span>
+0012 <span class="comment">%       g - signal</span>
+0013 <span class="comment">%       lambda_in - regularization parameter</span>
+0014 <span class="comment">%       flag - flag for regularization method:</span>
+0015 <span class="comment">%              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',</span>
+0016 <span class="comment">%       order - smoothnes constraint: '0', '1' or '2'</span>
+0017 <span class="comment">%       noise_level - noise level for 'discrep' method (discrepancy principle)</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Outputs:</span>
+0020 <span class="comment">%       Kreg - expanded (regularized) Kernel matrix</span>
+0021 <span class="comment">%       lambda - determined lambda</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% Example:</span>
+0024 <span class="comment">%       [Kr,lam] = applyRegularization(K,s,L,lambdain,flag,Lorder,noise)</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% Other m-files required:</span>
+0027 <span class="comment">%       Regularization Toolbox</span>
+0028 <span class="comment">%       csvd</span>
+0029 <span class="comment">%       cgsvd</span>
+0030 <span class="comment">%       gcv</span>
+0031 <span class="comment">%       discrep</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% Subfunctions:</span>
+0034 <span class="comment">%       none</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% MAT-files required:</span>
+0037 <span class="comment">%       none</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">% See also:</span>
+0040 <span class="comment">% Author: Thomas Hiller</span>
+0041 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0042 <span class="comment">% License: MIT License (at end)</span>
+0043 
+0044 <span class="comment">%------------- BEGIN CODE --------------</span>
+0045 
+0046 <span class="keyword">switch</span> flag    
+0047     <span class="keyword">case</span> <span class="string">'manual'</span>
+0048         Kreg = [K;lambda_in*L];
+0049         lambda = lambda_in;
+0050         
+0051     <span class="keyword">case</span> <span class="string">'gcv_tikh'</span>
+0052         <span class="keyword">if</span> order == 0
+0053             [U,s,~] = csvd(K);
+0054             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);
+0055         <span class="keyword">else</span>
+0056             [U,s,~,~,~] = cgsvd(K,L);
+0057             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);            
+0058         <span class="keyword">end</span>
+0059         Kreg = [K;lambda*L];
+0060         
+0061     <span class="keyword">case</span> <span class="string">'gcv_trunc'</span>
+0062         <span class="keyword">if</span> order == 0
+0063             [U,s,~] = csvd(K);
+0064             [lambda,~,~] = gcv(U,s,g,<span class="string">'tsvd'</span>,0);
+0065         <span class="keyword">else</span>
+0066             [U,s,~,~,~] = cgsvd(K,L);
+0067             [lambda,~,~] = gcv(U,s,g,<span class="string">'tgsv'</span>,0);
+0068         <span class="keyword">end</span>
+0069         Kreg = [K;lambda*L];
+0070         
+0071     <span class="keyword">case</span> <span class="string">'gcv_damp'</span>
+0072         <span class="keyword">if</span> order == 0
+0073             [U,s,~] = csvd(K);
+0074             [lambda,~,~] = gcv(U,s,g,<span class="string">'dsvd'</span>,0);
+0075         <span class="keyword">else</span>
+0076             [U,s,~,~,~] = cgsvd(K,L);
+0077             [lambda,~,~] = gcv(U,s,g,<span class="string">'dgsv'</span>,0);
+0078         <span class="keyword">end</span>
+0079         Kreg = [K;lambda*L];
+0080         
+0081     <span class="keyword">case</span> <span class="string">'discrep'</span>
+0082         delta = sqrt(length(g))*noise_level;
+0083         <span class="keyword">if</span> order == 0
+0084             [U,s,V] = csvd(K);
+0085             [~,lambda] = discrep(U,s,V,g,delta);
+0086         <span class="keyword">else</span>
+0087             [U,s,X,~,~] = cgsvd(K,L);
+0088             [~,lambda] = discrep(U,s,X,g,delta);
+0089         <span class="keyword">end</span>
+0090         Kreg = [K;lambda*L];
+0091 <span class="keyword">end</span>
+0092 
+0093 <span class="keyword">return</span>
+0094 
+0095 <span class="comment">%------------- END OF CODE --------------</span>
+0096 
+0097 <span class="comment">%% License:</span>
+0098 <span class="comment">% MIT License</span>
+0099 <span class="comment">%</span>
+0100 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0101 <span class="comment">%</span>
+0102 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0103 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0104 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0105 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0106 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0107 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0110 <span class="comment">% copies or substantial portions of the Software.</span>
+0111 <span class="comment">%</span>
+0112 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0113 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0114 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0115 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0116 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0117 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0118 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

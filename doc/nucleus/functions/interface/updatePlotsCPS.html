@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of updatePlotsCPS</title>
+  <meta name="keywords" content="updatePlotsCPS">
+  <meta name="description" content=" plots the CPS curve into the corresponding NUCLEUSmod axis">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>updatePlotsCPS
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> plots the CPS curve into the corresponding NUCLEUSmod axis</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function updatePlotsCPS </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">updatePlotsCPS plots the CPS curve into the corresponding NUCLEUSmod axis
+
+ Syntax:
+       updatePlotsCPS
+
+ Inputs:
+       none
+
+ Outputs:
+       none
+
+ Example:
+       updatePlotsCPS
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       plotSaturationLevelsCPS
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSmod
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>	 exports graphics from both GUIs into various formats</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/contextmenus/onContextTableSelect.html" class="code" title="function onContextTableSelect(src,~)">onContextTableSelect</a>	 selects or deselects whole drainage and imbibition</li><li><a href="../../../nucleus/callbacks/edits/onEditCPSTable.html" class="code" title="function onEditCPSTable(src,~)">onEditCPSTable</a>	 updates entries made in the CPS table of NUCLEUSinv</li><li><a href="../../../nucleus/callbacks/popup/onPopupPressureUnits.html" class="code" title="function onPopupPressureUnits(src,~)">onPopupPressureUnits</a>	 select pressure unit ("Pa", "kPa", "MPa" or "bar")</li><li><a href="caluclatePressureSaturation.html" class="code" title="function caluclatePressureSaturation">caluclatePressureSaturation</a>	 calculates the geometry dependent pressure</li><li><a href="importMOD2MOD.html" class="code" title="function importMOD2MOD">importMOD2MOD</a>	 imports previously saved NUCLEUSmod data back into the GUI</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function plotSaturationLevelsCPS(data,ax)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function updatePlotsCPS</a>
+0002 <span class="comment">%updatePlotsCPS plots the CPS curve into the corresponding NUCLEUSmod axis</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       updatePlotsCPS</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       none</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Outputs:</span>
+0011 <span class="comment">%       none</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Example:</span>
+0014 <span class="comment">%       updatePlotsCPS</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Other m-files required:</span>
+0017 <span class="comment">%       none</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Subfunctions:</span>
+0020 <span class="comment">%       plotSaturationLevelsCPS</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% MAT-files required:</span>
+0023 <span class="comment">%       none</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% See also: NUCLEUSmod</span>
+0026 <span class="comment">% Author: Thomas Hiller</span>
+0027 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0028 <span class="comment">% License: MIT License (at end)</span>
+0029 
+0030 <span class="comment">%------------- BEGIN CODE --------------</span>
+0031 
+0032 <span class="comment">%% get GUI handle and data</span>
+0033 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'MOD'</span>);
+0034 gui = getappdata(fig,<span class="string">'gui'</span>);
+0035 data = getappdata(fig,<span class="string">'data'</span>);
+0036 
+0037 <span class="comment">% only proceed if there is cps data</span>
+0038 <span class="keyword">if</span> isfield(data.results,<span class="string">'SAT'</span>)
+0039     <span class="comment">% get the cps axis handle</span>
+0040     ax = gui.axes_handles.cps;
+0041     <span class="comment">% clear previously plotted data</span>
+0042     ph = findall(ax,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0043     <span class="keyword">if</span> ~isempty(ph)
+0044         set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
+0045     <span class="keyword">end</span>
+0046     cla(ax);
+0047     
+0048     <span class="comment">% get pressure</span>
+0049     SAT = data.results.SAT;    
+0050     plotpress = SAT.pressure .* data.pressure.unitfac;
+0051     xlstring = [<span class="string">'pressure ['</span>,data.pressure.unit,<span class="string">']'</span>];
+0052     
+0053     <span class="comment">% plot the cps data</span>
+0054     hold(ax,<span class="string">'on'</span>);
+0055     plot(plotpress,SAT.Sdfull,<span class="string">'k-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0056     plot(plotpress,SAT.Sifull,<span class="string">'k--'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0057     
+0058     <span class="comment">% depending on the pressure spacing adjust the x-axis</span>
+0059     <span class="keyword">switch</span> data.pressure.loglin
+0060         <span class="keyword">case</span> 0 <span class="comment">% lin</span>
+0061             set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0062             set(ax,<span class="string">'XLim'</span>,[plotpress(1) plotpress(end)]);
+0063         <span class="keyword">case</span> 1 <span class="comment">% log</span>
+0064             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+0065             xticks = log10(plotpress(1)):1:log10(plotpress(end));
+0066             set(ax,<span class="string">'XLim'</span>,[plotpress(1) plotpress(end)],<span class="string">'XTick'</span>,10.^xticks);
+0067     <span class="keyword">end</span>
+0068     
+0069     <span class="comment">% y-axis</span>
+0070     set(ax,<span class="string">'YLim'</span>,[-0.1 1.1],<span class="string">'YTick'</span>,0:0.25:1);
+0071     grid(ax,<span class="string">'on'</span>);
+0072     <span class="comment">% labels and legend</span>
+0073     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0074     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'saturation [-]'</span>);
+0075     legend(ax,<span class="string">'drain'</span>,<span class="string">'imb'</span>,<span class="string">'Location'</span>,<span class="string">'best'</span>)
+0076     <span class="comment">% update GUI data</span>
+0077     setappdata(fig,<span class="string">'gui'</span>,gui);
+0078     <span class="comment">% now add the saturation level points on the curves</span>
+0079     <a href="#_sub1" class="code" title="subfunction plotSaturationLevelsCPS(data,ax)">plotSaturationLevelsCPS</a>(data,ax);
+0080 <span class="keyword">end</span>
+0081 
+0082 <span class="keyword">end</span>
+0083 
+0084 <span class="comment">%%</span>
+0085 <a name="_sub1" href="#_subfunctions" class="code">function plotSaturationLevelsCPS(data,ax)</a>
+0086 
+0087 <span class="comment">% get saturation and pressure</span>
+0088 SAT = data.results.SAT;
+0089 plotpress = SAT.pressure .* data.pressure.unitfac;
+0090 
+0091 <span class="comment">% clear priviously plotted points</span>
+0092 ph = findall(ax,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0093 <span class="keyword">if</span> ~isempty(ph)
+0094     set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
+0095     delete(ph);
+0096 <span class="keyword">end</span>
+0097 
+0098 <span class="comment">% get the different levels</span>
+0099 indd = data.pressure.DrainLevels;
+0100 indi = data.pressure.ImbLevels;
+0101 
+0102 <span class="comment">% get the index on the colormap</span>
+0103 mycol = flipud(parula(128));
+0104 colindd = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(SAT.Sdfull(indd),128);
+0105 colindi = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(SAT.Sifull(indi),128);
+0106 <span class="comment">% and plot the points on the CPS curve</span>
+0107 <span class="keyword">for</span> i = 1:numel(indd)
+0108     plot(plotpress(indd(i)),SAT.Sdfull(indd(i)),<span class="string">'s'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="keyword">...</span>
+0109         <span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0110 <span class="keyword">end</span>
+0111 <span class="keyword">for</span> i = 1:numel(indi)
+0112     plot(plotpress(indi(i)),SAT.Sifull(indi(i)),<span class="string">'o'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="keyword">...</span>
+0113         <span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0114 <span class="keyword">end</span>
+0115 
+0116 <span class="keyword">end</span>
+0117 
+0118 <span class="comment">%------------- END OF CODE --------------</span>
+0119 
+0120 <span class="comment">%% License:</span>
+0121 <span class="comment">% MIT License</span>
+0122 <span class="comment">%</span>
+0123 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0124 <span class="comment">%</span>
+0125 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0126 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0127 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0128 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0129 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0130 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0131 <span class="comment">%</span>
+0132 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0133 <span class="comment">% copies or substantial portions of the Software.</span>
+0134 <span class="comment">%</span>
+0135 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0136 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0137 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0138 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0139 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0140 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0141 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

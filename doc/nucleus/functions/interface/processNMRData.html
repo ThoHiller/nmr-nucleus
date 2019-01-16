@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of processNMRData</title>
+  <meta name="keywords" content="processNMRData">
+  <meta name="description" content=" processes the NMR raw data">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>processNMRData
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> processes the NMR raw data</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">processNMRData processes the NMR raw data
+
+ Syntax:
+       [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)
+
+ Inputs:
+       nmrraw - NMR raw data struct
+       nmrproc - NMR processed data struct
+
+ Outputs:
+       nmrraw
+       nmrproc
+
+ Example:
+       [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv, NUCLEUSmod
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li><li><a href="../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>	 resamples (gates) a NMR signal to speedup the</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>	 prepares simple NMR raw data processing</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)</a>
+0002 <span class="comment">%processNMRData processes the NMR raw data</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       nmrraw - NMR raw data struct</span>
+0009 <span class="comment">%       nmrproc - NMR processed data struct</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       nmrraw</span>
+0013 <span class="comment">%       nmrproc</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Example:</span>
+0016 <span class="comment">%       [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% Other m-files required:</span>
+0019 <span class="comment">%       none</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Subfunctions:</span>
+0022 <span class="comment">%       none</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% MAT-files required:</span>
+0025 <span class="comment">%       none</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% See also: NUCLEUSinv, NUCLEUSmod</span>
+0028 <span class="comment">% Author: Thomas Hiller</span>
+0029 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0030 <span class="comment">% License: MIT License (at end)</span>
+0031 
+0032 <span class="comment">%------------- BEGIN CODE --------------</span>
+0033 
+0034 <span class="comment">%% raw signal</span>
+0035 <span class="comment">% get some info</span>
+0036 nmrproc.echotime = nmrraw.t(2)-nmrraw.t(1);
+0037 nmrproc.dead = nmrproc.echotime/2;
+0038 
+0039 <span class="comment">% crop the signal</span>
+0040 nmrraw.t = nmrraw.t(nmrproc.start:nmrproc.end);
+0041 nmrraw.s = nmrraw.s(nmrproc.start:nmrproc.end);
+0042 
+0043 <span class="comment">% if the signal is complex rotate the real part if neccessary</span>
+0044 <span class="keyword">if</span> ~isreal(nmrraw.s)
+0045     nmrraw.s = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(nmrraw.s);
+0046 <span class="keyword">end</span>
+0047 
+0048 <span class="comment">% make data a column vector</span>
+0049 nmrraw.t = nmrraw.t(:);
+0050 nmrraw.s = nmrraw.s(:);
+0051 
+0052 <span class="comment">% adjust the time scale</span>
+0053 nmrraw.t = nmrraw.t .* nmrproc.timefac;
+0054 nmrproc.echotime = nmrproc.echotime * nmrproc.timefac;
+0055 nmrproc.dead  = nmrproc.dead * nmrproc.timefac;
+0056 
+0057 <span class="comment">% normalize data</span>
+0058 <span class="keyword">if</span> nmrproc.norm == 1
+0059     nmrproc.normfac = max(real(nmrraw.s));
+0060     <span class="comment">% nmrproc.normfak = real(nmrraw.signal(1));</span>
+0061     <span class="keyword">if</span> ~isreal(nmrraw.s)
+0062         nmrraw.s = complex(real(nmrraw.s)./nmrproc.normfac,<span class="keyword">...</span>
+0063             imag(nmrraw.s)./nmrproc.normfac);
+0064     <span class="keyword">else</span>
+0065         nmrraw.s = nmrraw.s./nmrproc.normfac;
+0066     <span class="keyword">end</span>
+0067 <span class="keyword">else</span>
+0068     nmrproc.normfac = 1;
+0069 <span class="keyword">end</span>
+0070 
+0071 <span class="comment">%% processed signal</span>
+0072 t = nmrraw.t;
+0073 <span class="keyword">if</span> isreal(nmrraw.s)
+0074     s = nmrraw.s;
+0075     noise = 0;
+0076 <span class="keyword">else</span>
+0077     s = real(nmrraw.s);
+0078     <span class="comment">% noise is the std of the imaginary part of the whole signal</span>
+0079 <span class="comment">%     noise = std(imag(nmrraw.s));</span>
+0080     <span class="comment">% this would be more rigorous due to possible &quot;weird&quot; structure in the</span>
+0081     <span class="comment">% imaginary part at early echo times:</span>
+0082     noise = std(imag(nmrraw.s(floor(numel(s)/2):numel(s))));
+0083     
+0084 <span class="keyword">end</span>
+0085 
+0086 <span class="comment">% gating</span>
+0087 <span class="keyword">switch</span> nmrproc.gatetype
+0088     <span class="keyword">case</span> {<span class="string">'log'</span>,<span class="string">'lin'</span>}
+0089         tmp = <a href="../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t,s,<span class="string">'type'</span>,nmrproc.gatetype,<span class="string">'Ng'</span>,min([numel(s) 300]));
+0090         t = tmp(:,1);
+0091         s = tmp(:,2);
+0092         N = tmp(:,3);
+0093     <span class="keyword">case</span> <span class="string">'raw'</span>
+0094         N = ones(size(t));
+0095     <span class="keyword">otherwise</span>
+0096 <span class="keyword">end</span>
+0097 
+0098 <span class="comment">% output data</span>
+0099 nmrproc.t = t;
+0100 nmrproc.s = s;
+0101 nmrproc.N = N;
+0102 nmrproc.noise = noise;
+0103 
+0104 <span class="comment">% if there is noise information and gating was performed</span>
+0105 <span class="comment">% calculate noise per gate and weight matrix W</span>
+0106 <span class="keyword">if</span> noise ~= 0 &amp;&amp; ~strcmp(nmrproc.gatetype,<span class="string">'raw'</span>)
+0107         e = noise ./ sqrt(N);
+0108         W = diag(e);
+0109         nmrproc.e = e;
+0110         nmrproc.W = W;
+0111 <span class="keyword">else</span>
+0112     e = noise*ones(size(s));
+0113     nmrproc.e = e;
+0114     <span class="keyword">if</span> isfield(nmrproc,<span class="string">'W'</span>)
+0115         nmrproc = rmfield(nmrproc,<span class="string">'W'</span>);
+0116     <span class="keyword">end</span>
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="keyword">return</span>
+0120 
+0121 <span class="comment">%------------- END OF CODE --------------</span>
+0122 
+0123 <span class="comment">%% License:</span>
+0124 <span class="comment">% MIT License</span>
+0125 <span class="comment">%</span>
+0126 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0127 <span class="comment">%</span>
+0128 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0129 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0130 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0131 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0132 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0133 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0134 <span class="comment">%</span>
+0135 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0136 <span class="comment">% copies or substantial portions of the Software.</span>
+0137 <span class="comment">%</span>
+0138 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0139 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0140 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0141 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0142 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0143 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0144 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getSaturationFromPressureBatch</title>
+  <meta name="keywords" content="getSaturationFromPressureBatch">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html modeling -->
+<h1>getSaturationFromPressureBatch
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getSaturationFromPressure calculates the full or partial saturation state
+at a given pressure P for the three possible pore shapes: 'cyl', 'ang'
+and 'poly'.
+
+ Syntax:
+       getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)
+
+ Inputs:
+       GEOM - geometry structure (output from 'getGeometryParameters')
+       pressure - pressure values in [Pa]
+       inpsd - structure containing fields:
+           r   : x-values of the PSD
+           psd : amplitudes of the PSD%           
+           NOTE: if psd = 1 and r is a scalar value then a single pore
+                 is assumed
+       constants - physical constants (output from 'getConstants')
+       wbopts - show a waitbar or not
+
+ Outputs:
+       SAT - output sruct with fields:
+           isfullsat(i,d) : full saturation marker (i and d refer to
+                            imbibition and drainage)
+           WC(i,d) : water content
+           S(i,d)  : saturation
+           Aa(i,d) : water filled area
+           Pa(i,d) : NMR active perimeter
+           Pc(i,d) : critical capillary pressure
+           R0(i,d) : critical radius for (only 'ang' and 'poly')
+
+ Example:
+       out = getSaturationFromPressure(geom,P,constants)
+
+ Other m-files required:
+       getCriticalPressure
+       getCornerSaturation
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="getSaturationFromPressure.html" class="code" title="function out = getSaturationFromPressure(geom,P,constants)">getSaturationFromPressure</a>	 calculates the full or partial saturation state</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/caluclatePressureSaturation.html" class="code" title="function caluclatePressureSaturation">caluclatePressureSaturation</a>	 calculates the geometry dependent pressure</li><li><a href="../../../nucleus/functions/interface/runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>	 performs the "fixed" joint inversion using the RTD of</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>	 performs the "shape" joint inversion using the RTD of</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)</a>
+0002 <span class="comment">%getSaturationFromPressure calculates the full or partial saturation state</span>
+0003 <span class="comment">%at a given pressure P for the three possible pore shapes: 'cyl', 'ang'</span>
+0004 <span class="comment">%and 'poly'.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Syntax:</span>
+0007 <span class="comment">%       getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Inputs:</span>
+0010 <span class="comment">%       GEOM - geometry structure (output from 'getGeometryParameters')</span>
+0011 <span class="comment">%       pressure - pressure values in [Pa]</span>
+0012 <span class="comment">%       inpsd - structure containing fields:</span>
+0013 <span class="comment">%           r   : x-values of the PSD</span>
+0014 <span class="comment">%           psd : amplitudes of the PSD%</span>
+0015 <span class="comment">%           NOTE: if psd = 1 and r is a scalar value then a single pore</span>
+0016 <span class="comment">%                 is assumed</span>
+0017 <span class="comment">%       constants - physical constants (output from 'getConstants')</span>
+0018 <span class="comment">%       wbopts - show a waitbar or not</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Outputs:</span>
+0021 <span class="comment">%       SAT - output sruct with fields:</span>
+0022 <span class="comment">%           isfullsat(i,d) : full saturation marker (i and d refer to</span>
+0023 <span class="comment">%                            imbibition and drainage)</span>
+0024 <span class="comment">%           WC(i,d) : water content</span>
+0025 <span class="comment">%           S(i,d)  : saturation</span>
+0026 <span class="comment">%           Aa(i,d) : water filled area</span>
+0027 <span class="comment">%           Pa(i,d) : NMR active perimeter</span>
+0028 <span class="comment">%           Pc(i,d) : critical capillary pressure</span>
+0029 <span class="comment">%           R0(i,d) : critical radius for (only 'ang' and 'poly')</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% Example:</span>
+0032 <span class="comment">%       out = getSaturationFromPressure(geom,P,constants)</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% Other m-files required:</span>
+0035 <span class="comment">%       getCriticalPressure</span>
+0036 <span class="comment">%       getCornerSaturation</span>
+0037 <span class="comment">%</span>
+0038 <span class="comment">% Subfunctions:</span>
+0039 <span class="comment">%       none</span>
+0040 <span class="comment">%</span>
+0041 <span class="comment">% MAT-files required:</span>
+0042 <span class="comment">%       none</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% See also:</span>
+0045 <span class="comment">% Author: Thomas Hiller</span>
+0046 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0047 <span class="comment">% License: MIT License (at end)</span>
+0048 
+0049 <span class="comment">%------------- BEGIN CODE --------------</span>
+0050 
+0051 radius = GEOM.radius';
+0052 tmp_geom.type = GEOM.type;
+0053 
+0054 <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'ang'</span>) || strcmp(GEOM.type,<span class="string">'poly'</span>)
+0055     tmp_geom.angles = GEOM.angles;
+0056     tmp_geom.ShapeFac = GEOM.ShapeFac;
+0057     tmp_geom.AngulFac = GEOM.AngulFac;
+0058 <span class="keyword">end</span>
+0059 
+0060 <span class="comment">% some informative waitbar ;-)</span>
+0061 <span class="keyword">if</span> wbopts.show
+0062     hwb = waitbar(0,<span class="string">'processing ...'</span>,<span class="string">'Name'</span>,<span class="string">'Calculate Saturation'</span>,<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0063     steps = numel(pressure);
+0064     fig = findobj(<span class="string">'Tag'</span>,wbopts.tag);
+0065     <span class="keyword">if</span> ~isempty(fig)
+0066         posf = get(fig,<span class="string">'Position'</span>);
+0067         set(hwb,<span class="string">'Units'</span>,<span class="string">'Pixel'</span>)
+0068         posw = get(hwb,<span class="string">'Position'</span>);
+0069         set(hwb,<span class="string">'Position'</span>,[posf(1)+posf(3)/2-posw(3)/2 posf(2)+posf(4)/2-posw(4)/2 posw(3:4)]);
+0070     <span class="keyword">end</span>
+0071     set(hwb,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0072 <span class="keyword">end</span>
+0073 
+0074 <span class="comment">% looping over all pressures and radii</span>
+0075 <span class="comment">% looping through backwards has the advantage that output-variables like</span>
+0076 <span class="comment">% e.g. Aad already have the correct dimensions, because at high pressures</span>
+0077 <span class="comment">% the pores are likely to be partially saturated</span>
+0078 <span class="keyword">for</span> p = numel(pressure):-1:1
+0079     <span class="keyword">for</span> r = numel(radius):-1:1        
+0080         <span class="comment">% local geometry variable</span>
+0081         tmp_geom.radius = GEOM.radius(r);
+0082         tmp_geom.A0     = GEOM.A0(r);
+0083         tmp_geom.P0     = GEOM.P0(r);
+0084         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'ang'</span>)
+0085             tmp_geom.sides = GEOM.sides(r,:);
+0086         <span class="keyword">elseif</span> strcmp(GEOM.type,<span class="string">'poly'</span>)
+0087             tmp_geom.side = GEOM.side(r,:);
+0088         <span class="keyword">end</span>
+0089         
+0090         <span class="comment">% get the saturation state depending on shape and pressure</span>
+0091         Sat_state = <a href="getSaturationFromPressure.html" class="code" title="function out = getSaturationFromPressure(geom,P,constants)">getSaturationFromPressure</a>(tmp_geom,pressure(p),constants);
+0092         
+0093         <span class="comment">% gather the data for the current radius</span>
+0094         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'cyl'</span>)
+0095             SatData_tmp.isfullsati(r,1) = Sat_state.isfullsati;
+0096             SatData_tmp.Pci(r) = Sat_state.Pci;
+0097             SatData_tmp.WCi(r) = Sat_state.WCi;
+0098             SatData_tmp.Si(r) = Sat_state.Si;
+0099             SatData_tmp.Aai(r) = Sat_state.Aai;
+0100             SatData_tmp.Pai(r) = Sat_state.Pai;
+0101             
+0102             SatData_tmp.isfullsatd(r,1) = Sat_state.isfullsatd;
+0103             SatData_tmp.Pcd(r) = Sat_state.Pcd;
+0104             SatData_tmp.WCd(r) = Sat_state.WCd;
+0105             SatData_tmp.Sd(r) = Sat_state.Sd;
+0106             SatData_tmp.Aad(r) = Sat_state.Aad;
+0107             SatData_tmp.Pad(r) = Sat_state.Pad;
+0108             
+0109         <span class="keyword">elseif</span> strcmp(GEOM.type,<span class="string">'ang'</span>) || strcmp(GEOM.type,<span class="string">'poly'</span>)
+0110             SatData_tmp.isfullsati(r) = Sat_state.isfullsati;
+0111             SatData_tmp.Pci(r) = Sat_state.Pci;
+0112             SatData_tmp.R0i(r) = Sat_state.R0i;
+0113             SatData_tmp.WCi(r) = Sat_state.WCi;
+0114             SatData_tmp.Si(r) = Sat_state.Si;
+0115             SatData_tmp.Aai(r,:) = Sat_state.Aai;
+0116             SatData_tmp.Pai(r,:) = Sat_state.Pai;
+0117             
+0118             SatData_tmp.isfullsatd(r) = Sat_state.isfullsatd;
+0119             SatData_tmp.Pcd(r) = Sat_state.Pcd;
+0120             SatData_tmp.R0d(r) = Sat_state.R0d;
+0121             SatData_tmp.WCd(r) = Sat_state.WCd;
+0122             SatData_tmp.Sd(r) = Sat_state.Sd;
+0123             SatData_tmp.Aad(r,:) = Sat_state.Aad;
+0124             SatData_tmp.Pad(r,:) = Sat_state.Pad;
+0125         <span class="keyword">end</span>
+0126     <span class="keyword">end</span>
+0127     
+0128     <span class="comment">% gather the data for the current pressure</span>
+0129     SAT.isfullsati(p,:) = SatData_tmp.isfullsati;
+0130     SAT.WCi(p,:) = SatData_tmp.WCi;
+0131     SAT.Si(p,:) = SatData_tmp.Si;
+0132     SAT.Sifull(p,:) = SatData_tmp.Si .* inpsd.psd;
+0133     SAT.Aai(p,:,:) = SatData_tmp.Aai;
+0134     SAT.Pai(p,:,:) = SatData_tmp.Pai;
+0135     
+0136     SAT.isfullsatd(p,:) = SatData_tmp.isfullsatd;
+0137     SAT.WCd(p,:) = SatData_tmp.WCd;
+0138     SAT.Sd(p,:) = SatData_tmp.Sd;
+0139     SAT.Sdfull(p,:) = SatData_tmp.Sd .* inpsd.psd;
+0140     SAT.Aad(p,:,:) = SatData_tmp.Aad;
+0141     SAT.Pad(p,:,:) = SatData_tmp.Pad;
+0142     
+0143     <span class="keyword">if</span> wbopts.show
+0144         waitbar((steps-p) / steps,hwb,[<span class="string">'processing ...'</span>,num2str(steps-p),<span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
+0145     <span class="keyword">end</span>
+0146 <span class="keyword">end</span>
+0147 <span class="keyword">if</span> wbopts.show
+0148     delete(hwb);
+0149 <span class="keyword">end</span>
+0150 
+0151 <span class="comment">%% finalize global output saturation data</span>
+0152 SAT.A0  = GEOM.A0;
+0153 SAT.Aai = squeeze(SAT.Aai);
+0154 SAT.Pai = squeeze(SAT.Pai);
+0155 SAT.Aad = squeeze(SAT.Aad);
+0156 SAT.Pad = squeeze(SAT.Pad);
+0157 <span class="keyword">if</span> numel(radius) &gt; 1
+0158     SAT.Sifull = sum(SAT.Sifull,2);
+0159     SAT.Sdfull = sum(SAT.Sdfull,2);
+0160 <span class="keyword">end</span>
+0161 SAT.pressure = pressure(:);
+0162 
+0163 <span class="keyword">return</span>
+0164 
+0165 <span class="comment">%------------- END OF CODE --------------</span>
+0166 
+0167 <span class="comment">%% License:</span>
+0168 <span class="comment">% MIT License</span>
+0169 <span class="comment">%</span>
+0170 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0171 <span class="comment">%</span>
+0172 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0173 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0174 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0175 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0176 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0177 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0178 <span class="comment">%</span>
+0179 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0180 <span class="comment">% copies or substantial portions of the Software.</span>
+0181 <span class="comment">%</span>
+0182 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0183 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0184 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0185 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0186 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0187 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0188 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

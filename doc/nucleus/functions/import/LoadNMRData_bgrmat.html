@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of LoadNMRData_bgrmat</title>
+  <meta name="keywords" content="LoadNMRData_bgrmat">
+  <meta name="description" content=" loads already preprocessed BGR NMR data; check the">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html import -->
+<h1>LoadNMRData_bgrmat
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> loads already preprocessed BGR NMR data; check the</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = LoadNMRData_bgrmat(in) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">LoadNMRData_bgrmat loads already preprocessed BGR NMR data; check the
+individual documentation for the data fields
+
+ Syntax:
+       out = LoadNMRData_bgrmat(in)
+
+ Inputs:
+       in - input structure
+       in.path - data path
+       in.fileformat - 'mouse'
+
+ Outputs:
+       out - output structure
+       out.parData - parameter file data
+       out.nmrData - NMR data
+       out.pressData - pressure data
+
+ Example:
+       out = LoadNMRData_bgrmat(in)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_bgrmat(in)</a>
+0002 <span class="comment">%LoadNMRData_bgrmat loads already preprocessed BGR NMR data; check the</span>
+0003 <span class="comment">%individual documentation for the data fields</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       out = LoadNMRData_bgrmat(in)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       in - input structure</span>
+0010 <span class="comment">%       in.path - data path</span>
+0011 <span class="comment">%       in.fileformat - 'mouse'</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Outputs:</span>
+0014 <span class="comment">%       out - output structure</span>
+0015 <span class="comment">%       out.parData - parameter file data</span>
+0016 <span class="comment">%       out.nmrData - NMR data</span>
+0017 <span class="comment">%       out.pressData - pressure data</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Example:</span>
+0020 <span class="comment">%       out = LoadNMRData_bgrmat(in)</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Other m-files required:</span>
+0023 <span class="comment">%       none</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Subfunctions:</span>
+0026 <span class="comment">%       none</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% MAT-files required:</span>
+0029 <span class="comment">%       none</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% See also: NUCLEUSinv</span>
+0032 <span class="comment">% Author: Thomas Hiller</span>
+0033 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0034 <span class="comment">% License: MIT License (at end)</span>
+0035 
+0036 <span class="comment">%------------- BEGIN CODE --------------</span>
+0037 
+0038 <span class="comment">%% load the Matlab mat-file</span>
+0039 data = load(fullfile(in.path,in.name));
+0040 data = data.data;
+0041 <span class="comment">% &quot;dir&quot; the file to get some file statistics</span>
+0042 file = dir(fullfile(in.path,in.name));
+0043 
+0044 <span class="comment">% init stuff</span>
+0045 parData = cell(1,1);
+0046 tmp = cell(1,1);
+0047 
+0048 <span class="comment">% number of signals</span>
+0049 Nsig = size(data.sig,2);
+0050 <span class="comment">% saturation S</span>
+0051 S = zeros(1,Nsig);
+0052 
+0053 <span class="comment">% check, if it is one or multiple NMR measurements</span>
+0054 <span class="keyword">if</span> Nsig &gt; 1
+0055     nmrData = cell(1,Nsig);
+0056     <span class="keyword">for</span> i = 1:Nsig
+0057         <span class="comment">% save file statistics</span>
+0058         nmrData{i}.datfile = file.name;
+0059         nmrData{i}.date = file.date;
+0060         nmrData{i}.datenum = file.datenum;
+0061         nmrData{i}.bytes = file.bytes;
+0062     
+0063         <span class="comment">% check if T1 or T2 data</span>
+0064         <span class="keyword">if</span> ~isempty(strfind(data.method,<span class="string">'T2'</span>))
+0065             nmrData{i}.flag = <span class="string">'T2'</span>;
+0066         <span class="keyword">else</span>
+0067             nmrData{i}.flag = <span class="string">'T1'</span>;
+0068         <span class="keyword">end</span>
+0069         
+0070         <span class="keyword">switch</span> nmrData{i}.flag
+0071             <span class="keyword">case</span> <span class="string">'T1'</span>
+0072                 <span class="comment">% time vector</span>
+0073                 nmrData{i}.time = data.sig(i).t;
+0074                 <span class="keyword">if</span> ~isempty(strfind(data.method,<span class="string">'inv'</span>))
+0075                     nmrData{i}.T1IRfac = 2;
+0076                 <span class="keyword">else</span>
+0077                     nmrData{i}.T1IRfac = 1;
+0078                 <span class="keyword">end</span>
+0079                 nmrData{i}.signal = data.sig(i).V;
+0080                 <span class="comment">% porosity</span>
+0081                 <span class="comment">% for the MOUSE data the V_re is normalized to WC and not V</span>
+0082                 <span class="comment">% as for the Maran data</span>
+0083                 <span class="keyword">if</span> abs(data.sig(1).V(end)) &gt; 0.7
+0084                     porosity = abs(data.sig(1).V_re(end));
+0085                 <span class="keyword">else</span>
+0086                     porosity = abs(data.sig(1).V(end));
+0087                 <span class="keyword">end</span>
+0088                 <span class="comment">% saturation</span>
+0089                 saturation = abs(data.sig(i).V(end))/abs(data.sig(1).V(end));
+0090                 <span class="comment">% normalize signal to 1</span>
+0091                 nmrData{i}.signal = nmrData{i}.signal./nmrData{i}.signal(end);                
+0092             <span class="keyword">case</span> <span class="string">'T2'</span>
+0093                 nmrData{i}.T1IRfac = 1;
+0094                 <span class="comment">% time vector</span>
+0095                 nmrData{i}.time = data.sig(i).t;                
+0096                 <span class="keyword">if</span> isfield(data.sig(i),<span class="string">'V_im'</span>)
+0097                     nmrData{i}.signal = complex(data.sig(i).V_re,data.sig(i).V_im);
+0098                     <span class="comment">% if there is an imag part the signal gets phase corrected</span>
+0099                     [nmrData{i}.signal,parData{i}.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(nmrData{i}.signal);
+0100                 <span class="keyword">else</span>
+0101                     nmrData{i}.signal = data.sig(i).V_re;
+0102                 <span class="keyword">end</span>
+0103                 <span class="comment">% porosity</span>
+0104                 porosity = abs(data.sig(1).V(1));
+0105                 <span class="comment">% saturation</span>
+0106                 saturation = abs(data.sig(i).V(1))/abs(data.sig(1).V(1));
+0107                 <span class="comment">% normalize signal to 1</span>
+0108                 nmrData{i}.signal = nmrData{i}.signal./real(nmrData{i}.signal(1));
+0109         <span class="keyword">end</span>
+0110         
+0111         <span class="comment">% normalize all signals to saturation</span>
+0112         nmrData{i}.signal = saturation.*nmrData{i}.signal;
+0113         
+0114         <span class="comment">% raw data</span>
+0115         nmrData{i}.raw.time = nmrData{i}.time;
+0116         nmrData{i}.raw.signal = nmrData{i}.signal;
+0117 
+0118         <span class="comment">% create some parameter data</span>
+0119         <span class="keyword">if</span> iscell(data.sig(i).file)
+0120             parData{i}.file = data.sig(i).file{1};
+0121         <span class="keyword">else</span>
+0122             parData{i}.file = data.sig(i).file;
+0123         <span class="keyword">end</span>        
+0124         parData{i}.Tbulk = data.T_bulk(i);
+0125         parData{i}.porosity = porosity;
+0126         parData{i}.saturation = saturation;
+0127         
+0128         fields = fieldnames(parData{i});
+0129         <span class="keyword">for</span> j = 1:size(fields,1)
+0130             tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,<span class="keyword">...</span>
+0131                 num2str(i),<span class="string">'}.'</span>,fields{j}]))];
+0132         <span class="keyword">end</span>
+0133         d{1} = tmp;
+0134         parData{i}.all = d;
+0135         S(i) = parData{i}.saturation;
+0136         
+0137         clear d tmp
+0138     <span class="keyword">end</span>
+0139 
+0140     <span class="comment">% and the pressure data</span>
+0141     pressData.p = data.h;
+0142     pressData.S = S;
+0143 <span class="keyword">else</span>
+0144     parData = [];
+0145     nmrData = [];
+0146     pressData = [];
+0147     helpdlg({<span class="string">'function: LoadNMRData_bgrmat'</span>,<span class="keyword">...</span>
+0148             <span class="string">'single data import not yet implemented'</span>},<span class="string">'not implemented yet'</span>);
+0149 <span class="keyword">end</span>
+0150 
+0151 <span class="comment">% save data to output struct</span>
+0152 out.parData = parData;
+0153 out.nmrData = nmrData;
+0154 out.pressData = pressData;
+0155 
+0156 <span class="keyword">end</span>
+0157 
+0158 <span class="comment">%------------- END OF CODE --------------</span>
+0159 
+0160 <span class="comment">%% License:</span>
+0161 <span class="comment">% MIT License</span>
+0162 <span class="comment">%</span>
+0163 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0164 <span class="comment">%</span>
+0165 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0166 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0167 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0168 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0169 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0170 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0171 <span class="comment">%</span>
+0172 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0173 <span class="comment">% copies or substantial portions of the Software.</span>
+0174 <span class="comment">%</span>
+0175 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0176 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0177 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0178 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0179 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0180 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0181 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

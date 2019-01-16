@@ -1,0 +1,351 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of showFitStatistics</title>
+  <meta name="keywords" content="showFitStatistics">
+  <meta name="description" content=" shows an extra fit statistics figure (for T2 data)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>showFitStatistics
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> shows an extra fit statistics figure (for T2 data)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function showFitStatistics </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">showFitStatistics shows an extra fit statistics figure (for T2 data)
+
+ Syntax:
+       showFitStatistics
+
+ Inputs:
+       none
+
+ Outputs:
+       none
+
+ Example:
+       showFitStatistics
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/menus/onMenuExtraGraphics.html" class="code" title="function onMenuExtraGraphics(src,~)">onMenuExtraGraphics</a>	 handles the extra menu entries to show additional</li><li><a href="runInversionStd.html" class="code" title="function runInversionStd">runInversionStd</a>	 controls the standard inversion process to invert a</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function showFitStatistics</a>
+0002 <span class="comment">%showFitStatistics shows an extra fit statistics figure (for T2 data)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       showFitStatistics</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       none</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Outputs:</span>
+0011 <span class="comment">%       none</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Example:</span>
+0014 <span class="comment">%       showFitStatistics</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Other m-files required:</span>
+0017 <span class="comment">%       none</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Subfunctions:</span>
+0020 <span class="comment">%       none</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% MAT-files required:</span>
+0023 <span class="comment">%       none</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% See also: NUCLEUSinv</span>
+0026 <span class="comment">% Author: Thomas Hiller</span>
+0027 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0028 <span class="comment">% License: MIT License (at end)</span>
+0029 
+0030 <span class="comment">%------------- BEGIN CODE --------------</span>
+0031 
+0032 <span class="comment">%% get GUI handle and data</span>
+0033 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0034 fig_tag = get(fig,<span class="string">'Tag'</span>);
+0035 data = getappdata(fig,<span class="string">'data'</span>);
+0036 maingui = getappdata(fig,<span class="string">'gui'</span>);
+0037 
+0038 <span class="comment">%% proceed if there is data</span>
+0039 <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
+0040     <span class="keyword">if</span> isfield(data.results,<span class="string">'nmrraw'</span>) &amp;&amp; isfield(data.results,<span class="string">'nmrproc'</span>)
+0041         
+0042         <span class="comment">% check if the figure is already open</span>
+0043         figstat = findobj(<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>);
+0044         <span class="comment">% if not, create it</span>
+0045         <span class="keyword">if</span> isempty(figstat)
+0046             <span class="comment">% draw the figure on top og NUCLEUSinv</span>
+0047             figstat = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - Fit Statistics'</span>,<span class="keyword">...</span>
+0048                 <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>);
+0049             pos0 = get(fig,<span class="string">'Position'</span>);
+0050             pos1 = get(figstat,<span class="string">'Position'</span>);
+0051             cent(1) = (pos0(1)+pos0(3)/2);
+0052             cent(2) = (pos0(2)+pos0(4)/2);
+0053             set(figstat,<span class="string">'Position'</span>,[cent(1)-pos0(3)/4 pos0(2) pos0(3)/2 pos0(4)-28]);
+0054             
+0055             <span class="comment">% create the layout</span>
+0056             gui.main = uix.VBoxFlex(<span class="string">'Parent'</span>,figstat,<span class="string">'Spacing'</span>,5);
+0057             gui.row1 = uicontainer(<span class="string">'Parent'</span>,gui.main); <span class="comment">% axes</span>
+0058             gui.row2 = uicontainer(<span class="string">'Parent'</span>,gui.main); <span class="comment">% axes</span>
+0059             gui.row3 = uix.HBoxFlex(<span class="string">'Parent'</span>,gui.main); <span class="comment">% axes + text</span>
+0060             set(gui.main,<span class="string">'Heights'</span>,[-1 -1 -1.5]);
+0061             
+0062             gui.box1 = uicontainer(<span class="string">'Parent'</span>,gui.row3); <span class="comment">% axes</span>
+0063             gui.box2 = uix.VBox(<span class="string">'Parent'</span>,gui.row3); <span class="comment">% text</span>
+0064             set(gui.row3,<span class="string">'Widths'</span>,[-1 -1]);
+0065             
+0066             <span class="comment">% all text boxes</span>
+0067             gui.row31 = uix.HBox(<span class="string">'Parent'</span>,gui.box2);
+0068             gui.row32 = uix.HBox(<span class="string">'Parent'</span>,gui.box2);
+0069             gui.row33 = uix.HBox(<span class="string">'Parent'</span>,gui.box2);
+0070             gui.row34 = uix.HBox(<span class="string">'Parent'</span>,gui.box2);
+0071             gui.row35 = uix.HBox(<span class="string">'Parent'</span>,gui.box2);
+0072             gui.row36 = uix.HBox(<span class="string">'Parent'</span>,gui.box2);
+0073             set(gui.box2,<span class="string">'Heights'</span>,[-1 -1 -1 -1 -1 -1]);
+0074             
+0075             gui.text11 = uicontrol(<span class="string">'Parent'</span>,gui.row31,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0076                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0077             gui.text12 = uicontrol(<span class="string">'Parent'</span>,gui.row31,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0078                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0079             
+0080             gui.text21 = uicontrol(<span class="string">'Parent'</span>,gui.row32,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0081                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0082             gui.text22 = uicontrol(<span class="string">'Parent'</span>,gui.row32,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0083                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0084             
+0085             gui.text31 = uicontrol(<span class="string">'Parent'</span>,gui.row33,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0086                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0087             gui.text32 = uicontrol(<span class="string">'Parent'</span>,gui.row33,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0088                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0089             
+0090             gui.text41 = uicontrol(<span class="string">'Parent'</span>,gui.row34,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0091                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0092             gui.text42 = uicontrol(<span class="string">'Parent'</span>,gui.row34,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0093                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0094             
+0095             gui.text51 = uicontrol(<span class="string">'Parent'</span>,gui.row35,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0096                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0097             gui.text52 = uicontrol(<span class="string">'Parent'</span>,gui.row35,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0098                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0099             
+0100             gui.text61 = uicontrol(<span class="string">'Parent'</span>,gui.row36,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0101                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0102             gui.text62 = uicontrol(<span class="string">'Parent'</span>,gui.row36,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0103                 <span class="string">'FontSize'</span>,12,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="string">'FontWeight'</span>,<span class="string">'bold'</span>);
+0104             
+0105             <span class="comment">% all axes</span>
+0106             gui.axes_handles.imag = axes(<span class="string">'Parent'</span>,gui.row1);
+0107             gui.axes_handles.err = axes(<span class="string">'Parent'</span>,gui.row2);
+0108             gui.axes_handles.hist = axes(<span class="string">'Parent'</span>,gui.box1);
+0109             
+0110             <span class="comment">% save to GUI</span>
+0111             setappdata(figstat,<span class="string">'gui'</span>,gui);
+0112         <span class="keyword">end</span>
+0113         <span class="comment">% if the figure is already open load the GUI data</span>
+0114         gui = getappdata(figstat,<span class="string">'gui'</span>);
+0115         
+0116         <span class="comment">% get axes handles</span>
+0117         ax1 = gui.axes_handles.imag;
+0118         ax2 = gui.axes_handles.err;
+0119         ax3 = gui.axes_handles.hist;
+0120         <span class="comment">% clear all axes</span>
+0121         <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(figstat);
+0122         
+0123         <span class="comment">%% gather the fit statistics for the current inversion</span>
+0124         text = cell(1,1);
+0125         nmrraw = data.results.nmrraw;
+0126         nmrproc = data.results.nmrproc;
+0127         <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0128             invstd = data.results.invstd;
+0129         <span class="keyword">end</span>
+0130         loglinx = get(maingui.cm_handles.axes_raw_xaxis,<span class="string">'Label'</span>);
+0131         
+0132         <span class="comment">% plot imaginary part</span>
+0133         <span class="keyword">if</span> ~isreal(nmrraw.s)
+0134             plot(nmrraw.t,imag(nmrraw.s),<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax1);
+0135             xlims = get(maingui.axes_handles.raw,<span class="string">'XLim'</span>);
+0136             line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax1);
+0137             <span class="comment">% get statistics</span>
+0138             imag_mean = mean(imag(nmrraw.s));
+0139             imag_std = std(imag(nmrraw.s));
+0140             set(ax1,<span class="string">'XTickLabel'</span>,get(maingui.axes_handles.raw,<span class="string">'XTickLabel'</span>));
+0141             <span class="keyword">switch</span> loglinx
+0142                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0143                     set(ax1,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
+0144                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0145                     set(ax1,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
+0146             <span class="keyword">end</span>
+0147             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'imag. part [a.u.]'</span>);
+0148             grid(ax1,<span class="string">'on'</span>);
+0149             
+0150             <span class="comment">% draw first histogram</span>
+0151             min1 = mean(imag(nmrraw.s))-5*std(imag(nmrraw.s));
+0152             max1 = mean(imag(nmrraw.s))+5*std(imag(nmrraw.s));
+0153             bins1 = linspace(min1,max1,100);
+0154             n1 = hist(imag(nmrraw.s),bins1);
+0155             n1 = n1./trapz(bins1,n1);
+0156             stairs(bins1,n1,<span class="string">'Parent'</span>,ax3);
+0157             hold(ax3,<span class="string">'on'</span>);
+0158             line([mean(imag(nmrraw.s)) mean(imag(nmrraw.s))],[0 max(n1)],<span class="keyword">...</span>
+0159                 <span class="string">'LineWidth'</span>,1,<span class="string">'color'</span>,<span class="string">'b'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0160                 <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Parent'</span>,ax3);
+0161             
+0162             <span class="comment">% update the text fields</span>
+0163             set(gui.text11,<span class="string">'String'</span>,<span class="string">'mean(IMAG) = '</span>);
+0164             set(gui.text12,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,imag_mean));
+0165             set(gui.text31,<span class="string">'String'</span>,<span class="string">'std(IMAG) (noise) = '</span>);
+0166             set(gui.text32,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,imag_std));
+0167         <span class="keyword">end</span>
+0168         
+0169         <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0170             <span class="comment">% plot residuals</span>
+0171             <span class="keyword">if</span> nmrproc.noise &gt; 0
+0172                 plot(nmrproc.t,invstd.residual./nmrproc.e,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax2);
+0173                 <span class="comment">% get statistics</span>
+0174                 err_mean = mean(invstd.residual./nmrproc.e);
+0175                 err_std = std(invstd.residual./nmrproc.e);
+0176             <span class="keyword">else</span>
+0177                 plot(nmrproc.t,invstd.residual,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax2);
+0178                 <span class="comment">% get statistics</span>
+0179                 err_mean = mean(invstd.residual);
+0180                 err_std = std(invstd.residual);
+0181             <span class="keyword">end</span>
+0182             xlims = get(maingui.axes_handles.proc,<span class="string">'XLim'</span>);
+0183             line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
+0184             
+0185             line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
+0186                 <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
+0187             line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
+0188                 <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
+0189             set(ax2,<span class="string">'XTickLabel'</span>,get(maingui.axes_handles.proc,<span class="string">'XTickLabel'</span>));
+0190             set(ax2,<span class="string">'YLim'</span>,[err_mean-3*err_std err_mean+3*err_std]);
+0191             <span class="keyword">switch</span> loglinx
+0192                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0193                     set(ax2,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
+0194                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0195                     set(ax2,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
+0196             <span class="keyword">end</span>
+0197             set(get(ax2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>)
+0198             <span class="keyword">if</span> nmrproc.noise &gt; 0
+0199                 set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,{<span class="string">'noise'</span>,<span class="string">'weighted'</span>,<span class="string">'residuals'</span>});
+0200             <span class="keyword">else</span>
+0201                 set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'residuals'</span>);
+0202             <span class="keyword">end</span>
+0203             grid(ax2,<span class="string">'on'</span>);
+0204             
+0205             <span class="comment">% update the text fields</span>
+0206             set(gui.text21,<span class="string">'String'</span>,<span class="string">'mean(RES) = '</span>);
+0207             set(gui.text22,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,err_mean));
+0208             <span class="keyword">if</span> nmrproc.noise &gt; 0
+0209                 set(gui.text41,<span class="string">'String'</span>,<span class="string">'X2 = '</span>);
+0210             <span class="keyword">else</span>
+0211                 set(gui.text41,<span class="string">'String'</span>,<span class="string">'std(RES) = '</span>);
+0212             <span class="keyword">end</span>
+0213             set(gui.text42,<span class="string">'String'</span>,sprintf(<span class="string">'%4.2f'</span>,err_std));
+0214             
+0215             set(gui.text51,<span class="string">'String'</span>,<span class="string">'RMS = '</span>);
+0216             set(gui.text52,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,invstd.rms));
+0217             
+0218             <span class="keyword">if</span> nmrproc.noise == 0
+0219                 <span class="keyword">if</span> isfield(invstd,<span class="string">'chi2'</span>)
+0220                     set(gui.text61,<span class="string">'String'</span>,<span class="string">'X2 = '</span>);
+0221                     set(gui.text62,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4f'</span>,invstd.chi2));
+0222                 <span class="keyword">else</span>
+0223                     set(gui.text61,<span class="string">'String'</span>,<span class="string">'X2 = '</span>);
+0224                     set(gui.text62,<span class="string">'String'</span>,<span class="string">'N/A'</span>);
+0225                 <span class="keyword">end</span>
+0226             <span class="keyword">end</span>
+0227             
+0228             <span class="comment">% draw second histogram</span>
+0229             min2 = mean(invstd.residual)-5*std(invstd.residual);
+0230             max2 = mean(invstd.residual)+5*std(invstd.residual);
+0231             bins2 = linspace(min2,max2,100);
+0232             n2 = hist(invstd.residual,bins2);
+0233             n2 = n2./trapz(bins2,n2);
+0234             stairs(bins2,n2,<span class="string">'Parent'</span>,ax3);
+0235             line([mean(invstd.residual) mean(invstd.residual)],[0 max(n2)],<span class="keyword">...</span>
+0236                 <span class="string">'LineWidth'</span>,1,<span class="string">'color'</span>,<span class="string">'r'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0237                 <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Parent'</span>,ax3);
+0238             set(get(ax3,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
+0239             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'count'</span>);
+0240             legend(ax3,<span class="string">'IM'</span>,<span class="string">'RES'</span>);
+0241             grid(ax3,<span class="string">'on'</span>);
+0242         <span class="keyword">end</span>
+0243     <span class="keyword">else</span>
+0244         helpdlg({<span class="string">'function: showFitStatistics'</span>,<span class="keyword">...</span>
+0245             <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
+0246             <span class="string">'Load NMR data first.'</span>);
+0247     <span class="keyword">end</span>
+0248 <span class="keyword">else</span>
+0249     helpdlg({<span class="string">'function: showFitStatistics'</span>,<span class="keyword">...</span>
+0250         <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
+0251         <span class="string">'Load NMR data first.'</span>);
+0252 <span class="keyword">end</span>
+0253 
+0254 <span class="keyword">end</span>
+0255 
+0256 <span class="comment">%------------- END OF CODE --------------</span>
+0257 
+0258 <span class="comment">%% License:</span>
+0259 <span class="comment">% MIT License</span>
+0260 <span class="comment">%</span>
+0261 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0262 <span class="comment">%</span>
+0263 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0264 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0265 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0266 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0267 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0268 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0269 <span class="comment">%</span>
+0270 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0271 <span class="comment">% copies or substantial portions of the Software.</span>
+0272 <span class="comment">%</span>
+0273 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0274 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0275 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0276 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0277 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0278 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0279 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of clearInversion</title>
+  <meta name="keywords" content="clearInversion">
+  <meta name="description" content=" removes inversion results from the internal data structure">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>clearInversion
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> removes inversion results from the internal data structure</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function clearInversion(id) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">clearInversion removes inversion results from the internal data structure
+
+ Syntax:
+       clearInversion
+
+ Inputs:
+       id - index of the calling NMR signal in the file list
+
+ Outputs:
+       none
+
+ Example:
+       clearInversion(1)
+
+ Other m-files required:
+       removeInversionFields
+       NUCLEUSinv_updateInterface
+       updatePlotsSignal
+       clearSingleAxis
+       clearAllAxes
+       checkIfInversionExists
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>	 updates all GUI elements</li><li><a href="checkIfInversionExists.html" class="code" title="function [foundINV,N] = checkIfInversionExists(INVdata)">checkIfInversionExists</a>	 checks if any inversion result is stored inside</li><li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li><li><a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>	 clears an individual axis</li><li><a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>	 deletes all inversion result fields from NUCLEUSinv</li><li><a href="updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>	 plots the raw and processed NMR signals in NUCLEUSinv</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/contextmenus/onContextSignalList.html" class="code" title="function onContextSignalList(src,~)">onContextSignalList</a>	 handles the calls from the context menu of the data</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function clearInversion(id)</a>
+0002 <span class="comment">%clearInversion removes inversion results from the internal data structure</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       clearInversion</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       id - index of the calling NMR signal in the file list</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Outputs:</span>
+0011 <span class="comment">%       none</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Example:</span>
+0014 <span class="comment">%       clearInversion(1)</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Other m-files required:</span>
+0017 <span class="comment">%       removeInversionFields</span>
+0018 <span class="comment">%       NUCLEUSinv_updateInterface</span>
+0019 <span class="comment">%       updatePlotsSignal</span>
+0020 <span class="comment">%       clearSingleAxis</span>
+0021 <span class="comment">%       clearAllAxes</span>
+0022 <span class="comment">%       checkIfInversionExists</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Subfunctions:</span>
+0025 <span class="comment">%       none</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% MAT-files required:</span>
+0028 <span class="comment">%       none</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% See also: NUCLEUSinv</span>
+0031 <span class="comment">% Author: Thomas Hiller</span>
+0032 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0033 <span class="comment">% License: MIT License (at end)</span>
+0034 
+0035 <span class="comment">%------------- BEGIN CODE --------------</span>
+0036 
+0037 <span class="comment">%% get GUI handle and data</span>
+0038 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0039 gui = getappdata(fig,<span class="string">'gui'</span>);
+0040 data = getappdata(fig,<span class="string">'data'</span>);
+0041 INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0042 
+0043 <span class="keyword">if</span> isnumeric(id) &amp;&amp; ~isempty(INVdata) <span class="comment">% clear single inversion</span>
+0044     
+0045     <span class="keyword">if</span> ~isempty(INVdata{id})
+0046         <span class="comment">% remove the data set</span>
+0047         INVdata{id} = [];
+0048         
+0049         <span class="comment">% remove temporary data fields</span>
+0050         data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
+0051         
+0052         <span class="comment">% remove the colored background</span>
+0053         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0054         str1 = data.import.NMR.filesShort{id};
+0055         strL{id} = str1;
+0056         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+0057         
+0058         setappdata(fig,<span class="string">'data'</span>,data);
+0059         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0060         <span class="comment">% update interface</span>
+0061         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0062         <span class="comment">% update the data plot axes</span>
+0063         <a href="updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
+0064         
+0065         <span class="comment">% clear inversion axes</span>
+0066         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
+0067         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
+0068         <span class="comment">% clear the info fields</span>
+0069         set(gui.listbox_handles.info_signal,<span class="string">'String'</span>,<span class="string">' '</span>);
+0070         set(gui.listbox_handles.info_dist,<span class="string">'String'</span>,<span class="string">' '</span>);
+0071         set(gui.listbox_handles.info_cps,<span class="string">'String'</span>,<span class="string">' '</span>);
+0072         
+0073     <span class="keyword">else</span>
+0074         helpdlg(<span class="string">'Cannot CLEAR inversion because there is no inversion set!'</span>,<span class="keyword">...</span>
+0075             <span class="string">'clearInversion: Run inversion first.'</span>);
+0076     <span class="keyword">end</span>
+0077     
+0078 <span class="keyword">else</span> <span class="comment">% clear all inversions</span>
+0079     
+0080     <span class="comment">% if all inversions are deleted also all axes can be cleared</span>
+0081     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig);
+0082     
+0083     <span class="comment">% check if there is at least one inversion set</span>
+0084     foundINV = <a href="checkIfInversionExists.html" class="code" title="function [foundINV,N] = checkIfInversionExists(INVdata)">checkIfInversionExists</a>(INVdata);
+0085     
+0086     <span class="keyword">if</span> foundINV        
+0087         INVdata = cell(length(data.import.NMR.filesShort),1);
+0088         
+0089         <span class="comment">% remove temporary data fields</span>
+0090         data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
+0091         <span class="comment">% remove the green color</span>
+0092         strL = data.import.NMR.filesShort';
+0093         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+0094         
+0095         setappdata(fig,<span class="string">'data'</span>,data);
+0096         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0097         <span class="comment">% update interface</span>
+0098         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0099         <span class="comment">% update the data plot axes</span>
+0100         <a href="updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
+0101                 
+0102         <span class="comment">% clear inversion axes</span>
+0103         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
+0104         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
+0105         <span class="comment">% clear the info fields</span>
+0106         set(gui.listbox_handles.info_signal,<span class="string">'String'</span>,<span class="string">' '</span>);
+0107         set(gui.listbox_handles.info_dist,<span class="string">'String'</span>,<span class="string">' '</span>);
+0108         set(gui.listbox_handles.info_cps,<span class="string">'String'</span>,<span class="string">' '</span>);
+0109         
+0110     <span class="keyword">else</span>
+0111         helpdlg(<span class="string">'Cannot CLEAR inversions because there is no inversion set!'</span>,<span class="keyword">...</span>
+0112             <span class="string">'removeInversionSetAll: Run inversion first.'</span>);
+0113     <span class="keyword">end</span>
+0114     
+0115 <span class="keyword">end</span>
+0116 
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="comment">%------------- END OF CODE --------------</span>
+0120 
+0121 <span class="comment">%% License:</span>
+0122 <span class="comment">% MIT License</span>
+0123 <span class="comment">%</span>
+0124 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0125 <span class="comment">%</span>
+0126 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0127 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0128 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0129 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0130 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0131 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0132 <span class="comment">%</span>
+0133 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0134 <span class="comment">% copies or substantial portions of the Software.</span>
+0135 <span class="comment">%</span>
+0136 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0137 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0138 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0139 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0140 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0141 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0142 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

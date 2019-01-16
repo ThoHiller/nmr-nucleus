@@ -1,0 +1,302 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of importEXCELdata</title>
+  <meta name="keywords" content="importEXCELdata">
+  <meta name="description" content=" imports NMR data from Excel files">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>importEXCELdata
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> imports NMR data from Excel files</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function importEXCELdata(src) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">importEXCELdata imports NMR data from Excel files
+all sheets are tested; if there is an CPS data sheet this can also be
+imported upon request
+
+ Syntax:
+       importEXCELdata(src)
+
+ Inputs:
+       src - handle to the calling uimenu
+
+ Outputs:
+       none
+
+ Example:
+       importEXCELdata(src)
+
+ Other m-files required:
+       clearAllAxes
+       enableGUIelements
+       NUCLEUSinv_updateInterface
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>	 updates all GUI elements</li><li><a href="cleanupGUIData.html" class="code" title="function data = cleanupGUIData(data)">cleanupGUIData</a>	 removes unnecessary fields from the global "data" struct</li><li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li><li><a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>	 activates all necessary GUI elements after successful</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/menus/onMenuImport.html" class="code" title="function onMenuImport(src,~)">onMenuImport</a>	 handles the import menu entries</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function importEXCELdata(src)</a>
+0002 <span class="comment">%importEXCELdata imports NMR data from Excel files</span>
+0003 <span class="comment">%all sheets are tested; if there is an CPS data sheet this can also be</span>
+0004 <span class="comment">%imported upon request</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Syntax:</span>
+0007 <span class="comment">%       importEXCELdata(src)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Inputs:</span>
+0010 <span class="comment">%       src - handle to the calling uimenu</span>
+0011 <span class="comment">%</span>
+0012 <span class="comment">% Outputs:</span>
+0013 <span class="comment">%       none</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Example:</span>
+0016 <span class="comment">%       importEXCELdata(src)</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% Other m-files required:</span>
+0019 <span class="comment">%       clearAllAxes</span>
+0020 <span class="comment">%       enableGUIelements</span>
+0021 <span class="comment">%       NUCLEUSinv_updateInterface</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% Subfunctions:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% MAT-files required:</span>
+0027 <span class="comment">%       none</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% See also: NUCLEUSinv</span>
+0030 <span class="comment">% Author: Thomas Hiller</span>
+0031 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0032 <span class="comment">% License: MIT License (at end)</span>
+0033 
+0034 <span class="comment">%------------- BEGIN CODE --------------</span>
+0035 
+0036 <span class="comment">%% get GUI handle and data</span>
+0037 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0038 gui = getappdata(fig,<span class="string">'gui'</span>);
+0039 data = getappdata(fig,<span class="string">'data'</span>);
+0040 
+0041 <span class="comment">% T1 or T2 data?</span>
+0042 T1T2 = get(src,<span class="string">'Label'</span>);
+0043 
+0044 <span class="comment">% get file name</span>
+0045 EXCELpath = -1;
+0046 EXCELfile = -1;
+0047 <span class="keyword">if</span> isfield(data.import,<span class="string">'path'</span>)
+0048     [EXCELfile,EXCELpath] = uigetfile(fullfile(data.import.path,<span class="keyword">...</span>
+0049         <span class="string">'*.xls;*.xlsx'</span>),<span class="string">'Choose Excel file'</span>);
+0050 <span class="keyword">else</span>
+0051     [EXCELfile,EXCELpath] = uigetfile(fullfile(pwd,<span class="string">'*.xls;*.xlsx'</span>),<span class="keyword">...</span>
+0052         <span class="string">'Choose Excel file'</span>);
+0053 <span class="keyword">end</span>
+0054 
+0055 <span class="comment">% only continue if user didn't cancel</span>
+0056 <span class="keyword">if</span> sum([EXCELpath EXCELfile]) &gt; 0    
+0057     <span class="comment">% get some file infos</span>
+0058     fileID = dir(fullfile(EXCELpath,EXCELfile));
+0059     [status,sheets,~] = xlsfinfo(fullfile(EXCELpath,EXCELfile));
+0060 
+0061     <span class="keyword">if</span> ~isempty(status)        
+0062         <span class="comment">% remove info field if any</span>
+0063         ih = findobj(<span class="string">'Tag'</span>,<span class="string">'inv_info'</span>);
+0064         <span class="keyword">if</span> ~isempty(ih); delete(ih); <span class="keyword">end</span>
+0065         
+0066         <span class="comment">% remove old fields and data</span>
+0067         data = <a href="cleanupGUIData.html" class="code" title="function data = cleanupGUIData(data)">cleanupGUIData</a>(data);
+0068         
+0069         data.import.fileformat = <span class="string">'excel'</span>;
+0070         data.import.path = EXCELpath;
+0071         data.import.file = EXCELfile;
+0072         
+0073         <span class="comment">% update the path-info string</span>
+0074         <span class="keyword">if</span> EXCELfile &gt; 0
+0075             tmpstr = fullfile(EXCELpath,EXCELfile);
+0076         <span class="keyword">else</span>
+0077             tmpstr = EXCELpath;
+0078         <span class="keyword">end</span>
+0079         <span class="keyword">if</span> length(tmpstr)&gt;50
+0080             set(gui.text_handles.data_path,<span class="string">'String'</span>,[<span class="string">'...'</span>,tmpstr(end-50:end)],<span class="keyword">...</span>
+0081                 <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
+0082         <span class="keyword">else</span>
+0083             set(gui.text_handles.data_path,<span class="string">'String'</span>,tmpstr,<span class="keyword">...</span>
+0084                 <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
+0085         <span class="keyword">end</span>
+0086         set(gui.text_handles.data_path,<span class="string">'TooltipString'</span>,tmpstr);
+0087         
+0088         <span class="comment">% check for possible CPS data sheet</span>
+0089         [indx1,tf1] = listdlg(<span class="string">'PromptString'</span>,{<span class="string">'If available select CPS data sheet'</span>},<span class="keyword">...</span>
+0090             <span class="string">'Name'</span>,<span class="string">'Choose CPS data'</span>,<span class="string">'ListSize'</span>,[250 200],<span class="keyword">...</span>
+0091             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="string">'OKString'</span>,<span class="string">'Apply'</span>,<span class="keyword">...</span>
+0092             <span class="string">'CancelString'</span>,<span class="string">'No CPS data'</span>,<span class="string">'ListString'</span>,sheets);
+0093         
+0094         <span class="comment">% if there is a CPS data sheet import the data</span>
+0095         <span class="keyword">if</span> tf1 == 1
+0096             <span class="comment">% get cps sheet name</span>
+0097             cps_sheet = sheets{indx1};
+0098             <span class="comment">% remove that sheet from the list</span>
+0099             <span class="comment">% all others should be NMR data sheets</span>
+0100             sheets(indx1) = [];
+0101             <span class="comment">% import the data</span>
+0102             cps_data = xlsread(fullfile(EXCELpath,EXCELfile),cps_sheet);
+0103             
+0104             <span class="comment">% ask for the pressure unit</span>
+0105             pressure_units = {<span class="string">'Pa'</span>,<span class="string">'kPa'</span>,<span class="string">'MPa'</span>,<span class="string">'bar'</span>};
+0106             unit_factors = [1 1e-3 1e-6 1e-5];
+0107             [indx2,tf2] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Pressure unit:'</span>,<span class="keyword">...</span>
+0108             <span class="string">'Name'</span>,<span class="string">'Choose presure unit'</span>,<span class="string">'ListSize'</span>,[250 200],<span class="keyword">...</span>
+0109             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="string">'ListString'</span>,pressure_units);
+0110             <span class="keyword">if</span> tf2 == 1
+0111                 table = {true,0,1,<span class="string">'D'</span>};                
+0112                 <span class="keyword">for</span> i = 1:size(cps_data,1)
+0113                     table{i,1} = true;
+0114                     table{i,2} = cps_data(i,1)/unit_factors(indx2);
+0115                     table{i,3} = cps_data(i,2);
+0116                     table{i,4} = <span class="string">'D'</span>;
+0117                 <span class="keyword">end</span>
+0118                 <span class="comment">% import pressure / saturation data</span>
+0119                 data.pressure.unit = pressure_units{indx2};
+0120                 data.pressure.unitfac = unit_factors(indx2);    
+0121                 data.pressure.table = table;
+0122             <span class="keyword">else</span>
+0123                 helpdlg({<span class="string">'importEXCELdata:'</span>,<span class="string">'CPS data was not imported'</span>,<span class="keyword">...</span>
+0124                     <span class="string">' due to missing pressure unit.'</span>},<span class="string">'No data import'</span>);
+0125             <span class="keyword">end</span>
+0126         <span class="keyword">end</span>
+0127         
+0128         <span class="comment">% preceed with NMR data import</span>
+0129         fnames = struct;
+0130         <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0131         <span class="comment">% will be shown in the listbox</span>
+0132         shownames = cell(1,1);
+0133         
+0134         <span class="comment">% we assume there is data on every sheet</span>
+0135         c = 0;
+0136         <span class="keyword">for</span> s = 1:numel(sheets)            
+0137             num = xlsread(fullfile(EXCELpath,EXCELfile),sheets{s});
+0138             
+0139             <span class="comment">% only continue if there is data</span>
+0140             <span class="keyword">if</span> ~isempty(num)                
+0141                 <span class="comment">% the individual file names</span>
+0142                 c = c + 1;
+0143                 fnames(c).parfile = <span class="string">''</span>;
+0144                 fnames(c).datafile = data.import.file;
+0145                 fnames(c).T2specfile = <span class="string">''</span>;
+0146                 
+0147                 shownames{c} = sheets{s};
+0148                 
+0149                 <span class="comment">% the 'header' data</span>
+0150                 data.import.NMR.data{c}.datfile = fileID.name;
+0151                 data.import.NMR.data{c}.date = fileID.date;
+0152                 data.import.NMR.data{c}.datenum = fileID.datenum;
+0153                 data.import.NMR.data{c}.bytes = fileID.bytes;
+0154                 
+0155                 <span class="comment">% the NMR data</span>
+0156                 data.import.NMR.data{c}.flag = T1T2;
+0157                 data.import.NMR.data{c}.time = num(:,1);
+0158                 <span class="keyword">if</span> size(num,2)&gt;2
+0159                     data.import.NMR.data{c}.signal = complex(num(:,2),num(:,3));
+0160                 <span class="keyword">else</span>
+0161                     data.import.NMR.data{c}.signal = num(:,2);
+0162                 <span class="keyword">end</span>
+0163                 data.import.NMR.data{c}.T1IRfac = 1;
+0164                 data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
+0165                 data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
+0166                 
+0167                 <span class="comment">% dummy parameter data</span>
+0168                 data.import.NMR.para{c} = 0;
+0169             <span class="keyword">end</span>            
+0170         <span class="keyword">end</span>
+0171         
+0172         <span class="comment">% save file names</span>
+0173         data.import.NMR.files = fnames;
+0174         data.import.NMR.filesShort = shownames;
+0175         
+0176         <span class="comment">% update the list of file names</span>
+0177         set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
+0178         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0179         
+0180         <span class="comment">% create a global INVdata struct for every file in the list</span>
+0181         <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
+0182             setappdata(fig,<span class="string">'INVdata'</span>,[]);
+0183         <span class="keyword">end</span>
+0184         INVdata = cell(length(data.import.NMR.filesShort),1);
+0185         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0186         
+0187         <span class="comment">% clear all axes</span>
+0188         <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
+0189         
+0190         <span class="comment">% update GUI data and interface</span>
+0191         setappdata(fig,<span class="string">'data'</span>,data);
+0192         setappdata(fig,<span class="string">'gui'</span>,gui);
+0193         <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'EXCEL'</span>);
+0194         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;        
+0195     <span class="keyword">else</span>
+0196         helpdlg({<span class="string">'importEXCELdata:'</span>,<span class="string">'File is not a valid Excel file'</span>},<span class="keyword">...</span>
+0197             <span class="string">'File not recognized'</span>);
+0198     <span class="keyword">end</span>
+0199 <span class="keyword">end</span>
+0200 
+0201 <span class="keyword">end</span>
+0202 
+0203 <span class="comment">%------------- END OF CODE --------------</span>
+0204 
+0205 <span class="comment">%% License:</span>
+0206 <span class="comment">% MIT License</span>
+0207 <span class="comment">%</span>
+0208 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0209 <span class="comment">%</span>
+0210 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0211 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0212 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0213 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0214 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0215 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0216 <span class="comment">%</span>
+0217 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0218 <span class="comment">% copies or substantial portions of the Software.</span>
+0219 <span class="comment">%</span>
+0220 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0221 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0222 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0223 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0224 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0225 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0226 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

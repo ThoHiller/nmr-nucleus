@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fcn_fitFreeT2_fmin</title>
+  <meta name="keywords" content="fcn_fitFreeT2_fmin">
+  <meta name="description" content=" is the objective function for T2 mono- and free exponetial">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>fcn_fitFreeT2_fmin
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> is the objective function for T2 mono- and free exponetial</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function SSE = fcn_fitFreeT2_fmin(x,t,s) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">fcn_fitFreeT2_fmin is the objective function for T2 mono- and free exponetial
+inversion that is minimized with 'fminsearchbnd' (hence the SSE output)
+
+ Syntax:
+       fcn_fitFreeT2_fmin(x,t,s)
+
+ Inputs:
+       x - parameter vector
+           x(2*i-1) = E (amplitude)
+           x(2*i) = T (relaxation time)
+       t - time vector
+       s - signal vector
+
+ Outputs:
+       SSE - squared sum of errrors
+
+ Example:
+       ses = fcn_fitFreeT2_fmin(params,t,s)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="fitDataFree_fmin.html" class="code" title="function [fitdata] = fitDataFree_fmin(time,signal,flag,parameter,nExp)">fitDataFree_fmin</a>	 is a control routine that uses 'fminsearchbnd' to fit NMR</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function SSE = fcn_fitFreeT2_fmin(x,t,s)</a>
+0002 <span class="comment">%fcn_fitFreeT2_fmin is the objective function for T2 mono- and free exponetial</span>
+0003 <span class="comment">%inversion that is minimized with 'fminsearchbnd' (hence the SSE output)</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       fcn_fitFreeT2_fmin(x,t,s)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       x - parameter vector</span>
+0010 <span class="comment">%           x(2*i-1) = E (amplitude)</span>
+0011 <span class="comment">%           x(2*i) = T (relaxation time)</span>
+0012 <span class="comment">%       t - time vector</span>
+0013 <span class="comment">%       s - signal vector</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Outputs:</span>
+0016 <span class="comment">%       SSE - squared sum of errrors</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% Example:</span>
+0019 <span class="comment">%       ses = fcn_fitFreeT2_fmin(params,t,s)</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Other m-files required:</span>
+0022 <span class="comment">%       none</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Subfunctions:</span>
+0025 <span class="comment">%       none</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% MAT-files required:</span>
+0028 <span class="comment">%       none</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% See also:</span>
+0031 <span class="comment">% Author: Thomas Hiller</span>
+0032 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0033 <span class="comment">% License: MIT License (at end)</span>
+0034 
+0035 <span class="comment">%------------- BEGIN CODE --------------</span>
+0036 
+0037 F = 0;
+0038 <span class="keyword">for</span> i = 1:length(x)/2
+0039     tmp = x(2*i-1)*exp(-t./x(2*i));
+0040     F = F + tmp;
+0041 <span class="keyword">end</span>
+0042 
+0043 err = F - s;
+0044 SSE = sum(sum(err.^2));
+0045 
+0046 <span class="keyword">return</span>
+0047 
+0048 <span class="comment">%------------- END OF CODE --------------</span>
+0049 
+0050 <span class="comment">%% License:</span>
+0051 <span class="comment">% MIT License</span>
+0052 <span class="comment">%</span>
+0053 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0054 <span class="comment">%</span>
+0055 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0056 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0057 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0058 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0059 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0060 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0061 <span class="comment">%</span>
+0062 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0063 <span class="comment">% copies or substantial portions of the Software.</span>
+0064 <span class="comment">%</span>
+0065 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0066 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0067 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0068 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0069 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0070 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0071 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

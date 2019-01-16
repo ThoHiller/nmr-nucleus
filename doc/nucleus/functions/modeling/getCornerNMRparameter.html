@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getCornerNMRparameter</title>
+  <meta name="keywords" content="getCornerNMRparameter">
+  <meta name="description" content=" calculates corner parameters (amplitude surface to">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html modeling -->
+<h1>getCornerNMRparameter
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> calculates corner parameters (amplitude surface to</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = getCornerNMRparameter(geometry,SatData,indt,imbdrain) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getCornerNMRparameter calculates corner parameters (amplitude surface to
+volume ratios) needed for the NMR signal calculation of a fully or
+partially saturated pore. Only used for angular or polygonal pores.
+
+ Syntax:
+       getCornerNMRparameter(geometry,SatData,indt,imbdrain)
+
+ Inputs:
+       geometry - structure containing geometry information
+       SatData - structure (output from 'getSaturationfromPressure')
+       indt - number of echoes/points per NMR signal
+       imbdrain - string indicating if a NMR signal is from the drainage
+                  or imbibition branch (e.g. 'DDID')
+
+ Outputs:
+       out - output struct with fields:
+           SVF : surface-to-volume ratio for full saturation
+           Ampl : amplitudes of the partially filled corbers
+           SVC :  surface-to-volume ratio for the partially filled corners
+
+ Example:
+       out = getCornerNMRparameter(geometry,SatData,[1000 900 900 700],'DDID')
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>	 performs the "fixed" joint inversion using the RTD of</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>	 performs the "shape" joint inversion using the RTD of</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = getCornerNMRparameter(geometry,SatData,indt,imbdrain)</a>
+0002 <span class="comment">%getCornerNMRparameter calculates corner parameters (amplitude surface to</span>
+0003 <span class="comment">%volume ratios) needed for the NMR signal calculation of a fully or</span>
+0004 <span class="comment">%partially saturated pore. Only used for angular or polygonal pores.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Syntax:</span>
+0007 <span class="comment">%       getCornerNMRparameter(geometry,SatData,indt,imbdrain)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Inputs:</span>
+0010 <span class="comment">%       geometry - structure containing geometry information</span>
+0011 <span class="comment">%       SatData - structure (output from 'getSaturationfromPressure')</span>
+0012 <span class="comment">%       indt - number of echoes/points per NMR signal</span>
+0013 <span class="comment">%       imbdrain - string indicating if a NMR signal is from the drainage</span>
+0014 <span class="comment">%                  or imbibition branch (e.g. 'DDID')</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Outputs:</span>
+0017 <span class="comment">%       out - output struct with fields:</span>
+0018 <span class="comment">%           SVF : surface-to-volume ratio for full saturation</span>
+0019 <span class="comment">%           Ampl : amplitudes of the partially filled corbers</span>
+0020 <span class="comment">%           SVC :  surface-to-volume ratio for the partially filled corners</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Example:</span>
+0023 <span class="comment">%       out = getCornerNMRparameter(geometry,SatData,[1000 900 900 700],'DDID')</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Other m-files required:</span>
+0026 <span class="comment">%       none</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% Subfunctions:</span>
+0029 <span class="comment">%       none</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% MAT-files required:</span>
+0032 <span class="comment">%       none</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% See also:</span>
+0035 <span class="comment">% Author: Thomas Hiller</span>
+0036 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0037 <span class="comment">% License: MIT License (at end)</span>
+0038 
+0039 <span class="comment">%------------- BEGIN CODE --------------</span>
+0040 
+0041 <span class="comment">%% full saturation surface to volume ratio for all shapes</span>
+0042 SVF = geometry.P0./geometry.A0;
+0043 out.SVF = SVF';
+0044 
+0045 <span class="comment">%% only for shapes with corners the calculation is performed</span>
+0046 <span class="keyword">if</span> strcmp(geometry.type,<span class="string">'ang'</span>) || strcmp(geometry.type,<span class="string">'poly'</span>)
+0047     <span class="comment">% amplitude of water filled corner</span>
+0048     Ampl = zeros(size(SatData.Pad,3),sum(indt),size(SatData.Pad,2));
+0049     <span class="comment">% surface to volume ratio of water filled corner</span>
+0050     SVC  = zeros(size(SatData.Pad,3),sum(indt),size(SatData.Pad,2));
+0051     <span class="keyword">for</span> i = 1:numel(imbdrain)
+0052         <span class="comment">% check for drainage and imbibition</span>
+0053         <span class="keyword">if</span> strcmp(imbdrain(i),<span class="string">'D'</span>) <span class="comment">% drainage</span>
+0054             index = find(SatData.Sd(i,:)~=1,1,<span class="string">'first'</span>);
+0055             <span class="keyword">if</span> isempty(index)
+0056                 SVc = ones(size(SatData.Pad,3),1);
+0057             <span class="keyword">else</span>
+0058                 SVc = squeeze(SatData.Pad(i,index,:)./SatData.Aad(i,index,:));
+0059             <span class="keyword">end</span>
+0060             tmp = squeeze(SatData.Aad(i,:,:))./repmat(SatData.A0,[1 size(SatData.Pad,3)]);
+0061         <span class="keyword">elseif</span> strcmp(imbdrain(i),<span class="string">'I'</span>) <span class="comment">% imbibition</span>
+0062             index = find(SatData.Si(i,:)~=1,1,<span class="string">'first'</span>);
+0063             <span class="keyword">if</span> isempty(index)
+0064                 SVc = ones(size(SatData.Pai,3),1);
+0065             <span class="keyword">else</span>
+0066                 SVc = squeeze(SatData.Pai(i,index,:)./SatData.Aai(i,index,:));
+0067             <span class="keyword">end</span>
+0068             tmp = squeeze(SatData.Aai(i,:,:))./repmat(SatData.A0,[1 size(SatData.Pai,3)]);
+0069         <span class="keyword">end</span>
+0070         
+0071         <span class="comment">% indices for all chosen NMR signals</span>
+0072         <span class="keyword">if</span> i == 1
+0073             si = 1;
+0074             ei = indt(i);
+0075         <span class="keyword">else</span>
+0076             si = sum(indt(1:i-1))+1;
+0077             ei = sum(indt(1:i-1))+indt(i);
+0078         <span class="keyword">end</span>
+0079         <span class="comment">% assemble the amplitude and surface to volume data</span>
+0080         <span class="keyword">for</span> j = 1:size(tmp,2)
+0081             Ampl(j,si:ei,:) = repmat(tmp(:,j)',[indt(i) 1]);
+0082             SVC(j,si:ei,:) = repmat(SVc(j),[indt(i) size(tmp,1)]);
+0083         <span class="keyword">end</span>
+0084     <span class="keyword">end</span>
+0085     
+0086     <span class="comment">% output data</span>
+0087     out.Ampl = Ampl;
+0088     out.SVC = SVC;
+0089 <span class="keyword">end</span>
+0090 
+0091 <span class="keyword">return</span>
+0092 
+0093 <span class="comment">%------------- END OF CODE --------------</span>
+0094 
+0095 <span class="comment">%% License:</span>
+0096 <span class="comment">% MIT License</span>
+0097 <span class="comment">%</span>
+0098 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0099 <span class="comment">%</span>
+0100 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0101 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0102 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0103 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0104 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0105 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0106 <span class="comment">%</span>
+0107 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0108 <span class="comment">% copies or substantial portions of the Software.</span>
+0109 <span class="comment">%</span>
+0110 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0111 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0112 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0113 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0114 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0115 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0116 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

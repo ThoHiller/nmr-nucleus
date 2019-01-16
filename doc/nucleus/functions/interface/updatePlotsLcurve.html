@@ -1,0 +1,200 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of updatePlotsLcurve</title>
+  <meta name="keywords" content="updatePlotsLcurve">
+  <meta name="description" content="">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>updatePlotsLcurve
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong></strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function updatePlotsLcurve </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">updatePlotsIterChi plots the results of the L-curve calculation
+in NUCLEUSinv
+
+ Syntax:
+       updatePlotsLcurve
+
+ Inputs:
+       none
+
+ Outputs:
+       none
+
+ Example:
+       updatePlotsLcurve
+
+ Other m-files required:
+       clearSingleAxis
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>	 can be used to globally change the general appearance of axes</li><li><a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>	 clears an individual axis</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="importINV2INV.html" class="code" title="function importINV2INV(src)">importINV2INV</a>	 imports a previously saved NUCLEUSinv session</li><li><a href="runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li><li><a href="runInversionStd.html" class="code" title="function runInversionStd">runInversionStd</a>	 controls the standard inversion process to invert a</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function updatePlotsLcurve</a>
+0002 <span class="comment">%updatePlotsIterChi plots the results of the L-curve calculation</span>
+0003 <span class="comment">%in NUCLEUSinv</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       updatePlotsLcurve</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       none</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       none</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       updatePlotsLcurve</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       clearSingleAxis</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       none</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% MAT-files required:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% See also: NUCLEUSinv</span>
+0027 <span class="comment">% Author: Thomas Hiller</span>
+0028 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0029 <span class="comment">% License: MIT License (at end)</span>
+0030 
+0031 <span class="comment">%------------- BEGIN CODE --------------</span>
+0032 
+0033 <span class="comment">%% get GUI handle and data</span>
+0034 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0035 gui = getappdata(fig,<span class="string">'gui'</span>);
+0036 data = getappdata(fig,<span class="string">'data'</span>);
+0037 <span class="comment">% get colors</span>
+0038 col = gui.myui.colors;
+0039 
+0040 <span class="comment">% get data</span>
+0041 nmrraw = data.results.nmrraw;
+0042 nmrproc = data.results.nmrproc;
+0043 <span class="keyword">if</span> isfield(data.results,<span class="string">'lcurve'</span>)
+0044     lc = data.results.lcurve;
+0045 <span class="keyword">end</span>
+0046 
+0047 <span class="comment">%% L-Curve</span>
+0048 ax = gui.axes_handles.rtd;
+0049 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0050 hold(ax,<span class="string">'on'</span>);
+0051 set(gui.cm_handles.axes_rtd_view,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0052 
+0053 loglog(lc.RN,lc.XN,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.RE,<span class="string">'Parent'</span>,ax);
+0054 loglog(lc.RN(lc.index),lc.XN(lc.index),<span class="string">'r+'</span>,<span class="string">'Parent'</span>,ax);
+0055 <span class="comment">% limits</span>
+0056 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(lc.RN)*0.95 max(lc.RN)*1.05]);
+0057 set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[min(lc.XN)*0.95 max(lc.XN)*1.05]);
+0058 <span class="comment">% labels</span>
+0059 set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'residual norm |Gm-d|_{2}'</span>);
+0060 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'model norm |Lm|_{2}'</span>);
+0061 text(10^mean(log10(get(ax,<span class="string">'XLim'</span>))),10^mean(log10(get(ax,<span class="string">'YLim'</span>))),<span class="keyword">...</span>
+0062     [<span class="string">'\lambda='</span>,sprintf(<span class="string">'%4.3e'</span>,lc.lambda(lc.index))],<span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,12);
+0063 <span class="comment">% grid</span>
+0064 grid(ax,<span class="string">'on'</span>);
+0065 
+0066 
+0067 <span class="comment">%% RMS</span>
+0068 ax = gui.axes_handles.psd;
+0069 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0070 hold(ax,<span class="string">'on'</span>);
+0071 set(gui.cm_handles.axes_psd_view,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0072 
+0073 loglog(lc.lambda,lc.RMS,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.RE,<span class="string">'Parent'</span>,ax);
+0074 loglog(lc.lambda(lc.index),lc.RMS(lc.index),<span class="string">'r+'</span>,<span class="string">'Parent'</span>,ax);
+0075 <span class="comment">% limits</span>
+0076 ticks = log10(min(lc.lambda)):1:log10(max(lc.lambda));
+0077 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="keyword">...</span>
+0078     <span class="string">'XTick'</span>,10.^ticks);
+0079 
+0080 <span class="comment">% noise level</span>
+0081 <span class="keyword">if</span> nmrproc.noise &gt; 0
+0082     line(get(ax,<span class="string">'XLim'</span>),[nmrproc.noise nmrproc.noise],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0083         <span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="string">'Parent'</span>,ax);
+0084     text(10^(ticks(end)),nmrproc.noise*1.1,<span class="string">'noise level  '</span>,<span class="string">'FontSize'</span>,11,<span class="keyword">...</span>
+0085         <span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'Parent'</span>,ax);
+0086     set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[min([min(lc.RMS) nmrproc.noise])*0.75 max(lc.RMS)*1.1]);
+0087 <span class="keyword">else</span>
+0088     set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[min(lc.RMS)*0.75 max(lc.RMS)*1.1]);
+0089 <span class="keyword">end</span>
+0090 
+0091 <span class="comment">% labels</span>
+0092 set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'regularization parameter \lambda'</span>);
+0093 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'RMS'</span>);
+0094 text(10^mean(log10(get(ax,<span class="string">'XLim'</span>))),10^mean(log10(get(ax,<span class="string">'YLim'</span>))),<span class="keyword">...</span>
+0095     [<span class="string">'\lambda='</span>,sprintf(<span class="string">'%4.3e'</span>,lc.lambda(lc.index))],<span class="string">'Parent'</span>,ax,<span class="string">'FontSize'</span>,12);
+0096 <span class="comment">% grid</span>
+0097 grid(ax,<span class="string">'on'</span>);
+0098 
+0099 <span class="comment">% finalize</span>
+0100 <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(gui.figh);
+0101 
+0102 <span class="keyword">end</span>
+0103 
+0104 <span class="comment">%------------- END OF CODE --------------</span>
+0105 
+0106 <span class="comment">%% License:</span>
+0107 <span class="comment">% MIT License</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0110 <span class="comment">%</span>
+0111 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0112 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0113 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0114 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0115 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0116 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0117 <span class="comment">%</span>
+0118 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0119 <span class="comment">% copies or substantial portions of the Software.</span>
+0120 <span class="comment">%</span>
+0121 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0122 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0123 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0124 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0125 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0126 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0127 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated on Wed 16-Jan-2019 11:40:27 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>
