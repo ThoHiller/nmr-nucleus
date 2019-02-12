@@ -41,7 +41,7 @@ tag = get(src,'Tag');
 % get the label of the context menu
 label = get(src,'Label');
 
-% getcurrent table data
+% get current table data
 table = get(gui.table_handles.pressure_table,'Data');
 % get the checkbox status
 drain = cell2mat(table(:,3));

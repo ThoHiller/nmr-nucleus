@@ -78,7 +78,7 @@ out.param.CBWcutoff = 3;
 out.param.BVIcutoff = 33;
 % calibration sample volume
 out.param.calibVol = 1;
-% calibration sample NMR mplitude
+% calibration sample NMR amplitude
 out.param.calibAmp = 1;   
 % sample volume
 out.param.sampVol = 1;

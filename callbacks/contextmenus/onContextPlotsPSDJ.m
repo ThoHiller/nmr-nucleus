@@ -40,7 +40,7 @@ tag = get(src,'Tag'); % ('view')
 % get the label of the context menu
 label = get(src,'Label'); % ('cum' or 'freq')
 
-% depending on the current label, set a check mark and unceck the other one
+% depending on the current label, set a check mark and uncheck the other one
 switch tag
     case 'view'
         data.info.PSDJflag = label;

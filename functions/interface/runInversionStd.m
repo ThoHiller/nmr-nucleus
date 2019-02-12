@@ -73,7 +73,7 @@ if ~isempty(id) && ~isempty(INVdata)
             set(gui.push_handles.invstd_run,'String','STOP',...
                 'BackGroundColor','r','UserData',1,'Callback',@onPushStop);
             
-            % no commandline output during l-curve calculation
+            % no command line output during l-curve calculation
             param.info = 'off';
             
             % lambda range and initialization of output variables
@@ -100,7 +100,7 @@ if ~isempty(id) && ~isempty(INVdata)
             infostring = 'L-curve calculation ... ';
             displayStatusText(gui,infostring);
             
-            % waitbar option
+            % wait-bar option
             wbopts.show = true;
             wbopts.tag = 'INV';
             if wbopts.show
@@ -127,13 +127,13 @@ if ~isempty(id) && ~isempty(INVdata)
                     RMS(i) = invdata.rms;
                     RN(i) = invdata.rn;
                     XN(i) = invdata.xn;
-                    % waitbar update
+                    % wait-bar update
                     if wbopts.show
                         waitbar(i / steps,hwb,['processing ...',num2str(i),' / ',num2str(steps),' lambda steps']);
                     end
                 end
             end
-            % delete the waitbar
+            % delete the wait-bar
             if wbopts.show
                 delete(hwb);
             end
@@ -156,7 +156,7 @@ if ~isempty(id) && ~isempty(INVdata)
                 displayStatusText(gui,[infostring,' done']);
             else
                 % status bar information
-                displayStatusText(gui,[infostring,' was cancelled']);
+                displayStatusText(gui,[infostring,' was canceled']);
                 % remove temporary data fields
                 data = removeInversionFields(data);
             end
@@ -169,7 +169,7 @@ if ~isempty(id) && ~isempty(INVdata)
             set(gui.push_handles.invstd_run,'String','RUNNING ...',...
                 'Enable','inactive');  
             
-            % no commandline output during l-curve calculation
+            % no command line output during l-curve calculation
             param.info = 'off';
 
             % general inversion parameter
@@ -194,7 +194,7 @@ if ~isempty(id) && ~isempty(INVdata)
             lambda_range = [data.invstd.lambdaR(1) data.invstd.lambdaR(2)];
             
             % first round checking global bounds
-            % is it even possible to finad a Chi2=1
+            % is it even possible to find a Chi2=1
             chi2 = [0 0];
             for i = 1:length(lambda_range)
                 param.lambda = lambda_range(i);
@@ -242,7 +242,7 @@ if ~isempty(id) && ~isempty(INVdata)
                         % found it
                         keeprunning = false;
                     end
-                    % stop if it takes to long
+                    % stop if it takes too long
                     if iter == max_iter
                         keeprunning = false;
                     end                    
@@ -280,7 +280,7 @@ if ~isempty(id) && ~isempty(INVdata)
                 data = removeInversionFields(data);
                 helpdlg({'Chi2 iteration not possible',...
                     'The given lambda range does not cross the chi2=1 line.',...
-                    'You could invrease the lambda range and test again.',...
+                    'You could increase the lambda range and test again.',...
                     'Maybe the SNR is not good enough.',...
                     'Use the L-curve instead.'},'not possible');
             end

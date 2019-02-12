@@ -1,6 +1,6 @@
 function fitdata = fitDataInvLaplace(time,signal,parameter)
 %fitDataInvLaplace is a control routine that uses an Inverse Laplace
-%transorm to fit NMR data multi-exponentially
+%transform to fit NMR data multi-exponentially
 %
 % Syntax:
 %       fitDataInvLaplace(time,signal,parameter)
@@ -29,7 +29,7 @@ function fitdata = fitDataInvLaplace(time,signal,parameter)
 %                   resnorm    : residual norm
 %                   residual   : vector of residuals
 %                   rms        : RMS error
-%                   lambda_out : regularization paramter lambda determined
+%                   lambda_out : regularization parameter lambda determined
 %                                by the different options from the 'regu'
 %                                toolbox                   
 %                   KK         : Kernel matrix
@@ -55,7 +55,7 @@ function fitdata = fitDataInvLaplace(time,signal,parameter)
 % See also:
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
-% NOTE: I harvested this routine partly from the internet but forgot where
+% NOTE: I harvested this routine partly from the Internet but forgot where
 % I found the routines ... so there is no warranty at all
 
 %------------- BEGIN CODE --------------
@@ -75,7 +75,7 @@ g = signal./maxS;
 % get the input parameters
 flag = parameter.T1T2;       % T1/T2 switch
 T1IRfac = parameter.T1IRfac; % T1 Sat/Inv Recovery factor
-Tb = parameter.Tb;           % bulk reaxation time
+Tb = parameter.Tb;           % bulk relaxation time
 tstart = parameter.Tint(1);  % log10 value
 tend = parameter.Tint(2);    % log10 value
 N = parameter.Tint(3);       % N per decade
@@ -113,7 +113,7 @@ if lambda == -1
     lambda = trace(K'*K)/trace(H);
 end
 
-% calculate A = K'*K + lamdba*H
+% calculate A = K'*K + lambda*H
 A = K'*K + lambda*H;
 % calculate y = K'*g
 y = K'*g;
@@ -123,7 +123,7 @@ f = U\(L\y);
 
 % now iterate, mapping negative values to zero.
 e = 2/max(eig(A));
-A = K'*K;  % no regularisation now
+A = K'*K;  % no regularization now
 for i = 1:1000
     f = (f>0).*f; % map neg to zero
     f =(eye(m)-e*A)*f+e*y;

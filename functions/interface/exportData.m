@@ -245,7 +245,7 @@ switch fig_tag
                         save(fullfile(PathName,FileName),'data');
                         displayStatusText(gui,'Saving to MAT-file ... done.');
                     else
-                        displayStatusText(gui,'Saving to MAT-file ... cancelled.');
+                        displayStatusText(gui,'Saving to MAT-file ... canceled.');
                     end
                     
                 case 'xls'                    
@@ -260,7 +260,7 @@ switch fig_tag
                         exportMOD_EXCEL;
                         displayStatusText(gui,'Saving to XLS-file ... done.');
                     else
-                        displayStatusText(gui,'Saving to XLS-file ... cancelled.');
+                        displayStatusText(gui,'Saving to XLS-file ... canceled.');
                     end
                     
                 otherwise

@@ -47,7 +47,7 @@ if isfield(data.results,'SAT')
     nmr.Tb = data.nmr.Tbulk;
     nmr.rho = data.nmr.rho/1e6; % µm/s to m/s
     
-    % waitbar option
+    % wait-bar option
     wbopts.show = true;
     wbopts.tag = 'MOD';
     

@@ -17,7 +17,7 @@ function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)
 %           r   : sample points of the distribution
 %                 if psd = 1 and r is a scalar value then a single pore
 %                 is assumed
-%       wbopts - show a waitbar
+%       wbopts - show a wait-bar
 %
 % Outputs:
 %       nmr - structure containing new fields:
@@ -58,11 +58,11 @@ t = nmr.t;
 Tb = nmr.Tb;
 rho = nmr.rho;
 
-%% some informative waitbar ;-)
+%% some informative wait-bar ;-)
 if wbopts.show
     hwb = waitbar(0,'processing ...','Name','Calculate NMR','Visible','off');
     steps = numel(SatData.pressure);
-    % position the waitbar to the NMRMOD GUI if it is present (assuming the call came
+    % position the wait-bar to the NMRMOD GUI if it is present (assuming the call came
     % from the GUI)
     fig = findobj('Tag',wbopts.tag);
     if ~isempty(fig)
@@ -178,13 +178,13 @@ switch type
                 EdT2(p,:) = sigdT2;
             end
             
-            % update waitbar
+            % update wait-bar
             if wbopts.show
                 waitbar(p / steps,hwb,['processing ... ',num2str(p),' / ',num2str(steps),' pressure steps']);
             end
         end
 end
-%% delete waitbar
+%% delete wait-bar
 if wbopts.show
     delete(hwb);
 end

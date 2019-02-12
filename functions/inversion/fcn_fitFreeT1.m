@@ -1,5 +1,5 @@
 function F = fcn_fitFreeT1(x,xdata)
-%fcn_fitFreeT1 is the objective function for T1 mono- and free exponetial
+%fcn_fitFreeT1 is the objective function for T1 mono- and free exponential
 %fitting that is minimized with 'lsqcurvefit'
 %
 % Syntax:

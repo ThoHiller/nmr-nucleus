@@ -509,7 +509,7 @@ fnames = {subdirs.name};
     'SelectionMode','single',...
     'ListString',fnames);
 
-% 2) check correspoding SampleParameter.par file for reference and
+% 2) check corresponding SampleParameter.par file for reference and
 % calibration sample and other parameters
 datapath = fullfile(data.import.path,fnames{indx});
 % load SampleParameter file for sample
@@ -694,7 +694,7 @@ for i = 1:count
     data.import.NMR.para{i} = out{i}.parData;
     data.import.NMR.para{i}.SampleParameter = SampleParameter;
     
-    % substract the background signal
+    % subtract the background signal
     s = data.import.NMR.data{i}.signal;
     if i==1 && isfield(ref1,'s')
         s(1:numel(ref1.s)) = complex( real(s(1:numel(ref1.s)))-...

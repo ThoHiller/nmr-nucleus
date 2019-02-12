@@ -1,5 +1,5 @@
 function index = getLambdaFromLCurve(rho,eta,plotit)
-%getLambdaFromLCurve estimates the regularization paramater lambda according
+%getLambdaFromLCurve estimates the regularization parameter lambda according
 %to the curvature of the L-curve
 %
 % Syntax:

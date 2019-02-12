@@ -3,7 +3,7 @@ function CI = getConfInterval(resnorm,J,alpha)
 %result from 'fitDataFree'
 %NOTE: for an increased number of free relaxation times 'T' and corresponding
 %amplitudes 'Ex' the individual CI for the 'Ex' will get larger (e.g. worse).
-%With more free parameters the fit is much more 'senistive' and therefore
+%With more free parameters the fit is much more 'sensitive' and therefore
 %the combined sum of CI('Ex') for 'E0' can become quite large.
 %
 % Syntax:

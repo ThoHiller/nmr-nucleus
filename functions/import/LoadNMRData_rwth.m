@@ -86,7 +86,7 @@ if size(files,1) >= 2 && ~isempty(index1)
     % now we keep only the relevant ones
     files = files(index1);
     
-    % commandline output
+    % command line output
     disp([in.name,': importing NMR files ...']);
     
     nmrData = cell(1,size(files,1));
@@ -131,7 +131,7 @@ if size(files,1) >= 2 && ~isempty(index1)
             clear data
         end
         
-        % commandline output
+        % command line output
         disp([in.name,': importing NMR files ',sprintf('%03d',i),...
             ' / ',sprintf('%03d',size(files,1))]);
     end

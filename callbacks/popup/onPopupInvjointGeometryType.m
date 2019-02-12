@@ -1,5 +1,5 @@
 function onPopupInvjointGeometryType(src,~)
-%onPopupInvjointGeometryType selects the joint inversion geometry (dependend
+%onPopupInvjointGeometryType selects the joint inversion geometry (dependent
 %on inversion type)
 %
 % Syntax:

@@ -5,7 +5,7 @@ function [gui,myui] = NUCLEUSinv_createPanelInversionStd(data,gui,myui)
 %       [gui,myui] = NUCLEUSinv_createPanelInversionStd(data,gui,myui)
 %
 % Inputs:
-%       data - figure data strucutre
+%       data - figure data structure
 %       gui - figure gui elements structure
 %       myui - individual GUI settings structure
 %

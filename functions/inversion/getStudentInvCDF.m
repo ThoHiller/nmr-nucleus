@@ -2,7 +2,7 @@ function x = getStudentInvCDF(p,dof)
 %getStudentInvCDF calculates the inverse of Student's t CDF using the
 %degrees of freedom in 'dof' for the corresponding probabilities in 'p'.
 %The code is adapted from the 'tinv' routine of the Mathwoks 'Statistical
-%Toolbox' and 'Numerical Recipies 3rd ed.' It is only working up to
+%Toolbox' and 'Numerical Recipes 3rd ed.' It is only working up to
 %dof=1000 and only accepts scalar values.
 %
 % Syntax:
@@ -34,7 +34,7 @@ function x = getStudentInvCDF(p,dof)
 
 %------------- BEGIN CODE --------------
 
-%% check inputs and caluclate x
+%% check inputs and calculate x
 if numel(p)>1 || numel(dof) > 1
     error('Check that ''p'' and ''dof'' are scalar values.');
 end

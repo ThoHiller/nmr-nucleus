@@ -62,7 +62,7 @@ gui.cm_handles.geo_cm_viewcum = uimenu(gui.cm_handles.geo_cm_view,...
     'Label','cum','Tag','view','Callback',@onContextPlotsPSD);
 set(gui.axes_handles.geo,'UIContextMenu',gui.cm_handles.geo_cm);
 
-% sub axes to show the choosen pore geometry
+% sub axes to show the chosen pore geometry
 gui.axes_handles.type = axes('Parent',gui.plots.geo.box,...
     'Position',[.15 .7 .15 .15],'LineWidth',1,'Box','on');
 axis(gui.axes_handles.type,'equal');

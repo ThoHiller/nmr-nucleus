@@ -42,7 +42,7 @@ paneltitle = get(panel,'Title');
 % check if panel is minimized (true)
 isminimized = get(panel,'Minimized');
 
-% minimized height (defualt value for all box-panels)
+% minimized height (default value for all box-panels)
 pheightmin = 22;
 % default heights
 def_heights = gui.myui.heights;
@@ -67,7 +67,7 @@ switch fig_tag
                 id = 5;    
             otherwise
                 helpdlg({'function: minimizePanel',...
-                    'Soemthing is utterly wrong.'},'Info');
+                    'Something is utterly wrong.'},'Info');
         end
         
         switch paneltitle
@@ -105,7 +105,7 @@ switch fig_tag
                 onFigureSizeChange(fig);
             otherwise
                 helpdlg({'function: minimizePanel',...
-                    'Soemthing is utterly wrong.'},'Info');
+                    'Something is utterly wrong.'},'Info');
         end
         
     case 'MOD'        
@@ -125,7 +125,7 @@ switch fig_tag
                 id = 3;
             otherwise
                 helpdlg({'function: minimizePanel',...
-                    'Soemthing is utterly wrong.'},'Info');
+                    'Something is utterly wrong.'},'Info');
         end
         
         switch paneltitle
@@ -159,7 +159,7 @@ switch fig_tag
                 end
             otherwise
                 helpdlg({'function: minimizePanel',...
-                    'Soemthing is utterly wrong.'},'Info');
+                    'Something is utterly wrong.'},'Info');
         end
 end
 % update GUI data

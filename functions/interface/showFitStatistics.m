@@ -43,7 +43,7 @@ if isfield(data,'results')
         figstat = findobj('Tag','FITSTATS');
         % if not, create it
         if isempty(figstat)
-            % draw the figure on top og NUCLEUSinv
+            % draw the figure on top of NUCLEUSinv
             figstat = figure('Name','NUCLEUSinv - Fit Statistics',...
                 'NumberTitle','off','Tag','FITSTATS');
             pos0 = get(fig,'Position');

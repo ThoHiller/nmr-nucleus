@@ -125,7 +125,7 @@ if sum([EXCELpath EXCELfile]) > 0
             end
         end
         
-        % preceed with NMR data import
+        % proceed with NMR data import
         fnames = struct;
         % shownames is just a dummy to hold all data file names that
         % will be shown in the listbox

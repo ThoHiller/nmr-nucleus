@@ -31,7 +31,7 @@ function beautifyAxes(figh)
 
 %% find all axes in figure;
 ax = findobj(figh,'Type','Axes');
-% and adjust their fontsize
+% and adjust their font size
 set(ax,'FontSize',10);
 
 end

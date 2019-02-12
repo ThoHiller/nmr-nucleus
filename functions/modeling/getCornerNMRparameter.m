@@ -16,7 +16,7 @@ function out = getCornerNMRparameter(geometry,SatData,indt,imbdrain)
 % Outputs:
 %       out - output struct with fields:
 %           SVF : surface-to-volume ratio for full saturation
-%           Ampl : amplitudes of the partially filled corbers
+%           Ampl : amplitudes of the partially filled corners
 %           SVC :  surface-to-volume ratio for the partially filled corners
 %
 % Example:

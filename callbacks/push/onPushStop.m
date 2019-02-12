@@ -34,7 +34,7 @@ function onPushStop(src,~)
 
 %% if the button was pressed 'Value' is 1
 value = get(src,'Value');
-% STOP button was pressed so restet to a RUN button
+% STOP button was pressed so reset to a RUN button
 % "UserData" reset to 0
 if value == 1
     set(src,'String','<HTML><u>R</u>UN','BackGroundColor','g','UserData',0,'Callback',@onPushRun);

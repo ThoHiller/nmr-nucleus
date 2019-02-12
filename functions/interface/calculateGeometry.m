@@ -1,6 +1,6 @@
 function calculateGeometry
 %calculateGeometry calculates the shape dependent geometry parameters
-%needed for the foward calculation by NUCLEUSmod
+%needed for the forward calculation by NUCLEUSmod
 %
 % Syntax:
 %       calculateGeometry
@@ -59,7 +59,7 @@ switch data.geometry.type
         GEOM.polyN = data.geometry.polyN;        
 end
 
-% switch depending on wether a single pore or a pore size distribution is
+% switch depending on whether a single pore or a pore size distribution is
 % used
 switch data.geometry.ispsd    
     case 0 % single pore        

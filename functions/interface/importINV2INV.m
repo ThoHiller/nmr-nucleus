@@ -47,8 +47,8 @@ if isfield(data.import,'path')
     [Sessionfile,Sessionpath] = uigetfile(data.import.path,...
         'Choose NUCLEUSinv session file');
 else
-    % otherwise we start at the current working dircetory
-    % 'pathstr' hold s the name of the choosen data path
+    % otherwise we start at the current working directory
+    % 'pathstr' hold s the name of the chosen data path
     here = mfilename('fullpath');
     [pathstr,~,~] = fileparts(here);
     [Sessionfile,Sessionpath] = uigetfile(pathstr,...

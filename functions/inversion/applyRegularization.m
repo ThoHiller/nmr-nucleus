@@ -1,7 +1,7 @@
 function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)
 %applyRegularization applies regularization procedures from the
 %Regularization toolbox from P. Hansen -- for all methods (except "manual")
-%the regularization parameter lambda is determined by different criterias
+%the regularization parameter lambda is determined by different criteria
 %and using a SVD
 %
 % Syntax:
@@ -13,7 +13,7 @@ function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_le
 %       lambda_in - regularization parameter
 %       flag - flag for regularization method:
 %              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep', 
-%       order - smoothnes constraint: '0', '1' or '2'
+%       order - smoothness constraint: '0', '1' or '2'
 %       noise_level - noise level for 'discrep' method (discrepancy principle)
 %
 % Outputs:
@@ -21,7 +21,7 @@ function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_le
 %       lambda - determined lambda
 %
 % Example:
-%       [Kr,lam] = applyRegularization(K,s,L,lambdain,flag,Lorder,noise)
+%       [Kr,lam] = applyRegularization(K,s,L,lambda_in,flag,Lorder,noise)
 %
 % Other m-files required:
 %       Regularization Toolbox

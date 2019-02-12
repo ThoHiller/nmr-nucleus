@@ -52,8 +52,8 @@ switch label
         if isfield(import,'path')
             [NMRfile,NMRpath] = uigetfile(import.path,'Choose NUCLEUSmod file');
         else
-            % otherwise we start at the current working dircetory
-            % 'pathstr' hold s the name of the choosen data path
+            % otherwise we start at the current working directory
+            % 'pathstr' hold s the name of the chosen data path
             here = mfilename('fullpath');
             [pathstr,~,~] = fileparts(here);
             [NMRfile,NMRpath] = uigetfile(pathstr,'Choose NUCLEUSmod file');

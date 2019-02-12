@@ -32,7 +32,7 @@ function [TLGM,index] = getTLogMean(T,f)
 
 %------------- BEGIN CODE --------------
 
-%% caluclate TLGM
+%% calculate TLGM
 % make everything a column vector
 T = T(:);
 f = f(:);

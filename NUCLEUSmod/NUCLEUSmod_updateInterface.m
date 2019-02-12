@@ -36,8 +36,7 @@ data = getappdata(fig,'data');
 %% update geometry panel
 % geometry type dependent
 switch data.geometry.type    
-    case 'cyl'
-        
+    case 'cyl'        
         % geometry type popup
         set(gui.popup_handles.geometry_type,'Value',1);
         
@@ -50,8 +49,7 @@ switch data.geometry.type
         set(gui.edit_handles.beta,'String','');
         set(gui.edit_handles.gamma,'String','');
         
-    case 'ang'
-        
+    case 'ang'        
         % geometry type popup
         set(gui.popup_handles.geometry_type,'Value',2);
         
@@ -64,8 +62,7 @@ switch data.geometry.type
         set(gui.edit_handles.beta,'String',num2str(data.geometry.beta));
         set(gui.edit_handles.gamma,'String',num2str(data.geometry.gamma));
         
-    case 'poly'
-        
+    case 'poly'        
         % geometry type popup
         set(gui.popup_handles.geometry_type,'Value',3);
         
@@ -90,7 +87,7 @@ gui = updateGeometryModesN(gui,data.geometry.ispsd,data.geometry.modesN,...
 set(gui.edit_handles.sigma,'String',num2str(data.pressure.sigma));
 set(gui.edit_handles.theta,'String',num2str(data.pressure.theta));
 
-% pressure range dicretization
+% pressure range discretization
 switch data.pressure.loglin
     case 1 % log
         set(gui.popup_handles.loglin,'Value',1);
@@ -212,6 +209,7 @@ switch modesN
         set(gui.edit_handles.sig3,'Enable','on');
         set(gui.edit_handles.amp3,'Enable','on');   
 end
+
 end
 
 %------------- END OF CODE --------------

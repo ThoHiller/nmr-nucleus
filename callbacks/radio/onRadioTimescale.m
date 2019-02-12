@@ -1,5 +1,5 @@
 function onRadioTimescale(src,~)
-%onRadioTimescale selects wether the time scale should be "s" or "ms"
+%onRadioTimescale selects whether the time scale should be "s" or "ms"
 %
 % Syntax:
 %       onRadioTimescale

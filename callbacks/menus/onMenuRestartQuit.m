@@ -38,7 +38,7 @@ fig_tag = get(fig,'Tag');
 label = get(src,'Label');
 % close the figure
 close(fig);
-% and restart if neccessary
+% and restart if necessary
 if strcmp(label,'Restart')    
     switch fig_tag        
         case 'MOD'            

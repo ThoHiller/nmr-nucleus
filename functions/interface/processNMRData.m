@@ -40,7 +40,7 @@ nmrproc.dead = nmrproc.echotime/2;
 nmrraw.t = nmrraw.t(nmrproc.start:nmrproc.end);
 nmrraw.s = nmrraw.s(nmrproc.start:nmrproc.end);
 
-% if the signal is complex rotate the real part if neccessary
+% if the signal is complex rotate the real part if necessary
 if ~isreal(nmrraw.s)
     nmrraw.s = rotateT2phase(nmrraw.s);
 end

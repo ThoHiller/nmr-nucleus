@@ -67,7 +67,7 @@ x = iparam.x;
 f = iparam.f;
 constants = getConstants;
 
-%% waitbar option
+%% wait-bar option
 wbopts.show = false;
 
 %% surface relaxivity as log10 value

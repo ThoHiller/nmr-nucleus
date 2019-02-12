@@ -10,7 +10,7 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 %       signal - NMR signal vector (no complex data allowed!)
 %       flag - either 'T1' or 'T2'
 %       parameter - struct that hold additional settings:
-%                   info : commandline output switch
+%                   info : command line output switch
 %                   noise: NMR data noise
 %       nExp - No. of free exponential(s)
 %
@@ -25,7 +25,7 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 %                   output  : output struct (output from lsqcurvefit)
 %                   errnorm : error norm
 %                   rms     : RMS error
-%                   ci      : confidence intervall
+%                   ci      : confidence interval
 %
 % Example:
 %       [fitdata] = fitDataFree(t,s,'T2',parameter,2)

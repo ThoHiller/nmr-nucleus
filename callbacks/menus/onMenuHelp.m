@@ -55,7 +55,7 @@ switch fig_tag
                 info{end+1,1}  = 'All inversion features can be used.';
             case 'off'
                 info{end+1,1}  = 'Optimization Toolbox: IS NOT available.';
-                info{end+1,1}  = 'All multiexponential fitting is done with ''lsqnonneg'' instead of ''lsqlin''.';
+                info{end+1,1}  = 'All multi-exponential fitting is done with ''lsqnonneg'' instead of ''lsqlin''.';
                 info{end+1,1}  = 'For the Joint Inversion only the ''fixed'' and ''shape'' inversion options are available (using ''fminsearchbnd'').';
         end
         info{end+1,1} = ' ';
@@ -88,7 +88,7 @@ switch fig_tag
         info{end+1,1}  = ['date: ',myui.date];
         info{end+1,1}  = ' ';
         
-        info{end+1,1} = ['NUCLEUSmod is a Graphical User Interface for modelling NMR Lab Data. The',...
+        info{end+1,1} = ['NUCLEUSmod is a Graphical User Interface for modeling NMR Lab Data. The',...
             ' user can create pore size distributions (PSD) based on a capillary bundle model where the capillaries',...
             ' exhibit different cross-sectional shapes. Based on a chosen capillary pressure range, the pore model gets partially saturated'...
             ' and a capillary pressure saturation curve (CPS) is calculated. Finally, NMR signals are calculated for every CPS curve point.'];

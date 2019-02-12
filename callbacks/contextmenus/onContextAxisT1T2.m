@@ -40,7 +40,7 @@ gui = getappdata(fig,'gui');
 label = get(src,'Label');
 data.nmr.toplot = label;
 
-% depending on the current label, set a check mark and unceck the other one
+% depending on the current label, set a check mark and uncheck the other one
 switch label    
     case 'T1'        
         set(src,'Checked','on');

@@ -1,5 +1,5 @@
 function onRadioNormalize(src,~)
-%onRadioNormalize selects wether to normalize a NMR signal to 1
+%onRadioNormalize selects whether to normalize a NMR signal to 1
 %
 % Syntax:
 %       onRadioNormalize

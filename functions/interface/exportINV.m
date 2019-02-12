@@ -112,7 +112,7 @@ switch format
                     displayStatusText(gui,'Exporting GUI session to mat-file ... done');
                 else
                     % display info text
-                    displayStatusText(gui,'Exporting GUI session to mat-file ... cancelled');
+                    displayStatusText(gui,'Exporting GUI session to mat-file ... canceled');
                 end
             end
         else

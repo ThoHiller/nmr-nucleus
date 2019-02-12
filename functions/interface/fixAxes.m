@@ -41,7 +41,7 @@ gui = getappdata(fig,'gui');
 tag = get(src,'Tag');
 
 if ~isempty(gui)
-    % get the poisition of an unaffected axis
+    % get the position of an unaffected axis
     switch tag
         case 'CPS_INV'
             pos = get(gui.axes_handles.all,'Position');

@@ -1,5 +1,5 @@
 function gui = NUCLEUSinv_processINI(gui)
-%NUCLEUSinv_processINI processes the ini-File
+%NUCLEUSinv_processINI processes the ini-file
 %
 % Syntax:
 %       gui = NUCLEUSinv_processINI(gui)
@@ -29,13 +29,13 @@ function gui = NUCLEUSinv_processINI(gui)
 
 %------------- BEGIN CODE --------------
 
-%% ini-file should always be in the same foler as NUCLEUSinv.m
+%% ini-file should always be in the same folder as NUCLEUSinv.m
 inipath = which('NUCLEUSinv.m');
 inipath = fileparts(inipath);
 gui.myui.inipath = inipath;
 inifile = [inipath filesep gui.myui.inifile];
 
-%% check if there is an ini-File
+%% check if there is an ini-file
 isfile = dir(inifile);
 
 %% if yes read it, if not make one
@@ -53,11 +53,11 @@ else
             ind = strfind(gui.myui.inipath,'nucleus');
             importpath = [gui.myui.inipath(1:ind+6) filesep 'example_data'];
             gui.myui.inidata.importpath = importpath;
-            % and update the ini file
+            % and update the ini-file
             gui = makeINIfile(gui,'update');
         end
     else
-        % make a new ini file
+        % make a new ini-file
         gui = makeINIfile(gui,'default');
     end
 end

@@ -91,7 +91,7 @@ switch fig_tag
         whichdist = get(gui.plots.DistPanel,'Selection');
         
         if isjoint
-            % if joint inversion is activated then the axes are layed out
+            % if joint inversion is activated then the axes are laid out
             % in the same way as for NUCLEUSmod for consistency reasons
             switch horzvert
                 case 'horz'
@@ -313,7 +313,7 @@ switch format
             close(expfig);
             displayStatusText(gui,['Saving ',statstr,'-file ... done.']);
         else
-            displayStatusText(gui,['Saving ',statstr,'-file ... cancelled.']);
+            displayStatusText(gui,['Saving ',statstr,'-file ... canceled.']);
             figure(expfig);
         end
     otherwise

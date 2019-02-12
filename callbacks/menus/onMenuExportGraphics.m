@@ -38,7 +38,7 @@ fig = ancestor(src,'figure','toplevel');
 fig_tag = get(fig,'Tag');
 gui = getappdata(fig,'gui');
 
-% the labe of the context menu
+% the label of the context menu
 label = get(src,'Label');
 
 % depending on the label call the export function with the correct file

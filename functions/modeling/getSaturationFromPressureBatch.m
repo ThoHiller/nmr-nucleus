@@ -15,7 +15,7 @@ function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbop
 %           NOTE: if psd = 1 and r is a scalar value then a single pore
 %                 is assumed
 %       constants - physical constants (output from 'getConstants')
-%       wbopts - show a waitbar or not
+%       wbopts - show a wait-bar or not
 %
 % Outputs:
 %       SAT - output sruct with fields:
@@ -57,7 +57,7 @@ if strcmp(GEOM.type,'ang') || strcmp(GEOM.type,'poly')
     tmp_geom.AngulFac = GEOM.AngulFac;
 end
 
-% some informative waitbar ;-)
+% some informative wait-bar ;-)
 if wbopts.show
     hwb = waitbar(0,'processing ...','Name','Calculate Saturation','Visible','off');
     steps = numel(pressure);

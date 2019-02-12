@@ -1,5 +1,5 @@
 function out = LoadNMRData_field(in)
-%LoadNMRData_field loads RWTH field NMR data (Blümich group borehole tool)
+%LoadNMRData_field loads RWTH field NMR data (Blümich group bore-hole tool)
 %
 % Syntax:
 %       out = LoadNMRData_field(in)
@@ -61,7 +61,7 @@ switch T1T2flag
         
         % check if it is a single or multiple measurement(s)
         if numel(files1) > 1            
-            % commandline output
+            % command line output
             disp([in.name,': importing NMR files ...']);
             
             nmrData = cell(1,size(files1,1));
@@ -83,7 +83,7 @@ switch T1T2flag
                 nmrData{i}.raw = data.raw;                
                 clear data
                 
-                % commandline output
+                % command line output
                 disp([in.name,': importing NMR files ',sprintf('%03d',i),...
                     ' / ',sprintf('%03d',numel(files1))]);
             end

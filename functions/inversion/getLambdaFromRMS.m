@@ -1,5 +1,5 @@
 function index = getLambdaFromRMS(lambda,rms,plotit)
-%getLambdafromRMS estimates the regularization paramater lambda according
+%getLambdafromRMS estimates the regularization parameter lambda according
 %to the RMS-error of the corresponding lambda value ... it is a kind of
 %quick and dirty approach and does not always give the optimal value
 %

@@ -41,7 +41,7 @@ data.geometry.polyN = value + 2;
 
 % calculate inner angle
 data.geometry.beta = ((data.geometry.polyN-2)/data.geometry.polyN) * 180;
-% remove data fields beacuse the geometry has changed
+% remove data fields because the geometry has changed
 data = removeCalculationFields(data,'cps');
 data = removeCalculationFields(data,'nmr');
 % update GUI data

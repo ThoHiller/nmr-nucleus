@@ -43,8 +43,8 @@ if isfield(import,'path')
     [CPSfile,CPSpath] = uigetfile(fullfile(import.path,'*.dat;*.*'),...
         'Choose CPS data file');    
 else
-    % otherwise we start at the current working dircetory
-    % 'foldername' hold s the name of the choosen data path
+    % otherwise we start at the current working directory
+    % 'foldername' hold s the name of the chosen data path
     here = mfilename('fullpath');
     [pathstr,~,~] = fileparts(here);
     [CPSfile,CPSpath] = uigetfile(fullfile(pathstr,'*.dat;*.*'),...

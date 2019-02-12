@@ -78,7 +78,7 @@ switch data.info.ExpertMode
         end
         set(gui.popup_handles.invstd_InvType,'String',istring);
         switch data.invstd.invtype
-            case 'mono'                
+            case 'mono'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',1,'Enable','on');
                 
@@ -97,7 +97,7 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
                 
-            case 'free'                
+            case 'free'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',2,'Enable','on');
                 
@@ -117,7 +117,7 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
                 
-            case 'NNLS'                
+            case 'NNLS'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',3,'Enable','on');
                 
@@ -157,7 +157,7 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
                     'String',num2str(data.invstd.Tbulk));
                 
-            case 'ILA'                
+            case 'ILA'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',4,'Enable','on');
                 
@@ -526,7 +526,7 @@ switch data.info.ExpertMode
         set(gui.popup_handles.invstd_InvType,'String',{'Mono exp.',...
             'Several free exp. (2-5)','Multi exp. (NNLS)'});
         switch data.invstd.invtype
-            case 'mono'                
+            case 'mono'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',1,'Enable','on');
                 
@@ -545,7 +545,7 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
                 
-            case 'free'                
+            case 'free'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',2,'Enable','on');
                 
@@ -565,7 +565,7 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
                 
-            case 'NNLS'                
+            case 'NNLS'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',3,'Enable','on');
                 
@@ -666,18 +666,14 @@ end
 
 function gui = updateNormalize(gui,norm)
 
-switch norm
-    
-    case 0
-        
+switch norm    
+    case 0        
         set(gui.radio_handles.process_normalize_on,'Enable','on','Value',0);
         set(gui.radio_handles.process_normalize_off,'Enable','on','Value',1);
         
-    case 1
-        
+    case 1        
         set(gui.radio_handles.process_normalize_on,'Enable','on','Value',1);
         set(gui.radio_handles.process_normalize_off,'Enable','on','Value',0);
-        
 end
 
 end
@@ -686,8 +682,7 @@ function gui = updateTimescale(gui,timescale)
 
 switch timescale
     
-    case 's'
-        
+    case 's'        
         set(gui.radio_handles.process_timescale_s,'Enable','on','Value',1);
         set(gui.radio_handles.process_timescale_ms,'Enable','on','Value',0);
         set(gui.text_handles.invstd_RTDtimes,'String','RTD - min [s] | max [s] | N / dec',...
@@ -695,15 +690,13 @@ switch timescale
         set(gui.text_handles.petro_Tbulk,'String',...
             ['Tbulk [s]   |   ',char(hex2dec('03C1')),' [µm/s]   |   geom']);
         
-    case 'ms'
-        
+    case 'ms'        
         set(gui.radio_handles.process_timescale_s,'Enable','on','Value',0);
         set(gui.radio_handles.process_timescale_ms,'Enable','on','Value',1);
         set(gui.text_handles.invstd_RTDtimes,'String','RTD - min [ms] | max [ms] | N / dec',...
             'FontSize',9);
         set(gui.text_handles.petro_Tbulk,'String',...
-            ['Tbulk [ms]   |   ',char(hex2dec('03C1')),' [µm/s]   |   geom']);
-        
+            ['Tbulk [ms]   |   ',char(hex2dec('03C1')),' [µm/s]   |   geom']);        
 end
 
 end
@@ -712,148 +705,121 @@ function gui = updateInvstdTime(gui,invtype,time,Ntime)
 
 switch invtype
     
-    case {'mono','free'}
-        
+    case {'mono','free'}        
         set(gui.edit_handles.invstd_time_min,'Enable','off');
         set(gui.edit_handles.invstd_time_max,'Enable','off');
         set(gui.edit_handles.invstd_Ntime,'Enable','off');
         
-    case {'ILA','NNLS'}
-        
+    case {'ILA','NNLS'}        
         set(gui.edit_handles.invstd_time_min,'Enable','on','String',num2str(time(1)));
         set(gui.edit_handles.invstd_time_max,'Enable','on','String',num2str(time(2)));
-        set(gui.edit_handles.invstd_Ntime,'Enable','on','String',num2str(Ntime));
-        
+        set(gui.edit_handles.invstd_Ntime,'Enable','on','String',num2str(Ntime));   
 end
 
 end
 
 function gui = updateInvjointRadii(gui,invtype,radii,Nradii)
 
-switch invtype
-    
-    case {'fixed','shape','off'}
-        
+switch invtype    
+    case {'fixed','shape','off'}        
         set(gui.edit_handles.invjoint_radii_min,'Enable','off');
         set(gui.edit_handles.invjoint_radii_max,'Enable','off');
         set(gui.edit_handles.invjoint_Nradii,'Enable','off');
         
-    case {'free'}
-        
+    case {'free'}        
         set(gui.edit_handles.invjoint_radii_min,'Enable','on','String',num2str(radii(1)));
         set(gui.edit_handles.invjoint_radii_max,'Enable','on','String',num2str(radii(2)));
         set(gui.edit_handles.invjoint_Nradii,'Enable','on','String',num2str(Nradii));
-        
 end
 
 end
 
 function gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)
 
-switch regtype
-    
-    case 'none'
-        
+switch regtype    
+    case 'none'        
         set(gui.edit_handles.invstd_lambda_min,'Enable','off');
         set(gui.edit_handles.invstd_lambda_max,'Enable','off');
         set(gui.edit_handles.invstd_NlambdaR,'Enable','off');
         gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
         
-    case 'manual'
-        
+    case 'manual'        
         set(gui.edit_handles.invstd_lambda_min,'Enable','on','String',num2str(lambda));
         set(gui.edit_handles.invstd_lambda_max,'Enable','off');
         set(gui.edit_handles.invstd_NlambdaR,'Enable','off');
         gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
         
-    case 'auto'
-        
+    case 'auto'        
         set(gui.edit_handles.invstd_lambda_min,'Enable','off','String',num2str(lambda));
         set(gui.edit_handles.invstd_lambda_max,'Enable','off');
         set(gui.edit_handles.invstd_NlambdaR,'Enable','off');
         gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
         
-    case 'lcurve'
-        
+    case 'lcurve'        
         set(gui.edit_handles.invstd_lambda_min,'Enable','on','String',num2str(lambdaR(1)));
         set(gui.edit_handles.invstd_lambda_max,'Enable','on','String',num2str(lambdaR(2)));
         set(gui.edit_handles.invstd_NlambdaR,'Enable','on','String',num2str(NlambdaR));
         gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
         
-    case 'iterchi2'
-        
+    case 'iterchi2'        
         set(gui.edit_handles.invstd_lambda_min,'Enable','on','String',num2str(lambdaR(1)));
         set(gui.edit_handles.invstd_lambda_max,'Enable','on','String',num2str(lambdaR(2)));
         set(gui.edit_handles.invstd_NlambdaR,'Enable','off','String',num2str(NlambdaR));
         gui.plots.DistPanel.TabTitles = {'CHI2','RMS','PSD (joint)'};
         
-    case {'gcv_tikh','gcv_trunc','gcv_damp','discrep'}
-        
+    case {'gcv_tikh','gcv_trunc','gcv_damp','discrep'}        
         set(gui.edit_handles.invstd_lambda_min,'Enable','off','String',num2str(lambda));
         set(gui.edit_handles.invstd_lambda_max,'Enable','off');
         set(gui.edit_handles.invstd_NlambdaR,'Enable','off');
         gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
-        
 end
 
 end
 
 function gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)
 
-switch regtype
-    
-    case 'none'
-        
-        switch regtypestd
-            
-            case 'lcurve'
-                
+switch regtype    
+    case 'none'        
+        switch regtypestd            
+            case 'lcurve'                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','off');
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
                 gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
                 
-            case 'iterchi2'
-                
+            case 'iterchi2'                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','off');
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
                 gui.plots.DistPanel.TabTitles = {'CHI2','RMS','PSD (joint)'};
                 
-            otherwise
-                
+            otherwise                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','off');
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
                 gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
         end
         
-    case 'manual'
-        
-        switch regtypestd
-            
-            case 'lcurve'
-                
+    case 'manual'        
+        switch regtypestd            
+            case 'lcurve'                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','on','String',num2str(lambda));
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
                 gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
                 
-            otherwise
-                
+            otherwise                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','on','String',num2str(lambda));
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
                 gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
         end
         
-    case 'lcurve'
-        
+    case 'lcurve'        
         set(gui.edit_handles.invjoint_lambda_min,'Enable','on','String',num2str(lambdaR(1)));
         set(gui.edit_handles.invjoint_lambda_max,'Enable','on','String',num2str(lambdaR(2)));
         set(gui.edit_handles.invjoint_NlambdaR,'Enable','on','String',num2str(NlambdaR));
         gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
-        
 end
 
 end

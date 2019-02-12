@@ -1,5 +1,5 @@
 function switchToolTips(gui,onoff) %#ok<INUSL>
-%switchToolTips switches GUI tooltips either "on" or "off"
+%switchToolTips switches GUI tool tips either "on" or "off"
 %
 % Syntax:
 %       gui = switchToolTips(gui,onoff)
@@ -30,7 +30,7 @@ function switchToolTips(gui,onoff) %#ok<INUSL>
 
 %------------- BEGIN CODE --------------
 
-%% list of handles that have tooltips
+%% list of handles that have tool tips
 h = {'popup_handles','edit_handles','push_handles',...
     'listbox_handles','radio_handles'};
 

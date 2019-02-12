@@ -35,7 +35,7 @@ gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 
-% which NMR signaö
+% which NMR signal
 idx = get(gui.listbox_handles.signal,'Value');
 % how many names(entries) are there in total
 nnames = numel(get(gui.listbox_handles.signal,'String'));
@@ -44,7 +44,7 @@ newidx = idx+inc;
 % all positions
 ix = 1:1:nnames;
 
-% proceed if a signal was choosen and if it is not already at top or bottom
+% proceed if a signal was chosen and if it is not already at top or bottom
 % position
 if ~isempty(idx) && (newidx>=1 && newidx<=nnames)    
     % swap positions

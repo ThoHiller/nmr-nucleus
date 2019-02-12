@@ -48,7 +48,7 @@ switch value
         data.geometry.ispsd = 1;
 end
 
-% remove data fields beacuse the geometry has changed
+% remove data fields because the geometry has changed
 data = removeCalculationFields(data,'cps');
 data = removeCalculationFields(data,'nmr');
 % update GUI data

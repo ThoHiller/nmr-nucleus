@@ -5,7 +5,7 @@ function [gui,myui] = NUCLEUSmod_createPanelNMR(data,gui,myui)
 %       [gui,myui] = NUCLEUSmod_createPanelNMR(data,gui,myui)
 %
 % Inputs:
-%       data - figure data strucutre
+%       data - figure data structure
 %       gui - figure gui elements structure
 %       myui - individual GUI settings structure
 %
@@ -70,7 +70,7 @@ gui.edit_handles.rho = uicontrol('Parent',gui.panels.nmr.HBox1,...
     'Tag','nmr_rho','Enable','on','Callback',@onEditValue);
 set(gui.panels.nmr.HBox1,'Widths',[100 -1 100 -1]);
 
-%% echo time TE & number of echos
+%% echo time TE & number of echoes
 gui.text_handles.TE = uicontrol('Parent',gui.panels.nmr.HBox2,...
     'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
     'String','echo time [µs]');

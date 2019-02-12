@@ -1,5 +1,5 @@
 function out = getFitErrors(s,sfit,noise,varargin)
-%getFitErrors calculates all relevant fitting erros for the NMR inversion
+%getFitErrors calculates all relevant fitting errors for the NMR inversion
 %routines
 %
 % Syntax:
@@ -65,7 +65,7 @@ mse = mean(residual.^2);
 %% RMS and X2
 if isW
     % weighted RMS error
-    % residual is weighted with the amount of echos N per time gate
+    % residual is weighted with the amount of echoes N per time gate
     % NOTE: if "N per gate" is too large, the RMS estimation breaks down
     N = (noise./diag(W)).^2;    
     rms = sqrt (sum(N.*(residual).^2) / length(residual));

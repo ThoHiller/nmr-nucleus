@@ -6,7 +6,7 @@ function J = getFitFreeJacobian(x,t,flag)
 %       getFitFreeJacobian(x,t,flag)
 %
 % Inputs:
-%       x - the fittet Amplitudes x(1:2:end) and relaxation times
+%       x - the fitted Amplitudes x(1:2:end) and relaxation times
 %           x(2:2:end)
 %       t - time vector
 %       flag - either 'T1' or 'T2'

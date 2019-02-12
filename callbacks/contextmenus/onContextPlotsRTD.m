@@ -1,6 +1,6 @@
 function onContextPlotsRTD(src,~)
 %onContextPlotsRTD checks the label of the distribution axis context menu
-%to allow plottig either the cumulative or discrete relaxation time distribution
+%to allow plotting either the cumulative or discrete relaxation time distribution
 %derived from the standard inversion
 %
 % Syntax:
@@ -41,7 +41,7 @@ tag = get(src,'Tag'); % ('view')
 % get the label of the context menu
 label = get(src,'Label'); % ('cum' or 'freq')
 
-% depending on the current label, set a check mark and unceck the other one
+% depending on the current label, set a check mark and uncheck the other one
 switch tag
     case 'view'
         data.info.RTDflag = label;

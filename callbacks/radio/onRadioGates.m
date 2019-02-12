@@ -1,5 +1,5 @@
 function onRadioGates(src,~)
-%onRadioGates selects the resampling / gating method ("log", "lin" or "none")
+%onRadioGates selects the re-sampling / gating method ("log", "lin" or "none")
 %
 % Syntax:
 %       onRadioGates

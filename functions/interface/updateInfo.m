@@ -1,5 +1,5 @@
 function updateInfo(src,~) %#ok<INUSD>
-%updateInfo updates the iformation shown in all information list boxes
+%updateInfo updates the information shown in all information list boxes
 %
 % Syntax:
 %       updateInfo(src)
@@ -43,7 +43,7 @@ if isfield(gui,'plots') && isfield(gui,'listbox_handles')
     whichsignal = get(gui.plots.SignalPanel,'Selection');
     whichdist = get(gui.plots.DistPanel,'Selection');
     
-    % fontsize of subscripts
+    % font size of subscripts
     subfs = floor(get(gui.listbox_handles.info_dist,'FontSize') / 3);
     
     % show info switch
@@ -319,9 +319,9 @@ if showit
                             info{end+1,1} = ['<HTML><BODY>TLGM</sub> = ',sprintf('%5.4f',invstd.Tlgm),'</BODY></HTML>'];
                             info{end+1,1} = ' ';
                             
-                            % claybound water CBW < tcut ms
+                            % clay-bound water CBW < tcut ms
                             % irreducible water / capillary water BVI ccut - tcut ms
-                            % moveable water BVM > tcut ms
+                            % movable water BVM > tcut ms
                             switch data.process.timescale
                                 case 's'
                                     ccut = data.param.CBWcutoff/1000;

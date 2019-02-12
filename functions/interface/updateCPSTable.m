@@ -66,7 +66,7 @@ switch method
         
     case 'update'
         if isfield(data.results,'SAT')
-            % gather all neccessary data
+            % gather all necessary data
             unit = data.pressure.unit;
             unitfac = data.pressure.unitfac;
             pressure = data.results.SAT.pressure;

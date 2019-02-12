@@ -1,6 +1,6 @@
 function fitdata = fitDataNNLS(time,signal,parameter)
 %fitDataNNLS is a control routine that uses the 'Regularization Toolbox'
-%fom P. Hansen and 'lsqlin' to fit NMR data multi-exponentially
+%from P. Hansen and 'lsqlin' to fit NMR data multi-exponentially
 %
 % Syntax:
 %       fitDataNNLS(time,signal,parameter)
@@ -33,7 +33,7 @@ function fitdata = fitDataNNLS(time,signal,parameter)
 %                   resnorm    : residual norm
 %                   residual   : vector of residuals
 %                   rms        : RMS error
-%                   lambda_out : regularization paramter lambda determined
+%                   lambda_out : regularization parameter lambda determined
 %                                by the different options from the 'regu'
 %                                toolbox
 %                   KK         : Kernel matrix
@@ -82,7 +82,7 @@ g = signal./maxS;
 % get the input parameters
 flag = parameter.T1T2;           % T1/T2 switch
 T1IRfac = parameter.T1IRfac;     % T1 Sat/Inv Recovery factor
-Tb = parameter.Tb;               % bulk reaxation time
+Tb = parameter.Tb;               % bulk relaxation time
 tstart = parameter.Tint(1);      % log10 value
 tend = parameter.Tint(2);        % log10 value
 N = parameter.Tint(3);           % N per decade

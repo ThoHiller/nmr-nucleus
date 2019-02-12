@@ -10,7 +10,7 @@ function [fitdata] = fitDataFree_fmin(time,signal,flag,parameter,nExp)
 %       signal - NMR signal vector (no complex data allowed!)
 %       flag - either 'T1' or 'T2'
 %       parameter - struct that holds additional settings:
-%                   info : commandline output switch
+%                   info : command line output switch
 %                   noise: NMR data noise
 %       nExp - No. of free exponential(s)
 %
@@ -25,7 +25,7 @@ function [fitdata] = fitDataFree_fmin(time,signal,flag,parameter,nExp)
 %                   errnorm : error norm
 %                   rms     : RMS error
 %                   chi2    : X2 estimate
-%                   ci      : confidence intervall
+%                   ci      : confidence interval
 %
 % Example:
 %       [fitdata] = fitDataFree_fmin(t,s,'T2',parameter,2)

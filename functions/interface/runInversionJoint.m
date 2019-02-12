@@ -100,7 +100,7 @@ if foundINV
     tablelevels = 1:size(table,1);
     tablelevels = tablelevels(uselevel);
     
-    % get the union of inverted signals and checkmarks in the CPS table
+    % get the union of inverted signals and check marks in the CPS table
     [isin,levels] = ismember(invlevels,tablelevels);
     levels = tablelevels(levels(isin));
     
@@ -128,6 +128,7 @@ if foundINV
                 (INVdata{levels(i)}.results.nmrproc.s./E0(levels(i)));
             idata.nmr{levels(i)}.e = INVdata{levels(i)}.results.nmrproc.noise./...
                 sqrt(INVdata{levels(i)}.results.nmrproc.N);
+            idata.nmr{levels(i)}.N = INVdata{levels(i)}.results.nmrproc.N;
             idata.nmr{levels(i)}.noise = S(i).*...
                 (INVdata{levels(i)}.results.nmrproc.noise./E0(levels(i)));
             
@@ -162,10 +163,12 @@ if foundINV
                 t = idata.nmr{levels(i)}.t';
                 g = idata.nmr{levels(i)}.g';
                 e = idata.nmr{levels(i)}.e';
+                N = idata.nmr{levels(i)}.N';
             else
                 t = [t idata.nmr{levels(i)}.t'];
                 g = [g idata.nmr{levels(i)}.g'];
                 e = [e idata.nmr{levels(i)}.e'];
+                N = [N idata.nmr{levels(i)}.N'];
             end
             indt(c) = length(idata.nmr{levels(i)}.t);
         end
@@ -204,7 +207,7 @@ if foundINV
                 % saturation for the inversion model
                 ipsddata.r = igeom.radius';
                 ipsddata.psd = ones(size(ipsddata.r));
-                % waitbar option
+                % wait-bar option
                 wbopts.show = false;
                 wbopts.tag = 'INV';
                 iSAT = getSaturationFromPressureBatch(igeom,p,ipsddata,getConstants,wbopts);
@@ -231,7 +234,7 @@ if foundINV
                         set(gui.push_handles.invjoint_run,'String','STOP',...
                             'BackGroundColor','r','UserData',1,'Callback',@onPushStop);
                         
-                        % no commandline output during l-curve calculation
+                        % no command line output during l-curve calculation
                         info = 'off';
                         
                         % lambda range and initialization of output variables
@@ -245,7 +248,7 @@ if foundINV
                         infostring = 'L-Curve calculation ... ';
                         displayStatusText(gui,infostring);
                         
-                        % waitbar option
+                        % wait-bar option
                         wbopts.show = true;
                         wbopts.tag = 'INV';
                         if wbopts.show
@@ -282,16 +285,16 @@ if foundINV
                                 iparam.SVdata = SVdata;
                                 iparam.SatImbDrain = SatImbDrain;
                                 
-                                % scale fit parameter between [0 1]
+                                % start values and bounds
                                 x0 = [zeros(size(igeom.radius))' log10(1e-6)];
-                                lb = [zeros(size(igeom.radius))' log10(1e-7)];
+                                lb = [zeros(size(igeom.radius))' log10(1e-8)];
                                 ub = [ones(size(igeom.radius))' log10(1e-3)];
                                 
                                 options = optimset('Display',info,'TolFun',1e-9,'TolX',1e-9,...
                                     'Jacobian','on','DerivativeCheck','off','FinDiffType','central',...
                                     'Algorithm','levenberg-marquardt','MaxIter',1000);
                                 
-                                [X,~,residual,~] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
+                                [X,~,~,~] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
                                 [~,~,ig,~] = fcn_JointInvfree(X,iparam);
                                 
                                 if useW
@@ -303,17 +306,16 @@ if foundINV
                                     ig = Winv * ig;
                                 end
                         
+                                residual = ig - g';
                                 iF = X(1:length(X)-1);
                                 
                                 % output data
                                 % get RMS and X^2
                                 if useW
                                     % weighted RMS error
-                                    % residual is weighted with the amount of echos N per time gate
+                                    % residual is weighted with the amount of echoes N per time gate
                                     % NOTE: if "N per gate" is too large, the RMS estimation breaks down
-                                    N = (idata.nmr{levels(1)}.noise./e).^2;
-                                    NN = double(int32(N));
-                                    RMS(i) = sqrt (sum(NN.*(residual).^2) / length(residual));
+                                    RMS(i) = sqrt (sum(N'.*(residual).^2) / length(residual));
                                     % X2 estimate
                                     CHI2(i) = getChi2(g',ig,e);
                                 else
@@ -325,13 +327,13 @@ if foundINV
                                 % error norm and model norm
                                 RN(i) = norm(residual,2);
                                 XN(i) = norm(L*iF',2);
-                                % waitbar update
+                                % wait-bar update
                                 if wbopts.show
                                     waitbar(i / steps,hwb,['processing ...',num2str(i),' / ',num2str(steps),' lambda steps']);
                                 end
                             end
                         end                        
-                        % delete the waitbar
+                        % delete the wait-bar
                         if wbopts.show
                             delete(hwb);
                         end
@@ -357,7 +359,7 @@ if foundINV
                             set(gui.plots.DistPanel,'Selection',1);
                         else
                             % status bar information
-                            displayStatusText(gui,[infostring,' was cancelled']);
+                            displayStatusText(gui,[infostring,' was canceled']);
                             % remove temporary data fields
                             data = removeInversionFields(data);
                         end
@@ -405,7 +407,7 @@ if foundINV
                                 'Algorithm','levenberg-marquardt',...
                                 'MaxIter',1000);
                         end
-                        [X,resnorm,residual,exitflag] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
+                        [X,~,~,exitflag] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
                         % status bar information
                         displayStatusText(gui,[infostring,'done']);
                         % get the final fit
@@ -439,19 +441,17 @@ if foundINV
                         data.results.invjoint.irho = irho;
                         data.results.invjoint.ig = ig;
                         data.results.invjoint.XX = KK;
-                        data.results.invjoint.errnorm = resnorm;
-                        data.results.invjoint.residual = residual;
+                        data.results.invjoint.errnorm = norm((ig - g')).^2;
+                        data.results.invjoint.residual = ig - g';
                         data.results.invjoint.exitflag = exitflag;
                         
                         % get RMS and X^2
                         residual = data.results.invjoint.residual;
                         if useW
                             % weighted RMS error
-                            % residual is weighted with the amount of echos N per time gate
+                            % residual is weighted with the amount of echoes N per time gate
                             % NOTE: if "N per gate" is too large, the RMS estimation breaks down
-                            N = (idata.nmr{levels(1)}.noise./e).^2;
-                            NN = double(int32(N));
-                            data.results.invjoint.rms = sqrt (sum(NN.*(residual).^2) / length(residual));
+                            data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
                             % X2 estimate
                             data.results.invjoint.chi2 = getChi2(g',ig,e);
                         else
@@ -554,11 +554,9 @@ if foundINV
                 residual = data.results.invjoint.residual;
                 if useW
                     % weighted RMS error
-                    % residual is weighted with the amount of echos N per time gate
-                    % NOTE: if "N per gate" is too large, the RMS estimation breaks down                   
-                    N = (idata.nmr{levels(1)}.noise./e).^2;
-                    NN = double(int32(N));
-                    data.results.invjoint.rms = sqrt (sum(NN.*(residual).^2) / length(residual));
+                    % residual is weighted with the amount of echoes N per time gate
+                    % NOTE: if "N per gate" is too large, the RMS estimation breaks down
+                    data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
                     % X2 estimate
                     data.results.invjoint.chi2 = getChi2(g',ig,e);
                 else
@@ -672,11 +670,9 @@ if foundINV
                 residual = data.results.invjoint.residual;
                 if useW
                     % weighted RMS error
-                    % residual is weighted with the amount of echos N per time gate
+                    % residual is weighted with the amount of echoes N per time gate
                     % NOTE: if "N per gate" is too large, the RMS estimation breaks down                   
-                    N = (idata.nmr{levels(1)}.noise./e).^2;
-                    NN = double(int32(N));
-                    data.results.invjoint.rms = sqrt (sum(NN.*(residual).^2) / length(residual));
+                    data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
                     % X2 estimate
                     data.results.invjoint.chi2 = getChi2(g',ig,e);
                 else
@@ -696,7 +692,7 @@ if foundINV
                 else
                     p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
                 end
-                % waitbar option
+                % wait-bar option
                 wbopts.show = true;
                 wbopts.tag = 'INV';
                 pSAT = getSaturationFromPressureBatch(iGEOM,p_tmp,ppsddata,getConstants,wbopts);
@@ -705,7 +701,7 @@ if foundINV
                 displayStatusText(gui,[infostring,'done']);
         end
         
-        % if the regularizaion method was not L-curve then post process the
+        % if the regularization method was not L-curve then post process the
         % NMR data fits
         if ~strcmp(data.invjoint.regtype,'lcurve')
             % get the individual NMR fits
@@ -721,11 +717,10 @@ if foundINV
                 % get RMS and X^2
                 if useW
                     % weighted RMS error
-                    % residual is weighted with the amount of echos N per time gate
+                    % residual is weighted with the amount of echoes N per time gate
                     % NOTE: if "N per gate" is too large, the RMS estimation breaks down
-                    N = (idata.nmr{levels(i)}.noise./idata.nmr{levels(i)}.e).^2;
-                    NN = double(int32(N));
-                    rms = sqrt (sum(NN.*(residual).^2) / length(residual));
+                    N = idata.nmr{levels(i)}.N;
+                    rms = sqrt (sum(N.*(residual).^2) / length(residual));
                     % X2 estimate
                     chi2 = getChi2(idata.nmr{levels(i)}.g,...
                         idata.nmr{levels(i)}.fit_g,...
@@ -765,13 +760,19 @@ if foundINV
             set(gui.push_handles.info,'String','<');
             onPushShowHide(gui.push_handles.info);
         end     
-    else
-        helpdlg({'function: runInversionJoint','Perform standard inversion first.',...
-            'For ''fixed'' and ''shape'' you need a RTD!'},'No data')
+    else        
+        if ~InvtypeIsOK
+            helpdlg({'function: runInversionJoint','Perform standard multi-exponential inversion first.',...
+            'For ''fixed'' and ''shape'' you need a RTD!'},'No RTD');
+        end
+        if ~GatetypeIsOK
+            helpdlg({'function: runInversionJoint','Check your ''signal gating'' settings.',...
+            'All signals need to have the same gating.'},'Wrong gating');
+        end
     end
 else
     helpdlg({'function: runInversionJoint','Perform standard inversion first.',...
-        'For ''fixed'' and ''shape'' you need a RTD!'},'No data')
+        'For ''fixed'' and ''shape'' you need a RTD!'},'No Data');
 end
 
 %% at the end, no matter what reset the RUN button

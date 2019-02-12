@@ -6,7 +6,7 @@ function NUCLEUSinv_createGUI(h,wbon)
 %
 % Inputs:
 %       h - figure handle
-%       wbon - show waitbar (yes=1, no=0)
+%       wbon - show wait-bar (yes=1, no=0)
 %
 % Outputs:
 %       none
@@ -42,7 +42,7 @@ function NUCLEUSinv_createGUI(h,wbon)
 gui = getappdata(h,'gui');
 data = getappdata(h,'data');
 
-%% init waitbar
+%% init wait-bar
 if wbon
     hwb = waitbar(0,'loading ...','Name','NUCLEUSinv initialization','Visible','off');
     steps = 8;
@@ -55,7 +55,7 @@ if wbon
     set(hwb,'Visible','on');
 end
 
-%% import ini-File
+%% import ini-file
 gui = NUCLEUSinv_processINI(gui);
 myui = gui.myui;
 % apply color theme
@@ -147,6 +147,14 @@ end
 if wbon
     waitbar(6/steps,hwb,'loading GUI elements - joint inversion');
 end
+% adjust the default joint inversion method depending on Optimization
+% toolbox availability
+switch data.info.optim
+    case 'on'
+        data.invjoint.invtype = 'free';
+    case 'off'
+        data.invjoint.invtype = 'fixed';
+end
 [gui,myui] = NUCLEUSinv_createPanelInversionJoint(data,gui,myui);
 
 %% B. graphics column
@@ -161,7 +169,7 @@ if wbon
 end
 gui = NUCLEUSinv_createPanelInfo(gui);
 
-% delete waitbar
+% delete wait-bar
 if wbon
     delete(hwb);
 end

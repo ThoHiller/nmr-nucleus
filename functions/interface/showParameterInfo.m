@@ -61,7 +61,7 @@ if isfield(data.import,'NMR')
             set(f1,'Position',[cent(1)-pos1(3)/2 pos0(2) pos1(3) pos0(4)+25]);
             % draw the uitable
             th = uitable('Parent',f1,'Data',info,'ColumnName',{'Property','Value'});
-            % adjust the cloumn widths
+            % adjust the column widths
             pos = get(f1,'Position');
             w = (pos(3)-80)/2;
             set(th,'Position',[20 20 pos(3)-40 pos(4)-40],'ColumnWidth',{w w});

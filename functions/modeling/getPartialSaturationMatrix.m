@@ -13,7 +13,7 @@ function IPS = getPartialSaturationMatrix(SatData,indt,imbdrain)
 %                  or imbibition branch (e.g. 'DDID')
 %
 % Outputs:
-%       IPS - partial saturation matrix (values betweeen 0 and 1)
+%       IPS - partial saturation matrix (values between 0 and 1)
 %
 % Example:
 %       IPS = getPartialSaturationMatrix(SatData,indt,imbdrain)

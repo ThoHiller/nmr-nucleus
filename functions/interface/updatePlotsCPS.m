@@ -88,7 +88,7 @@ function plotSaturationLevelsCPS(data,ax)
 SAT = data.results.SAT;
 plotpress = SAT.pressure .* data.pressure.unitfac;
 
-% clear priviously plotted points
+% clear previously plotted points
 ph = findall(ax,'Tag','SatPoints');
 if ~isempty(ph)
     set(ph,'HandleVisibility','on')

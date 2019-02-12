@@ -6,7 +6,7 @@ function NUCLEUSmod_createGUI(h,wbon)
 %
 % Inputs:
 %       h - figure handle
-%       wbon - show waitbar (yes=1, no=0)
+%       wbon - show wait-bar (yes=1, no=0)
 %
 % Outputs:
 %       none
@@ -37,7 +37,7 @@ gui = getappdata(h,'gui');
 data = getappdata(h,'data');
 myui = gui.myui;
 
-%% init waitbar
+%% init wait-bar
 if wbon
     hwb = waitbar(0,'loading ...','Name','NUCLEUSmod initialization','Visible','off');
     steps = 5;
@@ -111,7 +111,7 @@ if wbon
 end
 [gui,myui] = NUCLEUSmod_createPanelPlots(gui,myui);
 
-% delete waitbar
+% delete wait-bar
 if wbon
     delete(hwb);
 end

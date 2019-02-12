@@ -46,7 +46,7 @@ parData = cell(1,1);
 tmp = cell(1,1);
 % check, if it is one or multiple depths
 if size(data.se_vector_wc,2) > 1
-    % commandline output
+    % command line output
     disp([in.name,': importing NMR files ...']);
 
     nmrData = cell(1,size(data.se_vector_wc,2));
@@ -73,7 +73,7 @@ if size(data.se_vector_wc,2) > 1
         nmrData{i}.raw.time = data.time;
         nmrData{i}.raw.signal = se_vector_amp;
         
-        % cretae parameter data
+        % create parameter data
         parData{i}.acq_params_Tr = data.acq_params.Tr;
         parData{i}.depth = data.depth(i);
         parData{i}.Qs = data.extras.Qs(i);
@@ -89,7 +89,7 @@ if size(data.se_vector_wc,2) > 1
         parData{i}.all = d;        
         clear d tmp
         
-        % commandline output
+        % command line output
         disp([in.name,': importing NMR files ',sprintf('%03d',i),...
             ' / ',sprintf('%03d',size(data.se_vector_wc,2))]);
     end
@@ -117,7 +117,7 @@ else
     nmrData{1}.raw.time = data.time;
     nmrData{1}.raw.signal = se_vector_amp;
     
-    % cretae parameter data
+    % create parameter data
     parData{1}.acq_params_Tr = data.acq_params.Tr;
     parData{1}.depth = data.depth;
     parData{1}.Qs = data.extras.Qs;

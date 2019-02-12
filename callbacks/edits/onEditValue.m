@@ -1,6 +1,6 @@
 function onEditValue(src,~)
 %onEditValue updates all edit field values, checks for wrong inputs and
-%restores a default value if neccessary
+%restores a default value if necessary
 %
 % Syntax:
 %       onEditValue
@@ -52,11 +52,11 @@ data = getappdata(fig,'data');
 %% the generic part thw works for both GUIS
 % get the value of the field
 value = str2double(get(src,'String'));
-% get the userdata of the field
+% get the user data of the field
 userdata = get(src,'UserData');
 
 % check if the value is numeric
-% if not restet to defaults stored in userdata
+% if not reset to defaults stored in user data
 defaults = userdata.defaults;
 if isnan(value)
     set(src,'String',num2str(defaults(1)));

@@ -1,6 +1,6 @@
 function processNMRDataControl(fig,id)
 %processNMRDataControl prepares simple NMR raw data processing 
-%(eg. resampling, normalizing, etc.
+%(eg. re-sampling, normalizing, etc.
 %
 % Syntax:
 %       processNMRDataControl(fig,id)

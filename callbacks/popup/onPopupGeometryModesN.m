@@ -38,7 +38,7 @@ data = getappdata(fig,'data');
 % get the number of modes (1-3)
 data.geometry.modesN = get(src,'Value');
 
-% remove data fields beacuse the PSD changed
+% remove data fields because the PSD changed
 data = removeCalculationFields(data,'cps');
 data = removeCalculationFields(data,'nmr');
 % update GUI data

@@ -1,6 +1,6 @@
 function caluclatePressureSaturation
 %caluclatePressureSaturation calculates the geometry dependent pressure
-%saturation curves needed for the foward calculation by NUCLEUSmod
+%saturation curves needed for the forward calculation by NUCLEUSmod
 %
 % Syntax:
 %       caluclatePressureSaturation
@@ -54,7 +54,7 @@ constants  = getConstants;
 constants.sigma = data.pressure.sigma;
 constants.theta = data.pressure.theta;
 
-%% waitbar option
+%% wait-bar option
 wbopts.show = true;
 wbopts.tag = 'MOD';
 

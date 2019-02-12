@@ -16,7 +16,7 @@ function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
 %                L : smoothness constraint
 %                lambda : regularization parameter
 %                igeom : geometry structure data
-%                IPS : stauration status matrix
+%                IPS : saturation status matrix
 %                SVdata : corner saturation data
 %
 % Outputs:
@@ -196,10 +196,6 @@ if nargout > 1
     JJ = [J Jr'];
     LL = [lambda*L 0*L(:,1)];
     J = [JJ;LL];
-    
-    if isfield(iparam,'W')
-        ig = diag(1./diag(iparam.W))*eye(size(iparam.W)) * ig;
-    end
 end
 
 return

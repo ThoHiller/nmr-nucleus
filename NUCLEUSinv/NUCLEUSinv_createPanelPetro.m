@@ -1,11 +1,11 @@
 function [gui,myui] = NUCLEUSinv_createPanelPetro(data,gui,myui)
-%NUCLEUSinv_createPanelPetro creates petrophysics panel
+%NUCLEUSinv_createPanelPetro creates Petrophysics panel
 %
 % Syntax:
 %       [gui,myui] = NUCLEUSinv_createPanelPetro(data,gui,myui)
 %
 % Inputs:
-%       data - figure data strucutre
+%       data - figure data structure
 %       gui - figure gui elements structure
 %       myui - individual GUI settings structure
 %

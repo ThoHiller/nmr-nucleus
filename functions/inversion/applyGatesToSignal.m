@@ -1,5 +1,5 @@
 function data = applyGatesToSignal(time,signal,varargin)
-%applyGatesToSignal resamples (gates) a NMR signal to speedup the
+%applyGatesToSignal re-samples (gates) a NMR signal to speedup the
 %inversion
 %
 % Syntax:
@@ -14,9 +14,9 @@ function data = applyGatesToSignal(time,signal,varargin)
 %                  'plotit' - '0' or '1' (default is 0)
 %                 'special' - 'rwth' or '' (default is '')
 % Outputs:
-%       data(:,1) - resampled time t
-%       data(:,2) - resampled signal
-%       data(:,3) - No. of echos per gate
+%       data(:,1) - re-sampled time t
+%       data(:,2) - re-sampled signal
+%       data(:,3) - No. of echoes per gate
 %
 % Example:
 %       applyGatesToSignal(time,signal,'type','log')
@@ -119,7 +119,7 @@ switch type
                 index(1) = 3;
             end
         end
-        % the maximal No of echos per time gates is set to M=50
+        % the maximal No of echoes per time gates is set to M=50
         % this stabilizes / improves the RMS estimation
         if numel(time) < 20000
             M = 50;
@@ -134,14 +134,14 @@ switch type
         i1 = find(index==M,1,'last');
         % sum up all gates up to M
         s1 = cumsum(index(1:i1));
-        % how many gates with M echos we need to add to get the whole
+        % how many gates with M echoes we need to add to get the whole
         % signal
         N = ceil((length(time)-s1(end))/M);
         % make a new index vector
         index = [index(1:i1) M*ones(1,N)];
-        % sum upp all gates
+        % sum up all gates
         ci = cumsum(index);
-        % find the last one we need to resample the whole signal
+        % find the last one we need to re-sample the whole signal
         indc = find(ci>=length(time),1,'first');
         
         t = zeros(indc,1);
