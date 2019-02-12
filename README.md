@@ -2,7 +2,6 @@
 
 modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**U**lar pore**S**
 
-[![download](https://img.shields.io/github/downloads/ThoHiller/nmr-nucleus/total.svg)](https://github.com/ThoHiller/nmr-nucleus/releases/latest)
 [![release](https://img.shields.io/github/release/ThoHiller/nmr-nucleus.svg)](https://github.com/ThoHiller/nmr-nucleus/releases/latest)
 - - -
 
