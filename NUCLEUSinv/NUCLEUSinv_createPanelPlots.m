@@ -46,7 +46,7 @@ gui.plots.Signal.ProcTab = uix.VBox('Parent',gui.plots.SignalPanel,...
     'Spacing',3,'Padding',3);
 gui.plots.Signal.RawTab = uix.VBox('Parent',gui.plots.SignalPanel,...
     'Spacing',3,'Padding',3);
-gui.plots.Signal.AllTab = uix.HBox('Parent',gui.plots.SignalPanel,...
+gui.plots.Signal.AllTab = uix.VBox('Parent',gui.plots.SignalPanel,...
     'Spacing',3,'Padding',3);
 gui.plots.SignalPanel.TabTitles = {'PROC','RAW','ALL (joint)'};
 gui.plots.SignalPanel.TabWidth = 75;
@@ -105,10 +105,12 @@ set(gui.axes_handles.imag,'XTickLabel','');
 set(gui.axes_handles.imag,'YTickLabel','');
 
 %% 1.3 the ALL panel
-gui.plots.Signal.All.box = uicontainer('Parent',gui.plots.Signal.AllTab);
+gui.plots.Signal.All.box1 = uicontainer('Parent',gui.plots.Signal.AllTab);
+gui.plots.Signal.All.box2 = uicontainer('Parent',gui.plots.Signal.AllTab);
+set(gui.plots.Signal.AllTab,'Heights',[-4 -1]);
 
-% now the actual axes
-gui.axes_handles.all = axes('Parent',gui.plots.Signal.All.box,'Box','on');
+% now the actual axes 1
+gui.axes_handles.all = axes('Parent',gui.plots.Signal.All.box1,'Box','on');
 set(get(gui.axes_handles.all,'XLabel'),'String','time [s]');
 set(get(gui.axes_handles.all,'YLabel'),'String','amplitude [a.u.]');
 % the axes has a context menu
@@ -118,6 +120,13 @@ gui.cm_handles.axes_all_xaxis = uimenu(gui.cm_handles.axes_all,...
 gui.cm_handles.axes_all_yaxis = uimenu(gui.cm_handles.axes_all,...
     'Label','y-axis -> log','Tag','All','Enable','off','Callback',@onContextAxisLogLin);
 set(gui.axes_handles.all,'UIContextMenu',gui.cm_handles.axes_all);
+
+% now the actual axes 2
+gui.axes_handles.err_joint = axes('Parent',gui.plots.Signal.All.box2,'Box','on');
+set(get(gui.axes_handles.err_joint,'XLabel'),'String','');
+set(get(gui.axes_handles.err_joint,'YLabel'),'String','');
+set(gui.axes_handles.err_joint,'XTickLabel','');
+set(gui.axes_handles.err_joint,'YTickLabel','');
 
 %% 2. panel - Distributions - RTD, PSD and PSDJ data
 gui.plots.Dist.RTDTab = uix.HBox('Parent',gui.plots.DistPanel,...

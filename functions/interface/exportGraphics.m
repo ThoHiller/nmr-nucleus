@@ -148,7 +148,7 @@ switch fig_tag
         % add the legend(s) and remove the info lines (CBW etc) from the
         % distribution plots
         if isjoint
-            legend(ax2,'show');
+            legend(ax1,'show');
             legend(ax3,'show');
             h1 = findobj([ax1 ax2 ax3],'Tag','infolines');
             h2 = findobj([ax1 ax2 ax3],'Tag','TLGM');

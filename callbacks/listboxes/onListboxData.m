@@ -80,6 +80,9 @@ if isfield(data.import,'NMR')
                 if isfield(data.results,'invstd')
                     updatePlotsDistribution;
                 end
+                if isfield(data.results,'invjoint')
+                    updatePlotsJointInversion;
+                end
                 if isfield(data.results,'lcurve')
                     updatePlotsLcurve;
                 end

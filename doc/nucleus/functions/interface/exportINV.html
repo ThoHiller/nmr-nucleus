@@ -29,7 +29,7 @@
 <div class="fragment"><pre class="comment">exportINV exports NUCLEUSinv GUI data to a mat-file
 in two different ways based on the input variable 'format'. If 'raw' is
 chosen, only the previously imported NMR raw data gets exported to a
-mat-file to speed-up later data import. If 'session' is chosen, all data
+mat-file to speed-up data import later. If 'session' is chosen, all data
 and GUI settings are saved as a snapshot to continue working on it at a
 later point in time.
 
@@ -78,7 +78,7 @@ This function is called by:
 0002 <span class="comment">%exportINV exports NUCLEUSinv GUI data to a mat-file</span>
 0003 <span class="comment">%in two different ways based on the input variable 'format'. If 'raw' is</span>
 0004 <span class="comment">%chosen, only the previously imported NMR raw data gets exported to a</span>
-0005 <span class="comment">%mat-file to speed-up later data import. If 'session' is chosen, all data</span>
+0005 <span class="comment">%mat-file to speed-up data import later. If 'session' is chosen, all data</span>
 0006 <span class="comment">%and GUI settings are saved as a snapshot to continue working on it at a</span>
 0007 <span class="comment">%later point in time.</span>
 0008 <span class="comment">%</span>
@@ -157,73 +157,75 @@ This function is called by:
 0081         <span class="keyword">if</span> ~isempty(INVdata)
 0082             <span class="comment">% display info text</span>
 0083             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Exporting GUI session to mat-file ...'</span>);
-0084             savedata.data = data;
-0085             savedata.id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0084             savedata.myui = gui.myui;
+0085             savedata.data = data;
 0086             savedata.INVdata = INVdata;
-0087             
-0088             <span class="keyword">if</span> dosilent
-0089                 save(fullfile(sfile),<span class="string">'savedata'</span>);
-0090                 clear savedata;
-0091             <span class="keyword">else</span>
-0092                 <span class="comment">% session file name</span>
-0093                 sfilename = <span class="string">'NUCLEUSinv_session'</span>;
-0094                 
-0095                 <span class="comment">% ask for folder and maybe new name</span>
-0096                 <span class="keyword">if</span> isfield(data.import,<span class="string">'path'</span>)
-0097                     [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="keyword">...</span>
-0098                         <span class="string">'Save session file'</span>,<span class="keyword">...</span>
-0099                         fullfile(data.import.path,[sfilename,<span class="string">'.mat'</span>]));
-0100                 <span class="keyword">else</span>
-0101                     [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="keyword">...</span>
-0102                         <span class="string">'Save session file'</span>,<span class="keyword">...</span>
-0103                         fullfile(pwd,[sfilename,<span class="string">'.mat'</span>]));
-0104                 <span class="keyword">end</span>
-0105                 
-0106                 <span class="comment">% if user didn't cancel save session</span>
-0107                 <span class="keyword">if</span> sum([sfile spath]) &gt; 0
-0108                     save(fullfile(spath,sfile),<span class="string">'savedata'</span>);
-0109                     clear savedata;
-0110                     
-0111                     <span class="comment">% display info text</span>
-0112                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Exporting GUI session to mat-file ... done'</span>);
-0113                 <span class="keyword">else</span>
-0114                     <span class="comment">% display info text</span>
-0115                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Exporting GUI session to mat-file ... canceled'</span>);
-0116                 <span class="keyword">end</span>
-0117             <span class="keyword">end</span>
-0118         <span class="keyword">else</span>
-0119             helpdlg({<span class="string">'function: exportINV'</span>,<span class="keyword">...</span>
-0120                 <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
-0121                 <span class="string">'Load NMR data first.'</span>);
-0122         <span class="keyword">end</span>
-0123 <span class="keyword">end</span>
-0124 
+0087             savedata.id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0088             
+0089             
+0090             <span class="keyword">if</span> dosilent
+0091                 save(fullfile(sfile),<span class="string">'savedata'</span>);
+0092                 clear savedata;
+0093             <span class="keyword">else</span>
+0094                 <span class="comment">% session file name</span>
+0095                 sfilename = <span class="string">'NUCLEUSinv_session'</span>;
+0096                 
+0097                 <span class="comment">% ask for folder and maybe new name</span>
+0098                 <span class="keyword">if</span> isfield(data.import,<span class="string">'path'</span>)
+0099                     [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="keyword">...</span>
+0100                         <span class="string">'Save session file'</span>,<span class="keyword">...</span>
+0101                         fullfile(data.import.path,[sfilename,<span class="string">'.mat'</span>]));
+0102                 <span class="keyword">else</span>
+0103                     [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="keyword">...</span>
+0104                         <span class="string">'Save session file'</span>,<span class="keyword">...</span>
+0105                         fullfile(pwd,[sfilename,<span class="string">'.mat'</span>]));
+0106                 <span class="keyword">end</span>
+0107                 
+0108                 <span class="comment">% if user didn't cancel save session</span>
+0109                 <span class="keyword">if</span> sum([sfile spath]) &gt; 0
+0110                     save(fullfile(spath,sfile),<span class="string">'savedata'</span>);
+0111                     clear savedata;
+0112                     
+0113                     <span class="comment">% display info text</span>
+0114                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Exporting GUI session to mat-file ... done'</span>);
+0115                 <span class="keyword">else</span>
+0116                     <span class="comment">% display info text</span>
+0117                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Exporting GUI session to mat-file ... canceled'</span>);
+0118                 <span class="keyword">end</span>
+0119             <span class="keyword">end</span>
+0120         <span class="keyword">else</span>
+0121             helpdlg({<span class="string">'function: exportINV'</span>,<span class="keyword">...</span>
+0122                 <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
+0123                 <span class="string">'Load NMR data first.'</span>);
+0124         <span class="keyword">end</span>
 0125 <span class="keyword">end</span>
 0126 
-0127 <span class="comment">%------------- END OF CODE --------------</span>
+0127 <span class="keyword">end</span>
 0128 
-0129 <span class="comment">%% License:</span>
-0130 <span class="comment">% MIT License</span>
-0131 <span class="comment">%</span>
-0132 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0129 <span class="comment">%------------- END OF CODE --------------</span>
+0130 
+0131 <span class="comment">%% License:</span>
+0132 <span class="comment">% MIT License</span>
 0133 <span class="comment">%</span>
-0134 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0135 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0136 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0137 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0138 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0139 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0140 <span class="comment">%</span>
-0141 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0142 <span class="comment">% copies or substantial portions of the Software.</span>
-0143 <span class="comment">%</span>
-0144 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0145 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0146 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0147 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0148 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0149 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0150 <span class="comment">% SOFTWARE.</span></pre></div>
-<hr><address>Generated on Tue 12-Feb-2019 08:26:00 by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+0134 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0135 <span class="comment">%</span>
+0136 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0137 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0138 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0139 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0140 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0141 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0142 <span class="comment">%</span>
+0143 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0144 <span class="comment">% copies or substantial portions of the Software.</span>
+0145 <span class="comment">%</span>
+0146 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0147 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0148 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0149 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0150 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0151 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0152 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

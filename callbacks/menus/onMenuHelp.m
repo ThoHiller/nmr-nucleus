@@ -35,7 +35,8 @@ fig_tag = get(fig,'Tag');
 data = getappdata(fig,'data');
 gui = getappdata(fig,'gui');
 myui = gui.myui;
-        
+load('NUCLEUS_logo.mat','logo');
+
 switch fig_tag
     
     case 'INV'
@@ -75,7 +76,7 @@ switch fig_tag
         info{end+1,1} = ' ';
         info{end+1,1} = 'Have Fun!';
         
-        hh = helpdlg(info,'About NUCLEUSinv:');
+        hh = msgbox(info,'About NUCLEUSinv:','custom',logo);
         
     case 'MOD'
         
@@ -95,7 +96,7 @@ switch fig_tag
         info{end+1,1} = ' ';
         info{end+1,1} = 'Have Fun!';
         
-        hh = helpdlg(info,'About NUCLEUSmod:');
+        hh = msgbox(info,'About NUCLEUSmod:','custom',logo);
 
 end
 

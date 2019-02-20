@@ -42,12 +42,12 @@ data = getappdata(fig,'data');
 % get the file name
 Sessionpath = -1;
 Sessionfile = -1;
-% if there is already a data folder present we start from here
+% if there is already a data folder present start from there
 if isfield(data.import,'path')
     [Sessionfile,Sessionpath] = uigetfile(data.import.path,...
         'Choose NUCLEUSinv session file');
 else
-    % otherwise we start at the current working directory
+    % otherwise start at the current working directory
     % 'pathstr' hold s the name of the chosen data path
     here = mfilename('fullpath');
     [pathstr,~,~] = fileparts(here);
@@ -66,7 +66,23 @@ if sum(Sessionpath) > 0
         % check import uimenu
         set(src,'Checked','on');
         
-        % get the data from the mat file
+        % adjust menu entry for expert mode
+        switch savedata.data.info.ExpertMode
+            case 'on'
+                onMenuExpert(gui.menu.extra_expert_on);
+            case 'off'
+                onMenuExpert(gui.menu.extra_expert_off);
+        end
+        % adjust menu entry for joint inversion
+        switch savedata.data.info.JointInv
+            case 'on'
+                onMenuJointInversion(gui.menu.extra_joint_on);
+            case 'off'
+                onMenuJointInversion(gui.menu.extra_joint_off);
+        end
+        enableGUIelements('NMR');
+        
+        % update GUI data from session mat-file
         data = savedata.data;
         INVdata = savedata.INVdata;
         
@@ -118,6 +134,9 @@ if sum(Sessionpath) > 0
             if isfield(data,'results')
                 if isfield(data.results,'invstd')
                     updatePlotsDistribution;
+                end
+                if isfield(data.results,'invjoint')
+                    updatePlotsJointInversion;
                 end
                 if isfield(data.results,'lcurve')
                     updatePlotsLcurve;

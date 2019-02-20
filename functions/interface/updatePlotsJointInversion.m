@@ -52,8 +52,11 @@ if isfield(data.results,'invjoint')
     
     %% NMR data plot
     ax = gui.axes_handles.all;
+    axE = gui.axes_handles.err_joint;
     clearSingleAxis(ax);
+    clearSingleAxis(axE);
     hold(ax,'on');
+    hold(axE,'on');
     
     mycol = flipud(parula(128));
     % color for the individual NMR signals
@@ -63,6 +66,7 @@ if isfield(data.results,'invjoint')
     % NMR data
     xlims = [1 0];
     ylims = [0 1.05];
+    ylimsE = [0 0];
     lgdstr = cell(1,1);
     for i = 1:numel(levels)
         t = nmr{levels(i)}.t;
@@ -97,13 +101,28 @@ if isfield(data.results,'invjoint')
             plot(t,g,'-','Color',col.FIT,'LineWidth',2,'Parent',ax,...
                 'Tag','fits','HandleVisibility','off');
         end
+        e = nmr{levels(i)}.e;
+        residual = nmr{levels(i)}.residual;
+        if nmr{levels(i)}.noise > 0
+            residual = residual./e;
+        end        
+        switch SatImbDrain(i)
+            case 'D'
+                plot(t,residual,'Color',mycol(colindd(i),:),...
+                    'LineWidth',1,'Parent',axE);
+            case 'I'
+                plot(t,residual,'Color',mycol(colindi(i),:),...
+                    'LineWidth',1,'Parent',axE);
+        end
         
         xlims(1) = min([xlims(1) min(t(t>0))]);
         xlims(2) = max([xlims(2) max(t)]);
         ylims(1) = min([ylims(1) min(g)]);
         ylims(2) = max([ylims(2) max(g)]);
+        ylimsE(1) = min([ylimsE(1) min(residual)]);
+        ylimsE(2) = max([ylimsE(2) max(residual)]);
     end
-    lgdstr{end+1} = 'fits';
+    lgdstr{end+1} = 'fits';    
     
     % limits & ticks
     loglinx = get(gui.cm_handles.axes_all_xaxis,'Label');
@@ -157,6 +176,33 @@ if isfield(data.results,'invjoint')
     legend(ax,lgdstr,'Location','NorthEast','Tag','alllegend','FontSize',10);
     % grid
     grid(ax,'on');
+    
+    %% residual plot    
+    xlims = get(ax,'XLim');
+    line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axE);
+    if nmr{levels(1)}.noise > 0
+        line(xlims,[-1 -1],'LineStyle','-.','LineWidth',1,...
+            'Color','k','Parent',axE);
+        line(xlims,[1 1],'LineStyle','-.','LineWidth',1,...
+            'Color','k','Parent',axE);
+        set(axE,'XTickLabel','');
+        set(axE,'YLim',[-max(abs(ylimsE)) max(abs(ylimsE))]);
+        set(axE,'YTickMode','auto','YTickLabelMode','auto');
+        set(get(axE,'YLabel'),'String',{'noise';'weighted';'residuals'},...
+            'FontWeight','normal');
+    else
+        set(axE,'XTickLabel','');
+        set(axE,'YLim',[-max(abs(ylimsE)) max(abs(ylimsE))]);
+        set(axE,'YTickMode','auto','YTickLabelMode','auto')
+        set(get(axE,'YLabel'),'String','residuals',...
+            'FontWeight','normal');
+    end
+    switch loglinx
+        case 'x-axis -> lin' % log axes
+            set(axE,'XScale','log','XLim',xlims);
+        case 'x-axis -> log' % lin axes
+            set(axE,'XScale','lin','XLim',xlims);
+    end
     
     %% PSD data plot
     ax = gui.axes_handles.psdj;

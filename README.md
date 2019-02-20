@@ -2,7 +2,7 @@
 
 modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**U**lar pore**S**
 
-[![release](https://img.shields.io/github/release/ThoHiller/nmr-nucleus.svg)](https://github.com/ThoHiller/nmr-nucleus/releases/latest)
+[![release](https://img.shields.io/github/release/NMR-NUCLEUS/nmr-nucleus.svg)](https://github.com/NMR-NUCLEUS/nmr-nucleus/releases/latest)
 - - -
 
 ### About
@@ -45,7 +45,7 @@ If you do not have the Optimization or Statistics toolboxes then not all feature
 
 I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2014b and newer.
 
-**NOTE:** So far I did not test anything on a Linux or Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
+**NOTE:** So far I did not test anything on Linux or a Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
 
 - - -
 

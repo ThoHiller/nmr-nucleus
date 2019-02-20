@@ -2,7 +2,7 @@ function exportINV(format,varargin)
 %exportINV exports NUCLEUSinv GUI data to a mat-file
 %in two different ways based on the input variable 'format'. If 'raw' is
 %chosen, only the previously imported NMR raw data gets exported to a
-%mat-file to speed-up later data import. If 'session' is chosen, all data
+%mat-file to speed-up data import later. If 'session' is chosen, all data
 %and GUI settings are saved as a snapshot to continue working on it at a
 %later point in time.
 %
@@ -81,9 +81,11 @@ switch format
         if ~isempty(INVdata)
             % display info text
             displayStatusText(gui,'Exporting GUI session to mat-file ...');
+            savedata.myui = gui.myui;
             savedata.data = data;
-            savedata.id = get(gui.listbox_handles.signal,'Value');
             savedata.INVdata = INVdata;
+            savedata.id = get(gui.listbox_handles.signal,'Value');
+            
             
             if dosilent
                 save(fullfile(sfile),'savedata');
