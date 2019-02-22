@@ -335,11 +335,11 @@ if showit
                             BVI = abs(sum(invstd.T1T2f(invstd.T1T2me>ccut & invstd.T1T2me<=tcut))/sum(invstd.T1T2f));
                             BVM = abs(sum(invstd.T1T2f(invstd.T1T2me>tcut))/sum(invstd.T1T2f));
                             info{end+1,1} = ['CBW(',sprintf('%2d',data.param.CBWcutoff),...
-                                ') = ',sprintf('%5.2f',por*CBW*100),' [Vol. %]'];
+                                ') = ',sprintf('%5.2f',por*CBW*100),' [vol. %]'];
                             
                             info{end+1,1} = ['BVI(',sprintf('%2d',data.param.BVIcutoff),...
-                                ') = ',sprintf('%5.2f',por*BVI*100),' [Vol. %]'];
-                            info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [Vol. %]'];
+                                ') = ',sprintf('%5.2f',por*BVI*100),' [vol. %]'];
+                            info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [vol. %]'];
                             
                     end
                 end

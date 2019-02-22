@@ -106,7 +106,7 @@ if isfield(data.results,'invstd')
             % scale distribution by porosity
             F = invstd.T1T2f;
             if sum(F)>0
-                F = data.invstd.porosity.*F./sum(F);
+                F = (data.invstd.porosity*100).*F./sum(F);
                 ylims = [0 max(F)*1.05];
             else
                 ylims = [-1 1];
@@ -125,7 +125,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
                     % y-label
-                    set(get(ax,'YLabel'),'String','frequency [-]');
+                    set(get(ax,'YLabel'),'String','water content [vol. %]');
                     
                 case 'cum'
                     plot(invstd.T1T2me,cumsum(F),'o-','Color',col.FIT,...
@@ -138,8 +138,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
                     % y-label
-                    set(get(ax,'YLabel'),'String','cumulative [-]');
-                    
+                    set(get(ax,'YLabel'),'String','cumulative water content [vol. %]');                    
             end
             
             % x-limits
@@ -221,14 +220,6 @@ if isfield(data.results,'invstd')
             requiv = invstd.T1T2me.*rho.*a;
             Rlgm = invstd.Tlgm.*rho.*a;
             
-            F = invstd.T1T2f;
-            if sum(F)>0
-                F = F./sum(F);
-                ylims = [0 max(F)*1.05];
-            else
-                ylims = [-1 1];
-            end
-            
             switch data.info.PSDflag
                 case 'freq'
                     plot(requiv,F,'o-','Color',col.FIT,...
@@ -240,7 +231,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
                     % y-label
-                    set(get(ax,'YLabel'),'String','frequency [-]');
+                    set(get(ax,'YLabel'),'String','water content [vol. %]');
                     
                 case 'cum'
                     plot(requiv,cumsum(F),'o-','Color',col.FIT,...
@@ -250,9 +241,9 @@ if isfield(data.results,'invstd')
                     stem(Rlgm,amp,'x-','Color',[0.3 0.3 0.3],'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
-                    set(ax,'YScale','lin','YLim',[0 sum(invstd.T1T2f)*1.05]);
+                    set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
                     % y-label
-                    set(get(ax,'YLabel'),'String','cumulative [-]');
+                    set(get(ax,'YLabel'),'String','cumulative water content [vol. %]');
             end
             
             % x-limits

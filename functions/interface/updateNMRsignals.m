@@ -1,9 +1,9 @@
-function calculateNMRporosity
-%calculateNMRporosity rescales the NMR signals from saturation (0,1) to
-%water content by multiplying with the given porosity value
+function updateNMRsignals
+%updateNMRsignals adds noise to the forward NMR signals and scales the
+%signals by porosity (if any)
 %
 % Syntax:
-%       calculateNMRporosity
+%       updateNMRsignals
 %
 % Inputs:
 %       none
@@ -12,10 +12,10 @@ function calculateNMRporosity
 %       none
 %
 % Example:
-%       calculateNMRporosity
+%       updateNMRsignals
 %
 % Other m-files required:
-%       none
+%       addNoiseToSignal
 %
 % Subfunctions:
 %       none
@@ -34,12 +34,15 @@ function calculateNMRporosity
 fig = findobj('Tag','MOD');
 data = getappdata(fig,'data');
 
-%% only proceed if the porosity is smaller than 1
-if data.nmr.porosity < 1
-    data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.raw.EiT1;
-    data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.raw.EdT1;
-    data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.raw.EiT2;
-    data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.raw.EdT2;
+%% only proceed if the noise is larger than 0
+if data.nmr.noise > 0
+    % scale noise by porosity
+    noise = data.nmr.noise/data.nmr.porosity;
+    % add noise to NMR signals
+    [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.raw.EiT1,0,noise);
+    [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.raw.EdT1,0,noise);
+    [data.results.NMR.EiT2,~] = addNoiseToSignal(data.results.NMR.raw.EiT2,0,noise);
+    [data.results.NMR.EdT2,~] = addNoiseToSignal(data.results.NMR.raw.EdT2,0,noise);
 else
     % reset the NMR signals with the raw data (without noise)
     data.results.NMR.EiT1 = data.results.NMR.raw.EiT1;
@@ -48,6 +51,14 @@ else
     data.results.NMR.EdT2 = data.results.NMR.raw.EdT2;
 end
 
+% scale NMR signals by porosity
+data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.EiT1;
+data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.EdT1;
+data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.EiT2;
+data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.EdT2;
+
+% save the noise value
+data.results.NMR.noise = data.nmr.noise;
 % save the porosity value
 data.results.NMR.porosity = data.nmr.porosity;
 % update the GUI data

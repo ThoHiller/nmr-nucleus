@@ -177,7 +177,7 @@ This function is called by:
 0106             <span class="comment">% scale distribution by porosity</span>
 0107             F = invstd.T1T2f;
 0108             <span class="keyword">if</span> sum(F)&gt;0
-0109                 F = data.invstd.porosity.*F./sum(F);
+0109                 F = (data.invstd.porosity*100).*F./sum(F);
 0110                 ylims = [0 max(F)*1.05];
 0111             <span class="keyword">else</span>
 0112                 ylims = [-1 1];
@@ -196,7 +196,7 @@ This function is called by:
 0125                     <span class="comment">% y-limits</span>
 0126                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
 0127                     <span class="comment">% y-label</span>
-0128                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'frequency [-]'</span>);
+0128                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [vol. %]'</span>);
 0129                     
 0130                 <span class="keyword">case</span> <span class="string">'cum'</span>
 0131                     plot(invstd.T1T2me,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
@@ -209,175 +209,166 @@ This function is called by:
 0138                     <span class="comment">% y-limits</span>
 0139                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
 0140                     <span class="comment">% y-label</span>
-0141                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative [-]'</span>);
-0142                     
-0143             <span class="keyword">end</span>
-0144             
-0145             <span class="comment">% x-limits</span>
-0146             ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
-0147             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
-0148             <span class="comment">% x-label</span>
-0149             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0150             <span class="comment">% grid</span>
-0151             grid(ax,<span class="string">'on'</span>);
-0152     <span class="keyword">end</span>
-0153     
-0154     <span class="comment">%% PSD</span>
-0155     <span class="comment">% PSD axis</span>
-0156     ax = gui.axes_handles.psd;
-0157     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
-0158     hold(ax,<span class="string">'on'</span>);
-0159     set(gui.cm_handles.axes_psd_view,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0160     
-0161     <span class="comment">% x-axis label</span>
-0162     <span class="keyword">switch</span> data.process.timescale
-0163         <span class="keyword">case</span> <span class="string">'s'</span>
-0164             xlstring = <span class="string">'equiv. pore size [m]'</span>;
-0165         <span class="keyword">case</span> <span class="string">'ms'</span>
-0166             xlstring = <span class="string">'equiv. pore size [mm]'</span>;
-0167     <span class="keyword">end</span>
-0168     
-0169     rho = data.param.rho/1e6; <span class="comment">% surface relaxivity [m/s]</span>
-0170     a = data.param.a; <span class="comment">% geometry parameter</span>
-0171     
-0172     <span class="keyword">switch</span> data.invstd.invtype
-0173         <span class="keyword">case</span> <span class="string">'mono'</span>
-0174             <span class="keyword">switch</span> nmrproc.T1T2
-0175                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0176                     T = invstd.T1;
-0177                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0178                     T = invstd.T2;
-0179             <span class="keyword">end</span>
-0180             
-0181             stem(T.*rho.*a,invstd.E0,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0182             
-0183             <span class="comment">% limits</span>
-0184             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
-0185             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
-0186             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 invstd.E0*1.05]);
-0187             <span class="comment">% labels</span>
-0188             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0189             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'initial amplitude E0'</span>);
-0190             <span class="comment">% grid</span>
-0191             grid(ax,<span class="string">'on'</span>);
-0192             
-0193         <span class="keyword">case</span> <span class="string">'free'</span>
-0194             mymark = {<span class="string">'o-'</span>,<span class="string">'+-'</span>,<span class="string">'s-'</span>,<span class="string">'d-'</span>,<span class="string">'x-'</span>};
-0195             mycols = [22 140 75;22 87 140;140 22 87;140 75 22;64 64 64]./255;
-0196             <span class="keyword">switch</span> nmrproc.T1T2
-0197                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0198                     T = invstd.T1;
-0199                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0200                     T = invstd.T2;
-0201             <span class="keyword">end</span>
-0202             
-0203             lgdstr = cell(1,1);
-0204             <span class="keyword">for</span> i = 1:data.invstd.freeDT
-0205                 stem(T(i).*rho.*a,invstd.E0(i),mymark{i},<span class="string">'Color'</span>,mycols(i,:),<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0206                 lgdstr{i} = [<span class="string">'T'</span>,num2str(i)];
-0207             <span class="keyword">end</span>
-0208             
-0209             <span class="comment">% limits</span>
-0210             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
-0211             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
-0212             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 max(invstd.E0)*1.05]);
-0213             <span class="comment">% labels</span>
-0214             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0215             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'individual amplitudes Ex [-]'</span>);
-0216             <span class="comment">% grid</span>
-0217             grid(ax,<span class="string">'on'</span>);
-0218             
-0219         <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
-0220             <span class="comment">% very basic RTD to PSD conversion</span>
-0221             requiv = invstd.T1T2me.*rho.*a;
-0222             Rlgm = invstd.Tlgm.*rho.*a;
-0223             
-0224             F = invstd.T1T2f;
-0225             <span class="keyword">if</span> sum(F)&gt;0
-0226                 F = F./sum(F);
-0227                 ylims = [0 max(F)*1.05];
-0228             <span class="keyword">else</span>
-0229                 ylims = [-1 1];
-0230             <span class="keyword">end</span>
-0231             
-0232             <span class="keyword">switch</span> data.info.PSDflag
-0233                 <span class="keyword">case</span> <span class="string">'freq'</span>
-0234                     plot(requiv,F,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0235                         <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0236                     <span class="comment">% find approx. RLGM amplitude</span>
-0237                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,F,Rlgm);
-0238                     stem(Rlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0239                     
-0240                     <span class="comment">% y-limits</span>
-0241                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
-0242                     <span class="comment">% y-label</span>
-0243                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'frequency [-]'</span>);
-0244                     
-0245                 <span class="keyword">case</span> <span class="string">'cum'</span>
-0246                     plot(requiv,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0247                         <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0248                     <span class="comment">% find approx. RLGM amplitude</span>
-0249                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,cumsum(F),Rlgm);
-0250                     stem(Rlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0251                     
-0252                     <span class="comment">% y-limits</span>
-0253                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(invstd.T1T2f)*1.05]);
-0254                     <span class="comment">% y-label</span>
-0255                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative [-]'</span>);
-0256             <span class="keyword">end</span>
-0257             
-0258             <span class="comment">% x-limits</span>
-0259             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
-0260             <span class="comment">%         set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);</span>
-0261             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(requiv) max(requiv)],<span class="string">'XTick'</span>,10.^ticks);
-0262             <span class="comment">% x-label</span>
-0263             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0264             <span class="comment">% grid</span>
-0265             grid(ax,<span class="string">'on'</span>);
-0266     <span class="keyword">end</span>
-0267     
-0268     <span class="comment">% show CBW and diffusion regime lines</span>
-0269     <a href="updatePlotsDistributionInfo.html" class="code" title="function updatePlotsDistributionInfo">updatePlotsDistributionInfo</a>;
-0270 <span class="keyword">end</span>
-0271 
-0272 <span class="keyword">end</span>
-0273 
-0274 <span class="comment">%%</span>
-0275 <a name="_sub1" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
+0141                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative water content [vol. %]'</span>);                    
+0142             <span class="keyword">end</span>
+0143             
+0144             <span class="comment">% x-limits</span>
+0145             ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
+0146             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
+0147             <span class="comment">% x-label</span>
+0148             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0149             <span class="comment">% grid</span>
+0150             grid(ax,<span class="string">'on'</span>);
+0151     <span class="keyword">end</span>
+0152     
+0153     <span class="comment">%% PSD</span>
+0154     <span class="comment">% PSD axis</span>
+0155     ax = gui.axes_handles.psd;
+0156     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0157     hold(ax,<span class="string">'on'</span>);
+0158     set(gui.cm_handles.axes_psd_view,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0159     
+0160     <span class="comment">% x-axis label</span>
+0161     <span class="keyword">switch</span> data.process.timescale
+0162         <span class="keyword">case</span> <span class="string">'s'</span>
+0163             xlstring = <span class="string">'equiv. pore size [m]'</span>;
+0164         <span class="keyword">case</span> <span class="string">'ms'</span>
+0165             xlstring = <span class="string">'equiv. pore size [mm]'</span>;
+0166     <span class="keyword">end</span>
+0167     
+0168     rho = data.param.rho/1e6; <span class="comment">% surface relaxivity [m/s]</span>
+0169     a = data.param.a; <span class="comment">% geometry parameter</span>
+0170     
+0171     <span class="keyword">switch</span> data.invstd.invtype
+0172         <span class="keyword">case</span> <span class="string">'mono'</span>
+0173             <span class="keyword">switch</span> nmrproc.T1T2
+0174                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0175                     T = invstd.T1;
+0176                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0177                     T = invstd.T2;
+0178             <span class="keyword">end</span>
+0179             
+0180             stem(T.*rho.*a,invstd.E0,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0181             
+0182             <span class="comment">% limits</span>
+0183             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
+0184             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
+0185             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 invstd.E0*1.05]);
+0186             <span class="comment">% labels</span>
+0187             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0188             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'initial amplitude E0'</span>);
+0189             <span class="comment">% grid</span>
+0190             grid(ax,<span class="string">'on'</span>);
+0191             
+0192         <span class="keyword">case</span> <span class="string">'free'</span>
+0193             mymark = {<span class="string">'o-'</span>,<span class="string">'+-'</span>,<span class="string">'s-'</span>,<span class="string">'d-'</span>,<span class="string">'x-'</span>};
+0194             mycols = [22 140 75;22 87 140;140 22 87;140 75 22;64 64 64]./255;
+0195             <span class="keyword">switch</span> nmrproc.T1T2
+0196                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0197                     T = invstd.T1;
+0198                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0199                     T = invstd.T2;
+0200             <span class="keyword">end</span>
+0201             
+0202             lgdstr = cell(1,1);
+0203             <span class="keyword">for</span> i = 1:data.invstd.freeDT
+0204                 stem(T(i).*rho.*a,invstd.E0(i),mymark{i},<span class="string">'Color'</span>,mycols(i,:),<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0205                 lgdstr{i} = [<span class="string">'T'</span>,num2str(i)];
+0206             <span class="keyword">end</span>
+0207             
+0208             <span class="comment">% limits</span>
+0209             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
+0210             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
+0211             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 max(invstd.E0)*1.05]);
+0212             <span class="comment">% labels</span>
+0213             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0214             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'individual amplitudes Ex [-]'</span>);
+0215             <span class="comment">% grid</span>
+0216             grid(ax,<span class="string">'on'</span>);
+0217             
+0218         <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
+0219             <span class="comment">% very basic RTD to PSD conversion</span>
+0220             requiv = invstd.T1T2me.*rho.*a;
+0221             Rlgm = invstd.Tlgm.*rho.*a;
+0222             
+0223             <span class="keyword">switch</span> data.info.PSDflag
+0224                 <span class="keyword">case</span> <span class="string">'freq'</span>
+0225                     plot(requiv,F,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0226                         <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0227                     <span class="comment">% find approx. RLGM amplitude</span>
+0228                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,F,Rlgm);
+0229                     stem(Rlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0230                     
+0231                     <span class="comment">% y-limits</span>
+0232                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
+0233                     <span class="comment">% y-label</span>
+0234                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [vol. %]'</span>);
+0235                     
+0236                 <span class="keyword">case</span> <span class="string">'cum'</span>
+0237                     plot(requiv,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0238                         <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0239                     <span class="comment">% find approx. RLGM amplitude</span>
+0240                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,cumsum(F),Rlgm);
+0241                     stem(Rlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,[0.3 0.3 0.3],<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0242                     
+0243                     <span class="comment">% y-limits</span>
+0244                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
+0245                     <span class="comment">% y-label</span>
+0246                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative water content [vol. %]'</span>);
+0247             <span class="keyword">end</span>
+0248             
+0249             <span class="comment">% x-limits</span>
+0250             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
+0251             <span class="comment">%         set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);</span>
+0252             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(requiv) max(requiv)],<span class="string">'XTick'</span>,10.^ticks);
+0253             <span class="comment">% x-label</span>
+0254             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0255             <span class="comment">% grid</span>
+0256             grid(ax,<span class="string">'on'</span>);
+0257     <span class="keyword">end</span>
+0258     
+0259     <span class="comment">% show CBW and diffusion regime lines</span>
+0260     <a href="updatePlotsDistributionInfo.html" class="code" title="function updatePlotsDistributionInfo">updatePlotsDistributionInfo</a>;
+0261 <span class="keyword">end</span>
+0262 
+0263 <span class="keyword">end</span>
+0264 
+0265 <span class="comment">%%</span>
+0266 <a name="_sub1" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
+0267 
+0268 <span class="keyword">if</span> isnan(TLGM)
+0269     amp = NaN;
+0270 <span class="keyword">else</span>
+0271     index = find(abs(t-TLGM)==min(abs(t-TLGM)));
+0272     amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
+0273 <span class="keyword">end</span>
+0274 
+0275 <span class="keyword">end</span>
 0276 
-0277 <span class="keyword">if</span> isnan(TLGM)
-0278     amp = NaN;
-0279 <span class="keyword">else</span>
-0280     index = find(abs(t-TLGM)==min(abs(t-TLGM)));
-0281     amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
-0282 <span class="keyword">end</span>
-0283 
-0284 <span class="keyword">end</span>
-0285 
-0286 <span class="comment">%------------- END OF CODE --------------</span>
-0287 
-0288 <span class="comment">%% License:</span>
-0289 <span class="comment">% MIT License</span>
+0277 <span class="comment">%------------- END OF CODE --------------</span>
+0278 
+0279 <span class="comment">%% License:</span>
+0280 <span class="comment">% MIT License</span>
+0281 <span class="comment">%</span>
+0282 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0283 <span class="comment">%</span>
+0284 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0285 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0286 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0287 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0288 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0289 <span class="comment">% furnished to do so, subject to the following conditions:</span>
 0290 <span class="comment">%</span>
-0291 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0292 <span class="comment">%</span>
-0293 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0294 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0295 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0296 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0297 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0298 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0299 <span class="comment">%</span>
-0300 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0301 <span class="comment">% copies or substantial portions of the Software.</span>
-0302 <span class="comment">%</span>
-0303 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0304 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0305 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0306 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0307 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0308 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0309 <span class="comment">% SOFTWARE.</span></pre></div>
+0291 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0292 <span class="comment">% copies or substantial portions of the Software.</span>
+0293 <span class="comment">%</span>
+0294 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0295 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0296 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0297 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0298 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0299 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0300 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

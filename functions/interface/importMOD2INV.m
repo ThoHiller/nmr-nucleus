@@ -182,6 +182,7 @@ if isfield(data.import,'NMRMOD')
         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
+        data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
         
         table{c,1} = true;
         table{c,2} = data.import.NMRMOD.p(dL(i));
@@ -220,6 +221,7 @@ if isfield(data.import,'NMRMOD')
         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
+        data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
         
         table{c,1} = true;
         table{c,2} = data.import.NMRMOD.p(iL(i));

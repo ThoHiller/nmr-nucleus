@@ -126,11 +126,11 @@ if foundINV
             idata.nmr{levels(i)}.t = INVdata{levels(i)}.results.nmrproc.t;
             idata.nmr{levels(i)}.g = S(i).*...
                 (INVdata{levels(i)}.results.nmrproc.s./E0(levels(i)));
-            idata.nmr{levels(i)}.e = INVdata{levels(i)}.results.nmrproc.noise./...
-                sqrt(INVdata{levels(i)}.results.nmrproc.N);
             idata.nmr{levels(i)}.N = INVdata{levels(i)}.results.nmrproc.N;
             idata.nmr{levels(i)}.noise = S(i).*...
                 (INVdata{levels(i)}.results.nmrproc.noise./E0(levels(i)));
+            idata.nmr{levels(i)}.e = idata.nmr{levels(i)}.noise./...
+                sqrt(idata.nmr{levels(i)}.N);
             
             % switch depending on inversion method
             switch data.invjoint.invtype

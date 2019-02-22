@@ -139,7 +139,10 @@ switch fig_tag
                     
                 case 'LIAG'
                     
-                    if isfield(data.import,'LIAG')                    
+                    if isfield(data.import,'LIAG')
+                        % display info text
+                        displayStatusText(gui,...
+                            'Exporting LIAG archive data ...');
                         % find id of sample
                         id = 1;
                         spath = data.import.LIAG.workpaths{id};
@@ -155,11 +158,11 @@ switch fig_tag
                         
                         % png graphics
                         pngname = fullfile(spath,[sfilename,'.png']);
-                        [f,ax]=exportGraphics('INV','fig');
+                        [f,ax] = exportGraphics('INV','fig');
                         
                         figure(f);
                         por = INVdata{id}.invstd.porosity;
-                        tname = [sfilename(5:end),' (porosity: ',...
+                        tname = [sfilename(5:end),' (water content: ',...
                             sprintf('%2.1f',por*100),' vol. %)'];
                         set(get(ax(1),'Title'),'String',tname,'Interpreter','none');
                         
@@ -167,7 +170,7 @@ switch fig_tag
                         TLGM = INVdata{id}.results.invstd.Tlgm;
                         T = INVdata{id}.results.invstd.T1T2me;
                         F = INVdata{id}.results.invstd.T1T2f;
-                        F = por.*F./sum(F);
+                        F = 100.*por.*F./sum(F);
                         amp = findApproxTlgmAmplitude(T,F,TLGM);
                         stem(TLGM,amp,...
                             'x-','Color',[0.3 0.3 0.3],'LineWidth',2,...
@@ -207,6 +210,10 @@ switch fig_tag
                         set(f,'Renderer','painter');
                         print(f,pngname,'-r300','-dpng');
                         close(f);
+                        
+                        % display info text
+                        displayStatusText(gui,...
+                            'Exporting LIAG archive data ... done');
                         
                     else
                         helpdlg({'function: exportData',...
@@ -400,9 +407,12 @@ header3{3} = 'residual [-]';
 % relaxation times
 switch INVdata.invstd.invtype
     case {'ILA','NNLS'}
+        por = INVdata.invstd.porosity;
+        F = INVdata.results.invstd.T1T2f(:);
+        F = 100*por.*F./sum(F);
         tmp4 = [INVdata.results.invstd.T1T2me(:)...
-            INVdata.results.invstd.T1T2f(:)];
-        header4 = {['relaxation times [',unit,']'],'frequency [-]'};
+            INVdata.results.invstd.T1T2f(:) F];
+        header4 = {['relaxation times [',unit,']'],'frequency [-]',' water content [vol. %]'};
         
     otherwise
         % Nothing to do

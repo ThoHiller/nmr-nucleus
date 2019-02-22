@@ -1,20 +1,24 @@
-function calculateNMRnoise
-%calculateNMRnoise calculates the noise for the forward NMR signals
+function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)
+%addNoiseToSignal adds noise with mean 'mu' and standard deviation 'sigma' to
+%a synthetic NMR signal
 %
 % Syntax:
-%       calculateNMRnoise
+%       addNoiseToSignal(time,signal,varargin)
 %
 % Inputs:
-%       none
+%       signal - vector or matrix containing the NMR data
+%       mu - mean of the Gaussian noise (generally 0)
+%       sigma - standard deviation of the Gaussian noise
 %
 % Outputs:
-%       none
+%       signalN - NMR signal with noise
+%       noise - noise vector/matrix
 %
 % Example:
-%       calculateNMRnoise
+%       [sN,noise] = addNoiseToSignal(signal,0,0.01)
 %
 % Other m-files required:
-%       addNoiseToNMR
+%       none
 %
 % Subfunctions:
 %       none
@@ -22,39 +26,20 @@ function calculateNMRnoise
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSmod
+% See also:
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
-%% get GUI handle and data
-fig = findobj('Tag','MOD');
-data = getappdata(fig,'data');
+% generate the noise
+noise = mu + (sigma.*randn(size(signal)));
 
-%% only proceed if the noise is larger than 0
-if data.nmr.noise > 0
-    % because noise is given in percentage inside the GUI convert to a value
-    % between [0,1]
-    [data.results.NMR.EiT1,~] = addNoiseToNMR(data.results.NMR.raw.EiT1,0,data.nmr.noise/100);
-    [data.results.NMR.EdT1,~] = addNoiseToNMR(data.results.NMR.raw.EdT1,0,data.nmr.noise/100);
-    [data.results.NMR.EiT2,~] = addNoiseToNMR(data.results.NMR.raw.EiT2,0,data.nmr.noise/100);
-    [data.results.NMR.EdT2,~] = addNoiseToNMR(data.results.NMR.raw.EdT2,0,data.nmr.noise/100);
-else
-    % reset the NMR signals with the raw data (without noise)
-    data.results.NMR.EiT1 = data.results.NMR.raw.EiT1;
-    data.results.NMR.EdT1 = data.results.NMR.raw.EdT1;
-    data.results.NMR.EiT2 = data.results.NMR.raw.EiT2;
-    data.results.NMR.EdT2 = data.results.NMR.raw.EdT2;
-end
+% and the noisy signal
+signalN = signal + noise;
 
-% save the noise value
-data.results.NMR.noise = data.nmr.noise/100;
-% update the GUI data
-setappdata(fig,'data',data);
-
-end
+return
 
 %------------- END OF CODE --------------
 

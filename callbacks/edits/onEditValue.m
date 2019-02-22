@@ -16,8 +16,6 @@ function onEditValue(src,~)
 %
 % Other m-files required:
 %       calculateGeometry
-%       calculateNMRnoise
-%       calculateNMRporosity
 %       calibratePorosity
 %       clearSingleAxis
 %       NUCLEUSinv_updateInterface
@@ -26,6 +24,7 @@ function onEditValue(src,~)
 %       removeInversionFields
 %       processNMRDataControl
 %       updateInfo
+%       updateNMRsignals
 %       updatePlotsDistribution
 %       updatePlotsNMR
 %       updatePlotsSignal
@@ -193,6 +192,7 @@ switch fig_tag
                 clearSingleAxis(gui.axes_handles.nmr);
                 setappdata(fig,'data',data);
                 calculateGeometry;
+                
             case 'pressure'
                 switch out.field
                     case 'range'
@@ -207,16 +207,22 @@ switch fig_tag
                 clearSingleAxis(gui.axes_handles.nmr);
                 setappdata(fig,'data',data);
                 NUCLEUSmod_updateInterface;
+                
             case 'nmr'
                 switch out.field
                     case 'noise'
                         if isfield(data.results,'NMR')
-                            calculateNMRnoise;
+                            updateNMRsignals;
                             updatePlotsNMR;
                         end
                     case 'porosity'
+                        if data.nmr.porosity <= 0 || data.nmr.porosity > 1
+                            data.nmr.porosity = 1;
+                            set(src,'String',num2str(data.nmr.porosity));
+                            setappdata(fig,'data',data);
+                        end
                         if isfield(data.results,'NMR')
-                            calculateNMRporosity;
+                            updateNMRsignals;
                             updatePlotsNMR;
                         end
                     otherwise

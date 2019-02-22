@@ -217,19 +217,31 @@ if isfield(data.results,'invjoint')
             xlstring = 'equiv. pore size [mm]';
     end
     
+    % inverted PSD amplitudes
+    F = invjoint.iF;
+    
     switch data.info.PSDJflag        
-        case 'freq'            
-            % data
-            iF = invjoint.iF./trapz(iGEOM.radius,invjoint.iF);
-            plot(iGEOM.radius,iF,'o-','Color',col.FIT,'LineWidth',2,'Parent',ax);
-            ylim = max(iF);
+        case 'freq'
+            F = (data.invstd.porosity*100).*F./sum(F);
+            maxF1 = max(F);
+            if isfield(data.import,'NMRMOD')
+                F = F./trapz(iGEOM.radius,F);
+                maxF2 = max(F);
+                fac1 = (maxF1/maxF2);
+            else
+                fac1 = 1;
+            end
+            plot(iGEOM.radius,F.*fac1,'o-','Color',col.FIT,'LineWidth',2,'Parent',ax);
+            ylim = max(F.*fac1);
             
             if isfield(data.import,'NMRMOD')
                 modr = data.import.NMRMOD.psddata.r;
                 modf = data.import.NMRMOD.psddata.psd;
+                modf = (data.invstd.porosity*100).*modf./sum(modf);
                 modf = modf./trapz(modr,modf);
-                plot(modr,modf,'k--','LineWidth',1,'Parent',ax);
-                ylim = max([ylim max(modf)]);
+                fac2 = ylim/maxF2;
+                plot(modr,modf.*fac2,'k--','LineWidth',1,'Parent',ax);
+                ylim = max([ylim max(modf.*fac2)]);
                 lgdstr = {'fit','model'};
             else
                 lgdstr = {'fit'};
@@ -238,19 +250,21 @@ if isfield(data.results,'invjoint')
             % y-limits
             set(ax,'YScale','lin','YLim',[0 ylim*1.05]);
             % y-label
-            set(get(ax,'YLabel'),'String','frequency [-]');
+            if isfield(data.import,'NMRMOD')
+                set(get(ax,'YLabel'),'String','water content [vol. %]');
+            else
+                set(get(ax,'YLabel'),'String','water content [vol. %]');
+            end
 
-            
-        case 'cum'            
-            % data
-            iF = invjoint.iF;%./trapz(iGEOM.radius,invjoint.iF);
-            plot(iGEOM.radius,cumsum(iF),'o-','Color',col.FIT,'LineWidth',2,'Parent',ax);
-            ylim = sum(iF);
+        case 'cum'
+            F = (data.invstd.porosity*100).*F./sum(F);
+            plot(iGEOM.radius,cumsum(F),'o-','Color',col.FIT,'LineWidth',2,'Parent',ax);
+            ylim = sum(F);
             
             if isfield(data.import,'NMRMOD')
                 modr = data.import.NMRMOD.psddata.r;
                 modf = data.import.NMRMOD.psddata.psd;
-%                 modf = modf./trapz(modr,modf);
+                modf = (data.invstd.porosity*100).*modf./sum(modf);
                 plot(modr,cumsum(modf),'k--','LineWidth',1,'Parent',ax);
                 ylim = max([ylim sum(modf)]);
                 lgdstr = {'fit','model'};
@@ -261,7 +275,7 @@ if isfield(data.results,'invjoint')
             % y-limits
             set(ax,'YScale','lin','YLim',[0 ylim*1.05]);
             % y-label
-            set(get(ax,'YLabel'),'String','cumulative [-]'); 
+            set(get(ax,'YLabel'),'String','cumulative water content [vol. %]'); 
     end
     
     % x-limits
@@ -289,7 +303,7 @@ if isfield(data.results,'invjoint')
     xlstring = ['pressure [',data.pressure.unit,']'];
     
     if data.invstd.porosity < 1
-        WRCfac = data.invstd.porosity;
+        WRCfac = data.invstd.porosity*100;
     else
         WRCfac = 1;
     end
@@ -329,14 +343,14 @@ if isfield(data.results,'invjoint')
     set(ax,'XLim',[plotpress(1) plotpress(end)],'XTick',10.^xticks);
     % y-limits
     if data.invstd.porosity < 1
-        set(ax,'YLim',[-0.1 data.invstd.porosity.*1.1],'YTickMode','auto');
+        set(ax,'YLim',[-WRCfac/10 WRCfac.*1.1],'YTickMode','auto');
     else
         set(ax,'YLim',[-0.1 1.1],'YTick',linspace(0,1,5));
     end
     % labels
     set(get(ax,'XLabel'),'String',xlstring);
     if data.invstd.porosity < 1
-        set(get(ax,'YLabel'),'String','water content [-]');
+        set(get(ax,'YLabel'),'String','water content [vol. %]');
     else
         set(get(ax,'YLabel'),'String','saturation [-]');
     end

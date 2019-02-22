@@ -16,9 +16,9 @@ function calculateNMR
 %
 % Other m-files required:
 %       displayStatusText
-%       calculateNMRnoise
 %       getNMRTimeVector
 %       getNMRSignal
+%       updateNMRsignals
 %       updatePlotsNMR
 %
 % Subfunctions:
@@ -65,7 +65,7 @@ if isfield(data.results,'SAT')
     setappdata(fig,'data',data);
     
     % add noise to the NMR signals
-    calculateNMRnoise;
+    updateNMRsignals;
     displayStatusText(gui,'Calculating NMR signals ... done');
     updatePlotsNMR;
     % enable the RUN button again

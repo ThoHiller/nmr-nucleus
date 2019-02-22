@@ -149,7 +149,9 @@ if isfield(data.import,'NMR')
                 data.param.sampVol = 1;
             end
             if isfield(data.import,'NMRMOD')
-                data.invstd.Tbulk = data.import.NMR.para{id}.Tbulk;
+                data.param.rho = data.import.NMR.para{id}.rho*1e6;
+                data.invstd.Tbulk = data.import.NMR.para{id}.Tbulk;                
+                data.invstd.porosity = data.import.NMR.para{id}.porosity;
             end
             % ---
 

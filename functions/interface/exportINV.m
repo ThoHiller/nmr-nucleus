@@ -80,7 +80,9 @@ switch format
         % proceed if there is data
         if ~isempty(INVdata)
             % display info text
-            displayStatusText(gui,'Exporting GUI session to mat-file ...');
+            if ~dosilent
+                displayStatusText(gui,'Exporting GUI session to mat-file ...');
+            end
             savedata.myui = gui.myui;
             savedata.data = data;
             savedata.INVdata = INVdata;
