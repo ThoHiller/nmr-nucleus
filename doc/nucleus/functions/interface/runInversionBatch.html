@@ -183,162 +183,168 @@ This function is called by:
 0105             <span class="keyword">switch</span> data.invstd.invtype                
 0106                 <span class="keyword">case</span> <span class="string">'mono'</span>
 0107                     flag = data.results.nmrproc.T1T2;
-0108                     param.t1Est = 1;
+0108                     param.T1IRfac = data.results.nmrproc.T1IRfac;
 0109                     param.noise = data.results.nmrproc.noise;
 0110                     param.optim = data.info.optim;
-0111                     
-0112                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0113                         data.results.nmrproc.s,flag,param,1);
+0111                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0112                         param.W = data.results.nmrproc.W;
+0113                     <span class="keyword">end</span>
 0114                     
-0115                 <span class="keyword">case</span> <span class="string">'free'</span>
-0116                     flag = data.results.nmrproc.T1T2;
-0117                     param.t1Est = 1;
-0118                     param.noise = data.results.nmrproc.noise;
-0119                     param.optim = data.info.optim;
-0120                     
-0121                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0122                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
-0123                     
-0124                 <span class="keyword">case</span> <span class="string">'NNLS'</span>
-0125                     param.T1T2 = data.results.nmrproc.T1T2;
-0126                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0127                     param.Tb = data.invstd.Tbulk;
-0128                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-0129                     param.regMethod = data.invstd.regtype;
-0130                     param.Lorder = data.invstd.Lorder;
-0131                     param.lambda = data.invstd.lambda;
-0132                     param.noise = data.results.nmrproc.noise;
-0133                     param.optim = data.info.optim;
-0134                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0135                         param.W = data.results.nmrproc.W;
-0136                     <span class="keyword">end</span>
-0137                     
-0138                     invstd = <a href="../../../nucleus/functions/inversion/fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0139                         data.results.nmrproc.s,param);
-0140                     
-0141                 <span class="keyword">case</span> <span class="string">'ILA'</span>
-0142                     param.T1T2 = data.results.nmrproc.T1T2;
-0143                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0144                     param.Tb = data.invstd.Tbulk;
-0145                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-0146                     param.Lorder = data.invstd.Lorder;
-0147                     param.lambda = data.invstd.lambda;
-0148                     param.noise = data.results.nmrproc.noise;
-0149                     
-0150                     invstd = <a href="../../../nucleus/functions/inversion/fitDataInvLaplace.html" class="code" title="function fitdata = fitDataInvLaplace(time,signal,parameter)">fitDataInvLaplace</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0151                         data.results.nmrproc.s,param);
-0152             <span class="keyword">end</span>
-0153             
-0154             <span class="comment">% save inversion results</span>
-0155             data.results.invstd = invstd;
-0156             <span class="keyword">if</span> id == 1
-0157                 <span class="comment">% get possible parameter file information</span>
-0158                 <span class="keyword">if</span> isfield(data.import.NMR,<span class="string">'para'</span>)
-0159                     data.info.parameter = data.import.NMR.para{id};
-0160                 <span class="keyword">else</span>
-0161                     data.info.parameter = <span class="string">'No parameter data available.'</span>;
-0162                 <span class="keyword">end</span>
-0163                 INVdata{id} = [];
-0164                 INVdata{id} = data;
-0165                 INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
-0166                 INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
-0167                 INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
-0168                 INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
-0169                 <span class="comment">% copy data to all INVdata fields to allocate memory</span>
-0170                 <span class="comment">% this speeds up the overall runtime</span>
-0171                 INVdata = repmat(INVdata(id),[length(data.import.NMR.filesShort),1]);
-0172             <span class="keyword">else</span>
-0173                 <span class="comment">% save individual results</span>
-0174                 INVdata{id}.process = data.process;
-0175                 INVdata{id}.results = data.results;
-0176                 <span class="keyword">if</span> isfield(data.import.NMR,<span class="string">'para'</span>)
-0177                     INVdata{id}.info.parameter = data.import.NMR.para{id};
-0178                 <span class="keyword">else</span>
-0179                     INVdata{id}.info.parameter = <span class="string">'No parameter data available.'</span>;
-0180                 <span class="keyword">end</span>
-0181             <span class="keyword">end</span>
-0182             
-0183             <span class="comment">% color the list entries that already have an inversion result</span>
-0184             strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
-0185             str1 = strL{id};
-0186             str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
-0187             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0188             strL{id} = str2;
-0189             set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
-0190             
-0191             <span class="comment">% update wait-bar</span>
-0192             <span class="keyword">if</span> wbopts.show
-0193                 <span class="comment">% for a small number of signals always update the wait-bar</span>
-0194                 <span class="keyword">if</span> size(INVdata,1) &lt; 25
-0195                     waitbar(id / steps,hwb,[<span class="string">'processing ...'</span>,num2str(id),<span class="keyword">...</span>
-0196                         <span class="string">' / '</span>,num2str(steps),<span class="string">' NMR signals'</span>]);
-0197                 <span class="keyword">else</span>
-0198                     <span class="comment">% otherwise only update every 25 signals</span>
-0199                     <span class="comment">% NOTE: Matlab's wait-bar SLOWS DOWN the calculation</span>
-0200                     <span class="comment">% MASSIVELY</span>
-0201                     <span class="keyword">if</span> id == 1 || mod(id,25) == 0
-0202                         waitbar(id / steps,hwb,[<span class="string">'processing ...'</span>,num2str(id),<span class="keyword">...</span>
-0203                             <span class="string">' / '</span>,num2str(steps),<span class="string">' NMR signals'</span>]);
-0204                     <span class="keyword">end</span>
-0205                 <span class="keyword">end</span>
-0206             <span class="keyword">end</span>            
-0207         <span class="keyword">else</span>
-0208             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' was canceled'</span>]);
-0209             <span class="comment">% remove temporary data fields</span>
-0210             data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
-0211             <span class="comment">% remove data from fields not processed</span>
-0212             INVdata{id} = [];
-0213         <span class="keyword">end</span>
-0214     <span class="keyword">end</span>
-0215     <span class="comment">% delete wait-bar</span>
-0216     <span class="keyword">if</span> wbopts.show
-0217         delete(hwb);
-0218     <span class="keyword">end</span>
-0219     <span class="keyword">if</span> get(gui.push_handles.invstd_run,<span class="string">'UserData'</span>) == 1 <span class="comment">% STOP was not pressed</span>
-0220         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
-0221     <span class="keyword">end</span>
-0222     
-0223     <span class="comment">% update INVdata to GUI</span>
-0224     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0225     <span class="comment">% make the STOP button a RUN again</span>
-0226     set(gui.push_handles.invstd_run,<span class="string">'String'</span>,<span class="string">'&lt;HTML&gt;&lt;u&gt;R&lt;/u&gt;UN'</span>,<span class="keyword">...</span>
-0227         <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
-0228     <span class="comment">% update GUI data</span>
-0229     setappdata(fig,<span class="string">'gui'</span>,gui);
-0230     <span class="comment">% set focus on the first entry in the list</span>
-0231     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,1);
-0232     <a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(gui.listbox_handles.signal);    
-0233 <span class="keyword">else</span>
-0234     helpdlg(<span class="string">'Nothing to do because there is no data loaded!'</span>,<span class="keyword">...</span>
-0235         <span class="string">'runInversioBatch: Load NMR data first.'</span>);
-0236 <span class="keyword">end</span>
-0237 
-0238 <span class="keyword">end</span>
-0239 
-0240 <span class="comment">%------------- END OF CODE --------------</span>
-0241 
-0242 <span class="comment">%% License:</span>
-0243 <span class="comment">% MIT License</span>
-0244 <span class="comment">%</span>
-0245 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0246 <span class="comment">%</span>
-0247 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0248 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0249 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0250 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0251 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0252 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0253 <span class="comment">%</span>
-0254 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0255 <span class="comment">% copies or substantial portions of the Software.</span>
-0256 <span class="comment">%</span>
-0257 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0258 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0259 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0260 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0261 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0262 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0263 <span class="comment">% SOFTWARE.</span></pre></div>
+0115                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0116                         data.results.nmrproc.s,flag,param,1);
+0117                     
+0118                 <span class="keyword">case</span> <span class="string">'free'</span>
+0119                     flag = data.results.nmrproc.T1T2;
+0120                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0121                     param.noise = data.results.nmrproc.noise;
+0122                     param.optim = data.info.optim;
+0123                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0124                         param.W = data.results.nmrproc.W;
+0125                     <span class="keyword">end</span>
+0126                     
+0127                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0128                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
+0129                     
+0130                 <span class="keyword">case</span> <span class="string">'NNLS'</span>
+0131                     param.T1T2 = data.results.nmrproc.T1T2;
+0132                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0133                     param.Tb = data.invstd.Tbulk;
+0134                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+0135                     param.regMethod = data.invstd.regtype;
+0136                     param.Lorder = data.invstd.Lorder;
+0137                     param.lambda = data.invstd.lambda;
+0138                     param.noise = data.results.nmrproc.noise;
+0139                     param.optim = data.info.optim;
+0140                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0141                         param.W = data.results.nmrproc.W;
+0142                     <span class="keyword">end</span>
+0143                     
+0144                     invstd = <a href="../../../nucleus/functions/inversion/fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0145                         data.results.nmrproc.s,param);
+0146                     
+0147                 <span class="keyword">case</span> <span class="string">'ILA'</span>
+0148                     param.T1T2 = data.results.nmrproc.T1T2;
+0149                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0150                     param.Tb = data.invstd.Tbulk;
+0151                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+0152                     param.Lorder = data.invstd.Lorder;
+0153                     param.lambda = data.invstd.lambda;
+0154                     param.noise = data.results.nmrproc.noise;
+0155                     
+0156                     invstd = <a href="../../../nucleus/functions/inversion/fitDataInvLaplace.html" class="code" title="function fitdata = fitDataInvLaplace(time,signal,parameter)">fitDataInvLaplace</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0157                         data.results.nmrproc.s,param);
+0158             <span class="keyword">end</span>
+0159             
+0160             <span class="comment">% save inversion results</span>
+0161             data.results.invstd = invstd;
+0162             <span class="keyword">if</span> id == 1
+0163                 <span class="comment">% get possible parameter file information</span>
+0164                 <span class="keyword">if</span> isfield(data.import.NMR,<span class="string">'para'</span>)
+0165                     data.info.parameter = data.import.NMR.para{id};
+0166                 <span class="keyword">else</span>
+0167                     data.info.parameter = <span class="string">'No parameter data available.'</span>;
+0168                 <span class="keyword">end</span>
+0169                 INVdata{id} = [];
+0170                 INVdata{id} = data;
+0171                 INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
+0172                 INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
+0173                 INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
+0174                 INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
+0175                 <span class="comment">% copy data to all INVdata fields to allocate memory</span>
+0176                 <span class="comment">% this speeds up the overall runtime</span>
+0177                 INVdata = repmat(INVdata(id),[length(data.import.NMR.filesShort),1]);
+0178             <span class="keyword">else</span>
+0179                 <span class="comment">% save individual results</span>
+0180                 INVdata{id}.process = data.process;
+0181                 INVdata{id}.results = data.results;
+0182                 <span class="keyword">if</span> isfield(data.import.NMR,<span class="string">'para'</span>)
+0183                     INVdata{id}.info.parameter = data.import.NMR.para{id};
+0184                 <span class="keyword">else</span>
+0185                     INVdata{id}.info.parameter = <span class="string">'No parameter data available.'</span>;
+0186                 <span class="keyword">end</span>
+0187             <span class="keyword">end</span>
+0188             
+0189             <span class="comment">% color the list entries that already have an inversion result</span>
+0190             strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0191             str1 = strL{id};
+0192             str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0193             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0194             strL{id} = str2;
+0195             set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+0196             
+0197             <span class="comment">% update wait-bar</span>
+0198             <span class="keyword">if</span> wbopts.show
+0199                 <span class="comment">% for a small number of signals always update the wait-bar</span>
+0200                 <span class="keyword">if</span> size(INVdata,1) &lt; 25
+0201                     waitbar(id / steps,hwb,[<span class="string">'processing ...'</span>,num2str(id),<span class="keyword">...</span>
+0202                         <span class="string">' / '</span>,num2str(steps),<span class="string">' NMR signals'</span>]);
+0203                 <span class="keyword">else</span>
+0204                     <span class="comment">% otherwise only update every 25 signals</span>
+0205                     <span class="comment">% NOTE: Matlab's wait-bar SLOWS DOWN the calculation</span>
+0206                     <span class="comment">% MASSIVELY</span>
+0207                     <span class="keyword">if</span> id == 1 || mod(id,25) == 0
+0208                         waitbar(id / steps,hwb,[<span class="string">'processing ...'</span>,num2str(id),<span class="keyword">...</span>
+0209                             <span class="string">' / '</span>,num2str(steps),<span class="string">' NMR signals'</span>]);
+0210                     <span class="keyword">end</span>
+0211                 <span class="keyword">end</span>
+0212             <span class="keyword">end</span>            
+0213         <span class="keyword">else</span>
+0214             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' was canceled'</span>]);
+0215             <span class="comment">% remove temporary data fields</span>
+0216             data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
+0217             <span class="comment">% remove data from fields not processed</span>
+0218             INVdata{id} = [];
+0219         <span class="keyword">end</span>
+0220     <span class="keyword">end</span>
+0221     <span class="comment">% delete wait-bar</span>
+0222     <span class="keyword">if</span> wbopts.show
+0223         delete(hwb);
+0224     <span class="keyword">end</span>
+0225     <span class="keyword">if</span> get(gui.push_handles.invstd_run,<span class="string">'UserData'</span>) == 1 <span class="comment">% STOP was not pressed</span>
+0226         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
+0227     <span class="keyword">end</span>
+0228     
+0229     <span class="comment">% update INVdata to GUI</span>
+0230     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0231     <span class="comment">% make the STOP button a RUN again</span>
+0232     set(gui.push_handles.invstd_run,<span class="string">'String'</span>,<span class="string">'&lt;HTML&gt;&lt;u&gt;R&lt;/u&gt;UN'</span>,<span class="keyword">...</span>
+0233         <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
+0234     <span class="comment">% update GUI data</span>
+0235     setappdata(fig,<span class="string">'gui'</span>,gui);
+0236     <span class="comment">% set focus on the first entry in the list</span>
+0237     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,1);
+0238     <a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(gui.listbox_handles.signal);    
+0239 <span class="keyword">else</span>
+0240     helpdlg(<span class="string">'Nothing to do because there is no data loaded!'</span>,<span class="keyword">...</span>
+0241         <span class="string">'runInversioBatch: Load NMR data first.'</span>);
+0242 <span class="keyword">end</span>
+0243 
+0244 <span class="keyword">end</span>
+0245 
+0246 <span class="comment">%------------- END OF CODE --------------</span>
+0247 
+0248 <span class="comment">%% License:</span>
+0249 <span class="comment">% MIT License</span>
+0250 <span class="comment">%</span>
+0251 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0252 <span class="comment">%</span>
+0253 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0254 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0255 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0256 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0257 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0258 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0259 <span class="comment">%</span>
+0260 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0261 <span class="comment">% copies or substantial portions of the Software.</span>
+0262 <span class="comment">%</span>
+0263 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0264 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0265 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0266 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0267 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0268 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0269 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

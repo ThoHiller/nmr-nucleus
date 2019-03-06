@@ -105,18 +105,24 @@ if ~isempty(INVdata)
             switch data.invstd.invtype                
                 case 'mono'
                     flag = data.results.nmrproc.T1T2;
-                    param.t1Est = 1;
+                    param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
                     param.optim = data.info.optim;
+                    if isfield(data.results.nmrproc,'W')
+                        param.W = data.results.nmrproc.W;
+                    end
                     
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,1);
                     
                 case 'free'
                     flag = data.results.nmrproc.T1T2;
-                    param.t1Est = 1;
+                    param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
                     param.optim = data.info.optim;
+                    if isfield(data.results.nmrproc,'W')
+                        param.W = data.results.nmrproc.W;
+                    end
                     
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);

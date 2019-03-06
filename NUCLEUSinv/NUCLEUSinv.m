@@ -38,8 +38,8 @@ h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.3';
-myui.date = '21.02.2019';
+myui.version = '0.1.4';
+myui.date = '06.03.2019';
 myui.author = 'Thomas Hiller';
 myui.email = 'thomas.hiller[at]leibniz-liag.de';
 myui.fontsize = 10;

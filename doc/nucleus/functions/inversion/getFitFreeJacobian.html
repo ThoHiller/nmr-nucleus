@@ -23,7 +23,7 @@
 <div class="box"><strong> calculates the Jacobi matrix for the NMR inversion</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong>function J = getFitFreeJacobian(x,t,flag) </strong></div>
+<div class="box"><strong>function J = getFitFreeJacobian(x,t,flag,IR) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre class="comment">getFitFreeJacobian calculates the Jacobi matrix for the NMR inversion
@@ -37,12 +37,13 @@ using a free number of relaxation times 'fitDataFree'
            x(2:2:end)
        t - time vector
        flag - either 'T1' or 'T2'
+       IR - inversion/saturation recovery factor
 
  Outputs:
        J - Jacobi matrix with size [length(t) length(x)]
 
  Example:
-       J = getFitFreeJacobian(x,t,'T2')
+       J = getFitFreeJacobian(x,t,'T2',1)
 
  Other m-files required:
        none
@@ -65,13 +66,13 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="fitDataFree_fmin.html" class="code" title="function [fitdata] = fitDataFree_fmin(time,signal,flag,parameter,nExp)">fitDataFree_fmin</a>	 is a control routine that uses 'fminsearchbnd' to fit NMR</li></ul>
+<li><a href="fcn_fitFreeT2w.html" class="code" title="function [F,J] = fcn_fitFreeT2w(x,iparam)">fcn_fitFreeT2w</a>	 is the objective function for T2 mono- and free exponential</li><li><a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="fitDataFree_fmin.html" class="code" title="function [fitdata] = fitDataFree_fmin(time,signal,flag,parameter,nExp)">fitDataFree_fmin</a>	 is a control routine that uses 'fminsearchbnd' to fit NMR</li></ul>
 <!-- crossreference -->
 
 
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function J = getFitFreeJacobian(x,t,flag)</a>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function J = getFitFreeJacobian(x,t,flag,IR)</a>
 0002 <span class="comment">%getFitFreeJacobian calculates the Jacobi matrix for the NMR inversion</span>
 0003 <span class="comment">%using a free number of relaxation times 'fitDataFree'</span>
 0004 <span class="comment">%</span>
@@ -83,71 +84,72 @@ This function is called by:
 0010 <span class="comment">%           x(2:2:end)</span>
 0011 <span class="comment">%       t - time vector</span>
 0012 <span class="comment">%       flag - either 'T1' or 'T2'</span>
-0013 <span class="comment">%</span>
-0014 <span class="comment">% Outputs:</span>
-0015 <span class="comment">%       J - Jacobi matrix with size [length(t) length(x)]</span>
-0016 <span class="comment">%</span>
-0017 <span class="comment">% Example:</span>
-0018 <span class="comment">%       J = getFitFreeJacobian(x,t,'T2')</span>
-0019 <span class="comment">%</span>
-0020 <span class="comment">% Other m-files required:</span>
-0021 <span class="comment">%       none</span>
-0022 <span class="comment">%</span>
-0023 <span class="comment">% Subfunctions:</span>
-0024 <span class="comment">%       none</span>
-0025 <span class="comment">%</span>
-0026 <span class="comment">% MAT-files required:</span>
-0027 <span class="comment">%       none</span>
-0028 <span class="comment">%</span>
-0029 <span class="comment">% See also:</span>
-0030 <span class="comment">% Author: Thomas Hiller</span>
-0031 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
-0032 <span class="comment">% License: MIT License (at end)</span>
-0033 
-0034 <span class="comment">%------------- BEGIN CODE --------------</span>
-0035 
-0036 <span class="comment">%% init J</span>
-0037 J = zeros(length(t),length(x));
-0038 <span class="keyword">switch</span> flag
-0039     <span class="keyword">case</span> <span class="string">'T1'</span>
-0040         <span class="keyword">for</span> i = 1:length(x)/2
-0041             J(:,2*i-1) = 1-exp(-t./x(2*i));
-0042             J(:,2*i) = -( x(2*i-1).*t.*exp(-t./x(2*i)) ) / (x(2*i)^2);
-0043         <span class="keyword">end</span>
-0044         
-0045     <span class="keyword">case</span> <span class="string">'T2'</span>
-0046         <span class="keyword">for</span> i = 1:length(x)/2
-0047             J(:,2*i-1) = exp(-t./x(2*i));
-0048             J(:,2*i) = ( x(2*i-1).*t.*exp(-t./x(2*i)) ) / (x(2*i)^2);
-0049         <span class="keyword">end</span>
-0050 <span class="keyword">end</span>
-0051 
-0052 <span class="keyword">return</span>
-0053 
-0054 <span class="comment">%------------- END OF CODE --------------</span>
-0055 
-0056 <span class="comment">%% License:</span>
-0057 <span class="comment">% MIT License</span>
-0058 <span class="comment">%</span>
-0059 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0060 <span class="comment">%</span>
-0061 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0062 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0063 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0064 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0065 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0066 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0067 <span class="comment">%</span>
-0068 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0069 <span class="comment">% copies or substantial portions of the Software.</span>
-0070 <span class="comment">%</span>
-0071 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0072 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0073 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0074 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0075 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0076 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0077 <span class="comment">% SOFTWARE.</span></pre></div>
+0013 <span class="comment">%       IR - inversion/saturation recovery factor</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Outputs:</span>
+0016 <span class="comment">%       J - Jacobi matrix with size [length(t) length(x)]</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% Example:</span>
+0019 <span class="comment">%       J = getFitFreeJacobian(x,t,'T2',1)</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Other m-files required:</span>
+0022 <span class="comment">%       none</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Subfunctions:</span>
+0025 <span class="comment">%       none</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% MAT-files required:</span>
+0028 <span class="comment">%       none</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% See also:</span>
+0031 <span class="comment">% Author: Thomas Hiller</span>
+0032 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0033 <span class="comment">% License: MIT License (at end)</span>
+0034 
+0035 <span class="comment">%------------- BEGIN CODE --------------</span>
+0036 
+0037 <span class="comment">%% init J</span>
+0038 J = zeros(length(t),length(x));
+0039 <span class="keyword">switch</span> flag
+0040     <span class="keyword">case</span> <span class="string">'T1'</span>
+0041         <span class="keyword">for</span> i = 1:length(x)/2
+0042             J(:,2*i-1) = 1-IR.*exp(-t./x(2*i)); <span class="comment">%d/dA</span>
+0043             J(:,2*i) = -( IR.*x(2*i-1).*t.*exp(-t./x(2*i)) ) / (x(2*i)^2); <span class="comment">%d/dT</span>
+0044         <span class="keyword">end</span>
+0045         
+0046     <span class="keyword">case</span> <span class="string">'T2'</span>
+0047         <span class="keyword">for</span> i = 1:length(x)/2
+0048             J(:,2*i-1) = exp(-t./x(2*i)); <span class="comment">%d/dA</span>
+0049             J(:,2*i) = ( x(2*i-1).*t.*exp(-t./x(2*i)) ) / (x(2*i)^2); <span class="comment">%d/dT</span>
+0050         <span class="keyword">end</span>
+0051 <span class="keyword">end</span>
+0052 
+0053 <span class="keyword">return</span>
+0054 
+0055 <span class="comment">%------------- END OF CODE --------------</span>
+0056 
+0057 <span class="comment">%% License:</span>
+0058 <span class="comment">% MIT License</span>
+0059 <span class="comment">%</span>
+0060 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0061 <span class="comment">%</span>
+0062 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0063 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0064 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0065 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0066 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0067 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0068 <span class="comment">%</span>
+0069 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0070 <span class="comment">% copies or substantial portions of the Software.</span>
+0071 <span class="comment">%</span>
+0072 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0073 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0074 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0075 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0076 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0077 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0078 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

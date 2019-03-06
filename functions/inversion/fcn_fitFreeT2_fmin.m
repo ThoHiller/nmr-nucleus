@@ -1,4 +1,4 @@
-function SSE = fcn_fitFreeT2_fmin(x,t,s)
+function SSE = fcn_fitFreeT2_fmin(x,t,s,e)
 %fcn_fitFreeT2_fmin is the objective function for T2 mono- and free exponential
 %inversion that is minimized with 'fminsearchbnd' (hence the SSE output)
 %
@@ -11,6 +11,7 @@ function SSE = fcn_fitFreeT2_fmin(x,t,s)
 %           x(2*i) = T (relaxation time)
 %       t - time vector
 %       s - signal vector
+%       e - noise vector (after gating; is "1" without gating)
 %
 % Outputs:
 %       SSE - squared sum of errors
@@ -40,8 +41,8 @@ for i = 1:length(x)/2
 	F = F + tmp;
 end
 
-err = F - s;
-SSE = sum(sum(err.^2));
+err = e.*(F - s);
+SSE = sum(err.^2);
 
 return
 

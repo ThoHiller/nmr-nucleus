@@ -145,7 +145,7 @@ gui.plots.Dist.RTD.box = uicontainer('Parent',gui.plots.Dist.RTDTab);
 % now the actual axes
 gui.axes_handles.rtd = axes('Parent',gui.plots.Dist.RTD.box,'Box','on');
 set(get(gui.axes_handles.rtd ,'XLabel'),'String','relaxation time [s]');
-set(get(gui.axes_handles.rtd ,'YLabel'),'String','frequency [-]');
+set(get(gui.axes_handles.rtd ,'YLabel'),'String','water content [vol. %]');
 % the axes has a context menu
 gui.cm_handles.axes_rtd = uicontextmenu(gui.figh);
 gui.cm_handles.axes_rtd_view = uimenu(gui.cm_handles.axes_rtd,...
@@ -162,7 +162,7 @@ gui.plots.Dist.PSD.box = uicontainer('Parent',gui.plots.Dist.PSDTab);
 % now the actual axes
 gui.axes_handles.psd = axes('Parent',gui.plots.Dist.PSD.box,'Box','on');
 set(get(gui.axes_handles.psd,'XLabel'),'String','equiv. pore size [m]');
-set(get(gui.axes_handles.psd,'YLabel'),'String','frequency [-]');
+set(get(gui.axes_handles.psd,'YLabel'),'String','water content [vol. %]');
 % the axes has a context menu
 gui.cm_handles.axes_psd = uicontextmenu(gui.figh);
 gui.cm_handles.axes_psd_view = uimenu(gui.cm_handles.axes_psd,...
@@ -179,7 +179,7 @@ gui.plots.Dist.PSDJ.box = uicontainer('Parent',gui.plots.Dist.PSDJTab);
 % now the actual axes
 gui.axes_handles.psdj = axes('Parent',gui.plots.Dist.PSDJ.box,'Box','on');
 set(get(gui.axes_handles.psdj,'XLabel'),'String','equiv. pore size [m]');
-set(get(gui.axes_handles.psdj,'YLabel'),'String','frequency [-]');
+set(get(gui.axes_handles.psdj,'YLabel'),'String','water content [vol. %]');
 % the axes has a context menu
 gui.cm_handles.axes_psdj = uicontextmenu(gui.figh);
 gui.cm_handles.axes_psdj_view = uimenu(gui.cm_handles.axes_psdj,...

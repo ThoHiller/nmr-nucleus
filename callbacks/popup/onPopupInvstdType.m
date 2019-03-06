@@ -17,7 +17,6 @@ function onPopupInvstdType(src,~)
 %
 % Other m-files required:
 %       NUCLEUSinv_updateInterface
-%       onRadioGates
 %
 % Subfunctions:
 %       none
@@ -48,62 +47,34 @@ switch data.info.ExpertMode
                 data.invstd.invtype = 'mono';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
-                % for mono-exponential inversion there is no gating used as default
-                data.process.gatetype = 'raw';
-                % update GUI data
-                setappdata(fig,'data',data);
-                onRadioGates(gui.radio_handles.process_gates_none);
                 
             case 2
                 data.invstd.invtype = 'free';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
-                data.process.gatetype = 'raw';
-                % for bi-exponential inversion there is no gating used as default
-                % update GUI data
-                setappdata(fig,'data',data);
-                onRadioGates(gui.radio_handles.process_gates_none);
                 
             case 3
                 data.invstd.invtype = 'NNLS';
                 data.invstd.regtype = 'manual';
                 data.invstd.lambda = 1;
-                % update GUI data
-                setappdata(fig,'data',data);
-                % update interface
-                NUCLEUSinv_updateInterface;
                 
             case 4
                 data.invstd.invtype = 'ILA';
                 data.invstd.regtype = 'auto';
                 data.invstd.lambda = -1;
-                % update GUI data
-                setappdata(fig,'data',data);
-                % update interface
-                NUCLEUSinv_updateInterface;
         end
-        
+                
     case 'off'
         switch value
             case 1
                 data.invstd.invtype = 'mono';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
-                % for mono-exponential inversion there is no gating used as default
-                data.process.gatetype = 'raw';
-                % update GUI data
-                setappdata(fig,'data',data);
-                onRadioGates(gui.radio_handles.process_gates_none);
                 
             case 2
                 data.invstd.invtype = 'free';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
-                data.process.gatetype = 'raw';
-                % for bi-exponential inversion there is no gating used as default
-                % update GUI data
-                setappdata(fig,'data',data);
-                onRadioGates(gui.radio_handles.process_gates_none);
                 
             case 3
                 data.invstd.invtype = 'NNLS';
@@ -117,14 +88,13 @@ switch data.info.ExpertMode
                     data.invstd.lambda = 1;
                 end
                 % for multi-exponential inversion log-gating is used as default
-                data.process.gatetype = 'log';
-                % update GUI data
-                setappdata(fig,'data',data);
-                % update interface
-                NUCLEUSinv_updateInterface;
+                data.process.gatetype = 'log';    
         end
 end
-
+% update GUI data
+setappdata(fig,'data',data);
+% update interface
+NUCLEUSinv_updateInterface;
 
 end
 

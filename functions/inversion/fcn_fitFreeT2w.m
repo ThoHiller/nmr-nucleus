@@ -1,25 +1,28 @@
-function J = getFitFreeJacobian(x,t,flag,IR)
-%getFitFreeJacobian calculates the Jacobi matrix for the NMR inversion
-%using a free number of relaxation times 'fitDataFree'
+function [F,J] = fcn_fitFreeT2w(x,iparam)
+%fcn_fitFreeT2w is the objective function for T2 mono- and free exponential
+%fitting that is minimized with 'lsqnonlin'
 %
 % Syntax:
-%       getFitFreeJacobian(x,t,flag)
+%       fcn_fitFreeT2(x,iparam)
 %
 % Inputs:
-%       x - the fitted Amplitudes x(1:2:end) and relaxation times
-%           x(2:2:end)
-%       t - time vector
-%       flag - either 'T1' or 'T2'
-%       IR - inversion/saturation recovery factor
+%       x - parameter vector
+%           x(2*i-1) = E (amplitude)
+%           x(2*i) = T (relaxation time)
+%       iparam - struct that holds additional settings:
+%                t : time vector
+%                s : signal vector
+%                e : noise vector / error weights (optional)
 %
 % Outputs:
-%       J - Jacobi matrix with size [length(t) length(x)]
+%       F - residual
+%       J - Jacobian (optional)
 %
 % Example:
-%       J = getFitFreeJacobian(x,t,'T2',1)
+%       [F,J] = fcn_fitFreeT2(x,params)
 %
 % Other m-files required:
-%       none
+%       getFitFreeJacobian
 %
 % Subfunctions:
 %       none
@@ -33,21 +36,28 @@ function J = getFitFreeJacobian(x,t,flag,IR)
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
+t = iparam.t;
+s = iparam.s;
 
-%% init J
-J = zeros(length(t),length(x));
-switch flag
-    case 'T1'
-        for i = 1:length(x)/2
-            J(:,2*i-1) = 1-IR.*exp(-t./x(2*i)); %d/dA
-            J(:,2*i) = -( IR.*x(2*i-1).*t.*exp(-t./x(2*i)) ) / (x(2*i)^2); %d/dT
-        end
-        
-    case 'T2'
-        for i = 1:length(x)/2
-            J(:,2*i-1) = exp(-t./x(2*i)); %d/dA
-            J(:,2*i) = ( x(2*i-1).*t.*exp(-t./x(2*i)) ) / (x(2*i)^2); %d/dT
-        end
+SI = 0;
+for i = 1:length(x)/2
+	tmp = x(2*i-1)*exp(-t./x(2*i));
+	SI = SI + tmp;
+end
+
+% get error weights if available
+if isfield(iparam,'e')
+    e = iparam.e;
+else
+    e = ones(size(s));
+end
+
+% scale the residual
+F = e .* (SI - s);
+
+J = 0;
+if nargout > 1
+    J = e .* getFitFreeJacobian(x,t,'T2',1);
 end
 
 return

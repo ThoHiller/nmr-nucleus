@@ -303,8 +303,12 @@ if ~isempty(id) && ~isempty(INVdata)
             switch data.invstd.invtype
                 case 'mono' % mono-exponential inversion
                     flag = data.results.nmrproc.T1T2;
+                    param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
                     param.optim = data.info.optim;
+                    if isfield(data.results.nmrproc,'W')
+                        param.W = data.results.nmrproc.W;
+                    end
                     % status bar information
                     switch data.info.optim
                         case 'on'
@@ -318,8 +322,12 @@ if ~isempty(id) && ~isempty(INVdata)
                     
                 case 'free' % bi-exponential inversion
                     flag = data.results.nmrproc.T1T2;
+                    param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
                     param.optim = data.info.optim;
+                    if isfield(data.results.nmrproc,'W')
+                        param.W = data.results.nmrproc.W;
+                    end
                     % status bar information
                     switch data.info.optim
                         case 'on'

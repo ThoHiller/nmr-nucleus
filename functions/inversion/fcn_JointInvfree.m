@@ -153,7 +153,7 @@ if nargout > 1
         case 'T1'
             % Jr = dGAMMA/drho
             % for T1 it's a bit more tricky because
-            % d/drho 1-exp(-t*rho*SV) = t*SV * exp(-t*rho*SV)
+            % d/drho 1-IR*exp(-t*rho*SV) = IR*t*SV * exp(-t*rho*SV)
             % where exp(-t*rho*SV) is essentially the T2 Kernel matrix
             
             % DD = exp(-t*rho*SV)
@@ -181,7 +181,7 @@ if nargout > 1
             % and now using DD in the derivative:
             Jr = zeros(1,length(t));
             for i = 1:length(t)
-                Jr(i) = t(i).*sum(x.*SV.*rhos.*DD(i,:));
+                Jr(i) = t(i).*sum(x.*T1IRfac.*SV.*rhos.*DD(i,:));
             end
             
         case 'T2'

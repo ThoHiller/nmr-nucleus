@@ -12,6 +12,8 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 %       parameter - struct that hold additional settings:
 %                   info : command line output switch
 %                   noise: NMR data noise
+%                   W    : error weighting matrix (optional)
+%                   optim: switch for Optimization Toolbox
 %       nExp - No. of free exponential(s)
 %
 % Outputs:
@@ -20,22 +22,27 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 %                   T1 / T2 : relaxation time(s)
 %                   fit_t   : time vector for plotting
 %                   fit_s   : signal vector for plotting
-%                   resnorm : residual norm (output from lsqcurvefit)
-%                   residual: vector of residuals (output from lsqcurvefit)
-%                   output  : output struct (output from lsqcurvefit)
+%                   resnorm : residual norm
+%                   residual: vector of residuals
 %                   errnorm : error norm
 %                   rms     : RMS error
+%                   chi2    : chi square error
 %                   ci      : confidence interval
+%                   output  : output struct (output from lsqcurvefit &
+%                             lsqnonlin)
 %
 % Example:
 %       [fitdata] = fitDataFree(t,s,'T2',parameter,2)
 %
 % Other m-files required:
 %       lsqcurvefit (Optimization Toolbox)
+%       lsqnonlin (Optimization Toolbox)
 %       getFitErrors
+%       getFitFreeJacobian
 %       fcn_fitFreeT1
 %       fcn_fitFreeT1_fmin
 %       fcn_fitFreeT2
+%       fcn_fitFreeT2w
 %       fcn_fitFreeT2_fmin
 %       fminsearchbnd
 %       getConfInterval
@@ -59,6 +66,16 @@ s = signal(:);
 
 % data noise
 noise = parameter.noise;
+% T1 saturation/inversion recovery factor
+IRfac = parameter.T1IRfac;
+
+% error weights after gating
+if isfield(parameter,'W')
+    e = diag(parameter.W);
+    iparam.e = sqrt(e);
+else
+    e = ones(size(s));
+end
 
 % switch off output if no option is given via 'parameter'
 if ~isfield(parameter,'info')
@@ -69,57 +86,69 @@ end
 x0 = zeros(1,2*nExp);
 for i = 1:nExp
     x0(2*i-1) = max(signal)/nExp;
-    x0(2*i) = max(t)/4;
+    x0(2*i) = i*max(t)/4;
 end
 
 switch parameter.optim
     case 'on'
-        % solver options
-        options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
-            'LargeScale','on','MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);
-        
         switch flag
             case 'T1'
-                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT1,...
+                % solver options
+                options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
+                    'LargeScale','on','MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);                
+                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)fcn_fitFreeT1(x,t,IRfac),...
                     x0,t,s,zeros(size(x0)),[],options);
             case 'T2'
-                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
-                    x0,t,s,zeros(size(x0)),[],options);
+                % solver options
+                options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
+                    'Jacobian','on','Algorithm','levenberg-marquardt','MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);
+                iparam.t = t;
+                iparam.s = s;
+                [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
+                    x0,zeros(size(x0)),[],options);
+                % [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
+                %     x0,t,s,zeros(size(x0)),[],options);
         end
     case 'off'
         % solver options
         options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
-            'MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);
-        
+            'MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);        
         switch flag
             case 'T1'
-                [xsolve,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s),...
+                [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s,IRfac),...
                     x0,zeros(size(x0)),[],options);
             case 'T2'
-                [xsolve,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT2_fmin(x,t,s),...
+                [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT2_fmin(x,t,s,e),...
                     x0,zeros(size(x0)),[],options);
         end
-        x = xsolve;
 end
 
 % get the fit
 fit_t = t;
 switch flag
     case 'T1'
-        fit_s = fcn_fitFreeT1(x,fit_t);
+        fit_s = fcn_fitFreeT1(x,fit_t,IRfac);
     case 'T2'
         fit_s = fcn_fitFreeT2(x,fit_t);
 end
 
 % get residuals and error measures
-out = getFitErrors(s,fit_s,noise);
+if isfield(parameter,'W')
+    % when signal gating was used the error estimates need to be adjusted
+    out = getFitErrors(signal,fit_s,parameter.noise,parameter.W);
+else
+    out = getFitErrors(signal,fit_s,parameter.noise);
+end
+
+% get Jacobian
 switch parameter.optim
     case 'on'
-        % nothing to do
-    case 'off'
-        % get Jacobian
-        jacobian = getFitFreeJacobian(x,t,flag);
+        % nothing to do because the Optim. Toolbox gives the jacobian as
+        % output
+    case 'off'        
+        jacobian = getFitFreeJacobian(x,t,flag,IRfac);
 end
+
 % confidence interval
 ci = getConfInterval(out.resnorm,jacobian,0.05);
 

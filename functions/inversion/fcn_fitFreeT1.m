@@ -1,4 +1,4 @@
-function F = fcn_fitFreeT1(x,xdata)
+function F = fcn_fitFreeT1(x,xdata,IR)
 %fcn_fitFreeT1 is the objective function for T1 mono- and free exponential
 %fitting that is minimized with 'lsqcurvefit'
 %
@@ -10,6 +10,7 @@ function F = fcn_fitFreeT1(x,xdata)
 %           x(2*i-1) = E (amplitude)
 %           x(2*i) = T (relaxation time)
 %       xdata - time vector
+%       IR - inversion/saturation recovery factor
 %
 % Outputs:
 %       F - signal
@@ -35,7 +36,7 @@ function F = fcn_fitFreeT1(x,xdata)
 
 F = 0;
 for i = 1:length(x)/2
-	tmp = x(2*i-1)*(1-exp(-xdata./x(2*i)));
+	tmp = x(2*i-1)*(1-IR.*exp(-xdata./x(2*i)));
 	F = F + tmp;
 end
 

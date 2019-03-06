@@ -28,6 +28,7 @@ function fitdata = fitDataInvLaplace(time,signal,parameter)
 %                   E0         : initial amplitude at t=0 (T2) or t=max (T1)
 %                   resnorm    : residual norm
 %                   residual   : vector of residuals
+%                   chi2       : chi square error
 %                   rms        : RMS error
 %                   lambda_out : regularization parameter lambda determined
 %                                by the different options from the 'regu'

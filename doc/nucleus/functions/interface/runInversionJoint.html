@@ -368,522 +368,515 @@ This function is called by:
 0290                                 lb = [zeros(size(igeom.radius))' log10(1e-8)];
 0291                                 ub = [ones(size(igeom.radius))' log10(1e-3)];
 0292                                 
-0293                                 options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-9,<span class="string">'TolX'</span>,1e-9,<span class="keyword">...</span>
+0293                                 options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="keyword">...</span>
 0294                                     <span class="string">'Jacobian'</span>,<span class="string">'on'</span>,<span class="string">'DerivativeCheck'</span>,<span class="string">'off'</span>,<span class="string">'FinDiffType'</span>,<span class="string">'central'</span>,<span class="keyword">...</span>
-0295                                     <span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>,<span class="string">'MaxIter'</span>,1000);
-0296                                 
-0297                                 [X,~,~,~] = lsqnonlin(@(X)<a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam),x0,lb,ub,options);
-0298                                 [~,~,ig,~] = <a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam);
-0299                                 
-0300                                 <span class="keyword">if</span> useW
-0301                                     <span class="comment">% normalize the fit because the signal was error</span>
-0302                                     <span class="comment">% weighted for the inversion</span>
-0303                                     e = diag(iparam.W);
-0304                                     einv = 1./e;
-0305                                     Winv = diag(einv);
-0306                                     ig = Winv * ig;
-0307                                 <span class="keyword">end</span>
-0308                         
-0309                                 residual = ig - g';
-0310                                 iF = X(1:length(X)-1);
-0311                                 
-0312                                 <span class="comment">% output data</span>
-0313                                 <span class="comment">% get RMS and X^2</span>
-0314                                 <span class="keyword">if</span> useW
-0315                                     <span class="comment">% weighted RMS error</span>
-0316                                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
-0317                                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
-0318                                     RMS(i) = sqrt (sum(N'.*(residual).^2) / length(residual));
-0319                                     <span class="comment">% X2 estimate</span>
-0320                                     CHI2(i) = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
-0321                                 <span class="keyword">else</span>
-0322                                     <span class="comment">% RMS error</span>
-0323                                     RMS(i) = sqrt( sum(residual.^2) / length(residual) );
-0324                                     <span class="comment">% X2 estimate</span>
-0325                                     CHI2(i) = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
-0326                                 <span class="keyword">end</span>
-0327                                 <span class="comment">% error norm and model norm</span>
-0328                                 RN(i) = norm(residual,2);
-0329                                 XN(i) = norm(L*iF',2);
-0330                                 <span class="comment">% wait-bar update</span>
-0331                                 <span class="keyword">if</span> wbopts.show
-0332                                     waitbar(i / steps,hwb,[<span class="string">'processing ...'</span>,num2str(i),<span class="string">' / '</span>,num2str(steps),<span class="string">' lambda steps'</span>]);
-0333                                 <span class="keyword">end</span>
-0334                             <span class="keyword">end</span>
-0335                         <span class="keyword">end</span>                        
-0336                         <span class="comment">% delete the wait-bar</span>
-0337                         <span class="keyword">if</span> wbopts.show
-0338                             delete(hwb);
-0339                         <span class="keyword">end</span>
-0340                         
-0341                         <span class="comment">% check if the STOP button was pressed</span>
-0342                         <span class="comment">% if &quot;UserData&quot; is 1 STOP was not pressed -&gt; save data</span>
-0343                         <span class="keyword">if</span> get(gui.push_handles.invjoint_run,<span class="string">'UserData'</span>) == 1
-0344                             lc.lambda = lambda_range;
-0345                             lc.RMS = RMS;
-0346                             lc.RN = RN;
-0347                             lc.XN = XN;
-0348                             <span class="comment">% get optimal lambda</span>
-0349 <span class="comment">%                             lc.index = getLambdaFromRMS(lc.lambda,lc.RMS,0);</span>
-0350                             lc.index = <a href="../../../nucleus/functions/inversion/getLambdaFromLCurve.html" class="code" title="function index = getLambdaFromLCurve(rho,eta,plotit)">getLambdaFromLCurve</a>(RN,XN,0);
-0351                             data.results.lcurve = lc;
-0352                             <span class="comment">% update GUI data</span>
-0353                             setappdata(fig,<span class="string">'data'</span>,data);
-0354                             <span class="comment">% update L-curve plots</span>
-0355                             <a href="updatePlotsLcurve.html" class="code" title="function updatePlotsLcurve">updatePlotsLcurve</a>;
-0356                             <span class="comment">% status bar information</span>
-0357                             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' done'</span>]);
-0358                             <span class="comment">% set focus on results</span>
-0359                             set(gui.plots.DistPanel,<span class="string">'Selection'</span>,1);
-0360                         <span class="keyword">else</span>
-0361                             <span class="comment">% status bar information</span>
-0362                             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' was canceled'</span>]);
-0363                             <span class="comment">% remove temporary data fields</span>
-0364                             data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
-0365                         <span class="keyword">end</span>
-0366                         
-0367                     <span class="keyword">case</span> <span class="string">'manual'</span>
-0368                         <span class="comment">% disable the RUN button to indicate a running inversion</span>
-0369                         set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
-0370                             <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);  
-0371             
-0372                         <span class="comment">% inversion parameter</span>
-0373                         iparam.t = t;
-0374                         iparam.g = g;
-0375                         <span class="keyword">if</span> useW
-0376                             iparam.W = W;
-0377                         <span class="keyword">end</span>
-0378                         iparam.Tb = data.invstd.Tbulk;
-0379                         iparam.T1T2 = T1T2flag;
-0380                         iparam.T1IRfac = T1IRfac;
-0381                         iparam.L = L;
-0382                         iparam.lambda = data.invjoint.lambda;
-0383                         iparam.igeom = igeom;
-0384                         iparam.IPS = IPS;
-0385                         iparam.SVdata = SVdata;
-0386                         iparam.SatImbDrain = SatImbDrain;
-0387                         
-0388                         <span class="comment">% start values and bounds</span>
-0389                         x0 = [zeros(size(igeom.radius))' log10(1e-6)];
-0390                         lb = [zeros(size(igeom.radius))' log10(1e-8)];
-0391                         ub = [ones(size(igeom.radius))' log10(1e-3)];
-0392                         
-0393                         <span class="comment">% status bar information</span>
-0394                         infostring = <span class="string">'Joint Inversion (free) using ''lsqnonlin'' ... '</span>;
-0395                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0396                         
-0397                         <span class="comment">% optimization settings</span>
-0398                         <span class="keyword">if</span> strcmp(T1T2flag,<span class="string">'T1'</span>) &amp;&amp; <span class="keyword">...</span>
-0399                                 strcmp(data.invjoint.geometry_type,<span class="string">'ang'</span>)
-0400                             options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="keyword">...</span>
-0401                                 <span class="string">'Jacobian'</span>,<span class="string">'off'</span>,<span class="string">'DerivativeCheck'</span>,<span class="string">'off'</span>,<span class="string">'FinDiffType'</span>,<span class="string">'central'</span>,<span class="keyword">...</span>
-0402                                 <span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>,<span class="keyword">...</span>
-0403                                 <span class="string">'MaxIter'</span>,1000);
-0404                         <span class="keyword">else</span>
-0405                             options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="keyword">...</span>
-0406                                 <span class="string">'Jacobian'</span>,<span class="string">'on'</span>,<span class="string">'DerivativeCheck'</span>,<span class="string">'off'</span>,<span class="string">'FinDiffType'</span>,<span class="string">'central'</span>,<span class="keyword">...</span>
-0407                                 <span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>,<span class="keyword">...</span>
-0408                                 <span class="string">'MaxIter'</span>,1000);
-0409                         <span class="keyword">end</span>
-0410                         [X,~,~,exitflag] = lsqnonlin(@(X)<a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam),x0,lb,ub,options);
-0411                         <span class="comment">% status bar information</span>
-0412                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
-0413                         <span class="comment">% get the final fit</span>
-0414                         [~,~,ig,KK] = <a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam);
-0415                         
-0416                         <span class="keyword">if</span> useW
-0417                             <span class="comment">% normalize the fit because the signal was error</span>
-0418                             <span class="comment">% weighted for the inversion</span>
-0419                             e = diag(iparam.W);
-0420                             einv = 1./e;
-0421                             Winv = diag(einv);
-0422                             ig = Winv * ig;
-0423                         <span class="keyword">end</span>
-0424                 
-0425                         <span class="comment">% the inverted surface relaxivity and PSD</span>
-0426                         iF = X(1:length(X)-1);
-0427                         irho = 10^X(length(X));
-0428                         <span class="comment">% inversion output</span>
-0429                         data.results.invjoint.p0 = p0;
-0430                         data.results.invjoint.S0 = S0;
-0431                         data.results.invjoint.levels = levels;
-0432                         data.results.invjoint.T1T2 = T1T2flag;
-0433                         data.results.invjoint.T1IRfac = T1IRfac;
-0434                         data.results.invjoint.x0 = x0;
-0435                         data.results.invjoint.lb = lb;
-0436                         data.results.invjoint.ub = ub;
-0437                         data.results.invjoint.iparam = iparam;
-0438                         data.results.invjoint.iGEOM = igeom;
-0439                         data.results.invjoint.iSAT = iSAT;
-0440                         data.results.invjoint.iF = iF';
-0441                         data.results.invjoint.irho = irho;
-0442                         data.results.invjoint.ig = ig;
-0443                         data.results.invjoint.XX = KK;
-0444                         data.results.invjoint.errnorm = norm((ig - g')).^2;
-0445                         data.results.invjoint.residual = ig - g';
-0446                         data.results.invjoint.exitflag = exitflag;
-0447                         
-0448                         <span class="comment">% get RMS and X^2</span>
-0449                         residual = data.results.invjoint.residual;
-0450                         <span class="keyword">if</span> useW
-0451                             <span class="comment">% weighted RMS error</span>
-0452                             <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
-0453                             <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
-0454                             data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
-0455                             <span class="comment">% X2 estimate</span>
-0456                             data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
-0457                         <span class="keyword">else</span>
-0458                             <span class="comment">% RMS error</span>
-0459                             data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
-0460                             <span class="comment">% X2 estimate</span>
-0461                             data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
-0462                         <span class="keyword">end</span>
-0463                                                 
-0464                         <span class="comment">% predict CPS curves for the final model</span>
-0465                         infostring = <span class="string">'calculate CPS curve ... '</span>;
-0466                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0467                         ppsddata.r = igeom.radius';
-0468                         ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
-0469                         <span class="keyword">if</span> min(p) == 0
-0470                             p_tmp = logspace(floor(log10(min(p(p&gt;0)))-2),ceil(log10(max(p)))+2,150);
-0471                         <span class="keyword">else</span>
-0472                             p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
-0473                         <span class="keyword">end</span>
-0474                         pSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(igeom,p_tmp,ppsddata,<a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>,wbopts);
-0475                         <span class="comment">% save</span>
-0476                         data.results.invjoint.pSAT = pSAT;
-0477                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]); 
-0478                 <span class="keyword">end</span>
-0479                 
-0480             <span class="keyword">case</span> <span class="string">'fixed'</span> <span class="comment">% only invert for rho</span>
-0481                 <span class="comment">% disable the RUN button to indicate a running inversion</span>
-0482                 set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
-0483                     <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
+0295                                     <span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>,<span class="keyword">...</span>
+0296                                     <span class="string">'MaxIter'</span>,1000);
+0297                                 
+0298                                 [X,~,~,~] = lsqnonlin(@(X)<a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam),x0,lb,ub,options);
+0299                                 [~,~,ig,~] = <a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam);
+0300                                 
+0301                                 <span class="keyword">if</span> useW
+0302                                     <span class="comment">% normalize the fit because the signal was error</span>
+0303                                     <span class="comment">% weighted for the inversion</span>
+0304                                     e = diag(iparam.W);
+0305                                     einv = 1./e;
+0306                                     Winv = diag(einv);
+0307                                     ig = Winv * ig;
+0308                                 <span class="keyword">end</span>
+0309                         
+0310                                 residual = ig - g';
+0311                                 iF = X(1:length(X)-1);
+0312                                 
+0313                                 <span class="comment">% output data</span>
+0314                                 <span class="comment">% get RMS and X^2</span>
+0315                                 <span class="keyword">if</span> useW
+0316                                     <span class="comment">% weighted RMS error</span>
+0317                                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
+0318                                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
+0319                                     RMS(i) = sqrt (sum(N'.*(residual).^2) / length(residual));
+0320                                     <span class="comment">% X2 estimate</span>
+0321                                     CHI2(i) = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
+0322                                 <span class="keyword">else</span>
+0323                                     <span class="comment">% RMS error</span>
+0324                                     RMS(i) = sqrt( sum(residual.^2) / length(residual) );
+0325                                     <span class="comment">% X2 estimate</span>
+0326                                     CHI2(i) = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
+0327                                 <span class="keyword">end</span>
+0328                                 <span class="comment">% error norm and model norm</span>
+0329                                 RN(i) = norm(residual,2);
+0330                                 XN(i) = norm(L*iF',2);
+0331                                 <span class="comment">% wait-bar update</span>
+0332                                 <span class="keyword">if</span> wbopts.show
+0333                                     waitbar(i / steps,hwb,[<span class="string">'processing ...'</span>,num2str(i),<span class="string">' / '</span>,num2str(steps),<span class="string">' lambda steps'</span>]);
+0334                                 <span class="keyword">end</span>
+0335                             <span class="keyword">end</span>
+0336                         <span class="keyword">end</span>                        
+0337                         <span class="comment">% delete the wait-bar</span>
+0338                         <span class="keyword">if</span> wbopts.show
+0339                             delete(hwb);
+0340                         <span class="keyword">end</span>
+0341                         
+0342                         <span class="comment">% check if the STOP button was pressed</span>
+0343                         <span class="comment">% if &quot;UserData&quot; is 1 STOP was not pressed -&gt; save data</span>
+0344                         <span class="keyword">if</span> get(gui.push_handles.invjoint_run,<span class="string">'UserData'</span>) == 1
+0345                             lc.lambda = lambda_range;
+0346                             lc.RMS = RMS;
+0347                             lc.RN = RN;
+0348                             lc.XN = XN;
+0349                             <span class="comment">% get optimal lambda</span>
+0350 <span class="comment">%                             lc.index = getLambdaFromRMS(lc.lambda,lc.RMS,0);</span>
+0351                             lc.index = <a href="../../../nucleus/functions/inversion/getLambdaFromLCurve.html" class="code" title="function index = getLambdaFromLCurve(rho,eta,plotit)">getLambdaFromLCurve</a>(RN,XN,0);
+0352                             data.results.lcurve = lc;
+0353                             <span class="comment">% update GUI data</span>
+0354                             setappdata(fig,<span class="string">'data'</span>,data);
+0355                             <span class="comment">% update L-curve plots</span>
+0356                             <a href="updatePlotsLcurve.html" class="code" title="function updatePlotsLcurve">updatePlotsLcurve</a>;
+0357                             <span class="comment">% status bar information</span>
+0358                             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' done'</span>]);
+0359                             <span class="comment">% set focus on results</span>
+0360                             set(gui.plots.DistPanel,<span class="string">'Selection'</span>,1);
+0361                         <span class="keyword">else</span>
+0362                             <span class="comment">% status bar information</span>
+0363                             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' was canceled'</span>]);
+0364                             <span class="comment">% remove temporary data fields</span>
+0365                             data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
+0366                         <span class="keyword">end</span>
+0367                         
+0368                     <span class="keyword">case</span> <span class="string">'manual'</span>
+0369                         <span class="comment">% disable the RUN button to indicate a running inversion</span>
+0370                         set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
+0371                             <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);  
+0372             
+0373                         <span class="comment">% inversion parameter</span>
+0374                         iparam.t = t;
+0375                         iparam.g = g;
+0376                         <span class="keyword">if</span> useW
+0377                             iparam.W = W;
+0378                         <span class="keyword">end</span>
+0379                         iparam.Tb = data.invstd.Tbulk;
+0380                         iparam.T1T2 = T1T2flag;
+0381                         iparam.T1IRfac = T1IRfac;
+0382                         iparam.L = L;
+0383                         iparam.lambda = data.invjoint.lambda;
+0384                         iparam.igeom = igeom;
+0385                         iparam.IPS = IPS;
+0386                         iparam.SVdata = SVdata;
+0387                         iparam.SatImbDrain = SatImbDrain;
+0388                         
+0389                         <span class="comment">% start values and bounds</span>
+0390                         x0 = [zeros(size(igeom.radius))' log10(1e-6)];
+0391                         lb = [zeros(size(igeom.radius))' log10(1e-8)];
+0392                         ub = [ones(size(igeom.radius))' log10(1e-3)];
+0393                         
+0394                         <span class="comment">% status bar information</span>
+0395                         infostring = <span class="string">'Joint Inversion (free) using ''lsqnonlin'' ... '</span>;
+0396                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0397                         
+0398                         <span class="comment">% optimization settings</span>
+0399                         options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="keyword">...</span>
+0400                             <span class="string">'Jacobian'</span>,<span class="string">'on'</span>,<span class="string">'DerivativeCheck'</span>,<span class="string">'off'</span>,<span class="string">'FinDiffType'</span>,<span class="string">'central'</span>,<span class="keyword">...</span>
+0401                             <span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>,<span class="keyword">...</span>
+0402                             <span class="string">'MaxIter'</span>,1000);
+0403                         [X,~,~,exitflag] = lsqnonlin(@(X)<a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam),x0,lb,ub,options);
+0404                         <span class="comment">% status bar information</span>
+0405                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
+0406                         <span class="comment">% get the final fit</span>
+0407                         [~,~,ig,KK] = <a href="../../../nucleus/functions/inversion/fcn_JointInvfree.html" class="code" title="function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)">fcn_JointInvfree</a>(X,iparam);
+0408                         
+0409                         <span class="keyword">if</span> useW
+0410                             <span class="comment">% normalize the fit because the signal was error</span>
+0411                             <span class="comment">% weighted for the inversion</span>
+0412                             e = diag(iparam.W);
+0413                             einv = 1./e;
+0414                             Winv = diag(einv);
+0415                             ig = Winv * ig;
+0416                         <span class="keyword">end</span>
+0417                 
+0418                         <span class="comment">% the inverted surface relaxivity and PSD</span>
+0419                         iF = X(1:length(X)-1);
+0420                         irho = 10^X(length(X));
+0421                         <span class="comment">% inversion output</span>
+0422                         data.results.invjoint.p0 = p0;
+0423                         data.results.invjoint.S0 = S0;
+0424                         data.results.invjoint.levels = levels;
+0425                         data.results.invjoint.T1T2 = T1T2flag;
+0426                         data.results.invjoint.T1IRfac = T1IRfac;
+0427                         data.results.invjoint.x0 = x0;
+0428                         data.results.invjoint.lb = lb;
+0429                         data.results.invjoint.ub = ub;
+0430                         data.results.invjoint.iparam = iparam;
+0431                         data.results.invjoint.iGEOM = igeom;
+0432                         data.results.invjoint.iSAT = iSAT;
+0433                         data.results.invjoint.iF = iF';
+0434                         data.results.invjoint.irho = irho;
+0435                         data.results.invjoint.ig = ig;
+0436                         data.results.invjoint.XX = KK;
+0437                         data.results.invjoint.errnorm = norm((ig - g')).^2;
+0438                         data.results.invjoint.residual = ig - g';
+0439                         data.results.invjoint.exitflag = exitflag;
+0440                         
+0441                         <span class="comment">% get RMS and X^2</span>
+0442                         residual = data.results.invjoint.residual;
+0443                         <span class="keyword">if</span> useW
+0444                             <span class="comment">% weighted RMS error</span>
+0445                             <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
+0446                             <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
+0447                             data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
+0448                             <span class="comment">% X2 estimate</span>
+0449                             data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
+0450                         <span class="keyword">else</span>
+0451                             <span class="comment">% RMS error</span>
+0452                             data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
+0453                             <span class="comment">% X2 estimate</span>
+0454                             data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
+0455                         <span class="keyword">end</span>
+0456                                                 
+0457                         <span class="comment">% predict CPS curves for the final model</span>
+0458                         infostring = <span class="string">'calculate CPS curve ... '</span>;
+0459                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0460                         ppsddata.r = igeom.radius';
+0461                         ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
+0462                         <span class="keyword">if</span> min(p) == 0
+0463                             p_tmp = logspace(floor(log10(min(p(p&gt;0)))-2),ceil(log10(max(p)))+2,150);
+0464                         <span class="keyword">else</span>
+0465                             p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
+0466                         <span class="keyword">end</span>
+0467                         pSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(igeom,p_tmp,ppsddata,<a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>,wbopts);
+0468                         <span class="comment">% save</span>
+0469                         data.results.invjoint.pSAT = pSAT;
+0470                         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]); 
+0471                 <span class="keyword">end</span>
+0472                 
+0473             <span class="keyword">case</span> <span class="string">'fixed'</span> <span class="comment">% only invert for rho</span>
+0474                 <span class="comment">% disable the RUN button to indicate a running inversion</span>
+0475                 set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
+0476                     <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
+0477                 
+0478                 <span class="comment">% inversion geometry</span>
+0479                 igeom.type = data.invjoint.geometry_type;
+0480                 igeom.angles = [data.invjoint.alpha data.invjoint.beta data.invjoint.gamma];
+0481                 igeom.polyN = data.invjoint.polyN;
+0482                 igeom.radius = data.param.rho.*data.param.a.*fullsat.T; <span class="comment">% first guess</span>
+0483                 igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
 0484                 
-0485                 <span class="comment">% inversion geometry</span>
-0486                 igeom.type = data.invjoint.geometry_type;
-0487                 igeom.angles = [data.invjoint.alpha data.invjoint.beta data.invjoint.gamma];
-0488                 igeom.polyN = data.invjoint.polyN;
-0489                 igeom.radius = data.param.rho.*data.param.a.*fullsat.T; <span class="comment">% first guess</span>
-0490                 igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
-0491                 
-0492                 iparam.t = t;
-0493                 iparam.g = g;
-0494                 <span class="keyword">if</span> useW
-0495                     iparam.W = W;
-0496                 <span class="keyword">end</span>
-0497                 iparam.indt = indt;
-0498                 iparam.Tb = data.invstd.Tbulk;
-0499                 iparam.T1T2 = T1T2flag;
-0500                 iparam.T1IRfac = T1IRfac;
-0501                 iparam.SatImbDrain = SatImbDrain;
-0502                 iparam.p = p;
-0503                 iparam.igeom = igeom;
-0504                 iparam.x = fullsat.T';
-0505                 iparam.f = fullsat.F';
-0506                 
-0507                 <span class="comment">% start values</span>
-0508                 x0 = log10(data.invjoint.rhostart/1e6);
-0509                 lb = log10(1e-8);
-0510                 ub = log10(1e-3);
+0485                 iparam.t = t;
+0486                 iparam.g = g;
+0487                 <span class="keyword">if</span> useW
+0488                     iparam.W = W;
+0489                 <span class="keyword">end</span>
+0490                 iparam.indt = indt;
+0491                 iparam.Tb = data.invstd.Tbulk;
+0492                 iparam.T1T2 = T1T2flag;
+0493                 iparam.T1IRfac = T1IRfac;
+0494                 iparam.SatImbDrain = SatImbDrain;
+0495                 iparam.p = p;
+0496                 iparam.igeom = igeom;
+0497                 iparam.x = fullsat.T';
+0498                 iparam.f = fullsat.F';
+0499                 
+0500                 <span class="comment">% start values</span>
+0501                 x0 = log10(data.invjoint.rhostart/1e6);
+0502                 lb = log10(1e-8);
+0503                 ub = log10(1e-3);
+0504                 
+0505                 infostring = <span class="string">'Joint Inversion (fixed) using ''fminsearchbnd'' ... '</span>;
+0506                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0507                 
+0508                 options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="keyword">...</span>
+0509                     <span class="string">'MaxFunEvals'</span>,300,<span class="string">'MaxIter'</span>,300);
+0510                 X = fminsearchbnd(@(X) <a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>(X,iparam),x0,lb,ub,options);
 0511                 
-0512                 infostring = <span class="string">'Joint Inversion (fixed) using ''fminsearchbnd'' ... '</span>;
-0513                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0514                 
-0515                 options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="keyword">...</span>
-0516                     <span class="string">'MaxFunEvals'</span>,300,<span class="string">'MaxIter'</span>,300);
-0517                 X = fminsearchbnd(@(X) <a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>(X,iparam),x0,lb,ub,options);
-0518                 
-0519                 [errnorm,ig,XX,iGEOM,iSAT] = <a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>(X,iparam);
-0520                 
-0521                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
-0522                 
-0523                 <span class="keyword">if</span> useW
-0524                     <span class="comment">% normalize the fit because the signal was error</span>
-0525                     <span class="comment">% weighted for the inversion</span>
-0526                     e = diag(iparam.W);
-0527                     einv = 1./e;
-0528                     Winv = diag(einv);
-0529                     ig = Winv * ig;
-0530                 <span class="keyword">end</span>                
-0531                 
-0532                 <span class="comment">% inverted surface relaxivity</span>
-0533                 irho = 10^X(1);
-0534                 <span class="comment">% output data</span>
-0535                 data.results.invjoint.p0 = p0;
-0536                 data.results.invjoint.S0 = S0;
-0537                 data.results.invjoint.levels = levels;
-0538                 data.results.invjoint.T1T2 = T1T2flag;
-0539                 data.results.invjoint.T1IRfac = T1IRfac;
-0540                 data.results.invjoint.x0 = x0;
-0541                 data.results.invjoint.lb = lb;
-0542                 data.results.invjoint.ub = ub;
-0543                 data.results.invjoint.iparam = iparam;
-0544                 data.results.invjoint.iGEOM = iGEOM;
-0545                 data.results.invjoint.iSAT = iSAT;
-0546                 data.results.invjoint.iF = fullsat.F;
-0547                 data.results.invjoint.irho = irho;
-0548                 data.results.invjoint.ig = ig;
-0549                 data.results.invjoint.XX = XX;
-0550                 data.results.invjoint.errnorm = errnorm;
-0551                 data.results.invjoint.residual = ig-g';
-0552                 
-0553                 <span class="comment">% get RMS and X^2</span>
-0554                 residual = data.results.invjoint.residual;
-0555                 <span class="keyword">if</span> useW
-0556                     <span class="comment">% weighted RMS error</span>
-0557                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
-0558                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
-0559                     data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
-0560                     <span class="comment">% X2 estimate</span>
-0561                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
-0562                 <span class="keyword">else</span>
-0563                     <span class="comment">% RMS error</span>
-0564                     data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
-0565                     <span class="comment">% X2 estimate</span>
-0566                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
-0567                 <span class="keyword">end</span>
-0568                 
-0569                 <span class="comment">% predict CPS curves from final model</span>
-0570                 infostring = <span class="string">'calculate CPS curve ... '</span>;
-0571                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0572                 ppsddata.r = iGEOM.radius';
-0573                 ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
-0574                 <span class="keyword">if</span> min(p) == 0
-0575                     p_tmp = logspace(floor(log10(min(p(p&gt;0)))-2),ceil(log10(max(p)))+2,150);
-0576                 <span class="keyword">else</span>
-0577                     p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
-0578                 <span class="keyword">end</span>
-0579                 <span class="comment">% waitbar option</span>
-0580                 wbopts.show = true;
-0581                 wbopts.tag = <span class="string">'INV'</span>;
-0582                 pSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(iGEOM,p_tmp,ppsddata,<a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>,wbopts);
-0583                 
-0584                 data.results.invjoint.pSAT = pSAT;
-0585                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
-0586                 
-0587             <span class="keyword">case</span> <span class="string">'shape'</span> <span class="comment">% invert for rho and rectangular shape</span>
-0588                 <span class="comment">% disable the RUN button to indicate a running inversion</span>
-0589                 set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
-0590                     <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
+0512                 [errnorm,ig,XX,iGEOM,iSAT] = <a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>(X,iparam);
+0513                 
+0514                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
+0515                 
+0516                 <span class="keyword">if</span> useW
+0517                     <span class="comment">% normalize the fit because the signal was error</span>
+0518                     <span class="comment">% weighted for the inversion</span>
+0519                     e = diag(iparam.W);
+0520                     einv = 1./e;
+0521                     Winv = diag(einv);
+0522                     ig = Winv * ig;
+0523                 <span class="keyword">end</span>                
+0524                 
+0525                 <span class="comment">% inverted surface relaxivity</span>
+0526                 irho = 10^X(1);
+0527                 <span class="comment">% output data</span>
+0528                 data.results.invjoint.p0 = p0;
+0529                 data.results.invjoint.S0 = S0;
+0530                 data.results.invjoint.levels = levels;
+0531                 data.results.invjoint.T1T2 = T1T2flag;
+0532                 data.results.invjoint.T1IRfac = T1IRfac;
+0533                 data.results.invjoint.x0 = x0;
+0534                 data.results.invjoint.lb = lb;
+0535                 data.results.invjoint.ub = ub;
+0536                 data.results.invjoint.iparam = iparam;
+0537                 data.results.invjoint.iGEOM = iGEOM;
+0538                 data.results.invjoint.iSAT = iSAT;
+0539                 data.results.invjoint.iF = fullsat.F;
+0540                 data.results.invjoint.irho = irho;
+0541                 data.results.invjoint.ig = ig;
+0542                 data.results.invjoint.XX = XX;
+0543                 data.results.invjoint.errnorm = errnorm;
+0544                 data.results.invjoint.residual = ig-g';
+0545                 
+0546                 <span class="comment">% get RMS and X^2</span>
+0547                 residual = data.results.invjoint.residual;
+0548                 <span class="keyword">if</span> useW
+0549                     <span class="comment">% weighted RMS error</span>
+0550                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
+0551                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
+0552                     data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
+0553                     <span class="comment">% X2 estimate</span>
+0554                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
+0555                 <span class="keyword">else</span>
+0556                     <span class="comment">% RMS error</span>
+0557                     data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
+0558                     <span class="comment">% X2 estimate</span>
+0559                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
+0560                 <span class="keyword">end</span>
+0561                 
+0562                 <span class="comment">% predict CPS curves from final model</span>
+0563                 infostring = <span class="string">'calculate CPS curve ... '</span>;
+0564                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0565                 ppsddata.r = iGEOM.radius';
+0566                 ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
+0567                 <span class="keyword">if</span> min(p) == 0
+0568                     p_tmp = logspace(floor(log10(min(p(p&gt;0)))-2),ceil(log10(max(p)))+2,150);
+0569                 <span class="keyword">else</span>
+0570                     p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
+0571                 <span class="keyword">end</span>
+0572                 <span class="comment">% waitbar option</span>
+0573                 wbopts.show = true;
+0574                 wbopts.tag = <span class="string">'INV'</span>;
+0575                 pSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(iGEOM,p_tmp,ppsddata,<a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>,wbopts);
+0576                 
+0577                 data.results.invjoint.pSAT = pSAT;
+0578                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
+0579                 
+0580             <span class="keyword">case</span> <span class="string">'shape'</span> <span class="comment">% invert for rho and rectangular shape</span>
+0581                 <span class="comment">% disable the RUN button to indicate a running inversion</span>
+0582                 set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
+0583                     <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
+0584                 
+0585                 <span class="comment">% inversion geometry</span>
+0586                 igeom.type = data.invjoint.geometry_type;
+0587                 igeom.angles = [data.invjoint.alpha data.invjoint.beta data.invjoint.gamma];
+0588                 igeom.polyN = data.invjoint.polyN;
+0589                 igeom.radius = data.param.rho.*data.param.a.*fullsat.T; <span class="comment">% first guess</span>
+0590                 igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
 0591                 
-0592                 <span class="comment">% inversion geometry</span>
-0593                 igeom.type = data.invjoint.geometry_type;
-0594                 igeom.angles = [data.invjoint.alpha data.invjoint.beta data.invjoint.gamma];
-0595                 igeom.polyN = data.invjoint.polyN;
-0596                 igeom.radius = data.param.rho.*data.param.a.*fullsat.T; <span class="comment">% first guess</span>
-0597                 igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
-0598                 
-0599                 iparam.t = t;
-0600                 iparam.g = g;
-0601                 <span class="keyword">if</span> useW
-0602                     iparam.W = W;
-0603                 <span class="keyword">end</span>
-0604                 iparam.indt = indt;
-0605                 iparam.Tb = data.invstd.Tbulk;
-0606                 iparam.T1T2 = T1T2flag;
-0607                 iparam.T1IRfac = T1IRfac;
-0608                 iparam.SatImbDrain = SatImbDrain;
-0609                 iparam.p = p;
-0610                 iparam.igeom = igeom;
-0611                 iparam.x = fullsat.T';
-0612                 iparam.f = fullsat.F';
-0613                 
-0614                 <span class="comment">% scale fit parameter between [0 1]</span>
-0615                 <span class="comment">% x0 = [(log10(1e-6)+7)/3 data.invjoint.beta/45];</span>
-0616                 <span class="comment">% lb = [(log10(1e-7)+7)/3 0.1/45];</span>
-0617                 <span class="comment">% ub = [(log10(1e-4)+7)/3 45/45];</span>
-0618                 <span class="comment">% old way</span>
-0619                 x0 = [log10(data.invjoint.rhostart/1e6) data.invjoint.anglestart];
-0620                 lb = [log10(1e-8) 0.1];
-0621                 ub = [log10(1e-3) 45];
+0592                 iparam.t = t;
+0593                 iparam.g = g;
+0594                 <span class="keyword">if</span> useW
+0595                     iparam.W = W;
+0596                 <span class="keyword">end</span>
+0597                 iparam.indt = indt;
+0598                 iparam.Tb = data.invstd.Tbulk;
+0599                 iparam.T1T2 = T1T2flag;
+0600                 iparam.T1IRfac = T1IRfac;
+0601                 iparam.SatImbDrain = SatImbDrain;
+0602                 iparam.p = p;
+0603                 iparam.igeom = igeom;
+0604                 iparam.x = fullsat.T';
+0605                 iparam.f = fullsat.F';
+0606                 
+0607                 <span class="comment">% scale fit parameter between [0 1]</span>
+0608                 <span class="comment">% x0 = [(log10(1e-6)+7)/3 data.invjoint.beta/45];</span>
+0609                 <span class="comment">% lb = [(log10(1e-7)+7)/3 0.1/45];</span>
+0610                 <span class="comment">% ub = [(log10(1e-4)+7)/3 45/45];</span>
+0611                 <span class="comment">% old way</span>
+0612                 x0 = [log10(data.invjoint.rhostart/1e6) data.invjoint.anglestart];
+0613                 lb = [log10(1e-8) 0.1];
+0614                 ub = [log10(1e-3) 45];
+0615                 
+0616                 infostring = <span class="string">'Joint Inversion (shape) using ''fminsearchbnd'' ... '</span>;
+0617                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0618                 options = optimset(<span class="string">'Display'</span>,<span class="string">'iter'</span>,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="string">'MaxIter'</span>,500);
+0619                 options.Algorithm = <span class="string">'levenberg-marquardt'</span>;
+0620                 options.MaxFunEvals = 500;
+0621                 options.DiffMinChange = 1;
 0622                 
-0623                 infostring = <span class="string">'Joint Inversion (shape) using ''fminsearchbnd'' ... '</span>;
-0624                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0625                 options = optimset(<span class="string">'Display'</span>,<span class="string">'iter'</span>,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12,<span class="string">'MaxIter'</span>,500);
-0626                 options.Algorithm = <span class="string">'levenberg-marquardt'</span>;
-0627                 options.MaxFunEvals = 500;
-0628                 options.DiffMinChange = 1;
-0629                 
-0630                 options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-9,<span class="string">'TolX'</span>,1e-9,<span class="keyword">...</span>
-0631                     <span class="string">'MaxFunEvals'</span>,300,<span class="string">'MaxIter'</span>,300);
-0632                 X = fminsearchbnd(@(X) <a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>(X,iparam),x0,lb,ub,options);
-0633                 
-0634                 [errnorm,ig,XX,iGEOM,iSAT] = <a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>(X,iparam);
-0635                 
-0636                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
-0637                 
-0638                 <span class="keyword">if</span> useW
-0639                     <span class="comment">% normalize the fit because the signal was error</span>
-0640                     <span class="comment">% weighted for the inversion</span>
-0641                     e = diag(iparam.W);
-0642                     einv = 1./e;
-0643                     Winv = diag(einv);
-0644                     ig = Winv * ig;
-0645                 <span class="keyword">end</span>
-0646                 
-0647                 irho = 10^X(1);
-0648                 ibeta = X(2);
-0649                 
-0650                 data.results.invjoint.p0 = p0;
-0651                 data.results.invjoint.S0 = S0;
-0652                 data.results.invjoint.levels = levels;
-0653                 data.results.invjoint.T1T2 = T1T2flag;
-0654                 data.results.invjoint.T1IRfac = T1IRfac;
-0655                 data.results.invjoint.x0 = x0;
-0656                 data.results.invjoint.lb = lb;
-0657                 data.results.invjoint.ub = ub;
-0658                 data.results.invjoint.iparam = iparam;
-0659                 data.results.invjoint.iGEOM = iGEOM;
-0660                 data.results.invjoint.iSAT = iSAT;
-0661                 data.results.invjoint.iF = fullsat.F;
-0662                 data.results.invjoint.irho = irho;
-0663                 data.results.invjoint.ibeta = ibeta;
-0664                 data.results.invjoint.ig = ig;
-0665                 data.results.invjoint.XX = XX;
-0666                 data.results.invjoint.errnorm = errnorm;
-0667                 data.results.invjoint.residual = ig-g';
-0668                 
-0669                 <span class="comment">% get RMS and X^2</span>
-0670                 residual = data.results.invjoint.residual;
-0671                 <span class="keyword">if</span> useW
-0672                     <span class="comment">% weighted RMS error</span>
-0673                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
-0674                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
-0675                     data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
-0676                     <span class="comment">% X2 estimate</span>
-0677                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
-0678                 <span class="keyword">else</span>
-0679                     <span class="comment">% RMS error</span>
-0680                     data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
-0681                     <span class="comment">% X2 estimate</span>
-0682                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
-0683                 <span class="keyword">end</span>
-0684                 
-0685                 <span class="comment">% predict CPS curves from final model</span>
-0686                 infostring = <span class="string">'calculate CPS curve ... '</span>;
-0687                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0688                 ppsddata.r = iGEOM.radius';
-0689                 ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
-0690                 <span class="keyword">if</span> min(p) == 0
-0691                     p_tmp = logspace(floor(log10(min(p(p&gt;0)))-2),ceil(log10(max(p)))+2,150);
-0692                 <span class="keyword">else</span>
-0693                     p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
-0694                 <span class="keyword">end</span>
-0695                 <span class="comment">% wait-bar option</span>
-0696                 wbopts.show = true;
-0697                 wbopts.tag = <span class="string">'INV'</span>;
-0698                 pSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(iGEOM,p_tmp,ppsddata,<a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>,wbopts);
-0699                 
-0700                 data.results.invjoint.pSAT = pSAT;
-0701                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
-0702         <span class="keyword">end</span>
-0703         
-0704         <span class="comment">% if the regularization method was not L-curve then post process the</span>
-0705         <span class="comment">% NMR data fits</span>
-0706         <span class="keyword">if</span> ~strcmp(data.invjoint.regtype,<span class="string">'lcurve'</span>)
-0707             <span class="comment">% get the individual NMR fits</span>
-0708             <span class="keyword">for</span> i = 1:1:numel(levels)
-0709                 idata.nmr{levels(i)}.fit_t = idata.nmr{levels(i)}.t;
-0710                 <span class="keyword">if</span> i == 1
-0711                     idata.nmr{levels(i)}.fit_g = ig(1:indt(1));
-0712                 <span class="keyword">else</span>
-0713                     idata.nmr{levels(i)}.fit_g = ig(sum(indt(1:i-1))+1:sum(indt(1:i-1))+indt(i));
-0714                 <span class="keyword">end</span>
-0715                 residual = idata.nmr{levels(i)}.fit_g - idata.nmr{levels(i)}.g;
-0716                 
-0717                 <span class="comment">% get RMS and X^2</span>
-0718                 <span class="keyword">if</span> useW
-0719                     <span class="comment">% weighted RMS error</span>
-0720                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
-0721                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
-0722                     N = idata.nmr{levels(i)}.N;
-0723                     rms = sqrt (sum(N.*(residual).^2) / length(residual));
+0623                 options = optimset(<span class="string">'Display'</span>,info,<span class="string">'TolFun'</span>,1e-9,<span class="string">'TolX'</span>,1e-9,<span class="keyword">...</span>
+0624                     <span class="string">'MaxFunEvals'</span>,300,<span class="string">'MaxIter'</span>,300);
+0625                 X = fminsearchbnd(@(X) <a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>(X,iparam),x0,lb,ub,options);
+0626                 
+0627                 [errnorm,ig,XX,iGEOM,iSAT] = <a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>(X,iparam);
+0628                 
+0629                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
+0630                 
+0631                 <span class="keyword">if</span> useW
+0632                     <span class="comment">% normalize the fit because the signal was error</span>
+0633                     <span class="comment">% weighted for the inversion</span>
+0634                     e = diag(iparam.W);
+0635                     einv = 1./e;
+0636                     Winv = diag(einv);
+0637                     ig = Winv * ig;
+0638                 <span class="keyword">end</span>
+0639                 
+0640                 irho = 10^X(1);
+0641                 ibeta = X(2);
+0642                 
+0643                 data.results.invjoint.p0 = p0;
+0644                 data.results.invjoint.S0 = S0;
+0645                 data.results.invjoint.levels = levels;
+0646                 data.results.invjoint.T1T2 = T1T2flag;
+0647                 data.results.invjoint.T1IRfac = T1IRfac;
+0648                 data.results.invjoint.x0 = x0;
+0649                 data.results.invjoint.lb = lb;
+0650                 data.results.invjoint.ub = ub;
+0651                 data.results.invjoint.iparam = iparam;
+0652                 data.results.invjoint.iGEOM = iGEOM;
+0653                 data.results.invjoint.iSAT = iSAT;
+0654                 data.results.invjoint.iF = fullsat.F;
+0655                 data.results.invjoint.irho = irho;
+0656                 data.results.invjoint.ibeta = ibeta;
+0657                 data.results.invjoint.ig = ig;
+0658                 data.results.invjoint.XX = XX;
+0659                 data.results.invjoint.errnorm = errnorm;
+0660                 data.results.invjoint.residual = ig-g';
+0661                 
+0662                 <span class="comment">% get RMS and X^2</span>
+0663                 residual = data.results.invjoint.residual;
+0664                 <span class="keyword">if</span> useW
+0665                     <span class="comment">% weighted RMS error</span>
+0666                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
+0667                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
+0668                     data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
+0669                     <span class="comment">% X2 estimate</span>
+0670                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,e);
+0671                 <span class="keyword">else</span>
+0672                     <span class="comment">% RMS error</span>
+0673                     data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
+0674                     <span class="comment">% X2 estimate</span>
+0675                     data.results.invjoint.chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(g',ig,idata.nmr{levels(1)}.noise);
+0676                 <span class="keyword">end</span>
+0677                 
+0678                 <span class="comment">% predict CPS curves from final model</span>
+0679                 infostring = <span class="string">'calculate CPS curve ... '</span>;
+0680                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0681                 ppsddata.r = iGEOM.radius';
+0682                 ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
+0683                 <span class="keyword">if</span> min(p) == 0
+0684                     p_tmp = logspace(floor(log10(min(p(p&gt;0)))-2),ceil(log10(max(p)))+2,150);
+0685                 <span class="keyword">else</span>
+0686                     p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
+0687                 <span class="keyword">end</span>
+0688                 <span class="comment">% wait-bar option</span>
+0689                 wbopts.show = true;
+0690                 wbopts.tag = <span class="string">'INV'</span>;
+0691                 pSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(iGEOM,p_tmp,ppsddata,<a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>,wbopts);
+0692                 
+0693                 data.results.invjoint.pSAT = pSAT;
+0694                 <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done'</span>]);
+0695         <span class="keyword">end</span>
+0696         
+0697         <span class="comment">% if the regularization method was not L-curve then post process the</span>
+0698         <span class="comment">% NMR data fits</span>
+0699         <span class="keyword">if</span> ~strcmp(data.invjoint.regtype,<span class="string">'lcurve'</span>)
+0700             <span class="comment">% get the individual NMR fits</span>
+0701             <span class="keyword">for</span> i = 1:1:numel(levels)
+0702                 idata.nmr{levels(i)}.fit_t = idata.nmr{levels(i)}.t;
+0703                 <span class="keyword">if</span> i == 1
+0704                     idata.nmr{levels(i)}.fit_g = ig(1:indt(1));
+0705                 <span class="keyword">else</span>
+0706                     idata.nmr{levels(i)}.fit_g = ig(sum(indt(1:i-1))+1:sum(indt(1:i-1))+indt(i));
+0707                 <span class="keyword">end</span>
+0708                 residual = idata.nmr{levels(i)}.fit_g - idata.nmr{levels(i)}.g;
+0709                 
+0710                 <span class="comment">% get RMS and X^2</span>
+0711                 <span class="keyword">if</span> useW
+0712                     <span class="comment">% weighted RMS error</span>
+0713                     <span class="comment">% residual is weighted with the amount of echoes N per time gate</span>
+0714                     <span class="comment">% NOTE: if &quot;N per gate&quot; is too large, the RMS estimation breaks down</span>
+0715                     N = idata.nmr{levels(i)}.N;
+0716                     rms = sqrt (sum(N.*(residual).^2) / length(residual));
+0717                     <span class="comment">% X2 estimate</span>
+0718                     chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(idata.nmr{levels(i)}.g,<span class="keyword">...</span>
+0719                         idata.nmr{levels(i)}.fit_g,<span class="keyword">...</span>
+0720                         idata.nmr{levels(i)}.e);
+0721                 <span class="keyword">else</span>
+0722                     <span class="comment">% RMS error</span>
+0723                     rms = sqrt( sum(residual.^2) / length(residual) );
 0724                     <span class="comment">% X2 estimate</span>
 0725                     chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(idata.nmr{levels(i)}.g,<span class="keyword">...</span>
 0726                         idata.nmr{levels(i)}.fit_g,<span class="keyword">...</span>
-0727                         idata.nmr{levels(i)}.e);
-0728                 <span class="keyword">else</span>
-0729                     <span class="comment">% RMS error</span>
-0730                     rms = sqrt( sum(residual.^2) / length(residual) );
-0731                     <span class="comment">% X2 estimate</span>
-0732                     chi2 = <a href="../../../nucleus/functions/inversion/getChi2.html" class="code" title="function chi2 = getChi2(signal,fit,noise)">getChi2</a>(idata.nmr{levels(i)}.g,<span class="keyword">...</span>
-0733                         idata.nmr{levels(i)}.fit_g,<span class="keyword">...</span>
-0734                         idata.nmr{levels(i)}.noise);
-0735                 <span class="keyword">end</span>
-0736 
-0737                 idata.nmr{levels(i)}.residual = residual;
-0738                 idata.nmr{levels(i)}.rms = rms;
-0739                 idata.nmr{levels(i)}.chi2 = chi2;
-0740             <span class="keyword">end</span>
-0741             <span class="comment">% save the GUI data</span>
-0742             data.results.invjoint.idata = idata;
-0743             setappdata(fig,<span class="string">'data'</span>,data);
-0744             
-0745             <span class="comment">% save the &quot;INVdata&quot;</span>
-0746             <span class="keyword">for</span> i = 1:1:numel(levels)
-0747                 INVdata{levels(i)}.invjoint = data.invjoint;
-0748                 INVdata{levels(i)}.pressure = data.pressure;
-0749                 INVdata{levels(i)}.results.invjoint = data.results.invjoint;
-0750             <span class="keyword">end</span>
-0751             setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0752             <span class="comment">% update the plots</span>
-0753             <a href="updatePlotsJointInversion.html" class="code" title="function updatePlotsJointInversion">updatePlotsJointInversion</a>;
-0754             <span class="comment">% update the INFO fields</span>
-0755             <a href="updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);            
-0756             <span class="comment">% set focus on results</span>
-0757             set(gui.plots.SignalPanel,<span class="string">'Selection'</span>,3);
-0758             set(gui.plots.DistPanel,<span class="string">'Selection'</span>,3);
-0759             <span class="comment">% open INFO field</span>
-0760             set(gui.push_handles.info,<span class="string">'String'</span>,<span class="string">'&lt;'</span>);
-0761             <a href="../../../nucleus/callbacks/push/onPushShowHide.html" class="code" title="function onPushShowHide(src,~)">onPushShowHide</a>(gui.push_handles.info);
-0762         <span class="keyword">end</span>     
-0763     <span class="keyword">else</span>        
-0764         <span class="keyword">if</span> ~InvtypeIsOK
-0765             helpdlg({<span class="string">'function: runInversionJoint'</span>,<span class="string">'Perform standard multi-exponential inversion first.'</span>,<span class="keyword">...</span>
-0766             <span class="string">'For ''fixed'' and ''shape'' you need a RTD!'</span>},<span class="string">'No RTD'</span>);
-0767         <span class="keyword">end</span>
-0768         <span class="keyword">if</span> ~GatetypeIsOK
-0769             helpdlg({<span class="string">'function: runInversionJoint'</span>,<span class="string">'Check your ''signal gating'' settings.'</span>,<span class="keyword">...</span>
-0770             <span class="string">'All signals need to have the same gating.'</span>},<span class="string">'Wrong gating'</span>);
-0771         <span class="keyword">end</span>
-0772     <span class="keyword">end</span>
-0773 <span class="keyword">else</span>
-0774     helpdlg({<span class="string">'function: runInversionJoint'</span>,<span class="string">'Perform standard inversion first.'</span>,<span class="keyword">...</span>
-0775         <span class="string">'For ''fixed'' and ''shape'' you need a RTD!'</span>},<span class="string">'No Data'</span>);
+0727                         idata.nmr{levels(i)}.noise);
+0728                 <span class="keyword">end</span>
+0729 
+0730                 idata.nmr{levels(i)}.residual = residual;
+0731                 idata.nmr{levels(i)}.rms = rms;
+0732                 idata.nmr{levels(i)}.chi2 = chi2;
+0733             <span class="keyword">end</span>
+0734             <span class="comment">% save the GUI data</span>
+0735             data.results.invjoint.idata = idata;
+0736             setappdata(fig,<span class="string">'data'</span>,data);
+0737             
+0738             <span class="comment">% save the &quot;INVdata&quot;</span>
+0739             <span class="keyword">for</span> i = 1:1:numel(levels)
+0740                 INVdata{levels(i)}.invjoint = data.invjoint;
+0741                 INVdata{levels(i)}.pressure = data.pressure;
+0742                 INVdata{levels(i)}.results.invjoint = data.results.invjoint;
+0743             <span class="keyword">end</span>
+0744             setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0745             <span class="comment">% update the plots</span>
+0746             <a href="updatePlotsJointInversion.html" class="code" title="function updatePlotsJointInversion">updatePlotsJointInversion</a>;
+0747             <span class="comment">% update the INFO fields</span>
+0748             <a href="updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);            
+0749             <span class="comment">% set focus on results</span>
+0750             set(gui.plots.SignalPanel,<span class="string">'Selection'</span>,3);
+0751             set(gui.plots.DistPanel,<span class="string">'Selection'</span>,3);
+0752             <span class="comment">% open INFO field</span>
+0753             set(gui.push_handles.info,<span class="string">'String'</span>,<span class="string">'&lt;'</span>);
+0754             <a href="../../../nucleus/callbacks/push/onPushShowHide.html" class="code" title="function onPushShowHide(src,~)">onPushShowHide</a>(gui.push_handles.info);
+0755         <span class="keyword">end</span>     
+0756     <span class="keyword">else</span>        
+0757         <span class="keyword">if</span> ~InvtypeIsOK
+0758             helpdlg({<span class="string">'function: runInversionJoint'</span>,<span class="string">'Perform standard multi-exponential inversion first.'</span>,<span class="keyword">...</span>
+0759             <span class="string">'For ''fixed'' and ''shape'' you need a RTD!'</span>},<span class="string">'No RTD'</span>);
+0760         <span class="keyword">end</span>
+0761         <span class="keyword">if</span> ~GatetypeIsOK
+0762             helpdlg({<span class="string">'function: runInversionJoint'</span>,<span class="string">'Check your ''signal gating'' settings.'</span>,<span class="keyword">...</span>
+0763             <span class="string">'All signals need to have the same gating.'</span>},<span class="string">'Wrong gating'</span>);
+0764         <span class="keyword">end</span>
+0765     <span class="keyword">end</span>
+0766 <span class="keyword">else</span>
+0767     helpdlg({<span class="string">'function: runInversionJoint'</span>,<span class="string">'Perform standard inversion first.'</span>,<span class="keyword">...</span>
+0768         <span class="string">'For ''fixed'' and ''shape'' you need a RTD!'</span>},<span class="string">'No Data'</span>);
+0769 <span class="keyword">end</span>
+0770 
+0771 <span class="comment">%% at the end, no matter what reset the RUN button</span>
+0772 set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'&lt;HTML&gt;&lt;u&gt;R&lt;/u&gt;UN'</span>,<span class="keyword">...</span>
+0773     <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
+0774 setappdata(fig,<span class="string">'gui'</span>,gui);
+0775 
 0776 <span class="keyword">end</span>
 0777 
-0778 <span class="comment">%% at the end, no matter what reset the RUN button</span>
-0779 set(gui.push_handles.invjoint_run,<span class="string">'String'</span>,<span class="string">'&lt;HTML&gt;&lt;u&gt;R&lt;/u&gt;UN'</span>,<span class="keyword">...</span>
-0780     <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
-0781 setappdata(fig,<span class="string">'gui'</span>,gui);
-0782 
-0783 <span class="keyword">end</span>
-0784 
-0785 <span class="comment">%------------- END OF CODE --------------</span>
-0786 
-0787 <span class="comment">%% License:</span>
-0788 <span class="comment">% MIT License</span>
-0789 <span class="comment">%</span>
-0790 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0778 <span class="comment">%------------- END OF CODE --------------</span>
+0779 
+0780 <span class="comment">%% License:</span>
+0781 <span class="comment">% MIT License</span>
+0782 <span class="comment">%</span>
+0783 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0784 <span class="comment">%</span>
+0785 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0786 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0787 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0788 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0789 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0790 <span class="comment">% furnished to do so, subject to the following conditions:</span>
 0791 <span class="comment">%</span>
-0792 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0793 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0794 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0795 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0796 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0797 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0798 <span class="comment">%</span>
-0799 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0800 <span class="comment">% copies or substantial portions of the Software.</span>
-0801 <span class="comment">%</span>
-0802 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0803 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0804 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0805 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0806 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0807 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0808 <span class="comment">% SOFTWARE.</span></pre></div>
+0792 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0793 <span class="comment">% copies or substantial portions of the Software.</span>
+0794 <span class="comment">%</span>
+0795 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0796 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0797 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0798 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0799 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0800 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0801 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
