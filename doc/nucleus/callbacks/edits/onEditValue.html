@@ -164,7 +164,7 @@ This function is called by:
 0080         <span class="keyword">switch</span> out.panel
 0081             <span class="keyword">case</span> <span class="string">'process'</span>
 0082                 <span class="keyword">switch</span> out.field
-0083                     <span class="keyword">case</span> <span class="string">'start'</span>
+0083                     <span class="keyword">case</span> {<span class="string">'start'</span>,<span class="string">'Nechoes'</span>}
 0084                         <span class="comment">% remove temporary data fields</span>
 0085                         data = <a href="../../../nucleus/functions/interface/removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
 0086                         setappdata(fig,<span class="string">'data'</span>,data);
@@ -172,189 +172,195 @@ This function is called by:
 0088                         id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
 0089                         <a href="../../../nucleus/functions/interface/processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>(fig,id);
 0090                         <a href="../../../nucleus/functions/interface/updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
-0091                     <span class="keyword">case</span> <span class="string">'end'</span>
-0092                         <span class="comment">% remove temporary data fields</span>
-0093                         data = <a href="../../../nucleus/functions/interface/removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
-0094                         setappdata(fig,<span class="string">'data'</span>,data);
-0095                         <span class="comment">% check if the first sample is really smaller than</span>
-0096                         <span class="comment">% the last one; if not reset everything</span>
-0097                         first = str2double(get(gui.edit_handles.process_start,<span class="string">'String'</span>));
-0098                         last = value;
-0099                         id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
-0100                         maxL = length(data.import.NMR.data{id}.signal);
-0101                         <span class="keyword">if</span> last == 0 || last &lt;= first || last &gt; maxL
-0102                             data.process.end = maxL;
-0103                             set(src,<span class="string">'String'</span>,num2str(data.process.end));
-0104                             setappdata(fig,<span class="string">'data'</span>,data);
-0105                         <span class="keyword">end</span>
-0106                         <span class="comment">% process the current selected signal</span>
-0107                         <a href="../../../nucleus/functions/interface/processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>(fig,id);
-0108                         <a href="../../../nucleus/functions/interface/updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
-0109                 <span class="keyword">end</span>
-0110             <span class="keyword">case</span> <span class="string">'invstd'</span>
-0111                 <span class="keyword">switch</span> out.field
-0112                     <span class="keyword">case</span> <span class="string">'lambdaR'</span>
-0113                         data.invstd.lambda = data.invstd.lambdaR(1);
-0114                         setappdata(fig,<span class="string">'data'</span>,data);
-0115                     <span class="keyword">case</span> <span class="string">'Tbulk'</span>
-0116                         <span class="keyword">if</span> data.invstd.Tbulk &lt;=0
-0117                             data.invstd.Tbulk = 2;
-0118                             setappdata(fig,<span class="string">'data'</span>,data);
-0119                             set(src,<span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0120                         <span class="keyword">end</span>
-0121                     <span class="keyword">case</span> <span class="string">'porosity'</span>
-0122                         <span class="keyword">if</span> data.invstd.porosity &lt; 0 || data.invstd.porosity &gt; 1
-0123                             data.invstd.porosity = 1;
+0091                         <a href="../../../nucleus/functions/interface/updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(src);
+0092                         <span class="comment">% clear axes</span>
+0093                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
+0094                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
+0095                         <span class="comment">% set focus on data</span>
+0096                         set(gui.plots.SignalPanel,<span class="string">'Selection'</span>,1);
+0097                     <span class="keyword">case</span> <span class="string">'end'</span>
+0098                         <span class="comment">% remove temporary data fields</span>
+0099                         data = <a href="../../../nucleus/functions/interface/removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
+0100                         setappdata(fig,<span class="string">'data'</span>,data);
+0101                         <span class="comment">% check if the first sample is really smaller than</span>
+0102                         <span class="comment">% the last one; if not reset everything</span>
+0103                         first = str2double(get(gui.edit_handles.process_start,<span class="string">'String'</span>));
+0104                         last = value;
+0105                         id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0106                         maxL = length(data.import.NMR.data{id}.signal);
+0107                         <span class="keyword">if</span> last == 0 || last &lt;= first || last &gt; maxL
+0108                             data.process.end = maxL;
+0109                             set(src,<span class="string">'String'</span>,num2str(data.process.end));
+0110                             setappdata(fig,<span class="string">'data'</span>,data);
+0111                         <span class="keyword">end</span>
+0112                         <span class="comment">% process the current selected signal</span>
+0113                         <a href="../../../nucleus/functions/interface/processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>(fig,id);
+0114                         <a href="../../../nucleus/functions/interface/updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>; 
+0115                 <span class="keyword">end</span>
+0116             <span class="keyword">case</span> <span class="string">'invstd'</span>
+0117                 <span class="keyword">switch</span> out.field
+0118                     <span class="keyword">case</span> <span class="string">'lambdaR'</span>
+0119                         data.invstd.lambda = data.invstd.lambdaR(1);
+0120                         setappdata(fig,<span class="string">'data'</span>,data);
+0121                     <span class="keyword">case</span> <span class="string">'Tbulk'</span>
+0122                         <span class="keyword">if</span> data.invstd.Tbulk &lt;=0
+0123                             data.invstd.Tbulk = 2;
 0124                             setappdata(fig,<span class="string">'data'</span>,data);
-0125                             set(src,<span class="string">'String'</span>,num2str(data.invstd.porosity));
+0125                             set(src,<span class="string">'String'</span>,num2str(data.invstd.Tbulk));
 0126                         <span class="keyword">end</span>
-0127                         <a href="../../../nucleus/functions/interface/updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
-0128                 <span class="keyword">end</span>
-0129             <span class="keyword">case</span> <span class="string">'param'</span>
-0130                 <span class="keyword">switch</span> out.field
-0131                     <span class="keyword">case</span> {<span class="string">'rho'</span>,<span class="string">'a'</span>,<span class="string">'CBWcutoff'</span>,<span class="string">'BVIcutoff'</span>}
-0132                         <a href="../../../nucleus/functions/interface/updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
-0133                         <a href="../../../nucleus/functions/interface/updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);
-0134                     <span class="keyword">case</span> <span class="string">'calibAmp'</span>
-0135                         data.calib.amp = data.param.calibAmp;
-0136                         setappdata(fig,<span class="string">'data'</span>,data); 
-0137                     <span class="keyword">case</span> <span class="string">'calibVol'</span>
-0138                         data.calib.vol = data.param.calibVol;
-0139                         setappdata(fig,<span class="string">'data'</span>,data);
-0140                     <span class="keyword">case</span> <span class="string">'sampVol'</span>
-0141                         <a href="../../../nucleus/functions/interface/calibratePorosity.html" class="code" title="function calibratePorosity">calibratePorosity</a>;
-0142                 <span class="keyword">end</span>
-0143             <span class="keyword">case</span> <span class="string">'invjoint'</span>
-0144                 <span class="keyword">switch</span> out.field
-0145                     <span class="keyword">case</span> <span class="string">'lambdaR'</span>
-0146                         data.invjoint.lambda = data.invjoint.lambdaR(1);
-0147                         setappdata(fig,<span class="string">'data'</span>,data);
-0148                     <span class="keyword">case</span> <span class="string">'beta'</span>
-0149                         <span class="keyword">if</span> value &lt; 0.1
-0150                             value = 1;
-0151                         <span class="keyword">elseif</span> value &gt; 89.9
-0152                             value = 89;
-0153                         <span class="keyword">end</span>
-0154                         eval(updstr);
-0155                         data.invjoint.gamma = data.invjoint.alpha - data.invjoint.beta;
-0156                         setappdata(fig,<span class="string">'data'</span>,data);
-0157                         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0158                     <span class="keyword">case</span> <span class="string">'rhostart'</span>
-0159                     <span class="keyword">case</span> <span class="string">'anglestart'</span>
-0160                         <span class="keyword">if</span> value &lt; 0.1
-0161                             value = 1;
-0162                         <span class="keyword">elseif</span> value &gt; 89.9
-0163                             value = 89;
-0164                         <span class="keyword">end</span>
-0165                         eval(updstr);
-0166                         data.invjoint.beta = value;
-0167                         data.invjoint.gamma = data.invjoint.alpha - data.invjoint.beta;
-0168                         setappdata(fig,<span class="string">'data'</span>,data);
-0169                         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0170                 <span class="keyword">end</span>
-0171         <span class="keyword">end</span> <span class="comment">% switch out.panel</span>
-0172         setappdata(fig,<span class="string">'gui'</span>,gui);
-0173     <span class="keyword">case</span> <span class="string">'MOD'</span>
-0174         <span class="comment">% switch depending on the parent panel</span>
-0175         <span class="keyword">switch</span> out.panel
-0176             <span class="keyword">case</span> <span class="string">'geometry'</span>
-0177                 <span class="keyword">switch</span> out.field
-0178                     <span class="keyword">case</span> <span class="string">'beta'</span>
-0179                         <span class="keyword">if</span> value &lt; 0.5
-0180                             value = 1;
-0181                         <span class="keyword">elseif</span> value &gt; 89.5
-0182                             value = 89;
-0183                         <span class="keyword">end</span>
-0184                         eval(updstr);
-0185                         setappdata(fig,<span class="string">'data'</span>,data);
-0186                     <span class="keyword">otherwise</span>
-0187                         <span class="comment">% nothing to do</span>
-0188                 <span class="keyword">end</span>
-0189                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'cps'</span>);
-0190                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'nmr'</span>);
-0191                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
-0192                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.nmr);
-0193                 setappdata(fig,<span class="string">'data'</span>,data);
-0194                 <a href="../../../nucleus/functions/interface/calculateGeometry.html" class="code" title="function calculateGeometry">calculateGeometry</a>;
-0195                 
-0196             <span class="keyword">case</span> <span class="string">'pressure'</span>
-0197                 <span class="keyword">switch</span> out.field
-0198                     <span class="keyword">case</span> <span class="string">'range'</span>
-0199                         updstr = [out.updstr,<span class="string">'('</span>,num2str(defaults(2)),<span class="keyword">...</span>
-0200                             <span class="string">','</span>,num2str(defaults(3)),<span class="string">')'</span>,<span class="keyword">...</span>
-0201                             <span class="string">'=value/data.pressure.unitfac;'</span>];
-0202                         eval(updstr);
-0203                 <span class="keyword">end</span>
-0204                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'cps'</span>);
-0205                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'nmr'</span>);
-0206                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
-0207                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.nmr);
-0208                 setappdata(fig,<span class="string">'data'</span>,data);
-0209                 <a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod_updateInterface.html" class="code" title="function NUCLEUSmod_updateInterface">NUCLEUSmod_updateInterface</a>;
-0210                 
-0211             <span class="keyword">case</span> <span class="string">'nmr'</span>
-0212                 <span class="keyword">switch</span> out.field
-0213                     <span class="keyword">case</span> <span class="string">'noise'</span>
-0214                         <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)
-0215                             <a href="../../../nucleus/functions/interface/updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>;
-0216                             <a href="../../../nucleus/functions/interface/updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
-0217                         <span class="keyword">end</span>
-0218                     <span class="keyword">case</span> <span class="string">'porosity'</span>
-0219                         <span class="keyword">if</span> data.nmr.porosity &lt;= 0 || data.nmr.porosity &gt; 1
-0220                             data.nmr.porosity = 1;
-0221                             set(src,<span class="string">'String'</span>,num2str(data.nmr.porosity));
-0222                             setappdata(fig,<span class="string">'data'</span>,data);
+0127                     <span class="keyword">case</span> <span class="string">'porosity'</span>
+0128                         <span class="keyword">if</span> data.invstd.porosity &lt; 0 || data.invstd.porosity &gt; 1
+0129                             data.invstd.porosity = 1;
+0130                             setappdata(fig,<span class="string">'data'</span>,data);
+0131                             set(src,<span class="string">'String'</span>,num2str(data.invstd.porosity));
+0132                         <span class="keyword">end</span>
+0133                         <a href="../../../nucleus/functions/interface/updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
+0134                 <span class="keyword">end</span>
+0135             <span class="keyword">case</span> <span class="string">'param'</span>
+0136                 <span class="keyword">switch</span> out.field
+0137                     <span class="keyword">case</span> {<span class="string">'rho'</span>,<span class="string">'a'</span>,<span class="string">'CBWcutoff'</span>,<span class="string">'BVIcutoff'</span>}
+0138                         <a href="../../../nucleus/functions/interface/updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
+0139                         <a href="../../../nucleus/functions/interface/updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);
+0140                     <span class="keyword">case</span> <span class="string">'calibAmp'</span>
+0141                         data.calib.amp = data.param.calibAmp;
+0142                         setappdata(fig,<span class="string">'data'</span>,data); 
+0143                     <span class="keyword">case</span> <span class="string">'calibVol'</span>
+0144                         data.calib.vol = data.param.calibVol;
+0145                         setappdata(fig,<span class="string">'data'</span>,data);
+0146                     <span class="keyword">case</span> <span class="string">'sampVol'</span>
+0147                         <a href="../../../nucleus/functions/interface/calibratePorosity.html" class="code" title="function calibratePorosity">calibratePorosity</a>;
+0148                 <span class="keyword">end</span>
+0149             <span class="keyword">case</span> <span class="string">'invjoint'</span>
+0150                 <span class="keyword">switch</span> out.field
+0151                     <span class="keyword">case</span> <span class="string">'lambdaR'</span>
+0152                         data.invjoint.lambda = data.invjoint.lambdaR(1);
+0153                         setappdata(fig,<span class="string">'data'</span>,data);
+0154                     <span class="keyword">case</span> <span class="string">'beta'</span>
+0155                         <span class="keyword">if</span> value &lt; 0.1
+0156                             value = 1;
+0157                         <span class="keyword">elseif</span> value &gt; 89.9
+0158                             value = 89;
+0159                         <span class="keyword">end</span>
+0160                         eval(updstr);
+0161                         data.invjoint.gamma = data.invjoint.alpha - data.invjoint.beta;
+0162                         setappdata(fig,<span class="string">'data'</span>,data);
+0163                         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0164                     <span class="keyword">case</span> <span class="string">'rhostart'</span>
+0165                     <span class="keyword">case</span> <span class="string">'anglestart'</span>
+0166                         <span class="keyword">if</span> value &lt; 0.1
+0167                             value = 1;
+0168                         <span class="keyword">elseif</span> value &gt; 89.9
+0169                             value = 89;
+0170                         <span class="keyword">end</span>
+0171                         eval(updstr);
+0172                         data.invjoint.beta = value;
+0173                         data.invjoint.gamma = data.invjoint.alpha - data.invjoint.beta;
+0174                         setappdata(fig,<span class="string">'data'</span>,data);
+0175                         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0176                 <span class="keyword">end</span>
+0177         <span class="keyword">end</span> <span class="comment">% switch out.panel</span>
+0178         setappdata(fig,<span class="string">'gui'</span>,gui);
+0179     <span class="keyword">case</span> <span class="string">'MOD'</span>
+0180         <span class="comment">% switch depending on the parent panel</span>
+0181         <span class="keyword">switch</span> out.panel
+0182             <span class="keyword">case</span> <span class="string">'geometry'</span>
+0183                 <span class="keyword">switch</span> out.field
+0184                     <span class="keyword">case</span> <span class="string">'beta'</span>
+0185                         <span class="keyword">if</span> value &lt; 0.5
+0186                             value = 1;
+0187                         <span class="keyword">elseif</span> value &gt; 89.5
+0188                             value = 89;
+0189                         <span class="keyword">end</span>
+0190                         eval(updstr);
+0191                         setappdata(fig,<span class="string">'data'</span>,data);
+0192                     <span class="keyword">otherwise</span>
+0193                         <span class="comment">% nothing to do</span>
+0194                 <span class="keyword">end</span>
+0195                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'cps'</span>);
+0196                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'nmr'</span>);
+0197                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
+0198                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.nmr);
+0199                 setappdata(fig,<span class="string">'data'</span>,data);
+0200                 <a href="../../../nucleus/functions/interface/calculateGeometry.html" class="code" title="function calculateGeometry">calculateGeometry</a>;
+0201                 
+0202             <span class="keyword">case</span> <span class="string">'pressure'</span>
+0203                 <span class="keyword">switch</span> out.field
+0204                     <span class="keyword">case</span> <span class="string">'range'</span>
+0205                         updstr = [out.updstr,<span class="string">'('</span>,num2str(defaults(2)),<span class="keyword">...</span>
+0206                             <span class="string">','</span>,num2str(defaults(3)),<span class="string">')'</span>,<span class="keyword">...</span>
+0207                             <span class="string">'=value/data.pressure.unitfac;'</span>];
+0208                         eval(updstr);
+0209                 <span class="keyword">end</span>
+0210                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'cps'</span>);
+0211                 data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'nmr'</span>);
+0212                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
+0213                 <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.nmr);
+0214                 setappdata(fig,<span class="string">'data'</span>,data);
+0215                 <a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod_updateInterface.html" class="code" title="function NUCLEUSmod_updateInterface">NUCLEUSmod_updateInterface</a>;
+0216                 
+0217             <span class="keyword">case</span> <span class="string">'nmr'</span>
+0218                 <span class="keyword">switch</span> out.field
+0219                     <span class="keyword">case</span> <span class="string">'noise'</span>
+0220                         <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)
+0221                             <a href="../../../nucleus/functions/interface/updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>;
+0222                             <a href="../../../nucleus/functions/interface/updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
 0223                         <span class="keyword">end</span>
-0224                         <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)
-0225                             <a href="../../../nucleus/functions/interface/updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>;
-0226                             <a href="../../../nucleus/functions/interface/updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
-0227                         <span class="keyword">end</span>
-0228                     <span class="keyword">otherwise</span>
-0229                         data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'nmr'</span>);
-0230                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.nmr);
-0231                         setappdata(fig,<span class="string">'data'</span>,data);
-0232                         <a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod_updateInterface.html" class="code" title="function NUCLEUSmod_updateInterface">NUCLEUSmod_updateInterface</a>;
-0233                 <span class="keyword">end</span>
-0234         <span class="keyword">end</span>
-0235     <span class="keyword">otherwise</span>
-0236         helpdlg({<span class="string">'function: onEditValue'</span>,<span class="string">'Something is utterly wrong.'</span>},<span class="keyword">...</span>
-0237             <span class="string">'wrong fig tag'</span>);
-0238 <span class="keyword">end</span>
-0239 
-0240 <span class="keyword">end</span>
-0241 
-0242 <a name="_sub1" href="#_subfunctions" class="code">function out = createDataString(tag)</a>
-0243 ind = strfind(tag,<span class="string">'_'</span>);
-0244 out.panel = tag(1:ind(1)-1);
-0245 out.field = tag(ind(1)+1:end);
-0246 tag(ind) = <span class="string">'.'</span>;
-0247 out.updstr = [<span class="string">'data.'</span>,tag];
-0248 <span class="keyword">end</span>
-0249 
-0250 <span class="comment">%------------- END OF CODE --------------</span>
-0251 
-0252 <span class="comment">%% License:</span>
-0253 <span class="comment">% MIT License</span>
-0254 <span class="comment">%</span>
-0255 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0256 <span class="comment">%</span>
-0257 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0258 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0259 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0260 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0261 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0262 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0263 <span class="comment">%</span>
-0264 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0265 <span class="comment">% copies or substantial portions of the Software.</span>
-0266 <span class="comment">%</span>
-0267 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0268 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0269 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0270 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0271 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0272 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0273 <span class="comment">% SOFTWARE.</span></pre></div>
+0224                     <span class="keyword">case</span> <span class="string">'porosity'</span>
+0225                         <span class="keyword">if</span> data.nmr.porosity &lt;= 0 || data.nmr.porosity &gt; 1
+0226                             data.nmr.porosity = 1;
+0227                             set(src,<span class="string">'String'</span>,num2str(data.nmr.porosity));
+0228                             setappdata(fig,<span class="string">'data'</span>,data);
+0229                         <span class="keyword">end</span>
+0230                         <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)
+0231                             <a href="../../../nucleus/functions/interface/updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>;
+0232                             <a href="../../../nucleus/functions/interface/updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
+0233                         <span class="keyword">end</span>
+0234                     <span class="keyword">otherwise</span>
+0235                         data = <a href="../../../nucleus/functions/interface/removeCalculationFields.html" class="code" title="function data = removeCalculationFields(data,type)">removeCalculationFields</a>(data,<span class="string">'nmr'</span>);
+0236                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.nmr);
+0237                         setappdata(fig,<span class="string">'data'</span>,data);
+0238                         <a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod_updateInterface.html" class="code" title="function NUCLEUSmod_updateInterface">NUCLEUSmod_updateInterface</a>;
+0239                 <span class="keyword">end</span>
+0240         <span class="keyword">end</span>
+0241     <span class="keyword">otherwise</span>
+0242         helpdlg({<span class="string">'function: onEditValue'</span>,<span class="string">'Something is utterly wrong.'</span>},<span class="keyword">...</span>
+0243             <span class="string">'wrong fig tag'</span>);
+0244 <span class="keyword">end</span>
+0245 
+0246 <span class="keyword">end</span>
+0247 
+0248 <a name="_sub1" href="#_subfunctions" class="code">function out = createDataString(tag)</a>
+0249 ind = strfind(tag,<span class="string">'_'</span>);
+0250 out.panel = tag(1:ind(1)-1);
+0251 out.field = tag(ind(1)+1:end);
+0252 tag(ind) = <span class="string">'.'</span>;
+0253 out.updstr = [<span class="string">'data.'</span>,tag];
+0254 <span class="keyword">end</span>
+0255 
+0256 <span class="comment">%------------- END OF CODE --------------</span>
+0257 
+0258 <span class="comment">%% License:</span>
+0259 <span class="comment">% MIT License</span>
+0260 <span class="comment">%</span>
+0261 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0262 <span class="comment">%</span>
+0263 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0264 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0265 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0266 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0267 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0268 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0269 <span class="comment">%</span>
+0270 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0271 <span class="comment">% copies or substantial portions of the Software.</span>
+0272 <span class="comment">%</span>
+0273 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0274 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0275 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0276 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0277 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0278 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0279 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

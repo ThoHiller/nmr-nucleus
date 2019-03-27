@@ -58,6 +58,8 @@ out.process.end = 0;
 % re-sampling (gating) of the raw signal 'log' | 'lin' | 'none'
 % depends on signal type 'T1' or 'T2'
 out.process.gatetype = 'log';
+% maximum number of echoes per gate
+out.process.Nechoes = 50;
 % normalize signal to 1 (no=0, yes=1)
 out.process.norm = 0;
 % scale factor for normalization
@@ -96,18 +98,18 @@ out.calib.name = '';
 %% standard inversion panel defaults
 % inversion methods to choose from
 % 'mono' | 'free' | 'NNLS' | 'ILA'
-out.invstd.invtype = 'ILA';
+out.invstd.invtype = 'NNLS';
 % when inversion method is 'free' choose No. of free relaxation times
 out.invstd.freeDT = 2;
 % regularization options for multi-exponential fitting routines
 % 'NNLS' and 'ILA'
-out.invstd.regtype = 'auto';
+out.invstd.regtype = 'manual';
 % smoothness constraint (order) for multi-exponential fitting routines
 % 'NNLS' and 'ILA'
 out.invstd.Lorder = 1;
 % regularization parameter for multi-exponential fitting routines
 % 'NNLS' and 'ILA'
-out.invstd.lambda = -1;
+out.invstd.lambda = 1;
 % L-curve range (lambda) for multi-exponential fitting routine 'NNLS'
 out.invstd.lambdaR = [1e-3 1e2];
 % initial L-curve range (lambda) for multi-exponential fitting routine
@@ -156,6 +158,8 @@ out.invjoint.beta = 60;
 out.invjoint.gamma = 30;
 % start value rho [µm/s]
 out.invjoint.rhostart = 20;
+% lower and upper boundary for rho [µm/s]
+out.invjoint.rhobounds = [0.01 1000];
 % sart value beta [deg]
 out.invjoint.anglestart = 25;
 

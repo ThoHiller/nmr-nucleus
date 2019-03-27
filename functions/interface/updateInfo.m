@@ -98,7 +98,7 @@ if showit
                         end
                         
                 end
-                info{end+1,1} = ['<HTML><BODY>noise &nbsp= ',sprintf('%5.4f',nmrproc.noise),'</BODY></HTML>'];
+                info{end+1,1} = ['<HTML><BODY>noise &nbsp= ',sprintf('%5.4e',nmrproc.noise),'</BODY></HTML>'];
                 info{end+1,1} = ' ';
                 
                 % possible inversion results/statistics
@@ -112,12 +112,12 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%5.4f',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%5.4f',ciE0),')','</BODY></HTML>'];
+                                        sprintf('%5.4e',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%5.4e',ciE0),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%5.4f',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%5.4f',ciE0),')','</BODY></HTML>'];
+                                        sprintf('%5.4e',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%5.4e',ciE0),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
@@ -126,7 +126,7 @@ if showit
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%5.4f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.4e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
@@ -138,12 +138,12 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%5.4f',sum(E0)),...
-                                        ' &#8723 (',sprintf('%5.4f',ciE0s),')','</BODY></HTML>'];
+                                        sprintf('%5.4e',sum(E0)),...
+                                        ' &#8723 (',sprintf('%5.4e',ciE0s),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%5.4f',sum(E0)),...
-                                        ' &#8723 (',sprintf('%5.4f',ciE0s),')','</BODY></HTML>'];
+                                        sprintf('%5.4e',sum(E0)),...
+                                        ' &#8723 (',sprintf('%5.4e',ciE0s),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
@@ -152,7 +152,7 @@ if showit
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%5.4f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.4e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
@@ -163,10 +163,10 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%5.4f',sum(invstd.E0)),'</BODY></HTML>'];
+                                        sprintf('%5.4e',sum(invstd.E0)),'</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%5.4f',sum(invstd.E0)),'</BODY></HTML>'];
+                                        sprintf('%5.4e',sum(invstd.E0)),'</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
@@ -175,7 +175,7 @@ if showit
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%5.4f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.4e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
@@ -235,8 +235,8 @@ if showit
                     levels = invjoint.levels;
                     
                     % global fit error
-                    info{end+1,1} = ['ErrNorm: ',sprintf('%5.4f',invjoint.errnorm)];
-                    info{end+1,1} = ['RMS: ',sprintf('%5.4f',invjoint.rms)];
+                    info{end+1,1} = ['ErrNorm: ',sprintf('%5.4e',invjoint.errnorm)];
+                    info{end+1,1} = ['RMS: ',sprintf('%5.4e',invjoint.rms)];
                     info{end+1,1} = ['<HTML><BODY>&Chi<sup><font size="',num2str(subfs),'">2</sup>: ',...
                         sprintf('%5.4f',invjoint.chi2),'</BODY></HTML>'];
                     info{end+1,1}  = ' ';
@@ -245,7 +245,7 @@ if showit
                     
                     for i = 1:numel(levels)
                         info{end+1,1} = nmr{levels(i)}.name;
-                        info{end+1,1} = ['RMS: ',sprintf('%5.4f',nmr{levels(i)}.rms)];
+                        info{end+1,1} = ['RMS: ',sprintf('%5.4e',nmr{levels(i)}.rms)];
                         info{end+1,1} = ['<HTML><BODY>&Chi<sup><font size="',num2str(subfs),'">2</sup>: ',...
                             sprintf('%5.4f',nmr{levels(i)}.chi2),'</BODY></HTML>'];
                         info{end+1,1} = ' ';

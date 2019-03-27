@@ -130,892 +130,905 @@ This function is called by:
 0050             <span class="string">'String'</span>,num2str(data.process.start));
 0051         set(gui.edit_handles.process_end,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
 0052             <span class="string">'String'</span>,num2str(data.process.end));
-0053         
-0054         gui = <a href="#_sub1" class="code" title="subfunction gui = updateGatetype(gui,gatetype)">updateGatetype</a>(gui,data.process.gatetype);
-0055         gui = <a href="#_sub2" class="code" title="subfunction gui = updateNormalize(gui,norm)">updateNormalize</a>(gui,data.process.norm);
-0056         gui = <a href="#_sub3" class="code" title="subfunction gui = updateTimescale(gui,timescale)">updateTimescale</a>(gui,data.process.timescale);
-0057         <span class="keyword">if</span> data.invstd.porosity &lt;= 1
-0058             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0059                 <span class="string">'BackgroundColor'</span>,<span class="string">'w'</span>,<span class="keyword">...</span>
-0060                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
-0061         <span class="keyword">else</span>
-0062             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0063                 <span class="string">'BackgroundColor'</span>,<span class="string">'r'</span>,<span class="keyword">...</span>
-0064                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
-0065         <span class="keyword">end</span>
-0066         
-0067         <span class="comment">%% update standard inversion panel</span>
-0068         <span class="comment">% inversion method popup</span>
-0069         <span class="keyword">switch</span> data.info.optim
-0070             <span class="keyword">case</span> <span class="string">'on'</span>
-0071                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="keyword">...</span>
-0072                     <span class="string">'Multi exp. (LSQLIN)'</span>,<span class="keyword">...</span>
-0073                     <span class="string">'Multi exp. (InvLaplace)'</span>};
-0074             <span class="keyword">case</span> <span class="string">'off'</span>
-0075                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="keyword">...</span>
-0076                     <span class="string">'Multi exp. (NNLS)'</span>,<span class="keyword">...</span>
-0077                     <span class="string">'Multi exp. (InvLaplace)'</span>};
-0078         <span class="keyword">end</span>
-0079         set(gui.popup_handles.invstd_InvType,<span class="string">'String'</span>,istring);
-0080         <span class="keyword">switch</span> data.invstd.invtype
-0081             <span class="keyword">case</span> <span class="string">'mono'</span>
-0082                 <span class="comment">% inversion method popup</span>
-0083                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0084                 
-0085                 <span class="comment">% additional inversion settings</span>
-0086                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0087                     <span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'none'</span>);
-0088                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0089                     <span class="string">'String'</span>,<span class="string">'No extra options'</span>);
-0090                 
-0091                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0092                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
-0093                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
-0094                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
-0095                 
-0096                 <span class="comment">% Tbulk</span>
-0097                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0098                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0099                 
-0100             <span class="keyword">case</span> <span class="string">'free'</span>
-0101                 <span class="comment">% inversion method popup</span>
-0102                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0103                 
-0104                 <span class="comment">% additional inversion settings</span>
-0105                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0106                     <span class="string">'Value'</span>,data.invstd.freeDT,<span class="keyword">...</span>
-0107                     <span class="string">'String'</span>,{<span class="string">'1'</span>,<span class="string">'2'</span>,<span class="string">'3'</span>,<span class="string">'4'</span>,<span class="string">'5'</span>});
-0108                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0109                     <span class="string">'String'</span>,<span class="string">'No. of free decay times T'</span>);
-0110                 
-0111                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0112                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
-0113                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
-0114                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
-0115                 
-0116                 <span class="comment">% Tbulk</span>
-0117                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0118                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0119                 
-0120             <span class="keyword">case</span> <span class="string">'NNLS'</span>
-0121                 <span class="comment">% inversion method popup</span>
-0122                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0123                 
-0124                 <span class="comment">% additional inversion settings</span>
-0125                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0126                     <span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'Iterative Chi2'</span>,<span class="string">'Tikhonov (SVD)'</span>,<span class="string">'TSVD (SVD)'</span>,<span class="keyword">...</span>
-0127                     <span class="string">'DSVD (SVD)'</span>,<span class="string">'Discrep. (SVD)'</span>,<span class="string">'L-curve'</span>});
-0128                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0129                     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
-0130                 
-0131                 <span class="comment">% regularization options</span>
-0132                 <span class="keyword">switch</span> data.invstd.regtype
-0133                     <span class="keyword">case</span> <span class="string">'manual'</span>
-0134                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,1);
-0135                     <span class="keyword">case</span> <span class="string">'iterchi2'</span>
-0136                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,2);    
-0137                     <span class="keyword">case</span> <span class="string">'gcv_tikh'</span>
-0138                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,3);
-0139                     <span class="keyword">case</span> <span class="string">'gcv_trunc'</span>
-0140                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,4);
-0141                     <span class="keyword">case</span> <span class="string">'gcv_damp'</span>
-0142                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,5);
-0143                     <span class="keyword">case</span> <span class="string">'discrep'</span>
-0144                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,6);
-0145                     <span class="keyword">case</span> <span class="string">'lcurve'</span>
-0146                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,7);
-0147                 <span class="keyword">end</span>
-0148                 
-0149                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0150                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,data.invstd.lambda,<span class="keyword">...</span>
-0151                     data.invstd.lambdaR,data.invstd.NlambdaR);
-0152                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
-0153                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,data.invstd.time,<span class="keyword">...</span>
-0154                     data.invstd.Ntime);
-0155                 
-0156                 <span class="comment">% Tbulk</span>
-0157                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0158                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0159                 
-0160             <span class="keyword">case</span> <span class="string">'ILA'</span>
-0161                 <span class="comment">% inversion method popup</span>
-0162                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,4,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0163                 
-0164                 <span class="comment">% additional inversion settings</span>
-0165                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0166                     <span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'Automatic'</span>});
-0167                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0168                     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
-0169                 
-0170                 <span class="comment">% regularization options</span>
-0171                 <span class="keyword">switch</span> data.invstd.regtype
-0172                     <span class="keyword">case</span> <span class="string">'manual'</span>
-0173                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,1);
-0174                     <span class="keyword">case</span> <span class="string">'auto'</span>
-0175                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,2);
-0176                         data.invstd.lambda = -1;
-0177                 <span class="keyword">end</span>
-0178                 
-0179                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0180                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,data.invstd.lambda,<span class="keyword">...</span>
-0181                     data.invstd.lambdaR,data.invstd.NlambdaR);
-0182                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
-0183                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,data.invstd.time,<span class="keyword">...</span>
-0184                     data.invstd.Ntime);
-0185                 
-0186                 <span class="comment">% Tbulk</span>
-0187                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0188                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0189         <span class="keyword">end</span>
-0190         
-0191         <span class="comment">% updates CBW, BVI, rho and a</span>
-0192         gui = <a href="#_sub10" class="code" title="subfunction gui = updateParams(gui,invtype,p)">updateParams</a>(gui,data.invstd.invtype,data.param);
-0193         
-0194         <span class="comment">%% update joint inversion panel</span>
-0195         <span class="comment">% depending if it is activated or not</span>
-0196         <span class="keyword">switch</span> data.info.JointInv
-0197             <span class="keyword">case</span> <span class="string">'on'</span>
-0198                 <span class="comment">% inversion method dependent</span>
-0199                 <span class="keyword">switch</span> data.invjoint.invtype
-0200                     <span class="keyword">case</span> <span class="string">'free'</span>                        
-0201                         <span class="comment">% inversion method popup</span>
-0202                         set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0203                         
-0204                         <span class="comment">% PSD limits</span>
-0205                         gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
-0206                             data.invjoint.radii,data.invjoint.Nradii);
-0207                         
-0208                         <span class="comment">% additional inversion settings</span>
-0209                         set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0210                         
-0211                         <span class="comment">% regularization options</span>
-0212                         <span class="keyword">switch</span> data.invjoint.regtype
-0213                             <span class="keyword">case</span> <span class="string">'manual'</span>
-0214                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,1);
-0215                             <span class="keyword">case</span> <span class="string">'lcurve'</span>
-0216                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,2);
-0217                         <span class="keyword">end</span>
-0218                         
-0219                         <span class="comment">% smoothness constraint and lambda</span>
-0220                         gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
-0221                             data.invjoint.Lorder);
-0222                         gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,data.invjoint.regtype,<span class="keyword">...</span>
-0223                             data.invjoint.lambda,data.invjoint.lambdaR,<span class="keyword">...</span>
-0224                             data.invjoint.NlambdaR,data.invstd.regtype);
-0225                         
-0226                         <span class="comment">% start values</span>
-0227                         set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0228                         set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0229                         
-0230                         <span class="comment">% geometry type dependent</span>
-0231                         <span class="keyword">switch</span> data.invjoint.geometry_type
-0232                             <span class="keyword">case</span> <span class="string">'cyl'</span>                                
-0233                                 <span class="comment">% geometry popup</span>
-0234                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0235                                     <span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0236                                 
-0237                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0238                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0239                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0240                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0241                                 
-0242                                 <span class="comment">% angles</span>
-0243                                 set(gui.edit_handles.invjoint_alpha,<span class="string">'String'</span>,<span class="string">''</span>);
-0244                                 set(gui.edit_handles.invjoint_beta,<span class="string">'String'</span>,<span class="string">''</span>);
-0245                                 set(gui.edit_handles.invjoint_gamma,<span class="string">'String'</span>,<span class="string">''</span>);
-0246                                 
-0247                             <span class="keyword">case</span> <span class="string">'ang'</span>                                
-0248                                 <span class="comment">% geometry popup</span>
-0249                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0250                                     <span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0251                                 
-0252                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0253                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0254                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0255                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0256                                 
-0257                                 <span class="comment">% angles</span>
-0258                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
-0259                                     <span class="string">'String'</span>,num2str(data.invjoint.alpha));
-0260                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
-0261                                     <span class="string">'String'</span>,num2str(data.invjoint.beta));
-0262                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
-0263                                     <span class="string">'String'</span>,num2str(data.invjoint.gamma));
-0264                                 
-0265                             <span class="keyword">case</span> <span class="string">'poly'</span>                                
-0266                                 <span class="comment">% geometry popup</span>
-0267                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0268                                     <span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0269                                 
-0270                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0271                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0272                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0273                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0274                                 
-0275                                 <span class="comment">% angles</span>
-0276                                 polyangle = ((data.invjoint.polyN-2)/data.invjoint.polyN)*180;
-0277                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
-0278                                     <span class="string">'String'</span>,<span class="string">''</span>);
-0279                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
-0280                                     <span class="string">'String'</span>,num2str(polyangle));
-0281                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
-0282                                     <span class="string">'String'</span>,<span class="string">''</span>);
-0283                         <span class="keyword">end</span>
-0284                         
-0285                     <span class="keyword">case</span> <span class="string">'fixed'</span>                        
-0286                         <span class="comment">% inversion method popup</span>
-0287                         set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0288                         
-0289                         <span class="comment">% PSD limits</span>
-0290                         gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
-0291                             data.invjoint.radii,data.invjoint.Nradii);
-0292                         
-0293                         <span class="comment">% additional inversion settings</span>
-0294                         set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0295                         
-0296                         <span class="comment">% regularization options</span>
-0297                         <span class="keyword">switch</span> data.invjoint.regtype
-0298                             <span class="keyword">case</span> <span class="string">'manual'</span>
-0299                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,1);
-0300                             <span class="keyword">case</span> <span class="string">'lcurve'</span>
-0301                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,2);
-0302                         <span class="keyword">end</span>
-0303                         
-0304                         <span class="comment">% smoothness constraint and lambda</span>
-0305                         gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
-0306                             data.invjoint.Lorder);
-0307                         gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,<span class="string">'none'</span>,data.invjoint.lambda,<span class="keyword">...</span>
-0308                             data.invjoint.lambdaR,data.invjoint.NlambdaR,<span class="keyword">...</span>
-0309                             data.invstd.regtype);
-0310                         
-0311                         <span class="comment">% start values</span>
-0312                         set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0313                         set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0314                         
-0315                         <span class="comment">% geometry type dependent</span>
-0316                         <span class="keyword">switch</span> data.invjoint.geometry_type
-0317                             <span class="keyword">case</span> <span class="string">'cyl'</span>                                
-0318                                 <span class="comment">% geometry popup</span>
-0319                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0320                                     <span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0321                                 
-0322                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0323                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0324                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0325                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0326                                 
-0327                                 <span class="comment">% angles</span>
-0328                                 set(gui.edit_handles.invjoint_alpha,<span class="string">'String'</span>,<span class="string">''</span>);
-0329                                 set(gui.edit_handles.invjoint_beta,<span class="string">'String'</span>,<span class="string">''</span>);
-0330                                 set(gui.edit_handles.invjoint_gamma,<span class="string">'String'</span>,<span class="string">''</span>);
-0331                                 
-0332                             <span class="keyword">case</span> <span class="string">'ang'</span>                                
-0333                                 <span class="comment">% geometry popup</span>
-0334                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0335                                     <span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0336                                 
-0337                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0338                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0339                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0340                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0341                                 
-0342                                 <span class="comment">% angles</span>
-0343                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
-0344                                     <span class="string">'String'</span>,num2str(data.invjoint.alpha));
-0345                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
-0346                                     <span class="string">'String'</span>,num2str(data.invjoint.beta));
-0347                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
-0348                                     <span class="string">'String'</span>,num2str(data.invjoint.gamma));
-0349                                 
-0350                             <span class="keyword">case</span> <span class="string">'poly'</span>                                
-0351                                 <span class="comment">% geometry popup</span>
-0352                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0353                                     <span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0354                                 
-0355                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0356                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0357                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0358                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0359                                 
-0360                                 <span class="comment">% angles</span>
-0361                                 polyangle = ((data.invjoint.polyN-2)/data.invjoint.polyN)*180;
-0362                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
-0363                                     <span class="string">'String'</span>,<span class="string">''</span>);
-0364                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
-0365                                     <span class="string">'String'</span>,num2str(polyangle));
-0366                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
-0367                                     <span class="string">'String'</span>,<span class="string">''</span>);
-0368                         <span class="keyword">end</span>
-0369                         
-0370                     <span class="keyword">case</span> <span class="string">'shape'</span>                        
-0371                         <span class="comment">% inversion method popup</span>
-0372                         set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0373                         
-0374                         <span class="comment">% PSD limits</span>
-0375                         gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
-0376                             data.invjoint.radii,data.invjoint.Nradii);
-0377                         
-0378                         <span class="comment">% additional inversion settings</span>
-0379                         set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0380                         
-0381                         <span class="comment">% regularization options</span>
-0382                         <span class="keyword">switch</span> data.invjoint.regtype
-0383                             <span class="keyword">case</span> <span class="string">'manual'</span>
-0384                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,1);
-0385                             <span class="keyword">case</span> <span class="string">'lcurve'</span>
-0386                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,2);
-0387                         <span class="keyword">end</span>
-0388                         
-0389                         <span class="comment">% smoothness constraint and lambda</span>
-0390                         gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
-0391                             data.invjoint.Lorder);
-0392                         gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,<span class="string">'none'</span>,data.invjoint.lambda,<span class="keyword">...</span>
-0393                             data.invjoint.lambdaR,data.invjoint.NlambdaR,data.invstd.regtype);
-0394                         
-0395                         <span class="comment">% start values</span>
-0396                         set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0397                         set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0398                         
-0399                         <span class="comment">% geometry type dependent</span>
-0400                         <span class="keyword">switch</span> data.invjoint.geometry_type
-0401                             <span class="keyword">case</span> <span class="string">'cyl'</span>                                
-0402                                 <span class="comment">% geometry popup</span>
-0403                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0404                                     <span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0405                                 
-0406                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0407                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0408                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0409                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0410                                 
-0411                                 <span class="comment">% angles</span>
-0412                                 set(gui.edit_handles.invjoint_alpha,<span class="string">'String'</span>,<span class="string">''</span>);
-0413                                 set(gui.edit_handles.invjoint_beta,<span class="string">'String'</span>,<span class="string">''</span>);
-0414                                 set(gui.edit_handles.invjoint_gamma,<span class="string">'String'</span>,<span class="string">''</span>);
-0415                                 
-0416                             <span class="keyword">case</span> <span class="string">'ang'</span>                                
-0417                                 <span class="comment">% geometry popup</span>
-0418                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0419                                     <span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0420                                 
-0421                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0422                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0423                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0424                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0425                                 
-0426                                 <span class="comment">% angles</span>
-0427                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
-0428                                     <span class="string">'String'</span>,num2str(data.invjoint.alpha));
-0429                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
-0430                                     <span class="string">'String'</span>,num2str(data.invjoint.beta));
-0431                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
-0432                                     <span class="string">'String'</span>,num2str(data.invjoint.gamma));
-0433                                 
-0434                             <span class="keyword">case</span> <span class="string">'poly'</span>                                
-0435                                 <span class="comment">% geometry popup</span>
-0436                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
-0437                                     <span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0438                                 
-0439                                 <span class="comment">% polygon sides and corresponding angle beta</span>
-0440                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0441                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
-0442                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0443                                 
-0444                                 <span class="comment">% angles</span>
-0445                                 polyangle = ((data.invjoint.polyN-2)/data.invjoint.polyN)*180;
-0446                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
-0447                                     <span class="string">'String'</span>,<span class="string">''</span>);
-0448                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
-0449                                     <span class="string">'String'</span>,num2str(polyangle));
-0450                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
-0451                                     <span class="string">'String'</span>,<span class="string">''</span>);
-0452                         <span class="keyword">end</span>
-0453                 <span class="keyword">end</span>
-0454 
-0455             <span class="keyword">case</span> <span class="string">'off'</span>
-0456                 <span class="comment">% inversion method popup</span>
-0457                 set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0458                 
-0459                 <span class="comment">% PSD limits</span>
-0460                 gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,<span class="string">'off'</span>,0,0);
-0461                 
-0462                 <span class="comment">% additional inversion settings</span>
-0463                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0464                 
-0465                 <span class="comment">% smoothness constraint and lambda</span>
-0466                 gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,<span class="string">'off'</span>,0);
-0467                 gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,<span class="string">'none'</span>,data.invjoint.lambda,<span class="keyword">...</span>
-0468                     data.invjoint.lambdaR,data.invjoint.NlambdaR,data.invstd.regtype);
-0469                 
-0470                 <span class="comment">% polygon sides and angles</span>
-0471                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0472                 set(gui.edit_handles.invjoint_alpha,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0473                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0474                 set(gui.edit_handles.invjoint_gamma,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0475                 
-0476                 <span class="comment">% start values</span>
-0477                 set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0478                 set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0479         <span class="keyword">end</span>
-0480         
-0481         <span class="comment">% this is always updated</span>
-0482         <span class="keyword">switch</span> data.pressure.unit
-0483             <span class="keyword">case</span> <span class="string">'Pa'</span>
-0484                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,1);
-0485             <span class="keyword">case</span> <span class="string">'kPa'</span>
-0486                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,2);
-0487             <span class="keyword">case</span> <span class="string">'MPa'</span>
-0488                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,3);
-0489             <span class="keyword">case</span> <span class="string">'bar'</span>
-0490                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,4);
-0491         <span class="keyword">end</span>
-0492         set(gui.table_handles.invjoint_table,<span class="keyword">...</span>
-0493             <span class="string">'ColumnName'</span>,{<span class="string">'use'</span>,[<span class="string">'p ['</span>,data.pressure.unit,<span class="string">']'</span>],<span class="string">'S [-]'</span>,<span class="string">'D / I'</span>})
-0494         
-0495         table = data.pressure.table;
-0496         <span class="keyword">for</span> i = 1:size(table,1)
-0497             table{i,2} = table{i,2}.*data.pressure.unitfac;
-0498         <span class="keyword">end</span>
-0499         set(gui.table_handles.invjoint_table,<span class="string">'Data'</span>,table);
-0500         
-0501     <span class="keyword">case</span> <span class="string">'off'</span>
-0502         <span class="comment">%% update the processing panel</span>
-0503         set(gui.edit_handles.process_start,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0504             <span class="string">'String'</span>,num2str(data.process.start));
-0505         set(gui.edit_handles.process_end,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0506             <span class="string">'String'</span>,num2str(data.process.end));
-0507         
-0508         gui = <a href="#_sub1" class="code" title="subfunction gui = updateGatetype(gui,gatetype)">updateGatetype</a>(gui,data.process.gatetype);        
-0509         set(gui.radio_handles.process_normalize_on,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,0);
-0510         set(gui.radio_handles.process_normalize_off,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,1);
-0511         set(gui.radio_handles.process_timescale_s,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,1);
-0512         set(gui.radio_handles.process_timescale_ms,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,0);
-0513         
-0514         <span class="keyword">if</span> data.invstd.porosity &lt;= 1
-0515             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0516                 <span class="string">'BackgroundColor'</span>,<span class="string">'w'</span>,<span class="keyword">...</span>
-0517                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
-0518         <span class="keyword">else</span>
+0053         set(gui.edit_handles.process_Nechoes,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0054             <span class="string">'String'</span>,num2str(data.process.Nechoes));
+0055         
+0056         gui = <a href="#_sub1" class="code" title="subfunction gui = updateGatetype(gui,gatetype)">updateGatetype</a>(gui,data.process.gatetype);
+0057         gui = <a href="#_sub2" class="code" title="subfunction gui = updateNormalize(gui,norm)">updateNormalize</a>(gui,data.process.norm);
+0058         gui = <a href="#_sub3" class="code" title="subfunction gui = updateTimescale(gui,timescale)">updateTimescale</a>(gui,data.process.timescale);
+0059         <span class="keyword">if</span> data.invstd.porosity &lt;= 1
+0060             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0061                 <span class="string">'BackgroundColor'</span>,<span class="string">'w'</span>,<span class="keyword">...</span>
+0062                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
+0063         <span class="keyword">else</span>
+0064             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0065                 <span class="string">'BackgroundColor'</span>,<span class="string">'r'</span>,<span class="keyword">...</span>
+0066                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
+0067         <span class="keyword">end</span>
+0068         
+0069         <span class="comment">%% update standard inversion panel</span>
+0070         <span class="comment">% inversion method popup</span>
+0071         <span class="keyword">switch</span> data.info.optim
+0072             <span class="keyword">case</span> <span class="string">'on'</span>
+0073                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="keyword">...</span>
+0074                     <span class="string">'Multi exp. (LSQLIN)'</span>,<span class="keyword">...</span>
+0075                     <span class="string">'Multi exp. (InvLaplace)'</span>};
+0076             <span class="keyword">case</span> <span class="string">'off'</span>
+0077                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="keyword">...</span>
+0078                     <span class="string">'Multi exp. (NNLS)'</span>,<span class="keyword">...</span>
+0079                     <span class="string">'Multi exp. (InvLaplace)'</span>};
+0080         <span class="keyword">end</span>
+0081         set(gui.popup_handles.invstd_InvType,<span class="string">'String'</span>,istring);
+0082         <span class="keyword">switch</span> data.invstd.invtype
+0083             <span class="keyword">case</span> <span class="string">'mono'</span>
+0084                 <span class="comment">% inversion method popup</span>
+0085                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0086                 
+0087                 <span class="comment">% additional inversion settings</span>
+0088                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0089                     <span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'none'</span>);
+0090                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0091                     <span class="string">'String'</span>,<span class="string">'No extra options'</span>);
+0092                 
+0093                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0094                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
+0095                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
+0096                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
+0097                 
+0098                 <span class="comment">% Tbulk</span>
+0099                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0100                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
+0101                 
+0102             <span class="keyword">case</span> <span class="string">'free'</span>
+0103                 <span class="comment">% inversion method popup</span>
+0104                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0105                 
+0106                 <span class="comment">% additional inversion settings</span>
+0107                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0108                     <span class="string">'Value'</span>,data.invstd.freeDT,<span class="keyword">...</span>
+0109                     <span class="string">'String'</span>,{<span class="string">'1'</span>,<span class="string">'2'</span>,<span class="string">'3'</span>,<span class="string">'4'</span>,<span class="string">'5'</span>});
+0110                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0111                     <span class="string">'String'</span>,<span class="string">'No. of free decay times T'</span>);
+0112                 
+0113                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0114                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
+0115                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
+0116                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
+0117                 
+0118                 <span class="comment">% Tbulk</span>
+0119                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0120                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
+0121                 
+0122             <span class="keyword">case</span> <span class="string">'NNLS'</span>
+0123                 <span class="comment">% inversion method popup</span>
+0124                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0125                 
+0126                 <span class="comment">% additional inversion settings</span>
+0127                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0128                     <span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'Iterative Chi2'</span>,<span class="string">'Tikhonov (SVD)'</span>,<span class="string">'TSVD (SVD)'</span>,<span class="keyword">...</span>
+0129                     <span class="string">'DSVD (SVD)'</span>,<span class="string">'Discrep. (SVD)'</span>,<span class="string">'L-curve'</span>});
+0130                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0131                     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
+0132                 
+0133                 <span class="comment">% regularization options</span>
+0134                 <span class="keyword">switch</span> data.invstd.regtype
+0135                     <span class="keyword">case</span> <span class="string">'manual'</span>
+0136                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,1);
+0137                     <span class="keyword">case</span> <span class="string">'iterchi2'</span>
+0138                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,2);    
+0139                     <span class="keyword">case</span> <span class="string">'gcv_tikh'</span>
+0140                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,3);
+0141                     <span class="keyword">case</span> <span class="string">'gcv_trunc'</span>
+0142                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,4);
+0143                     <span class="keyword">case</span> <span class="string">'gcv_damp'</span>
+0144                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,5);
+0145                     <span class="keyword">case</span> <span class="string">'discrep'</span>
+0146                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,6);
+0147                     <span class="keyword">case</span> <span class="string">'lcurve'</span>
+0148                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,7);
+0149                 <span class="keyword">end</span>
+0150                 
+0151                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0152                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,data.invstd.lambda,<span class="keyword">...</span>
+0153                     data.invstd.lambdaR,data.invstd.NlambdaR);
+0154                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
+0155                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,data.invstd.time,<span class="keyword">...</span>
+0156                     data.invstd.Ntime);
+0157                 
+0158                 <span class="comment">% Tbulk</span>
+0159                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0160                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
+0161                 
+0162             <span class="keyword">case</span> <span class="string">'ILA'</span>
+0163                 <span class="comment">% inversion method popup</span>
+0164                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,4,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0165                 
+0166                 <span class="comment">% additional inversion settings</span>
+0167                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0168                     <span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'Automatic'</span>});
+0169                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0170                     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
+0171                 
+0172                 <span class="comment">% regularization options</span>
+0173                 <span class="keyword">switch</span> data.invstd.regtype
+0174                     <span class="keyword">case</span> <span class="string">'manual'</span>
+0175                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,1);
+0176                     <span class="keyword">case</span> <span class="string">'auto'</span>
+0177                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,2);
+0178                         data.invstd.lambda = -1;
+0179                 <span class="keyword">end</span>
+0180                 
+0181                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0182                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,data.invstd.lambda,<span class="keyword">...</span>
+0183                     data.invstd.lambdaR,data.invstd.NlambdaR);
+0184                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
+0185                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,data.invstd.time,<span class="keyword">...</span>
+0186                     data.invstd.Ntime);
+0187                 
+0188                 <span class="comment">% Tbulk</span>
+0189                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0190                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
+0191         <span class="keyword">end</span>
+0192         
+0193         <span class="comment">% updates CBW, BVI, rho and a</span>
+0194         gui = <a href="#_sub10" class="code" title="subfunction gui = updateParams(gui,invtype,p)">updateParams</a>(gui,data.invstd.invtype,data.param);
+0195         
+0196         <span class="comment">%% update joint inversion panel</span>
+0197         <span class="comment">% depending if it is activated or not</span>
+0198         <span class="keyword">switch</span> data.info.JointInv
+0199             <span class="keyword">case</span> <span class="string">'on'</span>
+0200                 <span class="comment">% inversion method dependent</span>
+0201                 <span class="keyword">switch</span> data.invjoint.invtype
+0202                     <span class="keyword">case</span> <span class="string">'free'</span>
+0203                         <span class="comment">% inversion method popup</span>
+0204                         set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0205                         
+0206                         <span class="comment">% PSD limits</span>
+0207                         gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
+0208                             data.invjoint.radii,data.invjoint.Nradii);
+0209                         
+0210                         <span class="comment">% additional inversion settings</span>
+0211                         set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0212                         
+0213                         <span class="comment">% regularization options</span>
+0214                         <span class="keyword">switch</span> data.invjoint.regtype
+0215                             <span class="keyword">case</span> <span class="string">'manual'</span>
+0216                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,1);
+0217                             <span class="keyword">case</span> <span class="string">'lcurve'</span>
+0218                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,2);
+0219                         <span class="keyword">end</span>
+0220                         
+0221                         <span class="comment">% smoothness constraint and lambda</span>
+0222                         gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
+0223                             data.invjoint.Lorder);
+0224                         gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,data.invjoint.regtype,<span class="keyword">...</span>
+0225                             data.invjoint.lambda,data.invjoint.lambdaR,<span class="keyword">...</span>
+0226                             data.invjoint.NlambdaR,data.invstd.regtype);
+0227                         
+0228                         <span class="comment">% start values</span>
+0229                         set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0230                         set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0231                         
+0232                         <span class="comment">% geometry type dependent</span>
+0233                         <span class="keyword">switch</span> data.invjoint.geometry_type
+0234                             <span class="keyword">case</span> <span class="string">'cyl'</span>                                
+0235                                 <span class="comment">% geometry popup</span>
+0236                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0237                                     <span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0238                                 
+0239                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0240                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0241                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0242                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0243                                 
+0244                                 <span class="comment">% angles</span>
+0245                                 set(gui.edit_handles.invjoint_alpha,<span class="string">'String'</span>,<span class="string">''</span>);
+0246                                 set(gui.edit_handles.invjoint_beta,<span class="string">'String'</span>,<span class="string">''</span>);
+0247                                 set(gui.edit_handles.invjoint_gamma,<span class="string">'String'</span>,<span class="string">''</span>);
+0248                                 
+0249                             <span class="keyword">case</span> <span class="string">'ang'</span>                                
+0250                                 <span class="comment">% geometry popup</span>
+0251                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0252                                     <span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0253                                 
+0254                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0255                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0256                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0257                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0258                                 
+0259                                 <span class="comment">% angles</span>
+0260                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
+0261                                     <span class="string">'String'</span>,num2str(data.invjoint.alpha));
+0262                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
+0263                                     <span class="string">'String'</span>,num2str(data.invjoint.beta));
+0264                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
+0265                                     <span class="string">'String'</span>,num2str(data.invjoint.gamma));
+0266                                 
+0267                             <span class="keyword">case</span> <span class="string">'poly'</span>                                
+0268                                 <span class="comment">% geometry popup</span>
+0269                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0270                                     <span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0271                                 
+0272                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0273                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0274                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0275                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0276                                 
+0277                                 <span class="comment">% angles</span>
+0278                                 polyangle = ((data.invjoint.polyN-2)/data.invjoint.polyN)*180;
+0279                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
+0280                                     <span class="string">'String'</span>,<span class="string">''</span>);
+0281                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
+0282                                     <span class="string">'String'</span>,num2str(polyangle));
+0283                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
+0284                                     <span class="string">'String'</span>,<span class="string">''</span>);
+0285                         <span class="keyword">end</span>
+0286                         
+0287                     <span class="keyword">case</span> <span class="string">'fixed'</span>
+0288                         <span class="comment">% inversion method popup</span>
+0289                         set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0290                         
+0291                         <span class="comment">% PSD limits</span>
+0292                         gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
+0293                             data.invjoint.radii,data.invjoint.Nradii);
+0294                         
+0295                         <span class="comment">% additional inversion settings</span>
+0296                         set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0297                         
+0298                         <span class="comment">% regularization options</span>
+0299                         <span class="keyword">switch</span> data.invjoint.regtype
+0300                             <span class="keyword">case</span> <span class="string">'manual'</span>
+0301                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,1);
+0302                             <span class="keyword">case</span> <span class="string">'lcurve'</span>
+0303                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,2);
+0304                         <span class="keyword">end</span>
+0305                         
+0306                         <span class="comment">% smoothness constraint and lambda</span>
+0307                         gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
+0308                             data.invjoint.Lorder);
+0309                         gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,<span class="string">'none'</span>,data.invjoint.lambda,<span class="keyword">...</span>
+0310                             data.invjoint.lambdaR,data.invjoint.NlambdaR,<span class="keyword">...</span>
+0311                             data.invstd.regtype);
+0312                         
+0313                         <span class="comment">% start values</span>
+0314                         set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0315                         set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0316                         
+0317                         <span class="comment">% geometry type dependent</span>
+0318                         <span class="keyword">switch</span> data.invjoint.geometry_type
+0319                             <span class="keyword">case</span> <span class="string">'cyl'</span>                                
+0320                                 <span class="comment">% geometry popup</span>
+0321                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0322                                     <span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0323                                 
+0324                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0325                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0326                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0327                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0328                                 
+0329                                 <span class="comment">% angles</span>
+0330                                 set(gui.edit_handles.invjoint_alpha,<span class="string">'String'</span>,<span class="string">''</span>);
+0331                                 set(gui.edit_handles.invjoint_beta,<span class="string">'String'</span>,<span class="string">''</span>);
+0332                                 set(gui.edit_handles.invjoint_gamma,<span class="string">'String'</span>,<span class="string">''</span>);
+0333                                 
+0334                             <span class="keyword">case</span> <span class="string">'ang'</span>                                
+0335                                 <span class="comment">% geometry popup</span>
+0336                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0337                                     <span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0338                                 
+0339                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0340                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0341                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0342                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0343                                 
+0344                                 <span class="comment">% angles</span>
+0345                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
+0346                                     <span class="string">'String'</span>,num2str(data.invjoint.alpha));
+0347                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
+0348                                     <span class="string">'String'</span>,num2str(data.invjoint.beta));
+0349                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
+0350                                     <span class="string">'String'</span>,num2str(data.invjoint.gamma));
+0351                                 
+0352                             <span class="keyword">case</span> <span class="string">'poly'</span>                                
+0353                                 <span class="comment">% geometry popup</span>
+0354                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0355                                     <span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0356                                 
+0357                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0358                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0359                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0360                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0361                                 
+0362                                 <span class="comment">% angles</span>
+0363                                 polyangle = ((data.invjoint.polyN-2)/data.invjoint.polyN)*180;
+0364                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
+0365                                     <span class="string">'String'</span>,<span class="string">''</span>);
+0366                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
+0367                                     <span class="string">'String'</span>,num2str(polyangle));
+0368                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
+0369                                     <span class="string">'String'</span>,<span class="string">''</span>);
+0370                         <span class="keyword">end</span>
+0371                         
+0372                     <span class="keyword">case</span> <span class="string">'shape'</span>
+0373                         <span class="comment">% inversion method popup</span>
+0374                         set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0375                         
+0376                         <span class="comment">% PSD limits</span>
+0377                         gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
+0378                             data.invjoint.radii,data.invjoint.Nradii);
+0379                         
+0380                         <span class="comment">% additional inversion settings</span>
+0381                         set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0382                         
+0383                         <span class="comment">% regularization options</span>
+0384                         <span class="keyword">switch</span> data.invjoint.regtype
+0385                             <span class="keyword">case</span> <span class="string">'manual'</span>
+0386                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,1);
+0387                             <span class="keyword">case</span> <span class="string">'lcurve'</span>
+0388                                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Value'</span>,2);
+0389                         <span class="keyword">end</span>
+0390                         
+0391                         <span class="comment">% smoothness constraint and lambda</span>
+0392                         gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,data.invjoint.invtype,<span class="keyword">...</span>
+0393                             data.invjoint.Lorder);
+0394                         gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,<span class="string">'none'</span>,data.invjoint.lambda,<span class="keyword">...</span>
+0395                             data.invjoint.lambdaR,data.invjoint.NlambdaR,data.invstd.regtype);
+0396                         
+0397                         <span class="comment">% start values</span>
+0398                         set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0399                         set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0400                         
+0401                         <span class="comment">% geometry type dependent</span>
+0402                         <span class="keyword">switch</span> data.invjoint.geometry_type
+0403                             <span class="keyword">case</span> <span class="string">'cyl'</span>                                
+0404                                 <span class="comment">% geometry popup</span>
+0405                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0406                                     <span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0407                                 
+0408                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0409                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0410                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0411                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0412                                 
+0413                                 <span class="comment">% angles</span>
+0414                                 set(gui.edit_handles.invjoint_alpha,<span class="string">'String'</span>,<span class="string">''</span>);
+0415                                 set(gui.edit_handles.invjoint_beta,<span class="string">'String'</span>,<span class="string">''</span>);
+0416                                 set(gui.edit_handles.invjoint_gamma,<span class="string">'String'</span>,<span class="string">''</span>);
+0417                                 
+0418                             <span class="keyword">case</span> <span class="string">'ang'</span>                                
+0419                                 <span class="comment">% geometry popup</span>
+0420                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0421                                     <span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0422                                 
+0423                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0424                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0425                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0426                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0427                                 
+0428                                 <span class="comment">% angles</span>
+0429                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
+0430                                     <span class="string">'String'</span>,num2str(data.invjoint.alpha));
+0431                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
+0432                                     <span class="string">'String'</span>,num2str(data.invjoint.beta));
+0433                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
+0434                                     <span class="string">'String'</span>,num2str(data.invjoint.gamma));
+0435                                 
+0436                             <span class="keyword">case</span> <span class="string">'poly'</span>                                
+0437                                 <span class="comment">% geometry popup</span>
+0438                                 set(gui.popup_handles.invjoint_geometry_type,<span class="keyword">...</span>
+0439                                     <span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0440                                 
+0441                                 <span class="comment">% polygon sides and corresponding angle beta</span>
+0442                                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0443                                     <span class="string">'Value'</span>,data.invjoint.polyN-2);
+0444                                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0445                                 
+0446                                 <span class="comment">% angles</span>
+0447                                 polyangle = ((data.invjoint.polyN-2)/data.invjoint.polyN)*180;
+0448                                 set(gui.edit_handles.invjoint_alpha,<span class="keyword">...</span>
+0449                                     <span class="string">'String'</span>,<span class="string">''</span>);
+0450                                 set(gui.edit_handles.invjoint_beta,<span class="keyword">...</span>
+0451                                     <span class="string">'String'</span>,num2str(polyangle));
+0452                                 set(gui.edit_handles.invjoint_gamma,<span class="keyword">...</span>
+0453                                     <span class="string">'String'</span>,<span class="string">''</span>);
+0454                         <span class="keyword">end</span>
+0455                 <span class="keyword">end</span>
+0456 
+0457             <span class="keyword">case</span> <span class="string">'off'</span>
+0458                 <span class="comment">% inversion method popup</span>
+0459                 set(gui.popup_handles.invjoint_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0460                 
+0461                 <span class="comment">% PSD limits</span>
+0462                 gui = <a href="#_sub5" class="code" title="subfunction gui = updateInvjointRadii(gui,invtype,radii,Nradii)">updateInvjointRadii</a>(gui,<span class="string">'off'</span>,0,0);
+0463                 
+0464                 <span class="comment">% additional inversion settings</span>
+0465                 set(gui.popup_handles.invjoint_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0466                 
+0467                 <span class="comment">% smoothness constraint and lambda</span>
+0468                 gui = <a href="#_sub9" class="code" title="subfunction gui = updateLorderJoint(gui,invtype,Lorder)">updateLorderJoint</a>(gui,<span class="string">'off'</span>,0);
+0469                 gui = <a href="#_sub7" class="code" title="subfunction gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)">updateLambdaJoint</a>(gui,<span class="string">'none'</span>,data.invjoint.lambda,<span class="keyword">...</span>
+0470                     data.invjoint.lambdaR,data.invjoint.NlambdaR,data.invstd.regtype);
+0471                 
+0472                 <span class="comment">% polygon sides and angles</span>
+0473                 set(gui.popup_handles.invjoint_polyN,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0474                 set(gui.edit_handles.invjoint_alpha,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0475                 set(gui.edit_handles.invjoint_beta,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0476                 set(gui.edit_handles.invjoint_gamma,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0477                 
+0478                 <span class="comment">% start values</span>
+0479                 set(gui.edit_handles.invjoint_rhostart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0480                 set(gui.edit_handles.invjoint_anglestart,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0481         <span class="keyword">end</span>
+0482         
+0483         <span class="comment">% this is always updated</span>
+0484         <span class="keyword">switch</span> data.pressure.unit
+0485             <span class="keyword">case</span> <span class="string">'Pa'</span>
+0486                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,1);
+0487             <span class="keyword">case</span> <span class="string">'kPa'</span>
+0488                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,2);
+0489             <span class="keyword">case</span> <span class="string">'MPa'</span>
+0490                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,3);
+0491             <span class="keyword">case</span> <span class="string">'bar'</span>
+0492                 set(gui.popup_handles.invjoint_pressure_units,<span class="string">'Value'</span>,4);
+0493         <span class="keyword">end</span>
+0494         set(gui.table_handles.invjoint_table,<span class="keyword">...</span>
+0495             <span class="string">'ColumnName'</span>,{<span class="string">'use'</span>,[<span class="string">'p ['</span>,data.pressure.unit,<span class="string">']'</span>],<span class="string">'S [-]'</span>,<span class="string">'D / I'</span>})
+0496         
+0497         table = data.pressure.table;
+0498         <span class="keyword">for</span> i = 1:size(table,1)
+0499             table{i,2} = table{i,2}.*data.pressure.unitfac;
+0500         <span class="keyword">end</span>
+0501         set(gui.table_handles.invjoint_table,<span class="string">'Data'</span>,table);
+0502         
+0503     <span class="keyword">case</span> <span class="string">'off'</span>
+0504         <span class="comment">%% update the processing panel</span>
+0505         set(gui.edit_handles.process_start,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0506             <span class="string">'String'</span>,num2str(data.process.start));
+0507         set(gui.edit_handles.process_end,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0508             <span class="string">'String'</span>,num2str(data.process.end));
+0509         set(gui.edit_handles.process_Nechoes,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0510             <span class="string">'String'</span>,num2str(data.process.Nechoes));
+0511         
+0512         gui = <a href="#_sub1" class="code" title="subfunction gui = updateGatetype(gui,gatetype)">updateGatetype</a>(gui,data.process.gatetype);        
+0513         set(gui.radio_handles.process_normalize_on,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,0);
+0514         set(gui.radio_handles.process_normalize_off,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,1);
+0515         set(gui.radio_handles.process_timescale_s,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,1);
+0516         set(gui.radio_handles.process_timescale_ms,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,0);
+0517         
+0518         <span class="keyword">if</span> data.invstd.porosity &lt;= 1
 0519             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0520                 <span class="string">'BackgroundColor'</span>,<span class="string">'r'</span>,<span class="keyword">...</span>
+0520                 <span class="string">'BackgroundColor'</span>,<span class="string">'w'</span>,<span class="keyword">...</span>
 0521                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
-0522         <span class="keyword">end</span>
-0523         
-0524         <span class="comment">%% update standard inversion panel</span>
-0525         <span class="comment">% inversion method popup</span>
-0526         set(gui.popup_handles.invstd_InvType,<span class="string">'String'</span>,{<span class="string">'Mono exp.'</span>,<span class="keyword">...</span>
-0527             <span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (NNLS)'</span>});
-0528         <span class="keyword">switch</span> data.invstd.invtype
-0529             <span class="keyword">case</span> <span class="string">'mono'</span>
-0530                 <span class="comment">% inversion method popup</span>
-0531                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0532                 
-0533                 <span class="comment">% additional inversion settings</span>
-0534                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0535                     <span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'none'</span>);
-0536                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0537                     <span class="string">'String'</span>,<span class="string">'No extra options'</span>);
-0538                 
-0539                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0540                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
-0541                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
-0542                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
+0522         <span class="keyword">else</span>
+0523             set(gui.edit_handles.invstd_porosity,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0524                 <span class="string">'BackgroundColor'</span>,<span class="string">'r'</span>,<span class="keyword">...</span>
+0525                 <span class="string">'String'</span>,num2str(data.invstd.porosity));
+0526         <span class="keyword">end</span>
+0527         
+0528         <span class="comment">%% update standard inversion panel</span>
+0529         <span class="comment">% inversion method popup</span>
+0530         <span class="keyword">switch</span> data.info.optim
+0531             <span class="keyword">case</span> <span class="string">'on'</span>
+0532                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="keyword">...</span>
+0533                     <span class="string">'Multi exp. (LSQLIN)'</span>};
+0534             <span class="keyword">case</span> <span class="string">'off'</span>
+0535                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="keyword">...</span>
+0536                     <span class="string">'Multi exp. (NNLS)'</span>};
+0537         <span class="keyword">end</span>
+0538         set(gui.popup_handles.invstd_InvType,<span class="string">'String'</span>,istring);
+0539         <span class="keyword">switch</span> data.invstd.invtype
+0540             <span class="keyword">case</span> <span class="string">'mono'</span>
+0541                 <span class="comment">% inversion method popup</span>
+0542                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
 0543                 
-0544                 <span class="comment">% Tbulk</span>
-0545                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0546                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0547                 
-0548             <span class="keyword">case</span> <span class="string">'free'</span>
-0549                 <span class="comment">% inversion method popup</span>
-0550                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0551                 
-0552                 <span class="comment">% additional inversion settings</span>
-0553                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0554                     <span class="string">'Value'</span>,data.invstd.freeDT,<span class="keyword">...</span>
-0555                     <span class="string">'String'</span>,{<span class="string">'1'</span>,<span class="string">'2'</span>,<span class="string">'3'</span>,<span class="string">'4'</span>,<span class="string">'5'</span>});
-0556                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0557                     <span class="string">'String'</span>,<span class="string">'No. of free decay times T'</span>);
+0544                 <span class="comment">% additional inversion settings</span>
+0545                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0546                     <span class="string">'Value'</span>,1,<span class="string">'String'</span>,<span class="string">'none'</span>);
+0547                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0548                     <span class="string">'String'</span>,<span class="string">'No extra options'</span>);
+0549                 
+0550                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0551                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
+0552                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
+0553                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
+0554                 
+0555                 <span class="comment">% Tbulk</span>
+0556                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0557                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
 0558                 
-0559                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0560                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
-0561                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
-0562                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
-0563                 
-0564                 <span class="comment">% Tbulk</span>
-0565                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0566                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0567                 
-0568             <span class="keyword">case</span> <span class="string">'NNLS'</span>
-0569                 <span class="comment">% inversion method popup</span>
-0570                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0571                 
-0572                 <span class="comment">% additional inversion settings</span>
-0573                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0574                     <span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'L-curve'</span>,<span class="string">'Iterative Chi2'</span>});
-0575                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
-0576                     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
-0577                 
-0578                 <span class="comment">% regularization options</span>
-0579                 <span class="keyword">switch</span> data.invstd.regtype
-0580                     <span class="keyword">case</span> <span class="string">'manual'</span>
-0581                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,1);
-0582                     <span class="keyword">case</span> <span class="string">'lcurve'</span>
-0583                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,2);
-0584                     <span class="keyword">case</span> <span class="string">'iterchi2'</span>
-0585                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,3);
-0586                 <span class="keyword">end</span>
-0587                 
-0588                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
-0589                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,data.invstd.lambda,<span class="keyword">...</span>
-0590                     data.invstd.lambdaR,data.invstd.NlambdaR);
-0591                 data.invstd.Lorder = 1;
-0592                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0593                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0594                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0595                 
-0596                 set(gui.edit_handles.invstd_time_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0597                     <span class="string">'String'</span>,num2str(data.invstd.time(1)));
-0598                 set(gui.edit_handles.invstd_time_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0599                     <span class="string">'String'</span>,num2str(data.invstd.time(2)));
-0600                 set(gui.edit_handles.invstd_Ntime,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0601                     <span class="string">'String'</span>,num2str(data.invstd.Ntime));
-0602                 
-0603                 <span class="comment">% Tbulk</span>
-0604                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0605                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
-0606         <span class="keyword">end</span>
-0607         
-0608         <span class="comment">%% update petro parameter panel</span>
-0609         
-0610         data.param.CBWcutoff = 3;
-0611         data.param.BVIcutoff = 33;
-0612         data.param.rho = 10;
-0613         data.param.a = 2;
-0614         setappdata(fig,<span class="string">'data'</span>,data);
-0615         set(gui.edit_handles.param_CBW,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0616             <span class="string">'String'</span>,num2str(data.param.CBWcutoff));
-0617         set(gui.edit_handles.param_BVI,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0618             <span class="string">'String'</span>,num2str(data.param.BVIcutoff));
-0619         set(gui.edit_handles.param_rho,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0620             <span class="string">'String'</span>,num2str(data.param.rho));
-0621         set(gui.edit_handles.param_geom,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0622             <span class="string">'String'</span>,num2str(data.param.a));
-0623         set(gui.edit_handles.param_calibVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0624             <span class="string">'String'</span>,num2str(data.param.calibVol));
-0625         set(gui.edit_handles.param_calibAmp,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0626             <span class="string">'String'</span>,num2str(data.param.calibAmp));
-0627         set(gui.edit_handles.param_sampVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0628             <span class="string">'String'</span>,num2str(data.param.sampVol));
-0629 <span class="keyword">end</span>
-0630 
-0631 <span class="comment">% Matlab need some time</span>
-0632 pause(0.001);
-0633 
-0634 <span class="keyword">end</span>
-0635 
-0636 <span class="comment">%% sub functions</span>
-0637 <a name="_sub1" href="#_subfunctions" class="code">function gui = updateGatetype(gui,gatetype)</a>
-0638 
-0639 set(gui.radio_handles.process_gates_log,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0640 set(gui.radio_handles.process_gates_lin,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0641 set(gui.radio_handles.process_gates_none,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0642 
-0643 <span class="keyword">switch</span> gatetype
-0644     
-0645     <span class="keyword">case</span> <span class="string">'log'</span>
-0646         
-0647         set(gui.radio_handles.process_gates_log,<span class="string">'Value'</span>,1);
-0648         set(gui.radio_handles.process_gates_lin,<span class="string">'Value'</span>,0);
-0649         set(gui.radio_handles.process_gates_none,<span class="string">'Value'</span>,0);
-0650         
-0651     <span class="keyword">case</span> <span class="string">'lin'</span>
-0652         
-0653         set(gui.radio_handles.process_gates_log,<span class="string">'Value'</span>,0);
-0654         set(gui.radio_handles.process_gates_lin,<span class="string">'Value'</span>,1);
-0655         set(gui.radio_handles.process_gates_none,<span class="string">'Value'</span>,0);
+0559             <span class="keyword">case</span> <span class="string">'free'</span>
+0560                 <span class="comment">% inversion method popup</span>
+0561                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0562                 
+0563                 <span class="comment">% additional inversion settings</span>
+0564                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0565                     <span class="string">'Value'</span>,data.invstd.freeDT,<span class="keyword">...</span>
+0566                     <span class="string">'String'</span>,{<span class="string">'1'</span>,<span class="string">'2'</span>,<span class="string">'3'</span>,<span class="string">'4'</span>,<span class="string">'5'</span>});
+0567                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0568                     <span class="string">'String'</span>,<span class="string">'No. of free decay times T'</span>);
+0569                 
+0570                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0571                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,0,0,0);
+0572                 gui = <a href="#_sub8" class="code" title="subfunction gui = updateLorder(gui,invtype,Lorder)">updateLorder</a>(gui,data.invstd.invtype,data.invstd.Lorder);
+0573                 gui = <a href="#_sub4" class="code" title="subfunction gui = updateInvstdTime(gui,invtype,time,Ntime)">updateInvstdTime</a>(gui,data.invstd.invtype,0,0);
+0574                 
+0575                 <span class="comment">% Tbulk</span>
+0576                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0577                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
+0578                 
+0579             <span class="keyword">case</span> <span class="string">'NNLS'</span>
+0580                 <span class="comment">% inversion method popup</span>
+0581                 set(gui.popup_handles.invstd_InvType,<span class="string">'Value'</span>,3,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0582                 
+0583                 <span class="comment">% additional inversion settings</span>
+0584                 set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0585                     <span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'Iterative Chi2'</span>,<span class="string">'L-curve'</span>});
+0586                 set(gui.text_handles.invstd_InvTypeOpt,<span class="keyword">...</span>
+0587                     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
+0588                 
+0589                 <span class="comment">% regularization options</span>
+0590                 <span class="keyword">switch</span> data.invstd.regtype
+0591                     <span class="keyword">case</span> <span class="string">'manual'</span>
+0592                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,1);
+0593                     <span class="keyword">case</span> <span class="string">'iterchi2'</span>
+0594                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,2);    
+0595                     <span class="keyword">case</span> <span class="string">'lcurve'</span>
+0596                         set(gui.popup_handles.invstd_InvTypeOpt,<span class="string">'Value'</span>,3);                    
+0597                 <span class="keyword">end</span>
+0598                 
+0599                 <span class="comment">% lambda, smoothness constraint and RTD limits</span>
+0600                 gui = <a href="#_sub6" class="code" title="subfunction gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)">updateLambda</a>(gui,data.invstd.regtype,data.invstd.lambda,<span class="keyword">...</span>
+0601                     data.invstd.lambdaR,data.invstd.NlambdaR);
+0602                 data.invstd.Lorder = 1;
+0603                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0604                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0605                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0606                 
+0607                 set(gui.edit_handles.invstd_time_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0608                     <span class="string">'String'</span>,num2str(data.invstd.time(1)));
+0609                 set(gui.edit_handles.invstd_time_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0610                     <span class="string">'String'</span>,num2str(data.invstd.time(2)));
+0611                 set(gui.edit_handles.invstd_Ntime,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0612                     <span class="string">'String'</span>,num2str(data.invstd.Ntime));
+0613                 
+0614                 <span class="comment">% Tbulk</span>
+0615                 set(gui.edit_handles.invstd_Tbulk,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0616                     <span class="string">'String'</span>,num2str(data.invstd.Tbulk));
+0617         <span class="keyword">end</span>
+0618         
+0619         <span class="comment">%% update petro parameter panel</span>
+0620         data.param.CBWcutoff = 3;
+0621         data.param.BVIcutoff = 33;
+0622         data.param.rho = 10;
+0623         data.param.a = 2;
+0624         setappdata(fig,<span class="string">'data'</span>,data);
+0625         set(gui.edit_handles.param_CBW,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0626             <span class="string">'String'</span>,num2str(data.param.CBWcutoff));
+0627         set(gui.edit_handles.param_BVI,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0628             <span class="string">'String'</span>,num2str(data.param.BVIcutoff));
+0629         set(gui.edit_handles.param_rho,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0630             <span class="string">'String'</span>,num2str(data.param.rho));
+0631         set(gui.edit_handles.param_geom,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0632             <span class="string">'String'</span>,num2str(data.param.a));
+0633         set(gui.edit_handles.param_calibVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0634             <span class="string">'String'</span>,num2str(data.param.calibVol));
+0635         set(gui.edit_handles.param_calibAmp,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0636             <span class="string">'String'</span>,num2str(data.param.calibAmp));
+0637         set(gui.edit_handles.param_sampVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0638             <span class="string">'String'</span>,num2str(data.param.sampVol));
+0639 <span class="keyword">end</span>
+0640 
+0641 <span class="comment">% Matlab need some time</span>
+0642 pause(0.001);
+0643 
+0644 <span class="keyword">end</span>
+0645 
+0646 <span class="comment">%% sub functions</span>
+0647 <a name="_sub1" href="#_subfunctions" class="code">function gui = updateGatetype(gui,gatetype)</a>
+0648 
+0649 set(gui.radio_handles.process_gates_log,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0650 set(gui.radio_handles.process_gates_lin,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0651 set(gui.radio_handles.process_gates_none,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0652 
+0653 <span class="keyword">switch</span> gatetype
+0654     
+0655     <span class="keyword">case</span> <span class="string">'log'</span>
 0656         
-0657     <span class="keyword">case</span> <span class="string">'raw'</span>
-0658         
-0659         set(gui.radio_handles.process_gates_log,<span class="string">'Value'</span>,0);
-0660         set(gui.radio_handles.process_gates_lin,<span class="string">'Value'</span>,0);
-0661         set(gui.radio_handles.process_gates_none,<span class="string">'Value'</span>,1);
-0662         
-0663 <span class="keyword">end</span>
-0664 
-0665 <span class="keyword">end</span>
-0666 
-0667 <a name="_sub2" href="#_subfunctions" class="code">function gui = updateNormalize(gui,norm)</a>
-0668 
-0669 <span class="keyword">switch</span> norm    
-0670     <span class="keyword">case</span> 0        
-0671         set(gui.radio_handles.process_normalize_on,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
-0672         set(gui.radio_handles.process_normalize_off,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
-0673         
-0674     <span class="keyword">case</span> 1        
-0675         set(gui.radio_handles.process_normalize_on,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
-0676         set(gui.radio_handles.process_normalize_off,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
-0677 <span class="keyword">end</span>
-0678 
-0679 <span class="keyword">end</span>
-0680 
-0681 <a name="_sub3" href="#_subfunctions" class="code">function gui = updateTimescale(gui,timescale)</a>
-0682 
-0683 <span class="keyword">switch</span> timescale
-0684     
-0685     <span class="keyword">case</span> <span class="string">'s'</span>        
-0686         set(gui.radio_handles.process_timescale_s,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
-0687         set(gui.radio_handles.process_timescale_ms,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
-0688         set(gui.text_handles.invstd_RTDtimes,<span class="string">'String'</span>,<span class="string">'RTD - min [s] | max [s] | # / dec'</span>,<span class="keyword">...</span>
-0689             <span class="string">'FontSize'</span>,10);
-0690         set(gui.text_handles.petro_Tbulk,<span class="string">'String'</span>,<span class="keyword">...</span>
-0691             [<span class="string">'Tbulk [s]   |   '</span>,char(hex2dec(<span class="string">'03C1'</span>)),<span class="string">' [µm/s]   |   geom'</span>]);
-0692         
-0693     <span class="keyword">case</span> <span class="string">'ms'</span>        
-0694         set(gui.radio_handles.process_timescale_s,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
-0695         set(gui.radio_handles.process_timescale_ms,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
-0696         set(gui.text_handles.invstd_RTDtimes,<span class="string">'String'</span>,<span class="string">'RTD - min [ms] | max [ms] | # / dec'</span>,<span class="keyword">...</span>
-0697             <span class="string">'FontSize'</span>,9);
-0698         set(gui.text_handles.petro_Tbulk,<span class="string">'String'</span>,<span class="keyword">...</span>
-0699             [<span class="string">'Tbulk [ms]   |   '</span>,char(hex2dec(<span class="string">'03C1'</span>)),<span class="string">' [µm/s]   |   geom'</span>]);        
-0700 <span class="keyword">end</span>
-0701 
-0702 <span class="keyword">end</span>
-0703 
-0704 <a name="_sub4" href="#_subfunctions" class="code">function gui = updateInvstdTime(gui,invtype,time,Ntime)</a>
-0705 
-0706 <span class="keyword">switch</span> invtype
-0707     
-0708     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}        
-0709         set(gui.edit_handles.invstd_time_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0710         set(gui.edit_handles.invstd_time_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0711         set(gui.edit_handles.invstd_Ntime,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0712         
-0713     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}        
-0714         set(gui.edit_handles.invstd_time_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(time(1)));
-0715         set(gui.edit_handles.invstd_time_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(time(2)));
-0716         set(gui.edit_handles.invstd_Ntime,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(Ntime));   
-0717 <span class="keyword">end</span>
+0657         set(gui.radio_handles.process_gates_log,<span class="string">'Value'</span>,1);
+0658         set(gui.radio_handles.process_gates_lin,<span class="string">'Value'</span>,0);
+0659         set(gui.radio_handles.process_gates_none,<span class="string">'Value'</span>,0);
+0660         set(gui.edit_handles.process_Nechoes,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0661         
+0662     <span class="keyword">case</span> <span class="string">'lin'</span>
+0663         
+0664         set(gui.radio_handles.process_gates_log,<span class="string">'Value'</span>,0);
+0665         set(gui.radio_handles.process_gates_lin,<span class="string">'Value'</span>,1);
+0666         set(gui.radio_handles.process_gates_none,<span class="string">'Value'</span>,0);
+0667         set(gui.edit_handles.process_Nechoes,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0668         
+0669     <span class="keyword">case</span> <span class="string">'raw'</span>
+0670         
+0671         set(gui.radio_handles.process_gates_log,<span class="string">'Value'</span>,0);
+0672         set(gui.radio_handles.process_gates_lin,<span class="string">'Value'</span>,0);
+0673         set(gui.radio_handles.process_gates_none,<span class="string">'Value'</span>,1);
+0674         set(gui.edit_handles.process_Nechoes,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0675         
+0676 <span class="keyword">end</span>
+0677 
+0678 <span class="keyword">end</span>
+0679 
+0680 <a name="_sub2" href="#_subfunctions" class="code">function gui = updateNormalize(gui,norm)</a>
+0681 
+0682 <span class="keyword">switch</span> norm    
+0683     <span class="keyword">case</span> 0        
+0684         set(gui.radio_handles.process_normalize_on,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
+0685         set(gui.radio_handles.process_normalize_off,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
+0686         
+0687     <span class="keyword">case</span> 1        
+0688         set(gui.radio_handles.process_normalize_on,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
+0689         set(gui.radio_handles.process_normalize_off,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
+0690 <span class="keyword">end</span>
+0691 
+0692 <span class="keyword">end</span>
+0693 
+0694 <a name="_sub3" href="#_subfunctions" class="code">function gui = updateTimescale(gui,timescale)</a>
+0695 
+0696 <span class="keyword">switch</span> timescale
+0697     
+0698     <span class="keyword">case</span> <span class="string">'s'</span>        
+0699         set(gui.radio_handles.process_timescale_s,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
+0700         set(gui.radio_handles.process_timescale_ms,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
+0701         set(gui.text_handles.invstd_RTDtimes,<span class="string">'String'</span>,<span class="string">'RTD - min [s] | max [s] | # / dec'</span>,<span class="keyword">...</span>
+0702             <span class="string">'FontSize'</span>,10);
+0703         set(gui.text_handles.petro_Tbulk,<span class="string">'String'</span>,<span class="keyword">...</span>
+0704             [<span class="string">'Tbulk [s]   |   '</span>,char(hex2dec(<span class="string">'03C1'</span>)),<span class="string">' [µm/s]   |   geom'</span>]);
+0705         
+0706     <span class="keyword">case</span> <span class="string">'ms'</span>        
+0707         set(gui.radio_handles.process_timescale_s,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,0);
+0708         set(gui.radio_handles.process_timescale_ms,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1);
+0709         set(gui.text_handles.invstd_RTDtimes,<span class="string">'String'</span>,<span class="string">'RTD - min [ms] | max [ms] | # / dec'</span>,<span class="keyword">...</span>
+0710             <span class="string">'FontSize'</span>,9);
+0711         set(gui.text_handles.petro_Tbulk,<span class="string">'String'</span>,<span class="keyword">...</span>
+0712             [<span class="string">'Tbulk [ms]   |   '</span>,char(hex2dec(<span class="string">'03C1'</span>)),<span class="string">' [µm/s]   |   geom'</span>]);        
+0713 <span class="keyword">end</span>
+0714 
+0715 <span class="keyword">end</span>
+0716 
+0717 <a name="_sub4" href="#_subfunctions" class="code">function gui = updateInvstdTime(gui,invtype,time,Ntime)</a>
 0718 
-0719 <span class="keyword">end</span>
-0720 
-0721 <a name="_sub5" href="#_subfunctions" class="code">function gui = updateInvjointRadii(gui,invtype,radii,Nradii)</a>
-0722 
-0723 <span class="keyword">switch</span> invtype    
-0724     <span class="keyword">case</span> {<span class="string">'fixed'</span>,<span class="string">'shape'</span>,<span class="string">'off'</span>}        
-0725         set(gui.edit_handles.invjoint_radii_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0726         set(gui.edit_handles.invjoint_radii_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0727         set(gui.edit_handles.invjoint_Nradii,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0728         
-0729     <span class="keyword">case</span> {<span class="string">'free'</span>}        
-0730         set(gui.edit_handles.invjoint_radii_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(radii(1)));
-0731         set(gui.edit_handles.invjoint_radii_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(radii(2)));
-0732         set(gui.edit_handles.invjoint_Nradii,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(Nradii));
-0733 <span class="keyword">end</span>
-0734 
-0735 <span class="keyword">end</span>
-0736 
-0737 <a name="_sub6" href="#_subfunctions" class="code">function gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)</a>
-0738 
-0739 <span class="keyword">switch</span> regtype    
-0740     <span class="keyword">case</span> <span class="string">'none'</span>        
-0741         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0742         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0743         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0744         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
-0745         
-0746     <span class="keyword">case</span> <span class="string">'manual'</span>        
-0747         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambda));
-0748         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0749         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0750         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
-0751         
-0752     <span class="keyword">case</span> <span class="string">'auto'</span>        
-0753         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(lambda));
-0754         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0755         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0756         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
-0757         
-0758     <span class="keyword">case</span> <span class="string">'lcurve'</span>        
-0759         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(1)));
-0760         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(2)));
-0761         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(NlambdaR));
-0762         gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
-0763         
-0764     <span class="keyword">case</span> <span class="string">'iterchi2'</span>        
-0765         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(1)));
-0766         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(2)));
-0767         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(NlambdaR));
-0768         gui.plots.DistPanel.TabTitles = {<span class="string">'CHI2'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
-0769         
-0770     <span class="keyword">case</span> {<span class="string">'gcv_tikh'</span>,<span class="string">'gcv_trunc'</span>,<span class="string">'gcv_damp'</span>,<span class="string">'discrep'</span>}        
-0771         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(lambda));
-0772         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0773         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0774         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
-0775 <span class="keyword">end</span>
-0776 
-0777 <span class="keyword">end</span>
-0778 
-0779 <a name="_sub7" href="#_subfunctions" class="code">function gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)</a>
-0780 
-0781 <span class="keyword">switch</span> regtype    
-0782     <span class="keyword">case</span> <span class="string">'none'</span>        
-0783         <span class="keyword">switch</span> regtypestd            
-0784             <span class="keyword">case</span> <span class="string">'lcurve'</span>                
-0785                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0786                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0787                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0788                 gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
-0789                 
-0790             <span class="keyword">case</span> <span class="string">'iterchi2'</span>                
-0791                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0792                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0793                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0794                 gui.plots.DistPanel.TabTitles = {<span class="string">'CHI2'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
-0795                 
-0796             <span class="keyword">otherwise</span>                
-0797                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0798                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0799                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0800                 gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
-0801         <span class="keyword">end</span>
-0802         
-0803     <span class="keyword">case</span> <span class="string">'manual'</span>        
-0804         <span class="keyword">switch</span> regtypestd            
-0805             <span class="keyword">case</span> <span class="string">'lcurve'</span>                
-0806                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambda));
-0807                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0808                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0809                 gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
-0810                 
-0811             <span class="keyword">otherwise</span>                
-0812                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambda));
-0813                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0814                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0815                 gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
-0816         <span class="keyword">end</span>
-0817         
-0818     <span class="keyword">case</span> <span class="string">'lcurve'</span>        
-0819         set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(1)));
-0820         set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(2)));
-0821         set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(NlambdaR));
-0822         gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
-0823 <span class="keyword">end</span>
-0824 
-0825 <span class="keyword">end</span>
-0826 
-0827 <a name="_sub8" href="#_subfunctions" class="code">function gui = updateLorder(gui,invtype,Lorder)</a>
-0828 
-0829 <span class="keyword">switch</span> invtype
-0830     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
-0831         set(gui.radio_handles.invstd_Lorder0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0832         set(gui.radio_handles.invstd_Lorder1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0833         set(gui.radio_handles.invstd_Lorder2,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0834         
-0835     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
-0836         set(gui.radio_handles.invstd_Lorder0,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0837         set(gui.radio_handles.invstd_Lorder1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0838         set(gui.radio_handles.invstd_Lorder2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0839         
-0840         <span class="keyword">switch</span> Lorder
-0841             <span class="keyword">case</span> 0
-0842                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,1);
-0843                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,0);
-0844                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,0);
-0845                 
-0846             <span class="keyword">case</span> 1
-0847                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,0);
-0848                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,1);
-0849                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,0);
-0850                 
-0851             <span class="keyword">case</span> 2
-0852                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,0);
-0853                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,0);
-0854                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,1);
-0855         <span class="keyword">end</span>
-0856 <span class="keyword">end</span>
-0857 
-0858 <span class="keyword">end</span>
-0859 
-0860 <a name="_sub9" href="#_subfunctions" class="code">function gui = updateLorderJoint(gui,invtype,Lorder)</a>
-0861 
-0862 <span class="keyword">switch</span> invtype
-0863     <span class="keyword">case</span> {<span class="string">'fixed'</span>,<span class="string">'shape'</span>,<span class="string">'off'</span>}
-0864         set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0865         set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0866         set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0867         
-0868     <span class="keyword">case</span> <span class="string">'free'</span>
-0869         set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0870         set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0871         set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0872         
-0873         <span class="keyword">switch</span> Lorder
-0874             <span class="keyword">case</span> 0
-0875                 set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Value'</span>,1);
-0876                 set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Value'</span>,0);
-0877                 set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Value'</span>,0);
-0878                 
-0879             <span class="keyword">case</span> 1
-0880                 set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Value'</span>,0);
-0881                 set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Value'</span>,1);
-0882                 set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Value'</span>,0);
-0883                 
-0884             <span class="keyword">case</span> 2
-0885                 set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Value'</span>,0);
-0886                 set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Value'</span>,0);
-0887                 set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Value'</span>,1);
-0888         <span class="keyword">end</span>
-0889 <span class="keyword">end</span>
-0890 
-0891 <span class="keyword">end</span>
-0892 
-0893 <a name="_sub10" href="#_subfunctions" class="code">function gui = updateParams(gui,invtype,p)</a>
-0894 
-0895 <span class="keyword">switch</span> invtype
-0896     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
-0897         set(gui.edit_handles.param_CBW,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(p.CBWcutoff));
-0898         set(gui.edit_handles.param_BVI,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(p.BVIcutoff));
-0899         set(gui.edit_handles.param_rho,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.rho));
-0900         set(gui.edit_handles.param_geom,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.a));
-0901         
-0902     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
-0903         set(gui.edit_handles.param_CBW,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.CBWcutoff));
-0904         set(gui.edit_handles.param_BVI,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.BVIcutoff));
-0905         set(gui.edit_handles.param_rho,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.rho));
-0906         set(gui.edit_handles.param_geom,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.a));
-0907         
-0908 <span class="keyword">end</span>
-0909 set(gui.edit_handles.param_calibVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.calibVol));
-0910 set(gui.edit_handles.param_calibAmp,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.calibAmp));
-0911 set(gui.edit_handles.param_sampVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.sampVol));
-0912 
-0913 <span class="keyword">end</span>
-0914 
-0915 <span class="comment">%------------- END OF CODE --------------</span>
-0916 
-0917 <span class="comment">%% License:</span>
-0918 <span class="comment">% MIT License</span>
-0919 <span class="comment">%</span>
-0920 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0921 <span class="comment">%</span>
-0922 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0923 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0924 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0925 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0926 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0927 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0928 <span class="comment">%</span>
-0929 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0930 <span class="comment">% copies or substantial portions of the Software.</span>
-0931 <span class="comment">%</span>
-0932 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0933 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0934 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0935 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0936 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0937 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0938 <span class="comment">% SOFTWARE.</span></pre></div>
+0719 <span class="keyword">switch</span> invtype
+0720     
+0721     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}        
+0722         set(gui.edit_handles.invstd_time_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0723         set(gui.edit_handles.invstd_time_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0724         set(gui.edit_handles.invstd_Ntime,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0725         
+0726     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}        
+0727         set(gui.edit_handles.invstd_time_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(time(1)));
+0728         set(gui.edit_handles.invstd_time_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(time(2)));
+0729         set(gui.edit_handles.invstd_Ntime,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(Ntime));   
+0730 <span class="keyword">end</span>
+0731 
+0732 <span class="keyword">end</span>
+0733 
+0734 <a name="_sub5" href="#_subfunctions" class="code">function gui = updateInvjointRadii(gui,invtype,radii,Nradii)</a>
+0735 
+0736 <span class="keyword">switch</span> invtype    
+0737     <span class="keyword">case</span> {<span class="string">'fixed'</span>,<span class="string">'shape'</span>,<span class="string">'off'</span>}        
+0738         set(gui.edit_handles.invjoint_radii_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0739         set(gui.edit_handles.invjoint_radii_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0740         set(gui.edit_handles.invjoint_Nradii,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0741         
+0742     <span class="keyword">case</span> {<span class="string">'free'</span>}        
+0743         set(gui.edit_handles.invjoint_radii_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(radii(1)));
+0744         set(gui.edit_handles.invjoint_radii_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(radii(2)));
+0745         set(gui.edit_handles.invjoint_Nradii,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(Nradii));
+0746 <span class="keyword">end</span>
+0747 
+0748 <span class="keyword">end</span>
+0749 
+0750 <a name="_sub6" href="#_subfunctions" class="code">function gui = updateLambda(gui,regtype,lambda,lambdaR,NlambdaR)</a>
+0751 
+0752 <span class="keyword">switch</span> regtype    
+0753     <span class="keyword">case</span> <span class="string">'none'</span>        
+0754         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0755         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0756         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0757         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
+0758         
+0759     <span class="keyword">case</span> <span class="string">'manual'</span>        
+0760         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambda));
+0761         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0762         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0763         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
+0764         
+0765     <span class="keyword">case</span> <span class="string">'auto'</span>        
+0766         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(lambda));
+0767         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0768         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0769         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
+0770         
+0771     <span class="keyword">case</span> <span class="string">'lcurve'</span>        
+0772         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(1)));
+0773         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(2)));
+0774         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(NlambdaR));
+0775         gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
+0776         
+0777     <span class="keyword">case</span> <span class="string">'iterchi2'</span>        
+0778         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(1)));
+0779         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(2)));
+0780         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(NlambdaR));
+0781         gui.plots.DistPanel.TabTitles = {<span class="string">'CHI2'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
+0782         
+0783     <span class="keyword">case</span> {<span class="string">'gcv_tikh'</span>,<span class="string">'gcv_trunc'</span>,<span class="string">'gcv_damp'</span>,<span class="string">'discrep'</span>}        
+0784         set(gui.edit_handles.invstd_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(lambda));
+0785         set(gui.edit_handles.invstd_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0786         set(gui.edit_handles.invstd_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0787         gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
+0788 <span class="keyword">end</span>
+0789 
+0790 <span class="keyword">end</span>
+0791 
+0792 <a name="_sub7" href="#_subfunctions" class="code">function gui = updateLambdaJoint(gui,regtype,lambda,lambdaR,NlambdaR,regtypestd)</a>
+0793 
+0794 <span class="keyword">switch</span> regtype    
+0795     <span class="keyword">case</span> <span class="string">'none'</span>        
+0796         <span class="keyword">switch</span> regtypestd            
+0797             <span class="keyword">case</span> <span class="string">'lcurve'</span>                
+0798                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0799                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0800                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0801                 gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
+0802                 
+0803             <span class="keyword">case</span> <span class="string">'iterchi2'</span>                
+0804                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0805                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0806                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0807                 gui.plots.DistPanel.TabTitles = {<span class="string">'CHI2'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
+0808                 
+0809             <span class="keyword">otherwise</span>                
+0810                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0811                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0812                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0813                 gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
+0814         <span class="keyword">end</span>
+0815         
+0816     <span class="keyword">case</span> <span class="string">'manual'</span>        
+0817         <span class="keyword">switch</span> regtypestd            
+0818             <span class="keyword">case</span> <span class="string">'lcurve'</span>                
+0819                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambda));
+0820                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0821                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0822                 gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
+0823                 
+0824             <span class="keyword">otherwise</span>                
+0825                 set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambda));
+0826                 set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0827                 set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0828                 gui.plots.DistPanel.TabTitles = {<span class="string">'RTD'</span>,<span class="string">'PSD'</span>,<span class="string">'PSD (joint)'</span>};
+0829         <span class="keyword">end</span>
+0830         
+0831     <span class="keyword">case</span> <span class="string">'lcurve'</span>        
+0832         set(gui.edit_handles.invjoint_lambda_min,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(1)));
+0833         set(gui.edit_handles.invjoint_lambda_max,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(lambdaR(2)));
+0834         set(gui.edit_handles.invjoint_NlambdaR,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(NlambdaR));
+0835         gui.plots.DistPanel.TabTitles = {<span class="string">'L-CURVE'</span>,<span class="string">'RMS'</span>,<span class="string">'PSD (joint)'</span>};
+0836 <span class="keyword">end</span>
+0837 
+0838 <span class="keyword">end</span>
+0839 
+0840 <a name="_sub8" href="#_subfunctions" class="code">function gui = updateLorder(gui,invtype,Lorder)</a>
+0841 
+0842 <span class="keyword">switch</span> invtype
+0843     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
+0844         set(gui.radio_handles.invstd_Lorder0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0845         set(gui.radio_handles.invstd_Lorder1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0846         set(gui.radio_handles.invstd_Lorder2,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0847         
+0848     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
+0849         set(gui.radio_handles.invstd_Lorder0,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0850         set(gui.radio_handles.invstd_Lorder1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0851         set(gui.radio_handles.invstd_Lorder2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0852         
+0853         <span class="keyword">switch</span> Lorder
+0854             <span class="keyword">case</span> 0
+0855                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,1);
+0856                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,0);
+0857                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,0);
+0858                 
+0859             <span class="keyword">case</span> 1
+0860                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,0);
+0861                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,1);
+0862                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,0);
+0863                 
+0864             <span class="keyword">case</span> 2
+0865                 set(gui.radio_handles.invstd_Lorder0,<span class="string">'Value'</span>,0);
+0866                 set(gui.radio_handles.invstd_Lorder1,<span class="string">'Value'</span>,0);
+0867                 set(gui.radio_handles.invstd_Lorder2,<span class="string">'Value'</span>,1);
+0868         <span class="keyword">end</span>
+0869 <span class="keyword">end</span>
+0870 
+0871 <span class="keyword">end</span>
+0872 
+0873 <a name="_sub9" href="#_subfunctions" class="code">function gui = updateLorderJoint(gui,invtype,Lorder)</a>
+0874 
+0875 <span class="keyword">switch</span> invtype
+0876     <span class="keyword">case</span> {<span class="string">'fixed'</span>,<span class="string">'shape'</span>,<span class="string">'off'</span>}
+0877         set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0878         set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0879         set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0880         
+0881     <span class="keyword">case</span> <span class="string">'free'</span>
+0882         set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0883         set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0884         set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0885         
+0886         <span class="keyword">switch</span> Lorder
+0887             <span class="keyword">case</span> 0
+0888                 set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Value'</span>,1);
+0889                 set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Value'</span>,0);
+0890                 set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Value'</span>,0);
+0891                 
+0892             <span class="keyword">case</span> 1
+0893                 set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Value'</span>,0);
+0894                 set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Value'</span>,1);
+0895                 set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Value'</span>,0);
+0896                 
+0897             <span class="keyword">case</span> 2
+0898                 set(gui.radio_handles.invjoint_Lorder0,<span class="string">'Value'</span>,0);
+0899                 set(gui.radio_handles.invjoint_Lorder1,<span class="string">'Value'</span>,0);
+0900                 set(gui.radio_handles.invjoint_Lorder2,<span class="string">'Value'</span>,1);
+0901         <span class="keyword">end</span>
+0902 <span class="keyword">end</span>
+0903 
+0904 <span class="keyword">end</span>
+0905 
+0906 <a name="_sub10" href="#_subfunctions" class="code">function gui = updateParams(gui,invtype,p)</a>
+0907 
+0908 <span class="keyword">switch</span> invtype
+0909     <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
+0910         set(gui.edit_handles.param_CBW,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(p.CBWcutoff));
+0911         set(gui.edit_handles.param_BVI,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'String'</span>,num2str(p.BVIcutoff));
+0912         set(gui.edit_handles.param_rho,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.rho));
+0913         set(gui.edit_handles.param_geom,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.a));
+0914         
+0915     <span class="keyword">case</span> {<span class="string">'ILA'</span>,<span class="string">'NNLS'</span>}
+0916         set(gui.edit_handles.param_CBW,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.CBWcutoff));
+0917         set(gui.edit_handles.param_BVI,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.BVIcutoff));
+0918         set(gui.edit_handles.param_rho,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.rho));
+0919         set(gui.edit_handles.param_geom,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.a));
+0920         
+0921 <span class="keyword">end</span>
+0922 set(gui.edit_handles.param_calibVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.calibVol));
+0923 set(gui.edit_handles.param_calibAmp,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.calibAmp));
+0924 set(gui.edit_handles.param_sampVol,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'String'</span>,num2str(p.sampVol));
+0925 
+0926 <span class="keyword">end</span>
+0927 
+0928 <span class="comment">%------------- END OF CODE --------------</span>
+0929 
+0930 <span class="comment">%% License:</span>
+0931 <span class="comment">% MIT License</span>
+0932 <span class="comment">%</span>
+0933 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0934 <span class="comment">%</span>
+0935 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0936 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0937 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0938 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0939 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0940 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0941 <span class="comment">%</span>
+0942 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0943 <span class="comment">% copies or substantial portions of the Software.</span>
+0944 <span class="comment">%</span>
+0945 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0946 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0947 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0948 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0949 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0950 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0951 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

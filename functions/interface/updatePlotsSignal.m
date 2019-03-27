@@ -299,27 +299,40 @@ if isjoint && ~isfield(data.results,'invjoint') && ...
     INVdata = getappdata(fig,'INVdata');
     
     nINV = size(INVdata,1);
+    E0 = zeros(nINV,1);
     c = 0;
     invlevels = 0;
     for i = 1:nINV
         if isstruct(INVdata{i})
             c = c + 1;
             invlevels(c) = i; %#ok<AGROW>
+            E0(i,1) = sum(INVdata{i}.results.invstd.E0);
         end
     end
     
     % the pressure / saturation data
     table = data.pressure.table;
-    uselevel = cell2mat(table(:,1));
-    tablelevels = 1:size(table,1);
-    tablelevels = tablelevels(uselevel);
-    S = cell2mat(table(:,3));
-    if numel(S)~=nINV
-        S()
-    end
     
-    [isin,levels] = ismember(invlevels,tablelevels);
-    levels = tablelevels(levels(isin));
+    if size(table,1) == 1 & invlevels ~= 0 %#ok<AND2>
+        % apparently no CPS data was loaded but joint inversion is
+        % activated ... so just plot the data
+        if invlevels == 0
+            levels = [];
+        else
+            levels = invlevels;
+            S = E0(invlevels)./max(E0(invlevels));
+        end
+    else
+        uselevel = cell2mat(table(:,1));
+        tablelevels = 1:size(table,1);
+        tablelevels = tablelevels(uselevel);
+        S = cell2mat(table(:,3));
+        %         if numel(S)~=nINV
+        %             % S()
+        %         end
+        [isin,levels] = ismember(invlevels,tablelevels);
+        levels = tablelevels(levels(isin));
+    end
 
     if ~isempty(levels) && levels(1) > 0 && c > 0
         hold(ax,'on');

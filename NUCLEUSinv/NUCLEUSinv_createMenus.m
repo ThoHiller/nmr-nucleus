@@ -151,10 +151,11 @@ gui.menu.file_export_data_invstd_mat_all = uimenu(gui.menu.file_export_data,...
     'Label','MAT all (std)','Callback',@onMenuExportData);
 % 1.2.1.6 Joint Inversion results xls
 gui.menu.file_export_data_invjoint_excel = uimenu(gui.menu.file_export_data,...
-    'Label','EXCEL single (joint)','Separator','on','Callback',@onMenuExportData);
+    'Label','EXCEL all (joint)','Separator','on','Enable','off',...
+    'Callback',@onMenuExportData);
 % 1.2.1.7 Joint Inversion results mat-file
-gui.menu.file_export_data_invjoint_mat_single = uimenu(gui.menu.file_export_data,...
-    'Label','MAT single (joint)','Callback',@onMenuExportData);
+gui.menu.file_export_data_invjoint_mat = uimenu(gui.menu.file_export_data,...
+    'Label','MAT all (joint)','Enable','off','Callback',@onMenuExportData);
 % 1.2.1.8 LIAG archive
 gui.menu.file_export_data_liag_archive = uimenu(gui.menu.file_export_data,...
     'Label','LIAG archive','Separator','on','Callback',@onMenuExportData);
@@ -286,28 +287,41 @@ switch gui.myui.inidata.colortheme
         set(gui.menu.extra_settings_theme_dark,'Checked','on');
 end
 
+% 2.3.5 joint inversion settings
+gui.menu.extra_settings_joint = uimenu(gui.menu.extra_settings,...
+    'Label','Joint Inversion','Enable','off','Separator','on');
+% 2.3.5.1 joint inversion settings
+gui.menu.extra_settings_joint_rhobounds = uimenu(gui.menu.extra_settings_joint,...
+    'Label','Surface relaxivity bounds','Callback',@onMenuExtraRhoBounds);
+
 % 2.4 figures
 gui.menu.extra_graphics = uimenu(gui.menu.extra,...
     'Label','Figures');
-% 2.3.1 parameter file info
+% 2.4.1 parameter file info
 gui.menu.extra_graphics_parinfo = uimenu(gui.menu.extra_graphics,...
     'Label','Parameter Info','Callback',@onMenuExtraShow);
-% 2.2.1 fit statistics
+% 2.4.2 fit statistics
 gui.menu.extra_graphics_stats = uimenu(gui.menu.extra_graphics,...
     'Label','Fit statistics','Callback',@onMenuExtraGraphics);
 switch gui.myui.inidata.expertmode
     case 'on'
-        % 2.2.2 amplitude over time
+        % 2.4.3 amplitude over time
         gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
             'Label','AMP-TLGM-SNR','Callback',@onMenuExtraGraphics);
-        % 2.2.4 relaxation time distribution over time
+        % 2.4.4 amplitude vs tlgm
+        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
+            'Label','AMP vs TLGM','Callback',@onMenuExtraGraphics);
+        % 2.4.5 relaxation time distribution over time
         gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
             'Label','RTD','Callback',@onMenuExtraGraphics);
     case 'off'
-        % 2.2.2 amplitude over time
+        % 2.4.3 amplitude over time
         gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
             'Label','AMP-TLGM-SNR','Enable','off','Callback',@onMenuExtraGraphics);
-        % 2.2.4 relaxation time distribution over time
+        % 2.4.4 amplitude vs tlgm
+        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
+            'Label','AMP vs TLGM','Enable','off','Callback',@onMenuExtraGraphics);
+        % 2.4.5 relaxation time distribution over time
         gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
             'Label','RTD','Enable','off','Callback',@onMenuExtraGraphics);
 end

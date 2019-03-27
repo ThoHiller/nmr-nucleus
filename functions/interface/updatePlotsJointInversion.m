@@ -364,6 +364,15 @@ if isfield(data.results,'invjoint')
     % update GUI data
     setappdata(fig,'data',data);
     setappdata(fig,'gui',gui);
+else
+    % if not, clear old data in the joint PSD and CPS axes
+    clearSingleAxis(gui.axes_handles.psdj);
+    ph = findall(gui.axes_handles.cps,'Tag','SatPoints');
+    if ~isempty(ph)
+        set(ph,'HandleVisibility','on')
+        delete(ph);
+    end
+    clearSingleAxis(gui.axes_handles.cps);
 end
 
 end

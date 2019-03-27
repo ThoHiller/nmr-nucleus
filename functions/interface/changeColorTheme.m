@@ -39,15 +39,16 @@ myui = gui.myui;
 
 % update the colors
 myui.colors = getColorTheme(fig_tag,th);
-
-% update ini-file
-myui.inidata.colortheme = th;
-gui.myui = myui;
-gui = makeINIfile(gui,'update');
         
 % switch depending on the calling figure
 switch fig_tag
-    case 'INV'        
+    case 'INV'
+        
+        % update ini-file
+        myui.inidata.colortheme = th;
+        gui.myui = myui;
+        gui = makeINIfile(gui,'update');
+        
         % update the GUI elements
         set(gui.panels.data.main,'TitleColor',myui.colors.BoxDAT,...
             'ForegroundColor',myui.colors.BoxTitle);

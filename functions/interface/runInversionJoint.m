@@ -286,9 +286,11 @@ if foundINV
                                 iparam.SatImbDrain = SatImbDrain;
                                 
                                 % start values and bounds
-                                x0 = [zeros(size(igeom.radius))' log10(1e-6)];
-                                lb = [zeros(size(igeom.radius))' log10(1e-8)];
-                                ub = [ones(size(igeom.radius))' log10(1e-3)];
+                                rhostart = log10(data.invjoint.rhostart/1e6);
+                                rhobounds = log10(data.invjoint.rhobounds/1e6);
+                                x0 = [zeros(size(igeom.radius))' rhostart];
+                                lb = [zeros(size(igeom.radius))' rhobounds(1)];
+                                ub = [ones(size(igeom.radius))' rhobounds(2)];
                                 
                                 options = optimset('Display',info,'TolFun',1e-12,'TolX',1e-12,...
                                     'Jacobian','on','DerivativeCheck','off','FinDiffType','central',...
@@ -387,9 +389,11 @@ if foundINV
                         iparam.SatImbDrain = SatImbDrain;
                         
                         % start values and bounds
-                        x0 = [zeros(size(igeom.radius))' log10(1e-6)];
-                        lb = [zeros(size(igeom.radius))' log10(1e-8)];
-                        ub = [ones(size(igeom.radius))' log10(1e-3)];
+                        rhostart = log10(data.invjoint.rhostart/1e6);
+                        rhobounds = log10(data.invjoint.rhobounds/1e6);
+                        x0 = [zeros(size(igeom.radius))' rhostart];
+                        lb = [zeros(size(igeom.radius))' rhobounds(1)];
+                        ub = [ones(size(igeom.radius))' rhobounds(2)];
                         
                         % status bar information
                         infostring = 'Joint Inversion (free) using ''lsqnonlin'' ... ';
@@ -464,6 +468,9 @@ if foundINV
                         else
                             p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
                         end
+                        % waitbar option
+                        wbopts.show = true;
+                        wbopts.tag = 'INV';
                         pSAT = getSaturationFromPressureBatch(igeom,p_tmp,ppsddata,getConstants,wbopts);
                         % save
                         data.results.invjoint.pSAT = pSAT;
@@ -497,10 +504,11 @@ if foundINV
                 iparam.x = fullsat.T';
                 iparam.f = fullsat.F';
                 
-                % start values
+                % start values and bounds
                 x0 = log10(data.invjoint.rhostart/1e6);
-                lb = log10(1e-8);
-                ub = log10(1e-3);
+                rhobounds = log10(data.invjoint.rhobounds/1e6);
+                lb = rhobounds(1);
+                ub = rhobounds(2);
                 
                 infostring = 'Joint Inversion (fixed) using ''fminsearchbnd'' ... ';
                 displayStatusText(gui,infostring);
@@ -577,7 +585,7 @@ if foundINV
                 data.results.invjoint.pSAT = pSAT;
                 displayStatusText(gui,[infostring,'done']);
                 
-            case 'shape' % invert for rho and rectangular shape
+            case 'shape' % invert for rho and right angular shape
                 % disable the RUN button to indicate a running inversion
                 set(gui.push_handles.invjoint_run,'String','RUNNING ...',...
                     'Enable','inactive');
@@ -610,8 +618,9 @@ if foundINV
                 % ub = [(log10(1e-4)+7)/3 45/45];
                 % old way
                 x0 = [log10(data.invjoint.rhostart/1e6) data.invjoint.anglestart];
-                lb = [log10(1e-8) 0.1];
-                ub = [log10(1e-3) 45];
+                rhobounds = log10(data.invjoint.rhobounds/1e6);
+                lb = [rhobounds(1) 0.1];
+                ub = [rhobounds(2) 45];
                 
                 infostring = 'Joint Inversion (shape) using ''fminsearchbnd'' ... ';
                 displayStatusText(gui,infostring);

@@ -48,7 +48,7 @@ switch invtype
                 data.invjoint.geometry_type = 'cyl';
                 data.invjoint.polyN = 3;
                 
-            case 2 % rectangular                
+            case 2 % right angular                
                 data.invjoint.geometry_type = 'ang';
                 data.invjoint.polyN = 3;
                 
@@ -62,10 +62,10 @@ switch invtype
                 data.invjoint.geometry_type = 'ang';
                 data.invjoint.polyN = 3;
                 helpdlg({'onPopupInvjointGeometryType:',...
-                    'For shape inversion only rectangular geometry is possible'},...
+                    'For shape inversion only right angular geometry is possible'},...
                     'invalid option');
                 
-            case 2 % rectangular                
+            case 2 % right angular                
                 data.invjoint.geometry_type = 'ang';
                 data.invjoint.polyN = 3;
         end

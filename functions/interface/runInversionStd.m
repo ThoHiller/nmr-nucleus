@@ -58,9 +58,25 @@ INVdata = getappdata(fig,'INVdata');
 % id of the chosen NMR signal
 id = get(gui.listbox_handles.signal,'Value');
 
+% check if joint inversion is activated
+isjoint = strcmp(get(gui.menu.extra_joint_on,'Checked'),'on');
+
 if ~isempty(id) && ~isempty(INVdata)
     % remove temporary data fields
     data = removeInversionFields(data);
+    
+    % if joint inversion is enabled clear joint PSD and CPS axes because a
+    % new std inversion might change E0 and hence the saturation value of
+    % the NMR signal
+    if isjoint
+        clearSingleAxis(gui.axes_handles.psdj);
+        ph = findall(gui.axes_handles.cps,'Tag','SatPoints');
+        if ~isempty(ph)
+            set(ph,'HandleVisibility','on')
+            delete(ph);
+        end
+        clearSingleAxis(gui.axes_handles.cps);
+    end
     
     % switch depending on regularization method
     switch data.invstd.regtype

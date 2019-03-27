@@ -49,6 +49,7 @@ nmrproc.start = data.process.start;
 nmrproc.end = data.process.end;
 nmrproc.norm = data.process.norm;
 nmrproc.gatetype = data.process.gatetype;
+nmrproc.Nechoes = data.process.Nechoes;
 
 [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc);
 data.results.nmrraw = nmrraw;

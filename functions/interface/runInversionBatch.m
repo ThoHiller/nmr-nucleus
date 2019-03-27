@@ -56,7 +56,7 @@ if ~isempty(INVdata)
     % Inversion output on command line
     switch data.info.InvInfo
         case 'on'
-            param.info = 'iter';
+            param.info = 'final';
         case 'off'
             param.info = 'off';
     end
@@ -197,7 +197,7 @@ if ~isempty(INVdata)
             % update wait-bar
             if wbopts.show
                 % for a small number of signals always update the wait-bar
-                if size(INVdata,1) < 25
+                if size(INVdata,1) < 50
                     waitbar(id / steps,hwb,['processing ...',num2str(id),...
                         ' / ',num2str(steps),' NMR signals']);
                 else

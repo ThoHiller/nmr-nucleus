@@ -11,6 +11,7 @@ function data = applyGatesToSignal(time,signal,varargin)
 %       varargin - PROPERTY - VALUE OPTIONS:
 %                    'type' - 'log' or 'lin' (default is 'log')
 %                      'Ng' - No. of gates (default is 100)
+%                      'Ne' - max. No. of echoes per gate (default is 50)
 %                  'plotit' - '0' or '1' (default is 0)
 %                 'special' - 'rwth' or '' (default is '')
 % Outputs:
@@ -39,6 +40,7 @@ function data = applyGatesToSignal(time,signal,varargin)
 
 %% default settings
 type = 'log';
+Ne = 50;
 Ng = 100;
 plotit = 0;
 special = '';
@@ -67,6 +69,14 @@ if nargin > 2
                 else
                     disp('applyGatesToSignal: ''Ng'' must be a scalar value.');
                     disp('applyGatesToSignal: Using default: 100.');
+                end
+            end
+            if strcmpi(prop,'Nechoes')|| strcmpi(prop,'Ne')
+                if isnumeric(value)
+                    Ne = value;
+                else
+                    disp('applyGatesToSignal: ''Nechoes'' must be a scalar value.');
+                    disp('applyGatesToSignal: Using default: 50.');
                 end
             end
             if strcmpi(prop,'plot')|| strcmpi(prop,'plotit')
@@ -111,7 +121,7 @@ end
 switch type
     case 'log'
         % get a log-spaced vector with numbers of echoes per gate
-        index = round(logspace(log10(1),3,Ng));
+        index = round(logspace(0,3,Ng));
         
         if strcmp(special,'rwth')
             % merge the first 3 data points if they are below 0.001 s
@@ -121,12 +131,13 @@ switch type
         end
         % the maximal No of echoes per time gates is set to M=50
         % this stabilizes / improves the RMS estimation
-        if numel(time) < 20000
-            M = 50;
-        else
-            M = 150;
-        end
-        % find the first on where the number of echoes is M
+%         if numel(time) < 20000
+%             M = 50;
+%         else
+%             M = 150;
+%         end
+        M = Ne;
+        % find the first one where the number of echoes is M
         ind = find(abs(index-M)==min(abs(index-M)),1,'first');
         % maybe M is not exactly within index due to rounding issues
         % then take the closest one
@@ -185,7 +196,14 @@ switch type
         end
         
     case 'lin'
-        % get a lin-spaced vector with numbers of echoes per gate
+        
+        % if more echoes per gate are desired, than the number of gates
+        % gives: update the number of gates ;-)
+%         if numel(time)/Ng > Ne
+            Ng = round(numel(time)/Ne);            
+%         end
+        
+        % get a lin-spaced time vector
         timeg = linspace(time(2),time(end),Ng);
         t = zeros(Ng,1);
         signal_g = zeros(Ng,1);

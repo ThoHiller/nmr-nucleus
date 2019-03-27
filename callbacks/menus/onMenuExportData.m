@@ -53,8 +53,8 @@ switch fig_tag
                 exportData(fig_tag,'matA');                
             case 'EXCEL single (joint)'
                 exportData(fig_tag,'excelJ');
-            case 'MAT single (joint)'
-                exportData(fig_tag,'matJ');
+            case 'MAT all (joint)'
+                exportData(fig_tag,'matA');
             case 'LIAG archive'
                 exportData(fig_tag,'LIAG');
         end

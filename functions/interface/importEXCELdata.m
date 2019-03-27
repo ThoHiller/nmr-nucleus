@@ -173,6 +173,10 @@ if sum([EXCELpath EXCELfile]) > 0
         data.import.NMR.files = fnames;
         data.import.NMR.filesShort = shownames;
         
+        % update the ini-file
+        gui.myui.inidata.importpath = data.import.path;
+        gui = makeINIfile(gui,'update');
+        
         % update the list of file names
         set(gui.listbox_handles.signal,'String',data.import.NMR.filesShort);
         set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);

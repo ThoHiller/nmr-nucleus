@@ -48,7 +48,7 @@ switch data.geometry.type
     case 'cyl' % cylindrical        
         GEOM.type = data.geometry.type;
         
-    case 'ang' % rectangular        
+    case 'ang' % right angular        
         GEOM.type = data.geometry.type;
         data.geometry.alpha = 90;
         data.geometry.gamma = data.geometry.alpha - data.geometry.beta;

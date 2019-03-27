@@ -57,21 +57,20 @@ switch onoff
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
         
-        % deactivate joint inversion panels only if there is data
-        if isfield(data.import,'NMR')
-            onMenuJointInversion(gui.menu.extra_joint_off);
-            % get changed GUI data
-            data = getappdata(fig,'data');
-            INVdata = getappdata(fig,'INVdata');
-            
-            data.invstd.invtype = 'NNLS';
-            data.invstd.regtype = 'manual';
-            data.invstd.lambda = 1;
-        end
+        % deactivate joint inversion panels        
+        onMenuJointInversion(gui.menu.extra_joint_off);
+        % get changed GUI data
+        data = getappdata(fig,'data');
+        INVdata = getappdata(fig,'INVdata');
+        % default std inversion settings
+        data.invstd.invtype = 'NNLS';
+        data.invstd.regtype = 'manual';
+        data.invstd.lambda = 1;        
         % deactivate joint inversion menu
-        set(gui.menu.extra_joint,'Enable','off')
+        set(gui.menu.extra_joint,'Enable','off');
         
         set(gui.menu.extra_graphics_amp,'Enable','off');
+        set(gui.menu.extra_graphics_amp2,'Enable','off');
         set(gui.menu.extra_graphics_rtd,'Enable','off');
         
     case 'On'
@@ -81,9 +80,10 @@ switch onoff
         set(gui.menu.extra_expert_off,'Checked','off');
         
         % activate joint inversion menu
-        set(gui.menu.extra_joint,'Enable','on')
+        set(gui.menu.extra_joint,'Enable','on');
         
         set(gui.menu.extra_graphics_amp,'Enable','on');
+        set(gui.menu.extra_graphics_amp2,'Enable','on');
         set(gui.menu.extra_graphics_rtd,'Enable','on');
 end
 
@@ -93,10 +93,8 @@ setappdata(fig,'gui',gui);
 % update ini-file
 gui.myui.inidata.expertmode = data.info.ExpertMode;
 gui = makeINIfile(gui,'update');
-% update interface only if there is data
-if isfield(data.import,'NMR')
-    NUCLEUSinv_updateInterface;
-end
+% update interface
+NUCLEUSinv_updateInterface;
 % update status information
 updateStatusInformation;
 onFigureSizeChange(fig);

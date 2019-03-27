@@ -121,9 +121,9 @@ This function is called by:
 0049 <span class="comment">%% choose first and last echo</span>
 0050 gui.text_handles.process_start = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox1,<span class="keyword">...</span>
 0051     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0052     <span class="string">'String'</span>,<span class="string">'first echo'</span>);
+0052     <span class="string">'String'</span>,<span class="string">'first echo | last echo'</span>);
 0053 tstr = [<span class="string">'&lt;HTML&gt;Choose the first echo of the NMR signal.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0054     <span class="string">'This may be necessary for noisy T2 data sets from the RWTH Lab.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0054     <span class="string">'Sometimes the first echo(s) are flawed.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
 0055     <span class="string">'&lt;u&gt;Default values:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
 0056     <span class="string">'&lt;b&gt;1&lt;/b&gt; for T1 data.&lt;br&gt;'</span>,<span class="keyword">...</span>
 0057     <span class="string">'&lt;b&gt;1&lt;/b&gt; for T2 data.&lt;br&gt;'</span>];
@@ -131,122 +131,129 @@ This function is called by:
 0059     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.process.start(1,1)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
 0060     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.process.start(1,1) 1 1]),<span class="keyword">...</span>
 0061     <span class="string">'Tag'</span>,<span class="string">'process_start'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0062 gui.text_handles.process_end = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox1,<span class="keyword">...</span>
-0063     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0064     <span class="string">'String'</span>,<span class="string">'last echo'</span>);
-0065 tstr = [<span class="string">'&lt;HTML&gt;Choose the last echo of the NMR signal.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0066     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0067     <span class="string">'&lt;b&gt;max&lt;/b&gt;&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0068     <span class="string">'&lt;u&gt;Tip:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0069     <span class="string">'If you enter &lt;b&gt;0&lt;/b&gt; it will automatically take the full signal.'</span>];
-0070 gui.edit_handles.process_end = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox1,<span class="keyword">...</span>
-0071     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.process.end(1,1)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0072     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.process.end(1,1) 1 1]),<span class="keyword">...</span>
-0073     <span class="string">'Tag'</span>,<span class="string">'process_end'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0074 set(gui.panels.process.HBox1,<span class="string">'Widths'</span>,[100 -1 100 -1]);
-0075 
-0076 <span class="comment">%% resampling - time gates</span>
-0077 gui.text_handles.process_gates = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
-0078     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0079     <span class="string">'String'</span>,<span class="string">'signal gating'</span>);
-0080 tstr = [<span class="string">'&lt;HTML&gt;Allows to re-sample (gate) the NMR raw signal.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0081     <span class="string">'This speeds up the inversion.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0082     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0083     <span class="string">'&lt;b&gt;log&lt;/b&gt; recommended for T2 data.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0084     <span class="string">'&lt;b&gt;lin&lt;/b&gt; &lt;br&gt;'</span>,<span class="keyword">...</span>
-0085     <span class="string">'&lt;b&gt;none&lt;/b&gt; recommended for T1 data.&lt;br&gt;'</span>];
-0086 gui.radio_handles.process_gates_log = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
-0087     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'log'</span>,<span class="keyword">...</span>
-0088     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0089     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioGates.html" class="code" title="function onRadioGates(src,~)">onRadioGates</a>);
-0090 gui.radio_handles.process_gates_lin = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
-0091     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'lin'</span>,<span class="keyword">...</span>
-0092     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0093     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioGates.html" class="code" title="function onRadioGates(src,~)">onRadioGates</a>);
-0094 gui.radio_handles.process_gates_none = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
-0095     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0096     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0097     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioGates.html" class="code" title="function onRadioGates(src,~)">onRadioGates</a>);
-0098 set(gui.panels.process.HBox2,<span class="string">'Widths'</span>,[100 -1 -1 -1]);
-0099 
-0100 <span class="comment">%% normalizing &amp; time scale</span>
-0101 gui.text_handles.process_normalize = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
-0102     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0103     <span class="string">'String'</span>,<span class="string">'normalize'</span>);
-0104 tstr = [<span class="string">'&lt;HTML&gt;Normalize the NMR raw signal.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0105     <span class="string">'Sometimes this helps to stabilize the inversion.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0106     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0107     <span class="string">'&lt;b&gt;on&lt;/b&gt; &lt;br&gt;'</span>,<span class="keyword">...</span>
-0108     <span class="string">'&lt;b&gt;off&lt;/b&gt; &lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0109     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0110     <span class="string">'&lt;b&gt;off&lt;/b&gt; &lt;br&gt;'</span>];
-0111 gui.radio_handles.process_normalize_on = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
-0112     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0113     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0114     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioNormalize.html" class="code" title="function onRadioNormalize(src,~)">onRadioNormalize</a>);
-0115 gui.radio_handles.process_normalize_off = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
-0116     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0117     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0118     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioNormalize.html" class="code" title="function onRadioNormalize(src,~)">onRadioNormalize</a>);
-0119 
-0120 gui.text_handles.process_timescale = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
-0121     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0122     <span class="string">'String'</span>,<span class="string">'time scale'</span>);
-0123 tstr = [<span class="string">'&lt;HTML&gt;Change the global time scale from [s] to [ms] or vice versa.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0124     <span class="string">'Sometimes this helps to stabilize the inversion.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0125     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0126     <span class="string">'&lt;b&gt;s&lt;/b&gt; &lt;br&gt;'</span>,<span class="keyword">...</span>
-0127     <span class="string">'&lt;b&gt;ms&lt;/b&gt; &lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0128     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0129     <span class="string">'&lt;b&gt;s&lt;/b&gt; &lt;br&gt;'</span>];
-0130 gui.radio_handles.process_timescale_s = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
-0131     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'s'</span>,<span class="keyword">...</span>
-0132     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0133     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioTimescale.html" class="code" title="function onRadioTimescale(src,~)">onRadioTimescale</a>);
-0134 gui.radio_handles.process_timescale_ms = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
-0135     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'ms'</span>,<span class="keyword">...</span>
-0136     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0137     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioTimescale.html" class="code" title="function onRadioTimescale(src,~)">onRadioTimescale</a>);
-0138 set(gui.panels.process.HBox3,<span class="string">'Widths'</span>,[100 -1 -1 100 -1 -1]);
-0139 
-0140 <span class="comment">%% Java Hack to adjust vertical alignment of text fields</span>
-0141 jh = findjobj(gui.text_handles.process_start);
-0142 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0143 jh = findjobj(gui.text_handles.process_end);
-0144 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0145 jh = findjobj(gui.text_handles.process_gates);
-0146 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0147 jh = findjobj(gui.text_handles.process_normalize);
-0148 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0149 jh = findjobj(gui.text_handles.process_timescale);
-0150 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0151 
-0152 <span class="keyword">return</span>
-0153 
-0154 <span class="comment">%------------- END OF CODE --------------</span>
-0155 
-0156 <span class="comment">%% License:</span>
-0157 <span class="comment">% MIT License</span>
-0158 <span class="comment">%</span>
-0159 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0160 <span class="comment">%</span>
-0161 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0162 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0163 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0164 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0165 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0166 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0062 tstr = [<span class="string">'&lt;HTML&gt;Choose the last echo of the NMR signal.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0063     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0064     <span class="string">'&lt;b&gt;max&lt;/b&gt;&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0065     <span class="string">'&lt;u&gt;Tip:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0066     <span class="string">'If you enter &lt;b&gt;0&lt;/b&gt; it will automatically take the full signal.'</span>];
+0067 gui.edit_handles.process_end = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox1,<span class="keyword">...</span>
+0068     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.process.end(1,1)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0069     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.process.end(1,1) 1 1]),<span class="keyword">...</span>
+0070     <span class="string">'Tag'</span>,<span class="string">'process_end'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0071 set(gui.panels.process.HBox1,<span class="string">'Widths'</span>,[200 -1 -1]);
+0072 
+0073 <span class="comment">%% resampling - time gates</span>
+0074 gui.text_handles.process_gates = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
+0075     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0076     <span class="string">'String'</span>,<span class="string">'signal gating | echoes / gate'</span>);
+0077 tstr = [<span class="string">'&lt;HTML&gt;Allows to re-sample (gate) the NMR raw signal.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0078     <span class="string">'This speeds up the inversion.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0079     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0080     <span class="string">'&lt;b&gt;log&lt;/b&gt; recommended for T2 data.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0081     <span class="string">'&lt;b&gt;lin&lt;/b&gt; &lt;br&gt;'</span>,<span class="keyword">...</span>
+0082     <span class="string">'&lt;b&gt;none&lt;/b&gt; recommended for T1 data.&lt;br&gt;'</span>];
+0083 gui.radio_handles.process_gates_log = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
+0084     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'log'</span>,<span class="keyword">...</span>
+0085     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0086     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioGates.html" class="code" title="function onRadioGates(src,~)">onRadioGates</a>);
+0087 gui.radio_handles.process_gates_lin = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
+0088     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'lin'</span>,<span class="keyword">...</span>
+0089     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0090     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioGates.html" class="code" title="function onRadioGates(src,~)">onRadioGates</a>);
+0091 gui.radio_handles.process_gates_none = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
+0092     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0093     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0094     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioGates.html" class="code" title="function onRadioGates(src,~)">onRadioGates</a>);
+0095 tstr = [<span class="string">'&lt;HTML&gt;Maximum number of echoes per gate.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0096     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0097     <span class="string">'&lt;b&gt;50&lt;/b&gt;&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0098     <span class="string">'&lt;u&gt;Note:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0099     <span class="string">'More echoes per gate speed up the inversion but &lt;br&gt;'</span>,<span class="keyword">...</span>
+0100     <span class="string">'you loose the &quot;dynamics&quot; of the RTD. The &lt;br&gt;'</span>,<span class="keyword">...</span>
+0101     <span class="string">'regularization parameter &amp;lambda needs to be &lt;br&gt;'</span>,<span class="keyword">...</span>
+0102     <span class="string">'determined again.'</span>];
+0103 gui.edit_handles.process_Nechoes = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox2,<span class="keyword">...</span>
+0104     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.process.Nechoes(1,1)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0105     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.process.Nechoes(1,1) 1 1]),<span class="keyword">...</span>
+0106     <span class="string">'Tag'</span>,<span class="string">'process_Nechoes'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0107 set(gui.panels.process.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1.5 50]);
+0108 
+0109 <span class="comment">%% normalizing &amp; time scale</span>
+0110 gui.text_handles.process_normalize = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
+0111     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0112     <span class="string">'String'</span>,<span class="string">'normalize'</span>);
+0113 tstr = [<span class="string">'&lt;HTML&gt;Normalize the NMR raw signal.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0114     <span class="string">'Sometimes this helps to stabilize the inversion.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0115     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0116     <span class="string">'&lt;b&gt;on&lt;/b&gt; &lt;br&gt;'</span>,<span class="keyword">...</span>
+0117     <span class="string">'&lt;b&gt;off&lt;/b&gt; &lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0118     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0119     <span class="string">'&lt;b&gt;off&lt;/b&gt; &lt;br&gt;'</span>];
+0120 gui.radio_handles.process_normalize_on = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
+0121     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0122     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0123     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioNormalize.html" class="code" title="function onRadioNormalize(src,~)">onRadioNormalize</a>);
+0124 gui.radio_handles.process_normalize_off = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
+0125     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0126     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0127     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioNormalize.html" class="code" title="function onRadioNormalize(src,~)">onRadioNormalize</a>);
+0128 
+0129 gui.text_handles.process_timescale = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
+0130     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0131     <span class="string">'String'</span>,<span class="string">'time scale'</span>);
+0132 tstr = [<span class="string">'&lt;HTML&gt;Change the global time scale from [s] to [ms] or vice versa.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0133     <span class="string">'Sometimes this helps to stabilize the inversion.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0134     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0135     <span class="string">'&lt;b&gt;s&lt;/b&gt; &lt;br&gt;'</span>,<span class="keyword">...</span>
+0136     <span class="string">'&lt;b&gt;ms&lt;/b&gt; &lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0137     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0138     <span class="string">'&lt;b&gt;s&lt;/b&gt; &lt;br&gt;'</span>];
+0139 gui.radio_handles.process_timescale_s = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
+0140     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'s'</span>,<span class="keyword">...</span>
+0141     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0142     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioTimescale.html" class="code" title="function onRadioTimescale(src,~)">onRadioTimescale</a>);
+0143 gui.radio_handles.process_timescale_ms = uicontrol(<span class="string">'Parent'</span>,gui.panels.process.HBox3,<span class="keyword">...</span>
+0144     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'ms'</span>,<span class="keyword">...</span>
+0145     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0146     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioTimescale.html" class="code" title="function onRadioTimescale(src,~)">onRadioTimescale</a>);
+0147 set(gui.panels.process.HBox3,<span class="string">'Widths'</span>,[100 -1 -1 100 -1 -1]);
+0148 
+0149 <span class="comment">%% Java Hack to adjust vertical alignment of text fields</span>
+0150 jh = findjobj(gui.text_handles.process_start);
+0151 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0152 jh = findjobj(gui.text_handles.process_gates);
+0153 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0154 jh = findjobj(gui.text_handles.process_normalize);
+0155 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0156 jh = findjobj(gui.text_handles.process_timescale);
+0157 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0158 
+0159 <span class="keyword">return</span>
+0160 
+0161 <span class="comment">%------------- END OF CODE --------------</span>
+0162 
+0163 <span class="comment">%% License:</span>
+0164 <span class="comment">% MIT License</span>
+0165 <span class="comment">%</span>
+0166 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0167 <span class="comment">%</span>
-0168 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0169 <span class="comment">% copies or substantial portions of the Software.</span>
-0170 <span class="comment">%</span>
-0171 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0172 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0173 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0174 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0175 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0176 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0177 <span class="comment">% SOFTWARE.</span></pre></div>
+0168 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0169 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0170 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0171 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0172 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0173 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0174 <span class="comment">%</span>
+0175 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0176 <span class="comment">% copies or substantial portions of the Software.</span>
+0177 <span class="comment">%</span>
+0178 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0179 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0180 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0181 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0182 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0183 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0184 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

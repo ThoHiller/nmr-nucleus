@@ -50,6 +50,8 @@ switch data.info.ExpertMode
             'String',num2str(data.process.start));
         set(gui.edit_handles.process_end,'Enable','on',...
             'String',num2str(data.process.end));
+        set(gui.edit_handles.process_Nechoes,'Enable','on',...
+            'String',num2str(data.process.Nechoes));
         
         gui = updateGatetype(gui,data.process.gatetype);
         gui = updateNormalize(gui,data.process.norm);
@@ -197,7 +199,7 @@ switch data.info.ExpertMode
             case 'on'
                 % inversion method dependent
                 switch data.invjoint.invtype
-                    case 'free'                        
+                    case 'free'
                         % inversion method popup
                         set(gui.popup_handles.invjoint_InvType,'Value',1,'Enable','on');
                         
@@ -282,7 +284,7 @@ switch data.info.ExpertMode
                                     'String','');
                         end
                         
-                    case 'fixed'                        
+                    case 'fixed'
                         % inversion method popup
                         set(gui.popup_handles.invjoint_InvType,'Value',2,'Enable','on');
                         
@@ -367,7 +369,7 @@ switch data.info.ExpertMode
                                     'String','');
                         end
                         
-                    case 'shape'                        
+                    case 'shape'
                         % inversion method popup
                         set(gui.popup_handles.invjoint_InvType,'Value',3,'Enable','on');
                         
@@ -504,6 +506,8 @@ switch data.info.ExpertMode
             'String',num2str(data.process.start));
         set(gui.edit_handles.process_end,'Enable','on',...
             'String',num2str(data.process.end));
+        set(gui.edit_handles.process_Nechoes,'Enable','on',...
+            'String',num2str(data.process.Nechoes));
         
         gui = updateGatetype(gui,data.process.gatetype);        
         set(gui.radio_handles.process_normalize_on,'Enable','off','Value',0);
@@ -523,8 +527,15 @@ switch data.info.ExpertMode
         
         %% update standard inversion panel
         % inversion method popup
-        set(gui.popup_handles.invstd_InvType,'String',{'Mono exp.',...
-            'Several free exp. (2-5)','Multi exp. (NNLS)'});
+        switch data.info.optim
+            case 'on'
+                istring = {'Mono exp.','Several free exp. (2-5)',...
+                    'Multi exp. (LSQLIN)'};
+            case 'off'
+                istring = {'Mono exp.','Several free exp. (2-5)',...
+                    'Multi exp. (NNLS)'};
+        end
+        set(gui.popup_handles.invstd_InvType,'String',istring);
         switch data.invstd.invtype
             case 'mono'
                 % inversion method popup
@@ -571,7 +582,7 @@ switch data.info.ExpertMode
                 
                 % additional inversion settings
                 set(gui.popup_handles.invstd_InvTypeOpt,'Enable','on',...
-                    'String',{'Manual','L-curve','Iterative Chi2'});
+                    'String',{'Manual','Iterative Chi2','L-curve'});
                 set(gui.text_handles.invstd_InvTypeOpt,...
                     'String','regularization options');
                 
@@ -579,10 +590,10 @@ switch data.info.ExpertMode
                 switch data.invstd.regtype
                     case 'manual'
                         set(gui.popup_handles.invstd_InvTypeOpt,'Value',1);
-                    case 'lcurve'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',2);
                     case 'iterchi2'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',3);
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',2);    
+                    case 'lcurve'
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',3);                    
                 end
                 
                 % lambda, smoothness constraint and RTD limits
@@ -606,7 +617,6 @@ switch data.info.ExpertMode
         end
         
         %% update petro parameter panel
-        
         data.param.CBWcutoff = 3;
         data.param.BVIcutoff = 33;
         data.param.rho = 10;
@@ -647,18 +657,21 @@ switch gatetype
         set(gui.radio_handles.process_gates_log,'Value',1);
         set(gui.radio_handles.process_gates_lin,'Value',0);
         set(gui.radio_handles.process_gates_none,'Value',0);
+        set(gui.edit_handles.process_Nechoes,'Enable','on');
         
     case 'lin'
         
         set(gui.radio_handles.process_gates_log,'Value',0);
         set(gui.radio_handles.process_gates_lin,'Value',1);
         set(gui.radio_handles.process_gates_none,'Value',0);
+        set(gui.edit_handles.process_Nechoes,'Enable','on');
         
     case 'raw'
         
         set(gui.radio_handles.process_gates_log,'Value',0);
         set(gui.radio_handles.process_gates_lin,'Value',0);
         set(gui.radio_handles.process_gates_none,'Value',1);
+        set(gui.edit_handles.process_Nechoes,'Enable','off');
         
 end
 

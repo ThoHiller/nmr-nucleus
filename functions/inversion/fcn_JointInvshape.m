@@ -2,7 +2,7 @@ function [F,varargout] = fcn_JointInvshape(X,iparam)
 %fcn_JointInvshape performs the "shape" joint inversion using the RTD of
 %the full saturation NMR signal and NMR signals at partial saturation to
 %"calibrate" the surface relaxivity "rho". Additionally it tries to find
-%the "second" angle inside a rectangular triangle by using NMR signals from
+%the "second" angle inside a right angular triangle by using NMR signals from
 %the drainage and imbibition branch
 %
 % Syntax:
@@ -76,7 +76,7 @@ wbopts.show = false;
 rhos = 10^X(1);
 beta = X(2);
 
-%% only works for rectangular triangles
+%% only works for right angular triangles
 switch igeom.type        
     case 'ang'        
         % get a new geometry parameter "a" (only shape dependent)

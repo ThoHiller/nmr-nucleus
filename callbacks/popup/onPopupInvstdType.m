@@ -41,7 +41,7 @@ value = get(src,'Value');
 
 % change settings depending on expert mode and value
 switch data.info.ExpertMode
-    case 'on'        
+    case 'on'
         switch value
             case 1
                 data.invstd.invtype = 'mono';

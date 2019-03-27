@@ -39,6 +39,8 @@ switch label
         showFitStatistics;
     case 'AMP-TLGM-SNR'
         showExtraGraphics('amp');
+    case 'AMP vs TLGM'
+        showExtraGraphics('ampvst');
     case 'RTD'    
         showExtraGraphics('rtd');
 end

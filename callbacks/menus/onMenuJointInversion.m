@@ -93,9 +93,11 @@ switch onoff
         clearSingleAxis(gui.axes_handles.psdj);
         clearSingleAxis(gui.axes_handles.cps);
         
-        % menu entry
+        % menu entries
         set(gui.menu.extra_joint_on,'Checked','off');
         set(gui.menu.extra_joint_off,'Checked','on');
+        set(gui.menu.extra_settings_joint,'Enable','off');
+        set(gui.menu.file_export_data_invjoint_mat,'Enable','off');        
         
         % settings panel
         set(gui.popup_handles.invjoint_InvType,'Enable','off');
@@ -129,9 +131,11 @@ switch onoff
     case 'On'
         data.info.JointInv = 'on';
         
-        % menu entry
+        % menu entries
         set(gui.menu.extra_joint_on,'Checked','on');
         set(gui.menu.extra_joint_off,'Checked','off');
+        set(gui.menu.extra_settings_joint,'Enable','on');
+        set(gui.menu.file_export_data_invjoint_mat,'Enable','on');
         
         % settings panel
         set(gui.popup_handles.invjoint_InvType,'Enable','on');

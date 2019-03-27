@@ -1,6 +1,6 @@
 function onPopupGeometryType(src,~)
 %onPopupGeometryType selects the geometry of the pores (cylindrical,
-%rectangular or polygonal)
+%right angular or polygonal)
 %
 % Syntax:
 %       onPopupGeometryType
@@ -44,7 +44,7 @@ switch value
         data.geometry.type = 'cyl';
         data.geometry.radius = data.geometry.modes(1,1);
         
-    case 2 % rectangular pore        
+    case 2 % right angular pore        
         data.geometry.type = 'ang';
         data.geometry.alpha = 90;
         data.geometry.beta = 45;

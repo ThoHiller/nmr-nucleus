@@ -80,7 +80,7 @@ switch fig_tag
         switch out.panel
             case 'process'
                 switch out.field
-                    case 'start'
+                    case {'start','Nechoes'}
                         % remove temporary data fields
                         data = removeInversionFields(data);
                         setappdata(fig,'data',data);
@@ -88,6 +88,12 @@ switch fig_tag
                         id = get(gui.listbox_handles.signal,'Value');
                         processNMRDataControl(fig,id);
                         updatePlotsSignal;
+                        updateInfo(src);
+                        % clear axes
+                        clearSingleAxis(gui.axes_handles.rtd);
+                        clearSingleAxis(gui.axes_handles.psd);
+                        % set focus on data
+                        set(gui.plots.SignalPanel,'Selection',1);
                     case 'end'
                         % remove temporary data fields
                         data = removeInversionFields(data);
@@ -105,7 +111,7 @@ switch fig_tag
                         end
                         % process the current selected signal
                         processNMRDataControl(fig,id);
-                        updatePlotsSignal;
+                        updatePlotsSignal; 
                 end
             case 'invstd'
                 switch out.field

@@ -369,96 +369,109 @@ This function is called by:
 0299     INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
 0300     
 0301     nINV = size(INVdata,1);
-0302     c = 0;
-0303     invlevels = 0;
-0304     <span class="keyword">for</span> i = 1:nINV
-0305         <span class="keyword">if</span> isstruct(INVdata{i})
-0306             c = c + 1;
-0307             invlevels(c) = i; <span class="comment">%#ok&lt;AGROW&gt;</span>
-0308         <span class="keyword">end</span>
-0309     <span class="keyword">end</span>
-0310     
-0311     <span class="comment">% the pressure / saturation data</span>
-0312     table = data.pressure.table;
-0313     uselevel = cell2mat(table(:,1));
-0314     tablelevels = 1:size(table,1);
-0315     tablelevels = tablelevels(uselevel);
-0316     S = cell2mat(table(:,3));
-0317     <span class="keyword">if</span> numel(S)~=nINV
-0318         S()
-0319     <span class="keyword">end</span>
-0320     
-0321     [isin,levels] = ismember(invlevels,tablelevels);
-0322     levels = tablelevels(levels(isin));
-0323 
-0324     <span class="keyword">if</span> ~isempty(levels) &amp;&amp; levels(1) &gt; 0 &amp;&amp; c &gt; 0
-0325         hold(ax,<span class="string">'on'</span>);
-0326         
-0327         mycol = flipud(parula(128));
-0328         <span class="keyword">for</span> i = 1:numel(levels)
-0329             t = INVdata{levels(i)}.results.invstd.fit_t;
-0330             s = INVdata{levels(i)}.results.invstd.fit_s;
-0331             s = S(levels(i)).*(s./sum(INVdata{levels(i)}.results.invstd.E0));
-0332             <span class="keyword">if</span> i == 1
-0333                 xlims = [min(t) max(t)];
-0334                 ylims = [min(s) max(s)];
-0335             <span class="keyword">else</span>
-0336                 xlims = [min([xlims(1) min(t)]) max([xlims(2) max(t)])];
-0337                 ylims = [min([ylims(1) min(s)]) max([ylims(2) max(s)])];
-0338             <span class="keyword">end</span>
-0339             colind = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(S(levels(i)),128);
-0340             plot(t,s,<span class="string">'LineStyle'</span>,<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colind,:),<span class="string">'Parent'</span>,ax);
-0341         <span class="keyword">end</span>
-0342         set(ax,<span class="string">'YLim'</span>,ylims);
-0343         
-0344         loglinx = get(gui.cm_handles.axes_all_xaxis,<span class="string">'Label'</span>);
-0345         <span class="keyword">switch</span> loglinx
-0346             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0347                 ticks = floor(min(log10(nmrproc.t(nmrproc.t&gt;0)))):1:ceil(log10(nmrproc.t(end)));
-0348                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTick'</span>,10.^ticks);
-0349             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0350                 set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-0351         <span class="keyword">end</span>
-0352         logliny = get(gui.cm_handles.axes_all_yaxis,<span class="string">'Label'</span>);
-0353         <span class="keyword">switch</span> logliny
-0354             <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0355                 set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
-0356             <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0357                 set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
-0358         <span class="keyword">end</span>
-0359     <span class="keyword">end</span>
-0360 <span class="keyword">end</span>
-0361 
-0362 <span class="comment">% update GUI data</span>
-0363 setappdata(fig,<span class="string">'data'</span>,data);
-0364 setappdata(fig,<span class="string">'gui'</span>,gui);
-0365 
-0366 <span class="keyword">end</span>
-0367 
-0368 <span class="comment">%------------- END OF CODE --------------</span>
-0369 
-0370 <span class="comment">%% License:</span>
-0371 <span class="comment">% MIT License</span>
-0372 <span class="comment">%</span>
-0373 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0374 <span class="comment">%</span>
-0375 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0376 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0377 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0378 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0379 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0380 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0381 <span class="comment">%</span>
-0382 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0383 <span class="comment">% copies or substantial portions of the Software.</span>
-0384 <span class="comment">%</span>
-0385 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0386 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0387 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0388 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0389 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0390 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0391 <span class="comment">% SOFTWARE.</span></pre></div>
+0302     E0 = zeros(nINV,1);
+0303     c = 0;
+0304     invlevels = 0;
+0305     <span class="keyword">for</span> i = 1:nINV
+0306         <span class="keyword">if</span> isstruct(INVdata{i})
+0307             c = c + 1;
+0308             invlevels(c) = i; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0309             E0(i,1) = sum(INVdata{i}.results.invstd.E0);
+0310         <span class="keyword">end</span>
+0311     <span class="keyword">end</span>
+0312     
+0313     <span class="comment">% the pressure / saturation data</span>
+0314     table = data.pressure.table;
+0315     
+0316     <span class="keyword">if</span> size(table,1) == 1 &amp; invlevels ~= 0 <span class="comment">%#ok&lt;AND2&gt;</span>
+0317         <span class="comment">% apparently no CPS data was loaded but joint inversion is</span>
+0318         <span class="comment">% activated ... so just plot the data</span>
+0319         <span class="keyword">if</span> invlevels == 0
+0320             levels = [];
+0321         <span class="keyword">else</span>
+0322             levels = invlevels;
+0323             S = E0(invlevels)./max(E0(invlevels));
+0324         <span class="keyword">end</span>
+0325     <span class="keyword">else</span>
+0326         uselevel = cell2mat(table(:,1));
+0327         tablelevels = 1:size(table,1);
+0328         tablelevels = tablelevels(uselevel);
+0329         S = cell2mat(table(:,3));
+0330         <span class="comment">%         if numel(S)~=nINV</span>
+0331         <span class="comment">%             % S()</span>
+0332         <span class="comment">%         end</span>
+0333         [isin,levels] = ismember(invlevels,tablelevels);
+0334         levels = tablelevels(levels(isin));
+0335     <span class="keyword">end</span>
+0336 
+0337     <span class="keyword">if</span> ~isempty(levels) &amp;&amp; levels(1) &gt; 0 &amp;&amp; c &gt; 0
+0338         hold(ax,<span class="string">'on'</span>);
+0339         
+0340         mycol = flipud(parula(128));
+0341         <span class="keyword">for</span> i = 1:numel(levels)
+0342             t = INVdata{levels(i)}.results.invstd.fit_t;
+0343             s = INVdata{levels(i)}.results.invstd.fit_s;
+0344             s = S(levels(i)).*(s./sum(INVdata{levels(i)}.results.invstd.E0));
+0345             <span class="keyword">if</span> i == 1
+0346                 xlims = [min(t) max(t)];
+0347                 ylims = [min(s) max(s)];
+0348             <span class="keyword">else</span>
+0349                 xlims = [min([xlims(1) min(t)]) max([xlims(2) max(t)])];
+0350                 ylims = [min([ylims(1) min(s)]) max([ylims(2) max(s)])];
+0351             <span class="keyword">end</span>
+0352             colind = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(S(levels(i)),128);
+0353             plot(t,s,<span class="string">'LineStyle'</span>,<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colind,:),<span class="string">'Parent'</span>,ax);
+0354         <span class="keyword">end</span>
+0355         set(ax,<span class="string">'YLim'</span>,ylims);
+0356         
+0357         loglinx = get(gui.cm_handles.axes_all_xaxis,<span class="string">'Label'</span>);
+0358         <span class="keyword">switch</span> loglinx
+0359             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0360                 ticks = floor(min(log10(nmrproc.t(nmrproc.t&gt;0)))):1:ceil(log10(nmrproc.t(end)));
+0361                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTick'</span>,10.^ticks);
+0362             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0363                 set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0364         <span class="keyword">end</span>
+0365         logliny = get(gui.cm_handles.axes_all_yaxis,<span class="string">'Label'</span>);
+0366         <span class="keyword">switch</span> logliny
+0367             <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0368                 set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0369             <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0370                 set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
+0371         <span class="keyword">end</span>
+0372     <span class="keyword">end</span>
+0373 <span class="keyword">end</span>
+0374 
+0375 <span class="comment">% update GUI data</span>
+0376 setappdata(fig,<span class="string">'data'</span>,data);
+0377 setappdata(fig,<span class="string">'gui'</span>,gui);
+0378 
+0379 <span class="keyword">end</span>
+0380 
+0381 <span class="comment">%------------- END OF CODE --------------</span>
+0382 
+0383 <span class="comment">%% License:</span>
+0384 <span class="comment">% MIT License</span>
+0385 <span class="comment">%</span>
+0386 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0387 <span class="comment">%</span>
+0388 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0389 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0390 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0391 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0392 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0393 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0394 <span class="comment">%</span>
+0395 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0396 <span class="comment">% copies or substantial portions of the Software.</span>
+0397 <span class="comment">%</span>
+0398 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0399 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0400 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0401 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0402 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0403 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0404 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -40,7 +40,7 @@ gui = getappdata(fig,'gui');
 %% proceed if there is data
 [foundINV,Ninv] = checkIfInversionExists(INVdata);
 
-if foundINV && Ninv > 10
+if foundINV && Ninv > 1
     
     % allocate memory
     date = zeros(Ninv,1);
@@ -63,6 +63,9 @@ if foundINV && Ninv > 10
     for id = 1:size(INVdata,1)
         if isstruct(INVdata{id})
             c = c + 1;
+            if c == 1
+                timescale = INVdata{id}.process.timescale;
+            end
             date(c,1) = data.import.NMR.data{id}.datenum;
             E0(c,1) = sum(INVdata{id}.results.invstd.E0) * INVdata{id}.results.nmrproc.normfac;
             SNR(c,1) = sum(INVdata{id}.results.invstd.E0) / INVdata{id}.results.nmrproc.noise;
@@ -119,18 +122,18 @@ if foundINV && Ninv > 10
             switch data.invstd.invtype
                 case 'mono'
                     errorbar(date,T,Ter,'ko','Parent',ax2);
-                    set(get(ax2,'YLabel'),'String','T');
+                    set(get(ax2,'YLabel'),'String',['T [',timescale,']']);
                 case 'free'
                     for i = 1:size(T,2)
                         semilogy(date,T(:,i),'ko','Parent',ax2);
                     end
-                    set(get(ax2,'YLabel'),'String','T_x');
+                    set(get(ax2,'YLabel'),'String',['T_x [',timescale,']']);
                     set(ax2,'YScale','log');
                 otherwise
                     for i = 1:size(T,2)
                         semilogy(date,T(:,i),'ko','Parent',ax2);
                     end
-                    set(get(ax2,'YLabel'),'String','TLGM');
+                    set(get(ax2,'YLabel'),'String',['TLGM [',timescale,']']);
             end
             grid(ax2,'on');
             
@@ -150,6 +153,14 @@ if foundINV && Ninv > 10
                 datetick(ax3,'x','dd.mm. HH:MM','keepticks');
             end
             
+        case 'ampvst'    
+            f = figure;
+            ax1 = axes('Parent',f);
+            
+            plot(E0,T,'ko','Parent',ax1),
+            set(get(ax1,'XLabel'),'String','E0');
+            set(get(ax1,'YLabel'),'String',['T [',timescale,']']);
+            
         case 'rtd'
             switch data.invstd.invtype
                 case {'ILA','NNLS'}
@@ -165,7 +176,7 @@ if foundINV && Ninv > 10
                     end
                     grid on; box on;
                     xlabel('date');
-                    ylabel('relaxation time [s]');
+                    ylabel(['relaxation time [',timescale,']']);
                     zlabel('amplitude [-]');
                     
                     set(ax,'YScale','log');
@@ -184,9 +195,8 @@ if foundINV && Ninv > 10
     end
 else
     helpdlg({'function: showExtraGraphics',...
-        'Cannot continue because there is no sufficient data.',...
-        'This option does only make sense for long term measurements.'},...
-        'No data to show');
+        'Cannot continue because there need to be at least two NMR measurements.'},...
+        'Not enough data to show');
 end
 
 end

@@ -50,7 +50,6 @@ switch invtype
         data.invstd.freeDT = value;
         
     case 'NNLS'
-        
         switch data.info.ExpertMode
             case 'on'
                 switch value % different regularization options/methods
@@ -131,9 +130,9 @@ switch invtype
                             end
                         else
                             data.invstd.lambda = 1;
-                        end
-                    case 2 % l-curve
-                        data.invstd.regtype  = 'lcurve';
+                        end                    
+                    case 2 % iterative chi-square
+                        data.invstd.regtype = 'iterchi2';
                         lambdaFAK = 1;
                         if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
                             lambdaFAK = 100;
@@ -141,8 +140,8 @@ switch invtype
                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
                         clearSingleAxis(gui.axes_handles.rtd);
                         clearSingleAxis(gui.axes_handles.psd);
-                    case 3 % iterative chi-square
-                        data.invstd.regtype = 'iterchi2';
+                    case 3 % l-curve
+                        data.invstd.regtype  = 'lcurve';
                         lambdaFAK = 1;
                         if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
                             lambdaFAK = 100;

@@ -132,180 +132,225 @@ This function is called by:
 0060     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
 0061     <span class="string">'String'</span>,<span class="string">'inversion method'</span>);
 0062 <span class="keyword">switch</span> data.info.optim
-0063     <span class="keyword">case</span> <span class="string">'on'</span>
-0064         tstr = [<span class="string">'&lt;HTML&gt;Choose between different inversion (fitting) methods.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0065             <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0066             <span class="string">'&lt;b&gt;Mono exp.&lt;/b&gt; Mono-exponential fitting.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0067             <span class="string">'&lt;b&gt;X free exp.&lt;/b&gt; Multi-exponential fitting with up to 5 free relaxation times.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0068             <span class="string">'&lt;b&gt;Multi exp. (LSQLIN)&lt;/b&gt; Multi-exponential fitting with Optimization Toolbox.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0069             <span class="string">'&lt;b&gt;Multi exp. (ILA)&lt;/b&gt; Multi-exponential fitting using an Inverse Laplace transform.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0070             <span class="string">'Depending on the chosen method there are additional options available.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0071             <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0072             <span class="string">'&lt;b&gt;Multi exp. (ILA)&lt;/b&gt;&lt;br&gt;'</span>];
-0073         istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (LSQLIN)'</span>,<span class="string">'Multi exp. (InvLaplace)'</span>};
-0074     <span class="keyword">case</span> <span class="string">'off'</span>
-0075         tstr = [<span class="string">'&lt;HTML&gt;Choose between different inversion (fitting) methods.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0076             <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0077             <span class="string">'&lt;b&gt;Mono exp.&lt;/b&gt; Mono-exponential fitting.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0078             <span class="string">'&lt;b&gt;Several free exp.&lt;/b&gt; Multi-exponential fitting with up to 5 free relaxation times.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0079             <span class="string">'&lt;b&gt;Multi exp. (NNLS)&lt;/b&gt; Multi-exponential fitting with Non Negative Least Squares (NNLS).&lt;br&gt;'</span>,<span class="keyword">...</span>
-0080             <span class="string">'&lt;b&gt;Multi exp. (ILA)&lt;/b&gt; Multi-exponential fitting using an Inverse Laplace transform.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0081             <span class="string">'Depending on the chosen method there are additional options available.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0082             <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0083             <span class="string">'&lt;b&gt;Multi exp. (ILA)&lt;/b&gt;&lt;br&gt;'</span>];
-0084         istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (NNLS)'</span>,<span class="string">'Multi exp. (InvLaplace)'</span>};
-0085 <span class="keyword">end</span>
-0086 gui.popup_handles.invstd_InvType = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox1,<span class="keyword">...</span>
-0087     <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,istring,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,4,<span class="keyword">...</span>
-0088     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/popup/onPopupInvstdType.html" class="code" title="function onPopupInvstdType(src,~)">onPopupInvstdType</a>);
-0089 set(gui.panels.invstd.HBox1,<span class="string">'Widths'</span>,[200 -1]);
-0090 
-0091 <span class="comment">%% min and max values of relaxation time distribution</span>
-0092 gui.text_handles.invstd_RTDtimes = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
-0093     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'String'</span>,<span class="string">'RTD - min [s] | max [s] | # / dec'</span>);
-0094 tstr = <span class="string">'Lower bound of relaxation time spectra.'</span>;
-0095 gui.edit_handles.invstd_time_min = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
-0096     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.time(1,1)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0097     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.time(1,1) 1 1]),<span class="keyword">...</span>
-0098     <span class="string">'Tag'</span>,<span class="string">'invstd_time'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0099 tstr = <span class="string">'Upper bound of relaxation time spectra.'</span>;
-0100 gui.edit_handles.invstd_time_max = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
-0101     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.time(1,2)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0102     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.time(1,2) 1 2]),<span class="keyword">...</span>
-0103     <span class="string">'Tag'</span>,<span class="string">'invstd_time'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0104 tstr = <span class="string">'Number of steps per decade.'</span>;
-0105 gui.edit_handles.invstd_Ntime = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
-0106     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.Ntime),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0107     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.Ntime 1 1]),<span class="keyword">...</span>
-0108     <span class="string">'Tag'</span>,<span class="string">'invstd_Ntime'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0109 set(gui.panels.invstd.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
-0110 
-0111 <span class="comment">%% optional inversion settings depending on inversion type</span>
-0112 gui.text_handles.invstd_InvTypeOpt = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox3,<span class="keyword">...</span>
-0113     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0114     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
-0115 tstr = [<span class="string">'&lt;HTML&gt;Choose additional options depending on the chosen inversion (fitting) method.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0116     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0117     <span class="string">'&lt;font color=&quot;red&quot;&gt;Mono exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
-0118     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;none&lt;/b&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0119     <span class="string">'&lt;font color=&quot;red&quot;&gt;X free exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
-0120     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;1-5&lt;/b&gt; choose how many free relaxation times to use.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0121     <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
-0122     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Manual&lt;/b&gt; Manual regularization.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0123     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;IterChi2&lt;/b&gt; Find Chi2=1 iteratively.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0124     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Tikhonov (GCV)&lt;/b&gt; Tikhonov regularization (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
-0125     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;TSVD (GCV)&lt;/b&gt; Regularization via Truncated SVD (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
-0126     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;DSVD (GCV)&lt;/b&gt; Regularization via Damped SVD (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
-0127     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Discrep.&lt;/b&gt; Regularization according to discrepancy principle (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
-0128     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;L-curve&lt;/b&gt; Perform the L-curve test to find optimal regularization parameter lambda.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0129     <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp. (ILA):&lt;br&gt;'</span>,<span class="keyword">...</span>
-0130     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Manual&lt;/b&gt; Manual regularization.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0131     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Automatic&lt;/b&gt; Automatic regularization.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0132     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0133     <span class="string">'&lt;b&gt;Automatic&lt;/b&gt;&lt;br&gt;'</span>];
-0134 gui.popup_handles.invstd_InvTypeOpt = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox3,<span class="keyword">...</span>
-0135     <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,{<span class="string">'Manual'</span>,<span class="string">'auto'</span>},<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,2,<span class="keyword">...</span>
-0136     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/popup/onPopupInvstdTypeOptional.html" class="code" title="function onPopupInvstdTypeOptional(src,~)">onPopupInvstdTypeOptional</a>);
-0137 set(gui.panels.invstd.HBox3,<span class="string">'Widths'</span>,[200 -1]);
-0138 
-0139 <span class="comment">%% smoothness constraint / order of regularized solution</span>
-0140 gui.text_handles.invstd_Lorder = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
-0141     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0142     <span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'String'</span>,<span class="string">'smoothness constraint (L-order)'</span>);
-0143 tstr = [<span class="string">'&lt;HTML&gt;Choose the smoothness constraint for the multi-exponential fitting routines.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0144     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0145     <span class="string">'&lt;font color=&quot;red&quot;&gt;Mono exp. | X free exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
-0146     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;none&lt;/b&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0147     <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp. (NNLS/LSQLIN) | Multi exp. (ILA):&lt;br&gt;'</span>,<span class="keyword">...</span>
-0148     <span class="string">'&lt;font color=&quot;black&quot;&gt;'</span>,<span class="keyword">...</span>
-0149     <span class="string">'&lt;b&gt;0&lt;/b&gt; Zeroth-order smoothness constraint.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0150     <span class="string">'&lt;b&gt;1&lt;/b&gt; First-order smoothness constraint.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0151     <span class="string">'&lt;b&gt;2&lt;/b&gt; Second-order smoothness constraint.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0152     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0153     <span class="string">'&lt;b&gt;1&lt;/b&gt;&lt;br&gt;'</span>];
-0154 gui.radio_handles.invstd_Lorder0 = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
-0155     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'0'</span>,<span class="string">'Tag'</span>,<span class="string">'invstd'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0156     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioLorder.html" class="code" title="function onRadioLorder(src,~)">onRadioLorder</a>);
-0157 gui.radio_handles.invstd_Lorder1 = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
-0158     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'1'</span>,<span class="string">'Tag'</span>,<span class="string">'invstd'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0159     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioLorder.html" class="code" title="function onRadioLorder(src,~)">onRadioLorder</a>);
-0160 gui.radio_handles.invstd_Lorder2 = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
-0161     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'2'</span>,<span class="string">'Tag'</span>,<span class="string">'invstd'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0162     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioLorder.html" class="code" title="function onRadioLorder(src,~)">onRadioLorder</a>);
-0163 set(gui.panels.invstd.HBox4,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
-0164 
-0165 <span class="comment">%% min and max values of the L-curve</span>
-0166 gui.text_handles.invstd_lambda = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
-0167     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0168     <span class="string">'String'</span>,<span class="string">'lambda  -  min | max | #'</span>);
-0169 tstr = <span class="string">'Lambda value / Smallest Lambda in range.'</span>;
-0170 gui.edit_handles.invstd_lambda_min = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
-0171     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.lambda),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0172     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.lambdaR(1,1) 1 1]),<span class="keyword">...</span>
-0173     <span class="string">'Tag'</span>,<span class="string">'invstd_lambdaR'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0174 tstr = <span class="string">'Largest Lambda in range.'</span>;
-0175 gui.edit_handles.invstd_lambda_max = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
-0176     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.lambdaR(1,2)),<span class="keyword">...</span>
-0177     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.lambdaR(1,2) 1 2]),<span class="keyword">...</span>
-0178     <span class="string">'Tag'</span>,<span class="string">'invstd_lambdaR'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0179     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0180 tstr = <span class="string">'Number of Lambdas in L-curve.'</span>;
-0181 gui.edit_handles.invstd_NlambdaR = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
-0182     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.NlambdaR),<span class="keyword">...</span>
-0183     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.NlambdaR 1 1]),<span class="keyword">...</span>
-0184     <span class="string">'Tag'</span>,<span class="string">'invstd_NlambdaR'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0185     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0186 set(gui.panels.invstd.HBox5,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
-0187 
-0188 <span class="comment">%% RUN button</span>
-0189 gui.text_handles.invstd_run = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox6,<span class="keyword">...</span>
-0190     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0191     <span class="string">'String'</span>,<span class="string">'run Inversion'</span>);
-0192 gui.push_handles.invstd_run = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox6,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0193     <span class="string">'String'</span>,<span class="string">'&lt;HTML&gt;&lt;u&gt;R&lt;/u&gt;UN'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'BackGroundColor'</span>,<span class="string">'g'</span>,<span class="keyword">...</span>
-0194     <span class="string">'Tag'</span>,<span class="string">'std'</span>,<span class="string">'UserData'</span>,1,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
-0195 set(gui.panels.invstd.HBox6,<span class="string">'Widths'</span>,[200 -1]);
-0196 
-0197 <span class="comment">%% Java Hack to adjust vertical alignment of text fields</span>
-0198 jh = findjobj(gui.text_handles.invstd_InvType);
-0199 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0200 jh = findjobj(gui.text_handles.invstd_RTDtimes);
-0201 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0202 jh = findjobj(gui.text_handles.invstd_InvTypeOpt);
-0203 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0204 jh = findjobj(gui.text_handles.invstd_Lorder);
-0205 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0206 jh = findjobj(gui.text_handles.invstd_lambda);
-0207 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0208 jh = findjobj(gui.text_handles.invstd_run);
-0209 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0210 
-0211 <span class="keyword">return</span>
-0212 
-0213 <span class="comment">%------------- END OF CODE --------------</span>
-0214 
-0215 <span class="comment">%% License:</span>
-0216 <span class="comment">% MIT License</span>
-0217 <span class="comment">%</span>
-0218 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0219 <span class="comment">%</span>
-0220 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0221 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0222 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0223 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0224 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0225 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0226 <span class="comment">%</span>
-0227 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0228 <span class="comment">% copies or substantial portions of the Software.</span>
-0229 <span class="comment">%</span>
-0230 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0231 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0232 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0233 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0234 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0235 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0236 <span class="comment">% SOFTWARE.</span></pre></div>
+0063     <span class="keyword">case</span> <span class="string">'on'</span>        
+0064         <span class="keyword">switch</span> data.info.ExpertMode
+0065             <span class="keyword">case</span> <span class="string">'on'</span>
+0066                 tstr = [<span class="string">'&lt;HTML&gt;Choose between different inversion (fitting) methods.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0067                     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0068                     <span class="string">'&lt;b&gt;Mono exp.&lt;/b&gt; Mono-exponential fitting.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0069                     <span class="string">'&lt;b&gt;X free exp.&lt;/b&gt; Multi-exponential fitting with up to 5 free relaxation times.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0070                     <span class="string">'&lt;b&gt;Multi exp. (LSQLIN)&lt;/b&gt; Multi-exponential fitting with Optimization Toolbox.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0071                     <span class="string">'&lt;b&gt;Multi exp. (ILA)&lt;/b&gt; Multi-exponential fitting using an Inverse Laplace transform.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0072                     <span class="string">'Depending on the chosen method there are additional options available.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0073                     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0074                     <span class="string">'&lt;b&gt;Multi exp. (LSQLIN)&lt;/b&gt;&lt;br&gt;'</span>];
+0075                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (LSQLIN)'</span>,<span class="string">'Multi exp. (InvLaplace)'</span>};
+0076             <span class="keyword">case</span> <span class="string">'off'</span>
+0077                 tstr = [<span class="string">'&lt;HTML&gt;Choose between different inversion (fitting) methods.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0078                     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0079                     <span class="string">'&lt;b&gt;Mono exp.&lt;/b&gt; Mono-exponential fitting.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0080                     <span class="string">'&lt;b&gt;X free exp.&lt;/b&gt; Multi-exponential fitting with up to 5 free relaxation times.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0081                     <span class="string">'&lt;b&gt;Multi exp. (LSQLIN)&lt;/b&gt; Multi-exponential fitting with Optimization Toolbox.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0082                     <span class="string">'Depending on the chosen method there are additional options available.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0083                     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0084                     <span class="string">'&lt;b&gt;Multi exp. (LSQLIN)&lt;/b&gt;&lt;br&gt;'</span>];
+0085                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (LSQLIN)'</span>};
+0086         <span class="keyword">end</span>
+0087     <span class="keyword">case</span> <span class="string">'off'</span>
+0088         <span class="keyword">switch</span> data.info.ExpertMode
+0089             <span class="keyword">case</span> <span class="string">'on'</span>
+0090                 tstr = [<span class="string">'&lt;HTML&gt;Choose between different inversion (fitting) methods.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0091                     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0092                     <span class="string">'&lt;b&gt;Mono exp.&lt;/b&gt; Mono-exponential fitting.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0093                     <span class="string">'&lt;b&gt;Several free exp.&lt;/b&gt; Multi-exponential fitting with up to 5 free relaxation times.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0094                     <span class="string">'&lt;b&gt;Multi exp. (NNLS)&lt;/b&gt; Multi-exponential fitting with Non Negative Least Squares (NNLS).&lt;br&gt;'</span>,<span class="keyword">...</span>
+0095                     <span class="string">'&lt;b&gt;Multi exp. (ILA)&lt;/b&gt; Multi-exponential fitting using an Inverse Laplace transform.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0096                     <span class="string">'Depending on the chosen method there are additional options available.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0097                     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0098                     <span class="string">'&lt;b&gt;Multi exp. (NNLS)&lt;/b&gt;&lt;br&gt;'</span>];
+0099                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (NNLS)'</span>,<span class="string">'Multi exp. (InvLaplace)'</span>};
+0100             <span class="keyword">case</span> <span class="string">'off'</span>
+0101                 tstr = [<span class="string">'&lt;HTML&gt;Choose between different inversion (fitting) methods.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0102                     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0103                     <span class="string">'&lt;b&gt;Mono exp.&lt;/b&gt; Mono-exponential fitting.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0104                     <span class="string">'&lt;b&gt;Several free exp.&lt;/b&gt; Multi-exponential fitting with up to 5 free relaxation times.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0105                     <span class="string">'&lt;b&gt;Multi exp. (NNLS)&lt;/b&gt; Multi-exponential fitting with Non Negative Least Squares (NNLS).&lt;br&gt;'</span>,<span class="keyword">...</span>
+0106                     <span class="string">'Depending on the chosen method there are additional options available.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0107                     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0108                     <span class="string">'&lt;b&gt;Multi exp. (NNLS)&lt;/b&gt;&lt;br&gt;'</span>];
+0109                 istring = {<span class="string">'Mono exp.'</span>,<span class="string">'Several free exp. (2-5)'</span>,<span class="string">'Multi exp. (NNLS)'</span>};
+0110         <span class="keyword">end</span>        
+0111 <span class="keyword">end</span>
+0112 gui.popup_handles.invstd_InvType = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox1,<span class="keyword">...</span>
+0113     <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,istring,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,3,<span class="keyword">...</span>
+0114     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/popup/onPopupInvstdType.html" class="code" title="function onPopupInvstdType(src,~)">onPopupInvstdType</a>);
+0115 set(gui.panels.invstd.HBox1,<span class="string">'Widths'</span>,[200 -1]);
+0116 
+0117 <span class="comment">%% min and max values of relaxation time distribution</span>
+0118 gui.text_handles.invstd_RTDtimes = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
+0119     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'String'</span>,<span class="string">'RTD - min [s] | max [s] | # / dec'</span>);
+0120 tstr = <span class="string">'Lower bound of relaxation time spectra.'</span>;
+0121 gui.edit_handles.invstd_time_min = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
+0122     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.time(1,1)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0123     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.time(1,1) 1 1]),<span class="keyword">...</span>
+0124     <span class="string">'Tag'</span>,<span class="string">'invstd_time'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0125 tstr = <span class="string">'Upper bound of relaxation time spectra.'</span>;
+0126 gui.edit_handles.invstd_time_max = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
+0127     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.time(1,2)),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0128     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.time(1,2) 1 2]),<span class="keyword">...</span>
+0129     <span class="string">'Tag'</span>,<span class="string">'invstd_time'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0130 tstr = <span class="string">'Number of steps per decade.'</span>;
+0131 gui.edit_handles.invstd_Ntime = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox2,<span class="keyword">...</span>
+0132     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.Ntime),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0133     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.Ntime 1 1]),<span class="keyword">...</span>
+0134     <span class="string">'Tag'</span>,<span class="string">'invstd_Ntime'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0135 set(gui.panels.invstd.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
+0136 
+0137 <span class="comment">%% optional inversion settings depending on inversion type</span>
+0138 gui.text_handles.invstd_InvTypeOpt = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox3,<span class="keyword">...</span>
+0139     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0140     <span class="string">'String'</span>,<span class="string">'regularization options'</span>);
+0141 <span class="keyword">switch</span> data.info.ExpertMode
+0142     <span class="keyword">case</span> <span class="string">'on'</span>
+0143         tstr = [<span class="string">'&lt;HTML&gt;Choose additional options depending on the chosen inversion (fitting) method.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0144             <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0145             <span class="string">'&lt;font color=&quot;red&quot;&gt;Mono exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0146             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;none&lt;/b&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0147             <span class="string">'&lt;font color=&quot;red&quot;&gt;X free exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0148             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;1-5&lt;/b&gt; choose how many free relaxation times to use.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0149             <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0150             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Manual&lt;/b&gt; Manual regularization.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0151             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;IterChi2&lt;/b&gt; Find Chi2=1 iteratively.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0152             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Tikhonov (GCV)&lt;/b&gt; Tikhonov regularization (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
+0153             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;TSVD (GCV)&lt;/b&gt; Regularization via Truncated SVD (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
+0154             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;DSVD (GCV)&lt;/b&gt; Regularization via Damped SVD (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
+0155             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Discrep.&lt;/b&gt; Regularization according to discrepancy principle (SVD-Toolbox).&lt;br&gt;'</span>,<span class="keyword">...</span>
+0156             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;L-curve&lt;/b&gt; Perform the L-curve test to find optimal regularization parameter lambda.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0157             <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp. (ILA):&lt;br&gt;'</span>,<span class="keyword">...</span>
+0158             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Manual&lt;/b&gt; Manual regularization.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0159             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Automatic&lt;/b&gt; Automatic regularization.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0160             <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0161             <span class="string">'&lt;b&gt;Manual&lt;/b&gt;&lt;br&gt;'</span>];
+0162         rstring = {<span class="string">'Manual'</span>,<span class="string">'Iterative Chi2'</span>,<span class="string">'Tikhonov (SVD)'</span>,<span class="string">'TSVD (SVD)'</span>,<span class="keyword">...</span>
+0163             <span class="string">'DSVD (SVD)'</span>,<span class="string">'Discrep. (SVD)'</span>,<span class="string">'L-curve'</span>};
+0164     <span class="keyword">case</span> <span class="string">'off'</span>
+0165         tstr = [<span class="string">'&lt;HTML&gt;Choose additional options depending on the chosen inversion (fitting) method.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0166             <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0167             <span class="string">'&lt;font color=&quot;red&quot;&gt;Mono exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0168             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;none&lt;/b&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0169             <span class="string">'&lt;font color=&quot;red&quot;&gt;X free exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0170             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;1-5&lt;/b&gt; choose how many free relaxation times to use.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0171             <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0172             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;Manual&lt;/b&gt; Manual regularization.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0173             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;IterChi2&lt;/b&gt; Find Chi2=1 iteratively.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0174             <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;L-curve&lt;/b&gt; Perform the L-curve test to find optimal regularization parameter lambda.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0175             <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0176             <span class="string">'&lt;b&gt;Manual&lt;/b&gt;&lt;br&gt;'</span>];
+0177         rstring = {<span class="string">'Manual'</span>,<span class="string">'Iterative Chi2'</span>,<span class="string">'L-curve'</span>};
+0178 <span class="keyword">end</span>
+0179 gui.popup_handles.invstd_InvTypeOpt = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox3,<span class="keyword">...</span>
+0180     <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,rstring,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Value'</span>,1,<span class="keyword">...</span>
+0181     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/popup/onPopupInvstdTypeOptional.html" class="code" title="function onPopupInvstdTypeOptional(src,~)">onPopupInvstdTypeOptional</a>);
+0182 set(gui.panels.invstd.HBox3,<span class="string">'Widths'</span>,[200 -1]);
+0183 
+0184 <span class="comment">%% smoothness constraint / order of regularized solution</span>
+0185 gui.text_handles.invstd_Lorder = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
+0186     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0187     <span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'String'</span>,<span class="string">'smoothness constraint (L-order)'</span>);
+0188 tstr = [<span class="string">'&lt;HTML&gt;Choose the smoothness constraint for the multi-exponential fitting routines.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0189     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0190     <span class="string">'&lt;font color=&quot;red&quot;&gt;Mono exp. | X free exp.:&lt;br&gt;'</span>,<span class="keyword">...</span>
+0191     <span class="string">'&lt;font color=&quot;black&quot;&gt;&lt;b&gt;none&lt;/b&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0192     <span class="string">'&lt;font color=&quot;red&quot;&gt;Multi exp. (NNLS/LSQLIN) | Multi exp. (ILA):&lt;br&gt;'</span>,<span class="keyword">...</span>
+0193     <span class="string">'&lt;font color=&quot;black&quot;&gt;'</span>,<span class="keyword">...</span>
+0194     <span class="string">'&lt;b&gt;0&lt;/b&gt; Zeroth-order smoothness constraint.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0195     <span class="string">'&lt;b&gt;1&lt;/b&gt; First-order smoothness constraint.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0196     <span class="string">'&lt;b&gt;2&lt;/b&gt; Second-order smoothness constraint.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0197     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0198     <span class="string">'&lt;b&gt;1&lt;/b&gt;&lt;br&gt;'</span>];
+0199 gui.radio_handles.invstd_Lorder0 = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
+0200     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'0'</span>,<span class="string">'Tag'</span>,<span class="string">'invstd'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0201     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioLorder.html" class="code" title="function onRadioLorder(src,~)">onRadioLorder</a>);
+0202 gui.radio_handles.invstd_Lorder1 = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
+0203     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'1'</span>,<span class="string">'Tag'</span>,<span class="string">'invstd'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0204     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioLorder.html" class="code" title="function onRadioLorder(src,~)">onRadioLorder</a>);
+0205 gui.radio_handles.invstd_Lorder2 = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox4,<span class="keyword">...</span>
+0206     <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'2'</span>,<span class="string">'Tag'</span>,<span class="string">'invstd'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0207     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/radio/onRadioLorder.html" class="code" title="function onRadioLorder(src,~)">onRadioLorder</a>);
+0208 set(gui.panels.invstd.HBox4,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
+0209 
+0210 <span class="comment">%% min and max values of the L-curve</span>
+0211 gui.text_handles.invstd_lambda = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
+0212     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0213     <span class="string">'String'</span>,<span class="string">'lambda  -  min | max | #'</span>);
+0214 tstr = <span class="string">'Lambda value / Smallest Lambda in range.'</span>;
+0215 gui.edit_handles.invstd_lambda_min = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
+0216     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.lambda),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0217     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.lambdaR(1,1) 1 1]),<span class="keyword">...</span>
+0218     <span class="string">'Tag'</span>,<span class="string">'invstd_lambdaR'</span>,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0219 tstr = <span class="string">'Largest Lambda in range.'</span>;
+0220 gui.edit_handles.invstd_lambda_max = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
+0221     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.lambdaR(1,2)),<span class="keyword">...</span>
+0222     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.lambdaR(1,2) 1 2]),<span class="keyword">...</span>
+0223     <span class="string">'Tag'</span>,<span class="string">'invstd_lambdaR'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0224     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0225 tstr = <span class="string">'Number of Lambdas in L-curve.'</span>;
+0226 gui.edit_handles.invstd_NlambdaR = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox5,<span class="keyword">...</span>
+0227     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.invstd.NlambdaR),<span class="keyword">...</span>
+0228     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.invstd.NlambdaR 1 1]),<span class="keyword">...</span>
+0229     <span class="string">'Tag'</span>,<span class="string">'invstd_NlambdaR'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0230     <span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0231 set(gui.panels.invstd.HBox5,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
+0232 
+0233 <span class="comment">%% RUN button</span>
+0234 gui.text_handles.invstd_run = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox6,<span class="keyword">...</span>
+0235     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0236     <span class="string">'String'</span>,<span class="string">'run Inversion'</span>);
+0237 gui.push_handles.invstd_run = uicontrol(<span class="string">'Parent'</span>,gui.panels.invstd.HBox6,<span class="string">'Enable'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0238     <span class="string">'String'</span>,<span class="string">'&lt;HTML&gt;&lt;u&gt;R&lt;/u&gt;UN'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'BackGroundColor'</span>,<span class="string">'g'</span>,<span class="keyword">...</span>
+0239     <span class="string">'Tag'</span>,<span class="string">'std'</span>,<span class="string">'UserData'</span>,1,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
+0240 set(gui.panels.invstd.HBox6,<span class="string">'Widths'</span>,[200 -1]);
+0241 
+0242 <span class="comment">%% Java Hack to adjust vertical alignment of text fields</span>
+0243 jh = findjobj(gui.text_handles.invstd_InvType);
+0244 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0245 jh = findjobj(gui.text_handles.invstd_RTDtimes);
+0246 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0247 jh = findjobj(gui.text_handles.invstd_InvTypeOpt);
+0248 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0249 jh = findjobj(gui.text_handles.invstd_Lorder);
+0250 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0251 jh = findjobj(gui.text_handles.invstd_lambda);
+0252 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0253 jh = findjobj(gui.text_handles.invstd_run);
+0254 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0255 
+0256 <span class="keyword">return</span>
+0257 
+0258 <span class="comment">%------------- END OF CODE --------------</span>
+0259 
+0260 <span class="comment">%% License:</span>
+0261 <span class="comment">% MIT License</span>
+0262 <span class="comment">%</span>
+0263 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0264 <span class="comment">%</span>
+0265 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0266 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0267 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0268 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0269 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0270 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0271 <span class="comment">%</span>
+0272 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0273 <span class="comment">% copies or substantial portions of the Software.</span>
+0274 <span class="comment">%</span>
+0275 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0276 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0277 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0278 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0279 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0280 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0281 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

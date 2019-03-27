@@ -1,20 +1,20 @@
-function updatePlotsGeometryType(ax)
-%updatePlotsGeometryType plots the cross-sectional shape as a reference
+function onMenuExtraRhoBounds(src,~)
+%onMenuExtraRhoBounds sets inversion bounds for the surface relaxivity
 %
 % Syntax:
-%       updatePlotsGeometryType
+%       onMenuExtraRhoBounds(src,~)
 %
 % Inputs:
-%       ax - axes handle where to plot the geometry
+%       src - handle of the calling object
 %
 % Outputs:
 %       none
 %
 % Example:
-%       updatePlotsGeometryType
+%       onMenuExtraRhoBounds(src)
 %
 % Other m-files required:
-%       none
+%       changeColorTheme
 %
 % Subfunctions:
 %       none
@@ -22,7 +22,7 @@ function updatePlotsGeometryType(ax)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSmod
+% See also: NUCLEUSinv
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
@@ -30,36 +30,24 @@ function updatePlotsGeometryType(ax)
 %------------- BEGIN CODE --------------
 
 %% get GUI handle and data
-fig = findobj('Tag','MOD');
+fig = ancestor(src,'figure','toplevel');
+fig_tag = get(fig,'Tag');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 
-% clear the current axis
-cla(ax);
+bounds = data.invjoint.rhobounds;
 
-% check the geometry type and plot the cross-sectional shape
-if strcmp(data.geometry.type,'cyl') == 1 % cylindrical
-    r = data.geometry.modes(1,1);
-    phi = linspace(0,2*pi,360);
-    x = r.*cos(phi);
-    y = r.*sin(phi);
-    plot(x,y,'k-','LineWidth',2,'Parent',ax);
-else % right angular & % polygonal
-    if numel(data.results.psddata.psd) == 1
-        P = data.results.GEOM.Points;
-    else
-        P = squeeze(data.results.GEOM.Points(1,:,:));
-    end
-    patch('Vertices',P,'Faces',1:1:size(P,1),'FaceColor','none',...
-        'FaceAlpha',0,'EdgeColor','k','LineWidth',2,'Parent',ax);
+prompt = {'lower boundary [µm/s]:','upper boundary [µm/s]:'};
+title = 'Surface relaxivity bounds';
+dims = [1 50];
+definput = {sprintf('%4.3f',bounds(1)),sprintf('%4.3f',bounds(2))};
+answer = inputdlg(prompt,title,dims,definput);
+
+if ~isempty(answer)
+    data.invjoint.rhobounds(1) = str2double(answer{1});
+    data.invjoint.rhobounds(2) = str2double(answer{2});
+    setappdata(fig,'data',data);
 end
-
-% axis settings
-axis(ax,'equal');
-axis(ax,'tight');
-set(ax,'XScale','lin','XLim',get(ax,'XLim').*[1.3 1.3],'XTick',[]);
-set(ax,'XTickLabel','','YTickLabel','','Color','none',...
-    'XColor','none','YColor','none');
 
 end
 

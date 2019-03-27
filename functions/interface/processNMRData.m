@@ -86,7 +86,8 @@ end
 % gating
 switch nmrproc.gatetype
     case {'log','lin'}
-        tmp = applyGatesToSignal(t,s,'type',nmrproc.gatetype,'Ng',min([numel(s) 300]));
+        tmp = applyGatesToSignal(t,s,'type',nmrproc.gatetype,...
+            'Ng',min([numel(s) 300]),'Ne',nmrproc.Nechoes);
         t = tmp(:,1);
         s = tmp(:,2);
         N = tmp(:,3);

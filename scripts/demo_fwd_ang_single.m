@@ -2,7 +2,7 @@
 clear variables; clc;
 
 %% geometry
-% rectangular pore
+% right angular pore
 geom.type = 'ang';
 geom.angles = [90 60 30]; % [deg]
 
