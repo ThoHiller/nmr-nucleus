@@ -1,5 +1,5 @@
 function out = LoadNMRData_bgr(in)
-%LoadNMRData_bgr loads standard BGR NMR data 
+%LoadNMRData_bgr loads standard BGR NMR data
 %
 % Syntax:
 %       out = LoadNMRData_bgr(in)
@@ -52,16 +52,19 @@ data = LoadDataFile(in.path,[in.name,'.dat'],T1T2flag);
 
 % get file statistics
 nmrData{1}.datfile = [in.name,'.dat'];
-nmrData{1}.date    = file.date;
+nmrData{1}.date = file.date;
 nmrData{1}.datenum = file.datenum;
-nmrData{1}.bytes   = file.bytes;
+nmrData{1}.bytes = file.bytes;
 
 % save the NMR data
-nmrData{1}.flag    = data.flag;
+nmrData{1}.flag = data.flag;
 nmrData{1}.T1IRfac = 1;
-nmrData{1}.time    = data.time;
-nmrData{1}.signal  = data.signal;
-nmrData{1}.raw     = data.raw;
+nmrData{1}.time = data.time;
+nmrData{1}.signal = data.signal;
+nmrData{1}.raw = data.raw;
+if strcmp(T1T2flag,'T2')
+    nmrData{1}.phase = data.phase;
+end
 
 % save data to output struct
 out.parData = parData;
@@ -82,11 +85,13 @@ if size(d,2) == 3
             data.signal = d(:,2);
         case 'T2'
             data.signal = complex(d(:,2),d(:,3));
+            [data.signal,data.phase] = rotateT2phase(data.signal);
     end
 else
     data.flag = '0';
     data.time = 0;
     data.signal = 0;
+    data.phase = 0;
 end
 
 data.raw.time = data.time;

@@ -26,7 +26,7 @@
 <div class="box"><strong>function out = LoadNMRData_bgr(in) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre class="comment">LoadNMRData_bgr loads standard BGR NMR data 
+<div class="fragment"><pre class="comment">LoadNMRData_bgr loads standard BGR NMR data
 
  Syntax:
        out = LoadNMRData_bgr(in)
@@ -64,7 +64,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>	 cleans parameter file lines when the properties have a</li></ul>
+<li><a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>	 cleans parameter file lines when the properties have a</li><li><a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
@@ -129,88 +129,93 @@ This function is called by:
 0052 
 0053 <span class="comment">% get file statistics</span>
 0054 nmrData{1}.datfile = [in.name,<span class="string">'.dat'</span>];
-0055 nmrData{1}.date    = file.date;
+0055 nmrData{1}.date = file.date;
 0056 nmrData{1}.datenum = file.datenum;
-0057 nmrData{1}.bytes   = file.bytes;
+0057 nmrData{1}.bytes = file.bytes;
 0058 
 0059 <span class="comment">% save the NMR data</span>
-0060 nmrData{1}.flag    = data.flag;
+0060 nmrData{1}.flag = data.flag;
 0061 nmrData{1}.T1IRfac = 1;
-0062 nmrData{1}.time    = data.time;
-0063 nmrData{1}.signal  = data.signal;
-0064 nmrData{1}.raw     = data.raw;
-0065 
-0066 <span class="comment">% save data to output struct</span>
-0067 out.parData = parData;
-0068 out.nmrData = nmrData;
-0069 
-0070 <span class="keyword">end</span>
-0071 
-0072 <span class="comment">%% load NMR data file</span>
-0073 <a name="_sub1" href="#_subfunctions" class="code">function [data] = LoadDataFile(datapath,fname,flag)</a>
+0062 nmrData{1}.time = data.time;
+0063 nmrData{1}.signal = data.signal;
+0064 nmrData{1}.raw = data.raw;
+0065 <span class="keyword">if</span> strcmp(T1T2flag,<span class="string">'T2'</span>)
+0066     nmrData{1}.phase = data.phase;
+0067 <span class="keyword">end</span>
+0068 
+0069 <span class="comment">% save data to output struct</span>
+0070 out.parData = parData;
+0071 out.nmrData = nmrData;
+0072 
+0073 <span class="keyword">end</span>
 0074 
-0075 d = load(fullfile(datapath,fname));
-0076 
-0077 <span class="keyword">if</span> size(d,2) == 3
-0078     data.flag = flag;
-0079     data.time = d(:,1);
-0080     <span class="keyword">switch</span> flag
-0081         <span class="keyword">case</span> <span class="string">'T1'</span>
-0082             data.signal = d(:,2);
-0083         <span class="keyword">case</span> <span class="string">'T2'</span>
-0084             data.signal = complex(d(:,2),d(:,3));
-0085     <span class="keyword">end</span>
-0086 <span class="keyword">else</span>
-0087     data.flag = <span class="string">'0'</span>;
-0088     data.time = 0;
-0089     data.signal = 0;
-0090 <span class="keyword">end</span>
-0091 
-0092 data.raw.time = data.time;
-0093 data.raw.signal = data.signal;
-0094 
+0075 <span class="comment">%% load NMR data file</span>
+0076 <a name="_sub1" href="#_subfunctions" class="code">function [data] = LoadDataFile(datapath,fname,flag)</a>
+0077 
+0078 d = load(fullfile(datapath,fname));
+0079 
+0080 <span class="keyword">if</span> size(d,2) == 3
+0081     data.flag = flag;
+0082     data.time = d(:,1);
+0083     <span class="keyword">switch</span> flag
+0084         <span class="keyword">case</span> <span class="string">'T1'</span>
+0085             data.signal = d(:,2);
+0086         <span class="keyword">case</span> <span class="string">'T2'</span>
+0087             data.signal = complex(d(:,2),d(:,3));
+0088             [data.signal,data.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(data.signal);
+0089     <span class="keyword">end</span>
+0090 <span class="keyword">else</span>
+0091     data.flag = <span class="string">'0'</span>;
+0092     data.time = 0;
+0093     data.signal = 0;
+0094     data.phase = 0;
 0095 <span class="keyword">end</span>
 0096 
-0097 <span class="comment">%% load parameter file</span>
-0098 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0097 data.raw.time = data.time;
+0098 data.raw.signal = data.signal;
 0099 
-0100 fid = fopen(fullfile(datapath,fname));
-0101 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
-0102 fclose(fid);
-0103 
-0104 <span class="keyword">for</span> i = 1:size(d{1},1)
-0105     str = char(d{1}(i));
-0106     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
-0107     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
-0108 <span class="keyword">end</span>
-0109 data.all = d;
-0110 
-0111 <span class="keyword">end</span>
-0112 
-0113 <span class="comment">%------------- END OF CODE --------------</span>
-0114 
-0115 <span class="comment">%% License:</span>
-0116 <span class="comment">% MIT License</span>
-0117 <span class="comment">%</span>
-0118 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0119 <span class="comment">%</span>
-0120 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0121 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0122 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0123 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0124 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0125 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0126 <span class="comment">%</span>
-0127 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0128 <span class="comment">% copies or substantial portions of the Software.</span>
-0129 <span class="comment">%</span>
-0130 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0131 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0132 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0133 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0134 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0135 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0136 <span class="comment">% SOFTWARE.</span></pre></div>
+0100 <span class="keyword">end</span>
+0101 
+0102 <span class="comment">%% load parameter file</span>
+0103 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0104 
+0105 fid = fopen(fullfile(datapath,fname));
+0106 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0107 fclose(fid);
+0108 
+0109 <span class="keyword">for</span> i = 1:size(d{1},1)
+0110     str = char(d{1}(i));
+0111     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0112     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
+0113 <span class="keyword">end</span>
+0114 data.all = d;
+0115 
+0116 <span class="keyword">end</span>
+0117 
+0118 <span class="comment">%------------- END OF CODE --------------</span>
+0119 
+0120 <span class="comment">%% License:</span>
+0121 <span class="comment">% MIT License</span>
+0122 <span class="comment">%</span>
+0123 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0124 <span class="comment">%</span>
+0125 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0126 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0127 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0128 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0129 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0130 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0131 <span class="comment">%</span>
+0132 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0133 <span class="comment">% copies or substantial portions of the Software.</span>
+0134 <span class="comment">%</span>
+0135 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0136 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0137 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0138 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0139 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0140 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0141 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

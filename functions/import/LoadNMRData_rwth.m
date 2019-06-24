@@ -107,12 +107,18 @@ if size(files,1) >= 2 && ~isempty(index1)
             nmrData{i}.time = data.time;
             nmrData{i}.signal = data.signal;
             nmrData{i}.raw = data.raw;
+            if strcmp(T1T2flag,'T2')
+                nmrData{1}.phase = data.phase;
+            end
         else
             nmrData{i}.flag = data.flag;
             nmrData{i}.T1IRfac = 1;
             nmrData{i}.time = nmrData{1}.time;
             nmrData{i}.signal = data.signal;
             nmrData{i}.raw = data.raw;
+            if strcmp(T1T2flag,'T2')
+                nmrData{i}.phase = data.phase;
+            end
         end
         clear data
         
@@ -152,6 +158,9 @@ else % single measurement
     nmrData{1}.time = data.time;
     nmrData{1}.signal = data.signal;
     nmrData{1}.raw = data.raw;
+    if strcmp(T1T2flag,'T2')
+        nmrData{1}.phase = data.phase;
+    end
     clear data
     
     % if T2 data read the T2spec file
@@ -185,13 +194,13 @@ elseif size(d,2) == 3
     data.flag = 'T2';
     data.time = 0;
     data.signal = complex(d(:,1),d(:,2));
-    data.signal = rotateT2phase(data.signal);
+    [data.signal,data.phase] = rotateT2phase(data.signal);
 elseif size(d,2) == 4
     % a T2 measurement has four columns
     data.flag = 'T2';
     data.time = d(:,1);
     data.signal = complex(d(:,2),d(:,3));
-    data.signal = rotateT2phase(data.signal);
+    [data.signal,data.phase] = rotateT2phase(data.signal);
 else
     data.flag = '0';
     data.time = 0;

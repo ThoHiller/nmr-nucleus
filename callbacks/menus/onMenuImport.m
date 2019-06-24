@@ -15,7 +15,6 @@ function onMenuImport(src,~)
 %
 % Other m-files required:
 %       importASCIIdata
-%       importCalibrationData
 %       importEXCELdata
 %       importINV2INV
 %       importMOD2INV
@@ -59,8 +58,6 @@ switch fig_tag
                 importEXCELdata(src);
             case 'Ascii'
                 importASCIIdata(src);
-            case 'Calibration'
-                importCalibrationData;
             case 'Lab'
                 importNMRdata(src);
             otherwise
@@ -73,8 +70,16 @@ switch fig_tag
         setappdata(fig,'gui',gui);
         gui = makeINIfile(gui,'update');
         % and the menu entry itself
-        set(gui.menu.file_import_lastimport,'Label',label,...
-            'Tag',menu_tag,'Callback',@onMenuImport)
+        switch label
+            case 'LIAG from project'
+                label = 'LIAG last project';
+                set(gui.menu.file_import_lastimport,'Label',label,...
+                    'Tag',menu_tag,'Callback',@onMenuImport)
+            otherwise
+                set(gui.menu.file_import_lastimport,'Label',label,...
+                    'Tag',menu_tag,'Callback',@onMenuImport);
+        end
+        setappdata(fig,'gui',gui);
 end
 
 end

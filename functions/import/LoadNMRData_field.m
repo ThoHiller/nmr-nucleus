@@ -55,12 +55,12 @@ switch T1T2flag
         helpdlg({'function: LoadNMRData_field',...
             'T1 data import not yet implemented'},'not implemented yet');
         
-    case 'T2'        
+    case 'T2'
         % find all data files
         files1 = dir(fullfile(in.path,[in.name,'*.dat']));
         
         % check if it is a single or multiple measurement(s)
-        if numel(files1) > 1            
+        if numel(files1) > 1
             % command line output
             disp([in.name,': importing NMR files ...']);
             
@@ -80,7 +80,8 @@ switch T1T2flag
                 nmrData{i}.T1IRfac = 1;
                 nmrData{i}.time = data.time;
                 nmrData{i}.signal = data.signal;
-                nmrData{i}.raw = data.raw;                
+                nmrData{i}.raw = data.raw;
+                nmrData{i}.phase = data.phase;
                 clear data
                 
                 % command line output
@@ -112,9 +113,10 @@ switch T1T2flag
                 nmrData{1}.T1IRfac = 1;
                 nmrData{1}.time = data.time;
                 nmrData{1}.signal = data.signal;
-                nmrData{1}.raw = data.raw;                
+                nmrData{1}.raw = data.raw;
+                nmrData{1}.phase = data.phase;
                 clear data
-            end            
+            end
         end
 end
 
@@ -138,11 +140,12 @@ if size(d,2) == 3
         data.time = d(:,1);
     end
     data.signal = complex(d(:,2),d(:,3));
-    data.signal = rotateT2phase(data.signal);
+    [data.signal,data.phase] = rotateT2phase(data.signal);
 else
     data.flag = '0';
     data.time = 0;
     data.signal = 0;
+    data.phase = 0;
 end
 
 data.raw.time = data.time;

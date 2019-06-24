@@ -155,8 +155,11 @@ if sum([EXCELpath EXCELfile]) > 0
                 % the NMR data
                 data.import.NMR.data{c}.flag = T1T2;
                 data.import.NMR.data{c}.time = num(:,1);
-                if size(num,2)>2
-                    data.import.NMR.data{c}.signal = complex(num(:,2),num(:,3));
+                if size(num,2)>2                    
+                    tmp_signal = complex(num(:,2),num(:,3));
+                    [tmp_signal,tmp_phase] = rotateT2phase(tmp_signal);
+                    data.import.NMR.data{c}.signal = tmp_signal;
+                    data.import.NMR.data{c}.phase = tmp_phase;                    
                 else
                     data.import.NMR.data{c}.signal = num(:,2);
                 end

@@ -28,6 +28,7 @@ function out = LoadNMRData_driver(in)
 %       LoadNMRData_bgr
 %       LoadNMRData_bgr2
 %       LoadNMRData_bgrmat
+%       LoadNMRData_bamtom
 %
 % Subfunctions:
 %       none
@@ -44,24 +45,26 @@ function out = LoadNMRData_driver(in)
 
 %% select the routine depending on the file format
 switch in.fileformat
-    case 'rwth'
-        out = LoadNMRData_rwth(in);
-    case 'field'
-        out = LoadNMRData_field(in);
-    case 'dart'
-        out = LoadNMRData_dart(in);
-    case 'corelab'
-        out = LoadNMRData_corelab(in);
-    case 'mouse'
-        out = LoadNMRData_mouse(in);
-    case 'liag'
-        out = LoadNMRData_liag(in);
+    case 'bamtom'
+        out = LoadNMRData_bamtom(in);
     case 'bgr'
         out = LoadNMRData_bgr(in);
     case 'bgr2'
         out = LoadNMRData_bgr2(in);
     case 'bgrmat'
         out = LoadNMRData_bgrmat(in);
+    case 'corelab'
+        out = LoadNMRData_corelab(in);
+    case 'dart'
+        out = LoadNMRData_dart(in);
+    case 'field'
+        out = LoadNMRData_field(in);
+    case 'liag'
+        out = LoadNMRData_liag(in);
+    case 'mouse'
+        out = LoadNMRData_mouse(in);
+    case 'rwth'
+        out = LoadNMRData_rwth(in);
 end
 
 return

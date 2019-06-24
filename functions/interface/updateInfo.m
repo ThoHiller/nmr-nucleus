@@ -225,6 +225,17 @@ if showit
                         '</BODY></HTML>'];
                 end
                 info{end+1,1} = ' ';
+                
+                if isfield(data.import,'BAM')
+                    a = data.import.NMR.data{id}.phase_bam;
+                    info{end+1,1} = ['<HTML><BODY>phase TOM&nbsp= ',...
+                        sprintf('%5.2f',rad2deg(a)),...
+                        '°</BODY></HTML>'];                    
+                end
+                info{end+1,1} = ['<HTML><BODY>phase fit&nbsp= ',...
+                        sprintf('%5.2f',rad2deg(data.results.nmrraw.phase)),...
+                        '°</BODY></HTML>'];
+                info{end+1,1} = ' ';
             end
             
         case 3 % ALL

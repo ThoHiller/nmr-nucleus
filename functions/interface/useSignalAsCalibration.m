@@ -67,26 +67,31 @@ if ~isempty(INVdata) && isstruct(INVdata{id})
     PathName = -1;
     if isfield(data.import,'LIAG')
         % find id of sample
-        id = 1;
+%         id = 1;
         spath = data.import.LIAG.workpaths{id};
-        sfilename = ['INV_',data.import.NMR.filesShort{id}];
-        sfile = [sfilename,'_calibData.mat'];
-        [FileName,PathName,~] = uiputfile({'*.mat','Matlab file'},...
-            'NUCLEUSinv: Save Calibration Data',fullfile(spath,sfile));
+%         sfilename = ['INV_',data.import.NMR.filesShort{id}];
+        sfile = 'NUCLEUS_calibData.mat';
+%         [FileName,PathName,~] = uiputfile({'*.mat','Matlab file'},...
+%             'NUCLEUSinv: Save Calibration Data',fullfile(spath,sfile));
+        PathName = spath;
+        FileName = sfile;
     else
-        [FileName,PathName,~] = uiputfile({'*.mat','Matlab file'},...
-            'NUCLEUSinv: Save Calibration Data',fullfile(data.import.path,...
-            'calibration_data.mat'));
+%         [FileName,PathName,~] = uiputfile({'*.mat','Matlab file'},...
+%             'NUCLEUSinv: Save Calibration Data',fullfile(data.import.path,...
+%             'calibData.mat'));
+        PathName = data.import.path;
+        FileName = 'NUCLEUS_calibData.mat';
     end
     
-    if ~isequal(FileName,0) || ~isequal(PathName,0)
-        calib = data.calib;
+%     if ~isequal(FileName,0) || ~isequal(PathName,0)
+        
+        calib = INVdata{id};
         save(fullfile(PathName,FileName),'calib');
         % show info message
         displayStatusText(gui,'Calibration data successfully exported');
-    else
-        displayStatusText(gui,'Calibration data only stored internally');
-    end
+%     else
+%         displayStatusText(gui,'Calibration data only stored internally');
+%     end
     calibratePorosity;    
 else
     % if there is no data at all throw a help dialog

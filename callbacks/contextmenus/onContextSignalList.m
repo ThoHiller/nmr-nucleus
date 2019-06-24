@@ -56,6 +56,8 @@ switch tag
                 resortDataList('name');                
             case 'by date'
                 resortDataList('date');
+            case 'flip list'
+                resortDataList('flip');    
             case [char(hex2dec('2191')),'up']
                 moveEntryInList(-1);
             case [char(hex2dec('2193')),'down']

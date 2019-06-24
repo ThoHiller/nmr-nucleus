@@ -40,11 +40,6 @@ nmrproc.dead = nmrproc.echotime/2;
 nmrraw.t = nmrraw.t(nmrproc.start:nmrproc.end);
 nmrraw.s = nmrraw.s(nmrproc.start:nmrproc.end);
 
-% if the signal is complex rotate the real part if necessary
-if ~isreal(nmrraw.s)
-    nmrraw.s = rotateT2phase(nmrraw.s);
-end
-
 % make data a column vector
 nmrraw.t = nmrraw.t(:);
 nmrraw.s = nmrraw.s(:);
@@ -75,12 +70,13 @@ if isreal(nmrraw.s)
     noise = 0;
 else
     s = real(nmrraw.s);
-    % noise is the std of the imaginary part of the whole signal
+    % because the imag-part of the signal is rotated to "0", the noise is
+    % simply its "std"
 %     noise = std(imag(nmrraw.s));
-    % this would be more rigorous due to possible "weird" structure in the
-    % imaginary part at early echo times:
-    noise = std(imag(nmrraw.s(floor(numel(s)/2):numel(s))));
-    
+    % due to possible "weird" noise structures at early echo times this
+    % is more rigorous -> only last half of the signal is used:
+    range = floor(numel(s)/2):numel(s);
+    noise = std(imag(nmrraw.s(range)));    
 end
 
 % gating

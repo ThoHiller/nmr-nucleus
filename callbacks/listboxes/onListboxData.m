@@ -175,14 +175,23 @@ if isfield(data.import,'NMR')
         end
         
         % set focus on data
-        set(gui.plots.SignalPanel,'Selection',1);
-        set(gui.plots.DistPanel,'Selection',1);
+%         set(gui.plots.SignalPanel,'Selection',1);
+%         set(gui.plots.DistPanel,'Selection',1);
         
         % reset all RUN buttons
         set(gui.push_handles.invstd_run,'String','<HTML><u>R</u>UN',...
             'BackgroundColor','g','Enable','on','Callback',@onPushRun);
         set(gui.push_handles.invjoint_run,'String','<HTML><u>R</u>UN',...
             'BackgroundColor','g','Enable','on','Callback',@onPushRun);
+        
+        % if the Fit Statistics window is open update it
+        if ~isempty(findobj('Tag','FITSTATS'))
+            showFitStatistics;
+        end
+        % if the PhaseView window is open update it
+        if ~isempty(findobj('Tag','PHASEVIEW'))
+            PhaseView(gui.menu.extra_phaseview);
+        end
     else
         helpdlg({'onListboxData:','Only choose one data set at a time.'},...
             'too many data');

@@ -49,8 +49,10 @@ if isfield(data.import,'NMR')
             for i = 1:size(all,1)
                 tmpstr = all{i,1};
                 ind = strfind(tmpstr,'=');
-                info{i,1} = tmpstr(1:ind(1)-1);
-                info{i,2} = tmpstr(ind(1)+1:end);
+                if ~isempty(ind)
+                    info{i,1} = tmpstr(1:ind(1)-1);
+                    info{i,2} = tmpstr(ind(1)+1:end);
+                end
             end
             f1 = figure('Name',[fname,' Parameter Info'],'NumberTitle','off',...
                 'ToolBar','none','MenuBar','none');

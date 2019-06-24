@@ -73,7 +73,10 @@ for i = 1:size(files,1)
     nmrData{i}.T1IRfac = 1;
     nmrData{i}.time = data.time;
     nmrData{i}.signal = data.signal;
-    nmrData{i}.raw = data.raw;    
+    nmrData{i}.raw = data.raw;
+    if strcmp(T1T2flag,'T2')
+        nmrData{i}.phase = data.phase;
+    end
     clear data
 end
 
@@ -96,11 +99,13 @@ if size(d,2) == 3
             data.signal = d(:,2);
         case 'T2'
             data.signal = complex(d(:,2),d(:,3));
+            [data.signal,data.phase] = rotateT2phase(data.signal);
     end
 else
     data.flag = '0';
     data.time = 0;
     data.signal = 0;
+    data.phase = 0;
 end
 
 data.raw.time = data.time;

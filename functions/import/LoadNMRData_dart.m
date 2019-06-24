@@ -72,14 +72,14 @@ if size(data.se_vector_wc,2) > 1
         nmrData{i}.signal = se_vector_amp;        
         nmrData{i}.raw.time = data.time;
         nmrData{i}.raw.signal = se_vector_amp;
+        nmrData{i}.phase = data.extras.phase(i);
         
         % create parameter data
         parData{i}.acq_params_Tr = data.acq_params.Tr;
         parData{i}.depth = data.depth(i);
         parData{i}.Qs = data.extras.Qs(i);
         parData{i}.DCbus = data.extras.DC_bus(i);
-        parData{i}.freq = data.extras.freq(i);
-        parData{i}.phase = data.extras.phase(i);
+        parData{i}.freq = data.extras.freq(i);        
         
         fields = fieldnames(parData{i});
         for j = 1:size(fields,1)
@@ -116,14 +116,14 @@ else
     nmrData{1}.signal = se_vector_amp;    
     nmrData{1}.raw.time = data.time;
     nmrData{1}.raw.signal = se_vector_amp;
+    nmrData{1}.phase = data.extras.phase;
     
     % create parameter data
     parData{1}.acq_params_Tr = data.acq_params.Tr;
     parData{1}.depth = data.depth;
     parData{1}.Qs = data.extras.Qs;
     parData{1}.DCbus = data.extras.DC_bus;
-    parData{1}.freq = data.extras.freq;
-    parData{1}.phase = data.extras.phase;
+    parData{1}.freq = data.extras.freq;    
    
     fields = fieldnames(parData{1});
     for j = 1:size(fields,1)

@@ -108,13 +108,10 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     else
         set(get(ax,'XLabel'),'String','time [ms]');
     end
-    set(get(ax,'YLabel'),'String','amplitude [a.u.]');
-    
-    %legend
     if strcmp(nmrproc.T1T2,'T2') && ~isreal(nmrraw.s)
-        lgdstr = {'Re'};
-        legend(ax,lgdstr,'Location','NorthEast','Tag','rawlegend',...
-            'FontSize',10);
+        set(get(ax,'YLabel'),'String','\Re');
+    else
+        set(get(ax,'YLabel'),'String','amplitude [a.u.]');
     end
     
     % imag part
@@ -123,18 +120,14 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axI);
         imag_mean = mean(imag(nmrraw.s));
         imag_std = std(imag(nmrraw.s));
-%         line(xlims,[imag_mean-1*imag_std imag_mean-1*imag_std],...
-%             'LineStyle','-.','LineWidth',1,'Color','k','Parent',axI);
-%         line(xlims,[imag_mean+1*imag_std imag_mean+1*imag_std],...
-%             'LineStyle','-.','LineWidth',1,'Color','k','Parent',axI);
         set(axI,'XTickLabel','');
-%         set(axI,'YLim',[imag_mean-5*imag_std imag_mean+5*imag_std]);
         switch loglinx
             case 'x-axis -> lin' % log axes
                 set(axI,'XScale','log','XLim',xlims);
             case 'x-axis -> log' % lin axes
                 set(axI,'XScale','lin','XLim',xlims);
         end
+        set(get(axI,'YLabel'),'String','\Im');
     end
     
     % grid

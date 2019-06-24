@@ -40,6 +40,10 @@ nmrdata = data.import.NMR.data{id};
 % the raw data
 nmrraw.t = nmrdata.time;
 nmrraw.s = nmrdata.signal;
+if strcmp(nmrdata.flag,'T2')
+    nmrraw.phase = nmrdata.phase;
+end
+
 
 % gather all processing parameter
 nmrproc.T1T2 = nmrdata.flag;

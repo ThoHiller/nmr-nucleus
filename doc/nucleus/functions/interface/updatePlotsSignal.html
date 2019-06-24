@@ -178,300 +178,293 @@ This function is called by:
 0108     <span class="keyword">else</span>
 0109         set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [ms]'</span>);
 0110     <span class="keyword">end</span>
-0111     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
-0112     
-0113     <span class="comment">%legend</span>
-0114     <span class="keyword">if</span> strcmp(nmrproc.T1T2,<span class="string">'T2'</span>) &amp;&amp; ~isreal(nmrraw.s)
-0115         lgdstr = {<span class="string">'Re'</span>};
-0116         legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="string">'Tag'</span>,<span class="string">'rawlegend'</span>,<span class="keyword">...</span>
-0117             <span class="string">'FontSize'</span>,10);
-0118     <span class="keyword">end</span>
-0119     
-0120     <span class="comment">% imag part</span>
-0121     <span class="keyword">if</span> ~isreal(nmrraw.s)
-0122         xlims = get(ax,<span class="string">'XLim'</span>);
-0123         line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axI);
-0124         imag_mean = mean(imag(nmrraw.s));
-0125         imag_std = std(imag(nmrraw.s));
-0126 <span class="comment">%         line(xlims,[imag_mean-1*imag_std imag_mean-1*imag_std],...</span>
-0127 <span class="comment">%             'LineStyle','-.','LineWidth',1,'Color','k','Parent',axI);</span>
-0128 <span class="comment">%         line(xlims,[imag_mean+1*imag_std imag_mean+1*imag_std],...</span>
-0129 <span class="comment">%             'LineStyle','-.','LineWidth',1,'Color','k','Parent',axI);</span>
-0130         set(axI,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
-0131 <span class="comment">%         set(axI,'YLim',[imag_mean-5*imag_std imag_mean+5*imag_std]);</span>
-0132         <span class="keyword">switch</span> loglinx
-0133             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0134                 set(axI,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
-0135             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0136                 set(axI,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
-0137         <span class="keyword">end</span>
-0138     <span class="keyword">end</span>
-0139     
-0140     <span class="comment">% grid</span>
-0141     grid(ax,<span class="string">'on'</span>);
-0142     
-0143     <span class="comment">%% PROC data axis</span>
-0144     ax = gui.axes_handles.proc;
-0145     axE = gui.axes_handles.err;
-0146     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
-0147     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(axE);
-0148     hold(ax,<span class="string">'on'</span>);
-0149     hold(axE,<span class="string">'on'</span>);
-0150     
-0151     <span class="comment">% data</span>
-0152     plot(nmrproc.t,nmrproc.s,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.RE,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax);
-0153     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0154         plot(invstd.fit_t,invstd.fit_s,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0155         <span class="keyword">if</span> nmrproc.noise &gt; 0
-0156             plot(nmrproc.t,invstd.residual./nmrproc.e,<span class="string">'Color'</span>,col.IM,<span class="keyword">...</span>
-0157                 <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,axE);            
-0158         <span class="keyword">else</span>
-0159             plot(nmrproc.t,invstd.residual,<span class="string">'Color'</span>,col.IM,<span class="keyword">...</span>
-0160                 <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,axE);
-0161         <span class="keyword">end</span>
-0162     <span class="keyword">end</span>
-0163     
-0164     <span class="comment">% limits &amp; ticks</span>
-0165     xlimraw = get(gui.axes_handles.raw,<span class="string">'XLim'</span>);
-0166     loglinx = get(gui.cm_handles.axes_proc_xaxis,<span class="string">'Label'</span>);
-0167     <span class="keyword">switch</span> loglinx
-0168         <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0169             ticks = floor(min(log10(nmrproc.t(nmrproc.t&gt;0)))):1:ceil(log10(nmrproc.t(end)));
-0170             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlimraw,<span class="string">'XTick'</span>,10.^ticks);
-0171         <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0172             set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlimraw,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-0173     <span class="keyword">end</span>
-0174     logliny = get(gui.cm_handles.axes_proc_yaxis,<span class="string">'Label'</span>);
-0175     <span class="keyword">switch</span> nmrproc.T1T2
-0176         <span class="keyword">case</span> <span class="string">'T1'</span>
-0177             ymin = min(real(nmrproc.s));
-0178             ymax = max(real(nmrproc.s));
-0179             <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0180                 ymin = min([ymin min(invstd.residual)]);
-0181                 ymax = max([ymax max(data.results.invstd.fit_s)]);
-0182             <span class="keyword">end</span>
-0183             <span class="keyword">if</span> ymin&gt;0
-0184                 ymin = ymin*0.8;
-0185             <span class="keyword">else</span>
-0186                 ymin = ymin*1.2;
-0187             <span class="keyword">end</span>
-0188             <span class="keyword">switch</span> logliny
-0189                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0190                     ticks = floor(min(log10(nmrproc.s(nmrproc.s&gt;0))))-1:1:ceil(log10(nmrproc.s(end)));
-0191                     set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="keyword">...</span>
-0192                         <span class="string">'YTick'</span>,10.^ticks);
-0193                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0194                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[ymin ymax*1.05],<span class="keyword">...</span>
-0195                         <span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
+0111     <span class="keyword">if</span> strcmp(nmrproc.T1T2,<span class="string">'T2'</span>) &amp;&amp; ~isreal(nmrraw.s)
+0112         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Re'</span>);
+0113     <span class="keyword">else</span>
+0114         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
+0115     <span class="keyword">end</span>
+0116     
+0117     <span class="comment">% imag part</span>
+0118     <span class="keyword">if</span> ~isreal(nmrraw.s)
+0119         xlims = get(ax,<span class="string">'XLim'</span>);
+0120         line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axI);
+0121         imag_mean = mean(imag(nmrraw.s));
+0122         imag_std = std(imag(nmrraw.s));
+0123         set(axI,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
+0124         <span class="keyword">switch</span> loglinx
+0125             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0126                 set(axI,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
+0127             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0128                 set(axI,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
+0129         <span class="keyword">end</span>
+0130         set(get(axI,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Im'</span>);
+0131     <span class="keyword">end</span>
+0132     
+0133     <span class="comment">% grid</span>
+0134     grid(ax,<span class="string">'on'</span>);
+0135     
+0136     <span class="comment">%% PROC data axis</span>
+0137     ax = gui.axes_handles.proc;
+0138     axE = gui.axes_handles.err;
+0139     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0140     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(axE);
+0141     hold(ax,<span class="string">'on'</span>);
+0142     hold(axE,<span class="string">'on'</span>);
+0143     
+0144     <span class="comment">% data</span>
+0145     plot(nmrproc.t,nmrproc.s,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.RE,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax);
+0146     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0147         plot(invstd.fit_t,invstd.fit_s,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0148         <span class="keyword">if</span> nmrproc.noise &gt; 0
+0149             plot(nmrproc.t,invstd.residual./nmrproc.e,<span class="string">'Color'</span>,col.IM,<span class="keyword">...</span>
+0150                 <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,axE);            
+0151         <span class="keyword">else</span>
+0152             plot(nmrproc.t,invstd.residual,<span class="string">'Color'</span>,col.IM,<span class="keyword">...</span>
+0153                 <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,axE);
+0154         <span class="keyword">end</span>
+0155     <span class="keyword">end</span>
+0156     
+0157     <span class="comment">% limits &amp; ticks</span>
+0158     xlimraw = get(gui.axes_handles.raw,<span class="string">'XLim'</span>);
+0159     loglinx = get(gui.cm_handles.axes_proc_xaxis,<span class="string">'Label'</span>);
+0160     <span class="keyword">switch</span> loglinx
+0161         <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0162             ticks = floor(min(log10(nmrproc.t(nmrproc.t&gt;0)))):1:ceil(log10(nmrproc.t(end)));
+0163             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlimraw,<span class="string">'XTick'</span>,10.^ticks);
+0164         <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0165             set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlimraw,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0166     <span class="keyword">end</span>
+0167     logliny = get(gui.cm_handles.axes_proc_yaxis,<span class="string">'Label'</span>);
+0168     <span class="keyword">switch</span> nmrproc.T1T2
+0169         <span class="keyword">case</span> <span class="string">'T1'</span>
+0170             ymin = min(real(nmrproc.s));
+0171             ymax = max(real(nmrproc.s));
+0172             <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0173                 ymin = min([ymin min(invstd.residual)]);
+0174                 ymax = max([ymax max(data.results.invstd.fit_s)]);
+0175             <span class="keyword">end</span>
+0176             <span class="keyword">if</span> ymin&gt;0
+0177                 ymin = ymin*0.8;
+0178             <span class="keyword">else</span>
+0179                 ymin = ymin*1.2;
+0180             <span class="keyword">end</span>
+0181             <span class="keyword">switch</span> logliny
+0182                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0183                     ticks = floor(min(log10(nmrproc.s(nmrproc.s&gt;0))))-1:1:ceil(log10(nmrproc.s(end)));
+0184                     set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="keyword">...</span>
+0185                         <span class="string">'YTick'</span>,10.^ticks);
+0186                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0187                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[ymin ymax*1.05],<span class="keyword">...</span>
+0188                         <span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
+0189             <span class="keyword">end</span>
+0190         <span class="keyword">case</span> <span class="string">'T2'</span>
+0191             ymin = min([min(real(nmrraw.s)) min(imag(nmrraw.s))]);
+0192             ymax = max(real(nmrraw.s));
+0193             <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0194                 ymin = min([ymin min(invstd.residual)]);
+0195                 ymax = max([ymax max(data.results.invstd.fit_s)]);
 0196             <span class="keyword">end</span>
-0197         <span class="keyword">case</span> <span class="string">'T2'</span>
-0198             ymin = min([min(real(nmrraw.s)) min(imag(nmrraw.s))]);
-0199             ymax = max(real(nmrraw.s));
-0200             <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0201                 ymin = min([ymin min(invstd.residual)]);
-0202                 ymax = max([ymax max(data.results.invstd.fit_s)]);
-0203             <span class="keyword">end</span>
-0204             <span class="keyword">switch</span> logliny
-0205                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0206                     ticks = floor(log10(ymin))-1 :1: ceil(log10(ymax));
-0207                     set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[10^(ticks(1)) ymax*1.05],<span class="keyword">...</span>
-0208                         <span class="string">'YTick'</span>,10.^ticks);
-0209                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0210                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[ymin ymax*1.05],<span class="keyword">...</span>
-0211                         <span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
-0212             <span class="keyword">end</span>
-0213     <span class="keyword">end</span>
-0214     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0215         ylims = get(ax,<span class="string">'YLim'</span>);
-0216         set(gui.axes_handles.raw,<span class="string">'YLim'</span>,ylims);
+0197             <span class="keyword">switch</span> logliny
+0198                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0199                     ticks = floor(log10(ymin))-1 :1: ceil(log10(ymax));
+0200                     set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[10^(ticks(1)) ymax*1.05],<span class="keyword">...</span>
+0201                         <span class="string">'YTick'</span>,10.^ticks);
+0202                 <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0203                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[ymin ymax*1.05],<span class="keyword">...</span>
+0204                         <span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
+0205             <span class="keyword">end</span>
+0206     <span class="keyword">end</span>
+0207     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0208         ylims = get(ax,<span class="string">'YLim'</span>);
+0209         set(gui.axes_handles.raw,<span class="string">'YLim'</span>,ylims);
+0210     <span class="keyword">end</span>
+0211     
+0212     <span class="comment">% labels</span>
+0213     <span class="keyword">if</span> strcmp(data.process.timescale,<span class="string">'s'</span>)
+0214         set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0215     <span class="keyword">else</span>
+0216         set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [ms]'</span>);
 0217     <span class="keyword">end</span>
-0218     
-0219     <span class="comment">% labels</span>
-0220     <span class="keyword">if</span> strcmp(data.process.timescale,<span class="string">'s'</span>)
-0221         set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0222     <span class="keyword">else</span>
-0223         set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [ms]'</span>);
-0224     <span class="keyword">end</span>
-0225     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
-0226     
-0227     <span class="comment">% legend</span>
-0228     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0229         lgdstr = {<span class="string">'signal'</span>,<span class="string">'fit'</span>};
-0230         <span class="keyword">switch</span> nmrproc.T1T2
-0231             <span class="keyword">case</span> <span class="string">'T1'</span>
-0232                 legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthWest'</span>,<span class="keyword">...</span>
-0233                     <span class="string">'Tag'</span>,<span class="string">'fitlegend'</span>,<span class="string">'FontSize'</span>,10);
-0234             <span class="keyword">case</span> <span class="string">'T2'</span>
-0235                 legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="keyword">...</span>
-0236                     <span class="string">'Tag'</span>,<span class="string">'fitlegend'</span>,<span class="string">'FontSize'</span>,10);
-0237         <span class="keyword">end</span>
-0238     <span class="keyword">end</span>
-0239     
-0240     <span class="comment">% grid</span>
-0241     grid(ax,<span class="string">'on'</span>);
-0242     
-0243     <span class="comment">%% residual plot</span>
-0244     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0245         xlims = get(ax,<span class="string">'XLim'</span>);
-0246         line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
-0247         <span class="keyword">if</span> nmrproc.noise &gt; 0
-0248             err_mean = mean(invstd.residual./nmrproc.e);
-0249             err_std = std(invstd.residual./nmrproc.e);
-0250             line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
-0251                 <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,axE);
-0252             line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
-0253                 <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,axE);
-0254             line(xlims,[-1 -1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="keyword">...</span>
-0255                 <span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
-0256             line(xlims,[1 1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="keyword">...</span>
-0257                 <span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
-0258             set(axE,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
-0259             set(axE,<span class="string">'YLim'</span>,[-2 2]);
-0260             set(axE,<span class="string">'YTick'</span>,[-1 0 1],<span class="string">'YTickLabelMode'</span>,<span class="string">'auto'</span>);
-0261             set(get(axE,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,{<span class="string">'noise'</span>;<span class="string">'weighted'</span>;<span class="string">'residuals'</span>},<span class="keyword">...</span>
-0262                 <span class="string">'FontWeight'</span>,<span class="string">'normal'</span>);
-0263         <span class="keyword">else</span>
-0264             err_mean = mean(invstd.residual);
-0265             err_std = std(invstd.residual);
-0266             line(xlims,[err_mean-1*err_std err_mean-1*err_std],<span class="keyword">...</span>
-0267                 <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
-0268             line(xlims,[err_mean+1*err_std err_mean+1*err_std],<span class="keyword">...</span>
-0269                 <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
-0270             set(axE,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
-0271             set(axE,<span class="string">'YLim'</span>,[err_mean-3*err_std err_mean+3*err_std]);
-0272             set(axE,<span class="string">'YTick'</span>,[err_mean-3*err_std 0 err_mean+3*err_std],<span class="keyword">...</span>
-0273                 <span class="string">'YTickLabelMode'</span>,<span class="string">'auto'</span>)
-0274             set(get(axE,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'residuals'</span>,<span class="keyword">...</span>
-0275                 <span class="string">'FontWeight'</span>,<span class="string">'normal'</span>);
+0218     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
+0219     
+0220     <span class="comment">% legend</span>
+0221     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0222         lgdstr = {<span class="string">'signal'</span>,<span class="string">'fit'</span>};
+0223         <span class="keyword">switch</span> nmrproc.T1T2
+0224             <span class="keyword">case</span> <span class="string">'T1'</span>
+0225                 legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthWest'</span>,<span class="keyword">...</span>
+0226                     <span class="string">'Tag'</span>,<span class="string">'fitlegend'</span>,<span class="string">'FontSize'</span>,10);
+0227             <span class="keyword">case</span> <span class="string">'T2'</span>
+0228                 legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="keyword">...</span>
+0229                     <span class="string">'Tag'</span>,<span class="string">'fitlegend'</span>,<span class="string">'FontSize'</span>,10);
+0230         <span class="keyword">end</span>
+0231     <span class="keyword">end</span>
+0232     
+0233     <span class="comment">% grid</span>
+0234     grid(ax,<span class="string">'on'</span>);
+0235     
+0236     <span class="comment">%% residual plot</span>
+0237     <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0238         xlims = get(ax,<span class="string">'XLim'</span>);
+0239         line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
+0240         <span class="keyword">if</span> nmrproc.noise &gt; 0
+0241             err_mean = mean(invstd.residual./nmrproc.e);
+0242             err_std = std(invstd.residual./nmrproc.e);
+0243             line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
+0244                 <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,axE);
+0245             line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
+0246                 <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,axE);
+0247             line(xlims,[-1 -1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="keyword">...</span>
+0248                 <span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
+0249             line(xlims,[1 1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="keyword">...</span>
+0250                 <span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
+0251             set(axE,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
+0252             set(axE,<span class="string">'YLim'</span>,[-2 2]);
+0253             set(axE,<span class="string">'YTick'</span>,[-1 0 1],<span class="string">'YTickLabelMode'</span>,<span class="string">'auto'</span>);
+0254             set(get(axE,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,{<span class="string">'noise'</span>;<span class="string">'weighted'</span>;<span class="string">'residuals'</span>},<span class="keyword">...</span>
+0255                 <span class="string">'FontWeight'</span>,<span class="string">'normal'</span>);
+0256         <span class="keyword">else</span>
+0257             err_mean = mean(invstd.residual);
+0258             err_std = std(invstd.residual);
+0259             line(xlims,[err_mean-1*err_std err_mean-1*err_std],<span class="keyword">...</span>
+0260                 <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
+0261             line(xlims,[err_mean+1*err_std err_mean+1*err_std],<span class="keyword">...</span>
+0262                 <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,axE);
+0263             set(axE,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
+0264             set(axE,<span class="string">'YLim'</span>,[err_mean-3*err_std err_mean+3*err_std]);
+0265             set(axE,<span class="string">'YTick'</span>,[err_mean-3*err_std 0 err_mean+3*err_std],<span class="keyword">...</span>
+0266                 <span class="string">'YTickLabelMode'</span>,<span class="string">'auto'</span>)
+0267             set(get(axE,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'residuals'</span>,<span class="keyword">...</span>
+0268                 <span class="string">'FontWeight'</span>,<span class="string">'normal'</span>);
+0269         <span class="keyword">end</span>
+0270         
+0271         <span class="keyword">switch</span> loglinx
+0272             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0273                 set(axE,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
+0274             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0275                 set(axE,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
 0276         <span class="keyword">end</span>
-0277         
-0278         <span class="keyword">switch</span> loglinx
-0279             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0280                 set(axE,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
-0281             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0282                 set(axE,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
-0283         <span class="keyword">end</span>
-0284     <span class="keyword">end</span>
-0285     <span class="comment">% finalize</span>
-0286     <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(fig);
-0287 <span class="keyword">end</span>
-0288 
-0289 <span class="comment">%% if joint inversion is activated all NMR signals are plotted into the</span>
-0290 <span class="comment">% &quot;ALL (joint)&quot; panel - this is just a rough overview if no joint inversion</span>
-0291 <span class="comment">% result is yet availabe</span>
-0292 <span class="keyword">if</span> isjoint &amp;&amp; ~isfield(data.results,<span class="string">'invjoint'</span>) &amp;&amp; <span class="keyword">...</span>
-0293         ~strcmp(data.invstd.regtype,<span class="string">'lcurve'</span>) &amp;&amp; <span class="keyword">...</span>
-0294         ~strcmp(data.invstd.regtype,<span class="string">'iterchi2'</span>)
-0295     
-0296     ax = gui.axes_handles.all;
-0297     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
-0298     
-0299     INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
-0300     
-0301     nINV = size(INVdata,1);
-0302     E0 = zeros(nINV,1);
-0303     c = 0;
-0304     invlevels = 0;
-0305     <span class="keyword">for</span> i = 1:nINV
-0306         <span class="keyword">if</span> isstruct(INVdata{i})
-0307             c = c + 1;
-0308             invlevels(c) = i; <span class="comment">%#ok&lt;AGROW&gt;</span>
-0309             E0(i,1) = sum(INVdata{i}.results.invstd.E0);
-0310         <span class="keyword">end</span>
-0311     <span class="keyword">end</span>
-0312     
-0313     <span class="comment">% the pressure / saturation data</span>
-0314     table = data.pressure.table;
-0315     
-0316     <span class="keyword">if</span> size(table,1) == 1 &amp; invlevels ~= 0 <span class="comment">%#ok&lt;AND2&gt;</span>
-0317         <span class="comment">% apparently no CPS data was loaded but joint inversion is</span>
-0318         <span class="comment">% activated ... so just plot the data</span>
-0319         <span class="keyword">if</span> invlevels == 0
-0320             levels = [];
-0321         <span class="keyword">else</span>
-0322             levels = invlevels;
-0323             S = E0(invlevels)./max(E0(invlevels));
-0324         <span class="keyword">end</span>
-0325     <span class="keyword">else</span>
-0326         uselevel = cell2mat(table(:,1));
-0327         tablelevels = 1:size(table,1);
-0328         tablelevels = tablelevels(uselevel);
-0329         S = cell2mat(table(:,3));
-0330         <span class="comment">%         if numel(S)~=nINV</span>
-0331         <span class="comment">%             % S()</span>
-0332         <span class="comment">%         end</span>
-0333         [isin,levels] = ismember(invlevels,tablelevels);
-0334         levels = tablelevels(levels(isin));
-0335     <span class="keyword">end</span>
-0336 
-0337     <span class="keyword">if</span> ~isempty(levels) &amp;&amp; levels(1) &gt; 0 &amp;&amp; c &gt; 0
-0338         hold(ax,<span class="string">'on'</span>);
-0339         
-0340         mycol = flipud(parula(128));
-0341         <span class="keyword">for</span> i = 1:numel(levels)
-0342             t = INVdata{levels(i)}.results.invstd.fit_t;
-0343             s = INVdata{levels(i)}.results.invstd.fit_s;
-0344             s = S(levels(i)).*(s./sum(INVdata{levels(i)}.results.invstd.E0));
-0345             <span class="keyword">if</span> i == 1
-0346                 xlims = [min(t) max(t)];
-0347                 ylims = [min(s) max(s)];
-0348             <span class="keyword">else</span>
-0349                 xlims = [min([xlims(1) min(t)]) max([xlims(2) max(t)])];
-0350                 ylims = [min([ylims(1) min(s)]) max([ylims(2) max(s)])];
-0351             <span class="keyword">end</span>
-0352             colind = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(S(levels(i)),128);
-0353             plot(t,s,<span class="string">'LineStyle'</span>,<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colind,:),<span class="string">'Parent'</span>,ax);
-0354         <span class="keyword">end</span>
-0355         set(ax,<span class="string">'YLim'</span>,ylims);
-0356         
-0357         loglinx = get(gui.cm_handles.axes_all_xaxis,<span class="string">'Label'</span>);
-0358         <span class="keyword">switch</span> loglinx
-0359             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0360                 ticks = floor(min(log10(nmrproc.t(nmrproc.t&gt;0)))):1:ceil(log10(nmrproc.t(end)));
-0361                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTick'</span>,10.^ticks);
-0362             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0363                 set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0277     <span class="keyword">end</span>
+0278     <span class="comment">% finalize</span>
+0279     <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(fig);
+0280 <span class="keyword">end</span>
+0281 
+0282 <span class="comment">%% if joint inversion is activated all NMR signals are plotted into the</span>
+0283 <span class="comment">% &quot;ALL (joint)&quot; panel - this is just a rough overview if no joint inversion</span>
+0284 <span class="comment">% result is yet availabe</span>
+0285 <span class="keyword">if</span> isjoint &amp;&amp; ~isfield(data.results,<span class="string">'invjoint'</span>) &amp;&amp; <span class="keyword">...</span>
+0286         ~strcmp(data.invstd.regtype,<span class="string">'lcurve'</span>) &amp;&amp; <span class="keyword">...</span>
+0287         ~strcmp(data.invstd.regtype,<span class="string">'iterchi2'</span>)
+0288     
+0289     ax = gui.axes_handles.all;
+0290     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0291     
+0292     INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0293     
+0294     nINV = size(INVdata,1);
+0295     E0 = zeros(nINV,1);
+0296     c = 0;
+0297     invlevels = 0;
+0298     <span class="keyword">for</span> i = 1:nINV
+0299         <span class="keyword">if</span> isstruct(INVdata{i})
+0300             c = c + 1;
+0301             invlevels(c) = i; <span class="comment">%#ok&lt;AGROW&gt;</span>
+0302             E0(i,1) = sum(INVdata{i}.results.invstd.E0);
+0303         <span class="keyword">end</span>
+0304     <span class="keyword">end</span>
+0305     
+0306     <span class="comment">% the pressure / saturation data</span>
+0307     table = data.pressure.table;
+0308     
+0309     <span class="keyword">if</span> size(table,1) == 1 &amp; invlevels ~= 0 <span class="comment">%#ok&lt;AND2&gt;</span>
+0310         <span class="comment">% apparently no CPS data was loaded but joint inversion is</span>
+0311         <span class="comment">% activated ... so just plot the data</span>
+0312         <span class="keyword">if</span> invlevels == 0
+0313             levels = [];
+0314         <span class="keyword">else</span>
+0315             levels = invlevels;
+0316             S = E0(invlevels)./max(E0(invlevels));
+0317         <span class="keyword">end</span>
+0318     <span class="keyword">else</span>
+0319         uselevel = cell2mat(table(:,1));
+0320         tablelevels = 1:size(table,1);
+0321         tablelevels = tablelevels(uselevel);
+0322         S = cell2mat(table(:,3));
+0323         <span class="comment">%         if numel(S)~=nINV</span>
+0324         <span class="comment">%             % S()</span>
+0325         <span class="comment">%         end</span>
+0326         [isin,levels] = ismember(invlevels,tablelevels);
+0327         levels = tablelevels(levels(isin));
+0328     <span class="keyword">end</span>
+0329 
+0330     <span class="keyword">if</span> ~isempty(levels) &amp;&amp; levels(1) &gt; 0 &amp;&amp; c &gt; 0
+0331         hold(ax,<span class="string">'on'</span>);
+0332         
+0333         mycol = flipud(parula(128));
+0334         <span class="keyword">for</span> i = 1:numel(levels)
+0335             t = INVdata{levels(i)}.results.invstd.fit_t;
+0336             s = INVdata{levels(i)}.results.invstd.fit_s;
+0337             s = S(levels(i)).*(s./sum(INVdata{levels(i)}.results.invstd.E0));
+0338             <span class="keyword">if</span> i == 1
+0339                 xlims = [min(t) max(t)];
+0340                 ylims = [min(s) max(s)];
+0341             <span class="keyword">else</span>
+0342                 xlims = [min([xlims(1) min(t)]) max([xlims(2) max(t)])];
+0343                 ylims = [min([ylims(1) min(s)]) max([ylims(2) max(s)])];
+0344             <span class="keyword">end</span>
+0345             colind = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(S(levels(i)),128);
+0346             plot(t,s,<span class="string">'LineStyle'</span>,<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colind,:),<span class="string">'Parent'</span>,ax);
+0347         <span class="keyword">end</span>
+0348         set(ax,<span class="string">'YLim'</span>,ylims);
+0349         
+0350         loglinx = get(gui.cm_handles.axes_all_xaxis,<span class="string">'Label'</span>);
+0351         <span class="keyword">switch</span> loglinx
+0352             <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0353                 ticks = floor(min(log10(nmrproc.t(nmrproc.t&gt;0)))):1:ceil(log10(nmrproc.t(end)));
+0354                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTick'</span>,10.^ticks);
+0355             <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0356                 set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0357         <span class="keyword">end</span>
+0358         logliny = get(gui.cm_handles.axes_all_yaxis,<span class="string">'Label'</span>);
+0359         <span class="keyword">switch</span> logliny
+0360             <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0361                 set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0362             <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0363                 set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
 0364         <span class="keyword">end</span>
-0365         logliny = get(gui.cm_handles.axes_all_yaxis,<span class="string">'Label'</span>);
-0366         <span class="keyword">switch</span> logliny
-0367             <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0368                 set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
-0369             <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0370                 set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
-0371         <span class="keyword">end</span>
-0372     <span class="keyword">end</span>
-0373 <span class="keyword">end</span>
-0374 
-0375 <span class="comment">% update GUI data</span>
-0376 setappdata(fig,<span class="string">'data'</span>,data);
-0377 setappdata(fig,<span class="string">'gui'</span>,gui);
-0378 
-0379 <span class="keyword">end</span>
-0380 
-0381 <span class="comment">%------------- END OF CODE --------------</span>
-0382 
-0383 <span class="comment">%% License:</span>
-0384 <span class="comment">% MIT License</span>
-0385 <span class="comment">%</span>
-0386 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0365     <span class="keyword">end</span>
+0366 <span class="keyword">end</span>
+0367 
+0368 <span class="comment">% update GUI data</span>
+0369 setappdata(fig,<span class="string">'data'</span>,data);
+0370 setappdata(fig,<span class="string">'gui'</span>,gui);
+0371 
+0372 <span class="keyword">end</span>
+0373 
+0374 <span class="comment">%------------- END OF CODE --------------</span>
+0375 
+0376 <span class="comment">%% License:</span>
+0377 <span class="comment">% MIT License</span>
+0378 <span class="comment">%</span>
+0379 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0380 <span class="comment">%</span>
+0381 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0382 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0383 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0384 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0385 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0386 <span class="comment">% furnished to do so, subject to the following conditions:</span>
 0387 <span class="comment">%</span>
-0388 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0389 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0390 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0391 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0392 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0393 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0394 <span class="comment">%</span>
-0395 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0396 <span class="comment">% copies or substantial portions of the Software.</span>
-0397 <span class="comment">%</span>
-0398 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0399 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0400 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0401 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0402 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0403 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0404 <span class="comment">% SOFTWARE.</span></pre></div>
+0388 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0389 <span class="comment">% copies or substantial portions of the Software.</span>
+0390 <span class="comment">%</span>
+0391 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0392 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0393 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0394 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0395 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0396 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0397 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

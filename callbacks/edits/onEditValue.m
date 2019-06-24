@@ -47,12 +47,16 @@ fig = ancestor(src,'figure','toplevel');
 fig_tag = get(fig,'Tag');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
+INVdata = getappdata(fig,'INVdata');
 
 %% the generic part thw works for both GUIS
 % get the value of the field
 value = str2double(get(src,'String'));
 % get the user data of the field
 userdata = get(src,'UserData');
+
+% id of the chosen NMR signal
+id = get(gui.listbox_handles.signal,'Value');
 
 % check if the value is numeric
 % if not reset to defaults stored in user data
@@ -111,7 +115,26 @@ switch fig_tag
                         end
                         % process the current selected signal
                         processNMRDataControl(fig,id);
-                        updatePlotsSignal; 
+                        updatePlotsSignal;
+                end
+            case 'param'
+                switch out.field
+                    case {'rho','a','CBWcutoff','BVIcutoff'}
+                        if isstruct(INVdata{id})
+                            eval(['INVdata{',num2str(id),'}.',...
+                                out.panel,'.',out.field,'=value;']);
+                            setappdata(fig,'INVdata',INVdata);
+                        end
+                        updatePlotsDistribution;
+                        updateInfo(gui.plots.SignalPanel);
+                    case 'calibAmp'
+                        data.calib.amp = data.param.calibAmp;
+                        setappdata(fig,'data',data);
+                    case 'calibVol'
+                        data.calib.vol = data.param.calibVol;
+                        setappdata(fig,'data',data);
+                    case 'sampVol'
+                        calibratePorosity;
                 end
             case 'invstd'
                 switch out.field
@@ -131,20 +154,6 @@ switch fig_tag
                             set(src,'String',num2str(data.invstd.porosity));
                         end
                         updatePlotsDistribution;
-                end
-            case 'param'
-                switch out.field
-                    case {'rho','a','CBWcutoff','BVIcutoff'}
-                        updatePlotsDistribution;
-                        updateInfo(gui.plots.SignalPanel);
-                    case 'calibAmp'
-                        data.calib.amp = data.param.calibAmp;
-                        setappdata(fig,'data',data); 
-                    case 'calibVol'
-                        data.calib.vol = data.param.calibVol;
-                        setappdata(fig,'data',data);
-                    case 'sampVol'
-                        calibratePorosity;
                 end
             case 'invjoint'
                 switch out.field

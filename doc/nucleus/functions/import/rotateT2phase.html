@@ -63,7 +63,7 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="LoadNMRData_bgrmat.html" class="code" title="function out = LoadNMRData_bgrmat(in)">LoadNMRData_bgrmat</a>	 loads already preprocessed BGR NMR data; check the</li><li><a href="LoadNMRData_field.html" class="code" title="function out = LoadNMRData_field(in)">LoadNMRData_field</a>	 loads RWTH field NMR data (Blümich group bore-hole tool)</li><li><a href="LoadNMRData_rwth.html" class="code" title="function out = LoadNMRData_rwth(in)">LoadNMRData_rwth</a>	 loads RWTH NMR data (saved by the old Prospa version)</li><li><a href="../../../nucleus/functions/interface/importNMRdata.html" class="code" title="function importNMRdata(src)">importNMRdata</a>	 is the general import routine for NMR data</li><li><a href="../../../nucleus/functions/interface/processNMRData.html" class="code" title="function [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)">processNMRData</a>	 processes the NMR raw data</li></ul>
+<li><a href="LoadNMRData_bamtom.html" class="code" title="function out = LoadNMRData_bamtom(in)">LoadNMRData_bamtom</a>	 loads BAM TOM data</li><li><a href="LoadNMRData_bgr.html" class="code" title="function out = LoadNMRData_bgr(in)">LoadNMRData_bgr</a>	 loads standard BGR NMR data</li><li><a href="LoadNMRData_bgr2.html" class="code" title="function out = LoadNMRData_bgr2(in)">LoadNMRData_bgr2</a>	 loads BGR NMR data from an original folder structure as</li><li><a href="LoadNMRData_bgrmat.html" class="code" title="function out = LoadNMRData_bgrmat(in)">LoadNMRData_bgrmat</a>	 loads already preprocessed BGR NMR data; check the</li><li><a href="LoadNMRData_corelab.html" class="code" title="function out = LoadNMRData_corelab(in)">LoadNMRData_corelab</a>	 loads NMR data as provided by Corelab</li><li><a href="LoadNMRData_field.html" class="code" title="function out = LoadNMRData_field(in)">LoadNMRData_field</a>	 loads RWTH field NMR data (Blümich group bore-hole tool)</li><li><a href="LoadNMRData_liag.html" class="code" title="function out = LoadNMRData_liag(in)">LoadNMRData_liag</a>	 loads LIAG NMR data</li><li><a href="LoadNMRData_mouse.html" class="code" title="function out = LoadNMRData_mouse(in)">LoadNMRData_mouse</a>	 loads NMR data saved by the MOUSE</li><li><a href="LoadNMRData_rwth.html" class="code" title="function out = LoadNMRData_rwth(in)">LoadNMRData_rwth</a>	 loads RWTH NMR data (saved by the old Prospa version)</li><li><a href="../../../nucleus/functions/interface/importASCIIdata.html" class="code" title="function importASCIIdata(src)">importASCIIdata</a>	 imports NMR data from ASCII files</li><li><a href="../../../nucleus/functions/interface/importEXCELdata.html" class="code" title="function importEXCELdata(src)">importEXCELdata</a>	 imports NMR data from Excel files</li><li><a href="../../../nucleus/functions/interface/importNMRdata.html" class="code" title="function importNMRdata(src)">importNMRdata</a>	 is the general import routine for NMR data</li></ul>
 <!-- crossreference -->
 
 <h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
@@ -109,82 +109,95 @@ This function is called by:
 0036     <span class="comment">% fminsearch options</span>
 0037     options = optimset(<span class="string">'MaxFunEvals'</span>,100,<span class="string">'MaxIter'</span>,100,<span class="string">'TolFun'</span>,1e-6,<span class="string">'TolX'</span>,1e-6);
 0038     <span class="comment">% let fminsearch minimize fun1</span>
-0039     [alpha,~,~,~] = fminsearch(@(alpha) <a href="#_sub1" class="code" title="subfunction sse = fun1(alpha,s,method)">fun1</a>(alpha,s,<span class="string">'zero'</span>),pi/18,options);
+0039     [alpha,~,~,~] = fminsearch(@(alpha) <a href="#_sub1" class="code" title="subfunction sse = fun1(alpha,s,method)">fun1</a>(alpha,s,<span class="string">'minReIm'</span>),pi/18,options);
 0040     
 0041     <span class="comment">% s_rot is the rotated signal</span>
 0042     s_rot = s .* exp(1i*alpha);
 0043     
-0044     <span class="comment">% if the real part is negative multiply everything by -1</span>
-0045     <span class="comment">% NOTE: maybe this is fishy!!!</span>
-0046     <span class="keyword">if</span> real(s_rot(1)) &lt; 0
-0047         s_rot = -1.*s_rot;
-0048     <span class="keyword">end</span>
-0049 <span class="keyword">else</span>
-0050     <span class="comment">% do nothing</span>
-0051     s_rot = s;
-0052     disp(<span class="string">'Cannot ROTATE signal because it is not complex! rotateT2phase: Data is not complex.'</span>);
-0053 <span class="keyword">end</span>
-0054 
-0055 <span class="keyword">return</span>
-0056 
-0057 <span class="comment">% minimization function</span>
-0058 <a name="_sub1" href="#_subfunctions" class="code">function sse = fun1(alpha,s,method)</a>
-0059 <span class="comment">% Inputs:</span>
-0060 <span class="comment">%       alpha - rotation phase angle in [rad]</span>
-0061 <span class="comment">%       s - NMR signal vector (has to be complex!)</span>
-0062 <span class="comment">%       method - &quot;zero&quot; or &quot;minsd&quot;</span>
-0063 <span class="comment">%</span>
-0064 <span class="comment">% Outputs:</span>
-0065 <span class="comment">%       sse - sum of squared residuals (&quot;zero&quot;) or standard deviation (&quot;minsd&quot;)</span>
+0044     <span class="comment">% if the real part is negative rotate by 180°</span>
+0045     <span class="keyword">if</span> real(s_rot(1)) &lt; 0
+0046         s_rot = s_rot .* exp(1i*pi);
+0047     <span class="keyword">end</span>
+0048 <span class="keyword">else</span>
+0049     <span class="comment">% do nothing</span>
+0050     s_rot = s;
+0051     disp(<span class="string">'Cannot ROTATE signal because it is not complex! rotateT2phase: Data is not complex.'</span>);
+0052 <span class="keyword">end</span>
+0053 
+0054 <span class="keyword">return</span>
+0055 
+0056 <span class="comment">% minimization function</span>
+0057 <a name="_sub1" href="#_subfunctions" class="code">function sse = fun1(alpha,s,method)</a>
+0058 <span class="comment">% Inputs:</span>
+0059 <span class="comment">%       alpha - rotation phase angle in [rad]</span>
+0060 <span class="comment">%       s - NMR signal vector (has to be complex!)</span>
+0061 <span class="comment">%       method - &quot;zero&quot; or &quot;minsd&quot;</span>
+0062 <span class="comment">%</span>
+0063 <span class="comment">% Outputs:</span>
+0064 <span class="comment">%       sse - sum of squared residuals (&quot;minReIm&quot; or &quot;minIm&quot;) or</span>
+0065 <span class="comment">%             standard deviation of imag. part (&quot;stdIm&quot;)</span>
 0066 
 0067 s = s(:);
 0068 <span class="keyword">switch</span> method
-0069     <span class="keyword">case</span> <span class="string">'zero'</span>
+0069     <span class="keyword">case</span> <span class="string">'minReIm'</span>
 0070         <span class="comment">% make a vector of zeros</span>
 0071         t0 = zeros(size(s,1),1);
 0072         t0 = t0(:);
-0073         <span class="comment">% s1 is the rotated signal</span>
+0073         <span class="comment">% s_rot is the rotated signal</span>
 0074         s_rot = s .* exp(1i*alpha);        
-0075         <span class="comment">% check if the imaginary part is as close as possible to zero</span>
-0076         residual = t0-imag(s_rot);
-0077         <span class="comment">% sse = sum(residual.^2);</span>
-0078 <span class="comment">%         end1 = min([20000 numel(residual)]);</span>
-0079         end1 = numel(residual);
-0080         <span class="comment">% sum of squared residuals should be minimized</span>
-0081         sse = sum(residual(1:end1).^2);
-0082     <span class="keyword">case</span> <span class="string">'minsd'</span>
-0083         <span class="comment">% s_rot is the rotated signal</span>
-0084         s_rot = s .* exp(1i*alpha);
-0085         <span class="comment">% standard deviation of the imaginary part should be minimized</span>
-0086         sse = std(imag(s_rot));
-0087 <span class="keyword">end</span>
-0088 
-0089 <span class="keyword">return</span>
-0090 
-0091 <span class="comment">%------------- END OF CODE --------------</span>
-0092 
-0093 <span class="comment">%% License:</span>
-0094 <span class="comment">% MIT License</span>
-0095 <span class="comment">%</span>
-0096 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0097 <span class="comment">%</span>
-0098 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0099 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0100 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0101 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0102 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0103 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0104 <span class="comment">%</span>
-0105 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0106 <span class="comment">% copies or substantial portions of the Software.</span>
-0107 <span class="comment">%</span>
-0108 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0109 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0110 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0111 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0112 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0113 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0114 <span class="comment">% SOFTWARE.</span></pre></div>
+0075         <span class="comment">% create residuals</span>
+0076         residuali = t0-imag(s_rot);
+0077         residualr = t0-real(s_rot);
+0078         <span class="comment">% real part times -1 because we seek the maximum</span>
+0079         sse = sum(residuali.^2) + sum(residualr.^2)*-1;
+0080     <span class="keyword">case</span> <span class="string">'minIm'</span>
+0081         <span class="comment">% make a vector of zeros</span>
+0082         t0 = zeros(size(s,1),1);
+0083         t0 = t0(:);
+0084         <span class="comment">% s_rot is the rotated signal</span>
+0085         s_rot = s .* exp(1i*alpha);        
+0086         <span class="comment">% create residuals</span>
+0087         residuali = t0-imag(s_rot);
+0088         <span class="comment">% sse</span>
+0089         sse = sum(residuali.^2);
+0090     <span class="keyword">case</span> <span class="string">'stdIm'</span>
+0091         <span class="comment">% s_rot is the rotated signal</span>
+0092         s_rot = s .* exp(1i*alpha);
+0093         <span class="comment">% standard deviation of the imaginary part should be minimized</span>
+0094         sse = std(imag(s_rot));
+0095     <span class="keyword">case</span> <span class="string">'maxRe'</span>
+0096         <span class="comment">% s_rot is the rotated signal</span>
+0097         s_rot = s .* exp(1i*alpha);
+0098         <span class="comment">% maximum of real part should be maximized</span>
+0099         sse = max(real(s_rot))*-1;
+0100 <span class="keyword">end</span>
+0101 
+0102 <span class="keyword">return</span>
+0103 
+0104 <span class="comment">%------------- END OF CODE --------------</span>
+0105 
+0106 <span class="comment">%% License:</span>
+0107 <span class="comment">% MIT License</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0110 <span class="comment">%</span>
+0111 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0112 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0113 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0114 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0115 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0116 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0117 <span class="comment">%</span>
+0118 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0119 <span class="comment">% copies or substantial portions of the Software.</span>
+0120 <span class="comment">%</span>
+0121 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0122 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0123 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0124 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0125 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0126 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0127 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

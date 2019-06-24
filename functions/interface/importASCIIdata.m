@@ -123,7 +123,10 @@ if sum(ASCIIpath) > 0
             data.import.NMR.data{c}.flag = T1T2;
             data.import.NMR.data{c}.time = tmp_data(:,1);
             if size(tmp_data,2)>2
-                data.import.NMR.data{c}.signal = complex(tmp_data(:,2),tmp_data(:,3));
+                tmp_signal = complex(tmp_data(:,2),tmp_data(:,3));
+                [tmp_signal,tmp_phase] = rotateT2phase(tmp_signal);
+                data.import.NMR.data{c}.signal = tmp_signal;
+                data.import.NMR.data{c}.phase = tmp_phase;
             else
                 data.import.NMR.data{c}.signal = tmp_data(:,2);
             end

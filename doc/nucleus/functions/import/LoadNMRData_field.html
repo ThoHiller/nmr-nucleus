@@ -133,12 +133,12 @@ This function is called by:
 0055         helpdlg({<span class="string">'function: LoadNMRData_field'</span>,<span class="keyword">...</span>
 0056             <span class="string">'T1 data import not yet implemented'</span>},<span class="string">'not implemented yet'</span>);
 0057         
-0058     <span class="keyword">case</span> <span class="string">'T2'</span>        
+0058     <span class="keyword">case</span> <span class="string">'T2'</span>
 0059         <span class="comment">% find all data files</span>
 0060         files1 = dir(fullfile(in.path,[in.name,<span class="string">'*.dat'</span>]));
 0061         
 0062         <span class="comment">% check if it is a single or multiple measurement(s)</span>
-0063         <span class="keyword">if</span> numel(files1) &gt; 1            
+0063         <span class="keyword">if</span> numel(files1) &gt; 1
 0064             <span class="comment">% command line output</span>
 0065             disp([in.name,<span class="string">': importing NMR files ...'</span>]);
 0066             
@@ -158,116 +158,119 @@ This function is called by:
 0080                 nmrData{i}.T1IRfac = 1;
 0081                 nmrData{i}.time = data.time;
 0082                 nmrData{i}.signal = data.signal;
-0083                 nmrData{i}.raw = data.raw;                
-0084                 clear data
-0085                 
-0086                 <span class="comment">% command line output</span>
-0087                 disp([in.name,<span class="string">': importing NMR files '</span>,sprintf(<span class="string">'%03d'</span>,i),<span class="keyword">...</span>
-0088                     <span class="string">' / '</span>,sprintf(<span class="string">'%03d'</span>,numel(files1))]);
-0089             <span class="keyword">end</span>
-0090             
-0091         <span class="keyword">else</span>
-0092             <span class="comment">% single measurement</span>
-0093             <span class="keyword">if</span> isempty(files1)
-0094                 files2 = dir(fullfile(in.path,<span class="string">'data.dat'</span>));
-0095                 files = files2;
-0096             <span class="keyword">else</span>
-0097                 files = files1;
-0098             <span class="keyword">end</span>
-0099             
-0100             <span class="keyword">if</span> ~isempty(files)
-0101                 <span class="comment">% read the data file</span>
-0102                 data = <a href="#_sub1" class="code" title="subfunction [data] = LoadDataFile(datapath,fname)">LoadDataFile</a>(in.path,files.name);
-0103                 
-0104                 <span class="comment">% get file statistics</span>
-0105                 nmrData{1}.datfile = files.name;
-0106                 nmrData{1}.date = files.date;
-0107                 nmrData{1}.datenum = files.datenum;
-0108                 nmrData{1}.bytes = files.bytes;
-0109                 
-0110                 <span class="comment">% save the NMR data</span>
-0111                 nmrData{1}.flag = data.flag;
-0112                 nmrData{1}.T1IRfac = 1;
-0113                 nmrData{1}.time = data.time;
-0114                 nmrData{1}.signal = data.signal;
-0115                 nmrData{1}.raw = data.raw;                
-0116                 clear data
-0117             <span class="keyword">end</span>            
-0118         <span class="keyword">end</span>
-0119 <span class="keyword">end</span>
-0120 
-0121 <span class="comment">% save data to output struct</span>
-0122 out.parData = parData;
-0123 out.nmrData = nmrData;
-0124 
-0125 <span class="keyword">end</span>
+0083                 nmrData{i}.raw = data.raw;
+0084                 nmrData{i}.phase = data.phase;
+0085                 clear data
+0086                 
+0087                 <span class="comment">% command line output</span>
+0088                 disp([in.name,<span class="string">': importing NMR files '</span>,sprintf(<span class="string">'%03d'</span>,i),<span class="keyword">...</span>
+0089                     <span class="string">' / '</span>,sprintf(<span class="string">'%03d'</span>,numel(files1))]);
+0090             <span class="keyword">end</span>
+0091             
+0092         <span class="keyword">else</span>
+0093             <span class="comment">% single measurement</span>
+0094             <span class="keyword">if</span> isempty(files1)
+0095                 files2 = dir(fullfile(in.path,<span class="string">'data.dat'</span>));
+0096                 files = files2;
+0097             <span class="keyword">else</span>
+0098                 files = files1;
+0099             <span class="keyword">end</span>
+0100             
+0101             <span class="keyword">if</span> ~isempty(files)
+0102                 <span class="comment">% read the data file</span>
+0103                 data = <a href="#_sub1" class="code" title="subfunction [data] = LoadDataFile(datapath,fname)">LoadDataFile</a>(in.path,files.name);
+0104                 
+0105                 <span class="comment">% get file statistics</span>
+0106                 nmrData{1}.datfile = files.name;
+0107                 nmrData{1}.date = files.date;
+0108                 nmrData{1}.datenum = files.datenum;
+0109                 nmrData{1}.bytes = files.bytes;
+0110                 
+0111                 <span class="comment">% save the NMR data</span>
+0112                 nmrData{1}.flag = data.flag;
+0113                 nmrData{1}.T1IRfac = 1;
+0114                 nmrData{1}.time = data.time;
+0115                 nmrData{1}.signal = data.signal;
+0116                 nmrData{1}.raw = data.raw;
+0117                 nmrData{1}.phase = data.phase;
+0118                 clear data
+0119             <span class="keyword">end</span>
+0120         <span class="keyword">end</span>
+0121 <span class="keyword">end</span>
+0122 
+0123 <span class="comment">% save data to output struct</span>
+0124 out.parData = parData;
+0125 out.nmrData = nmrData;
 0126 
-0127 <span class="comment">%% load NMR data file</span>
-0128 <a name="_sub1" href="#_subfunctions" class="code">function [data] = LoadDataFile(datapath,fname)</a>
-0129 
-0130 d = load(fullfile(datapath,fname));
+0127 <span class="keyword">end</span>
+0128 
+0129 <span class="comment">%% load NMR data file</span>
+0130 <a name="_sub1" href="#_subfunctions" class="code">function [data] = LoadDataFile(datapath,fname)</a>
 0131 
-0132 <span class="keyword">if</span> size(d,2) == 3
-0133     data.flag = <span class="string">'T2'</span>;
-0134     <span class="comment">% [ms] to [s]</span>
-0135     <span class="keyword">if</span> d(1,1) &gt; 1e-2
-0136         data.time = d(:,1)/1000;
-0137     <span class="keyword">else</span>
-0138         data.time = d(:,1);
-0139     <span class="keyword">end</span>
-0140     data.signal = complex(d(:,2),d(:,3));
-0141     data.signal = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(data.signal);
-0142 <span class="keyword">else</span>
-0143     data.flag = <span class="string">'0'</span>;
-0144     data.time = 0;
-0145     data.signal = 0;
-0146 <span class="keyword">end</span>
-0147 
-0148 data.raw.time = data.time;
-0149 data.raw.signal = data.signal;
+0132 d = load(fullfile(datapath,fname));
+0133 
+0134 <span class="keyword">if</span> size(d,2) == 3
+0135     data.flag = <span class="string">'T2'</span>;
+0136     <span class="comment">% [ms] to [s]</span>
+0137     <span class="keyword">if</span> d(1,1) &gt; 1e-2
+0138         data.time = d(:,1)/1000;
+0139     <span class="keyword">else</span>
+0140         data.time = d(:,1);
+0141     <span class="keyword">end</span>
+0142     data.signal = complex(d(:,2),d(:,3));
+0143     [data.signal,data.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(data.signal);
+0144 <span class="keyword">else</span>
+0145     data.flag = <span class="string">'0'</span>;
+0146     data.time = 0;
+0147     data.signal = 0;
+0148     data.phase = 0;
+0149 <span class="keyword">end</span>
 0150 
-0151 <span class="keyword">end</span>
-0152 
-0153 <span class="comment">%% load parameter file</span>
-0154 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0151 data.raw.time = data.time;
+0152 data.raw.signal = data.signal;
+0153 
+0154 <span class="keyword">end</span>
 0155 
-0156 fid = fopen(fullfile(datapath,fname));
-0157 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
-0158 fclose(fid);
-0159 
-0160 <span class="keyword">for</span> i = 1:size(d{1},1)
-0161     str = char(d{1}(i));
-0162     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
-0163     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
-0164 <span class="keyword">end</span>
-0165 data.all = d;
-0166 
+0156 <span class="comment">%% load parameter file</span>
+0157 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0158 
+0159 fid = fopen(fullfile(datapath,fname));
+0160 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0161 fclose(fid);
+0162 
+0163 <span class="keyword">for</span> i = 1:size(d{1},1)
+0164     str = char(d{1}(i));
+0165     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0166     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
 0167 <span class="keyword">end</span>
-0168 
-0169 <span class="comment">%------------- END OF CODE --------------</span>
-0170 
-0171 <span class="comment">%% License:</span>
-0172 <span class="comment">% MIT License</span>
-0173 <span class="comment">%</span>
-0174 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0175 <span class="comment">%</span>
-0176 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0177 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0178 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0179 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0180 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0181 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0182 <span class="comment">%</span>
-0183 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0184 <span class="comment">% copies or substantial portions of the Software.</span>
+0168 data.all = d;
+0169 
+0170 <span class="keyword">end</span>
+0171 
+0172 <span class="comment">%------------- END OF CODE --------------</span>
+0173 
+0174 <span class="comment">%% License:</span>
+0175 <span class="comment">% MIT License</span>
+0176 <span class="comment">%</span>
+0177 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0178 <span class="comment">%</span>
+0179 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0180 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0181 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0182 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0183 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0184 <span class="comment">% furnished to do so, subject to the following conditions:</span>
 0185 <span class="comment">%</span>
-0186 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0187 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0188 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0189 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0190 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0191 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0192 <span class="comment">% SOFTWARE.</span></pre></div>
+0186 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0187 <span class="comment">% copies or substantial portions of the Software.</span>
+0188 <span class="comment">%</span>
+0189 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0190 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0191 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0192 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0193 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0194 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0195 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

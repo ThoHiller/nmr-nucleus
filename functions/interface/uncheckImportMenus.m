@@ -45,6 +45,7 @@ set(gui.menu.file_import_lab_liag_project,'Checked','off');
 set(gui.menu.file_import_lab_bgr_std,'Checked','off');
 set(gui.menu.file_import_lab_bgr_org,'Checked','off');
 set(gui.menu.file_import_lab_bgr_mat,'Checked','off');
+set(gui.menu.file_import_lab_bam_tom,'Checked','off');
 set(gui.menu.file_import_lab_ascii_T1,'Checked','off');
 set(gui.menu.file_import_lab_ascii_T2,'Checked','off');
 set(gui.menu.file_import_lab_excel_T1,'Checked','off');

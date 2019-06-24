@@ -36,15 +36,14 @@ if ~isreal(s)
     % fminsearch options
     options = optimset('MaxFunEvals',100,'MaxIter',100,'TolFun',1e-6,'TolX',1e-6);
     % let fminsearch minimize fun1
-    [alpha,~,~,~] = fminsearch(@(alpha) fun1(alpha,s,'zero'),pi/18,options);
+    [alpha,~,~,~] = fminsearch(@(alpha) fun1(alpha,s,'minReIm'),pi/18,options);
     
     % s_rot is the rotated signal
     s_rot = s .* exp(1i*alpha);
     
-    % if the real part is negative multiply everything by -1
-    % NOTE: maybe this is fishy!!!
+    % if the real part is negative rotate by 180°
     if real(s_rot(1)) < 0
-        s_rot = -1.*s_rot;
+        s_rot = s_rot .* exp(1i*pi);
     end
 else
     % do nothing
@@ -62,28 +61,42 @@ function sse = fun1(alpha,s,method)
 %       method - "zero" or "minsd"
 %
 % Outputs:
-%       sse - sum of squared residuals ("zero") or standard deviation ("minsd")
+%       sse - sum of squared residuals ("minReIm" or "minIm") or 
+%             standard deviation of imag. part ("stdIm")
 
 s = s(:);
 switch method
-    case 'zero'
+    case 'minReIm'
         % make a vector of zeros
         t0 = zeros(size(s,1),1);
         t0 = t0(:);
-        % s1 is the rotated signal
+        % s_rot is the rotated signal
         s_rot = s .* exp(1i*alpha);        
-        % check if the imaginary part is as close as possible to zero
-        residual = t0-imag(s_rot);
-        % sse = sum(residual.^2);
-%         end1 = min([20000 numel(residual)]);
-        end1 = numel(residual);
-        % sum of squared residuals should be minimized
-        sse = sum(residual(1:end1).^2);
-    case 'minsd'
+        % create residuals
+        residuali = t0-imag(s_rot);
+        residualr = t0-real(s_rot);
+        % real part times -1 because we seek the maximum
+        sse = sum(residuali.^2) + sum(residualr.^2)*-1;
+    case 'minIm'
+        % make a vector of zeros
+        t0 = zeros(size(s,1),1);
+        t0 = t0(:);
+        % s_rot is the rotated signal
+        s_rot = s .* exp(1i*alpha);        
+        % create residuals
+        residuali = t0-imag(s_rot);
+        % sse
+        sse = sum(residuali.^2);
+    case 'stdIm'
         % s_rot is the rotated signal
         s_rot = s .* exp(1i*alpha);
         % standard deviation of the imaginary part should be minimized
         sse = std(imag(s_rot));
+    case 'maxRe'
+        % s_rot is the rotated signal
+        s_rot = s .* exp(1i*alpha);
+        % maximum of real part should be maximized
+        sse = max(real(s_rot))*-1;
 end
 
 return

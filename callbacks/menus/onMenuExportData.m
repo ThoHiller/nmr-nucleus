@@ -38,29 +38,31 @@ fig_tag = get(fig,'Tag');
 % get the label of the menu entry
 label = get(src,'Label');
 
-switch fig_tag    
-    case 'INV'        
-        switch label            
+switch fig_tag
+    case 'INV'
+        switch label
             case 'NUCLEUSinv (raw)'
                 exportINV('raw');
             case 'NUCLEUSinv (session)'
-                exportINV('session');                
+                exportINV('session');
             case 'EXCEL single (std)'
                 exportData(fig_tag,'excelS');
             case 'MAT single (std)'
                 exportData(fig_tag,'matS');
             case 'MAT all (std)'
-                exportData(fig_tag,'matA');                
+                exportData(fig_tag,'matA');
             case 'EXCEL single (joint)'
                 exportData(fig_tag,'excelJ');
             case 'MAT all (joint)'
                 exportData(fig_tag,'matA');
             case 'LIAG archive'
                 exportData(fig_tag,'LIAG');
+            case 'LIAG CSV T2'
+                exportData(fig_tag,'LIAGcsvT2');    
         end
         
-    case 'MOD'        
-        switch label            
+    case 'MOD'
+        switch label
             case 'NUCLEUSmod'
                 exportData(fig_tag,'mat');
             case 'XLS file'
@@ -69,7 +71,7 @@ switch fig_tag
                 exportData(fig_tag,'csv');
             case 'DAT files'
                 exportData(fig_tag,'dat');
-        end        
+        end
 end
 
 end

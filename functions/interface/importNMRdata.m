@@ -69,12 +69,16 @@ try
         data.import.fileformat = 'liag';
     elseif strcmp(label,'LIAG from project')
         data.import.fileformat = 'liag';
+    elseif strcmp(label,'LIAG last project')
+        data.import.fileformat = 'liag';
     elseif strcmp(label,'BGR std')
         data.import.fileformat = 'bgr';
     elseif strcmp(label,'BGR org')
         data.import.fileformat = 'bgr2';
     elseif strcmp(label,'BGR mat')
         data.import.fileformat = 'bgrmat';
+    elseif strcmp(label,'BAM TOM')
+        data.import.fileformat = 'bamtom';
     else
         helpdlg('Something is utterly wrong.','onMenuImport: Choose again.');
     end
@@ -102,20 +106,17 @@ try
             displayStatusText(gui,'Reading NMR Data ...');
             % call the corresponding subroutines
             switch label
-                case 'RWTH ascii'
-                    [data,gui] = importDataGeneral(data,gui);
-                case 'RWTH field'
+                case {'RWTH ascii','RWTH field','CoreLab ascii','BGR std',...
+                        'BAM TOM'}
                     [data,gui] = importDataGeneral(data,gui);
                 case 'Dart'
                     data.import.file = NMRfile;
                     [data,gui] = importDataDart(data,gui);
-                case 'CoreLab ascii'
-                    [data,gui] = importDataGeneral(data,gui);
                 case 'MOUSE'
                     [data,gui] = importDataMouse(data,gui);
                 case 'LIAG single'
                     [data,gui] = importDataLIAG(data,gui);
-                case 'LIAG from project'
+                case {'LIAG from project','LIAG last project'}
                     [data,gui] = importDataLIAGproject(data,gui);
                     % make the Petro Panel visible as default
                     tmp_h = gui.myui.heights(2,:);
@@ -124,8 +125,6 @@ try
                     tmp_h(5) = gui.myui.heights(1,3);
                     set(gui.panels.main,'Heights',tmp_h);
                     set(gui.panels.petro.main,'Minimized',false);
-                case 'BGR std'
-                    [data,gui] = importDataGeneral(data,gui);
                 case 'BGR org'
                     [data,gui] = importDataBGR(data,gui);
                 case 'BGR mat'
@@ -177,6 +176,33 @@ try
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
         enableGUIelements('NMR');
+        
+        % special treatment of LIAG projects
+        switch label
+            case {'LIAG from project','LIAG last project'}
+                cpath = data.import.LIAG.calibrationpath;
+                % check if this calibration file was already used
+                isfile = dir(fullfile(cpath,'NUCLEUS_calibData.mat'));
+                if ~isempty(isfile)
+                    id = 2;
+                    % if data is there reuse it
+                    calib = load(fullfile(cpath,isfile.name),'calib');
+                    INVdata{id} = calib.calib;
+                    data.calib = INVdata{id}.calib;
+                    setappdata(fig,'INVdata',INVdata);
+                    setappdata(fig,'data',data);
+                    % color the list entry
+                    strL = get(gui.listbox_handles.signal,'String');
+                    str1 = strL{id};
+                    str2 = ['<HTML><BODY bgcolor="rgb(',...
+                        sprintf('%d,%d,%d',gui.myui.colors.listINV.*255),')">',...
+                        str1,'</BODY></HTML>'];
+                    strL{id} = str2;
+                    set(gui.listbox_handles.signal,'String',strL);
+                end
+            otherwise
+        end
+        % update GUI interface
         NUCLEUSinv_updateInterface;
     end
     
@@ -198,7 +224,7 @@ NMRfile = -1;
 % for almost all import cases we load a folder ... but not for all
 switch label
     case {'RWTH ascii','RWTH field','CoreLab ascii','MOUSE','LIAG single',...
-            'BGR std','BGR org'}
+            'BGR std','BGR org','BAM TOM'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             NMRpath = uigetdir(import.path,'Choose Data Path');
@@ -213,6 +239,17 @@ switch label
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             NMRpath = uigetdir(import.path,'Choose Project Path');
+        else
+            % otherwise we start at the current working dircetory
+            % 'NMRpath' holds the name of the choosen data path
+            here = mfilename('fullpath');
+            [pathstr,~,~] = fileparts(here);
+            NMRpath = uigetdir(pathstr,'Choose Project Path');
+        end
+    case 'LIAG last project'
+        % there is already a data folder and we use this one
+        if isfield(import,'path')
+            NMRpath = import.path;
         else
             % otherwise we start at the current working dircetory
             % 'NMRpath' holds the name of the choosen data path
@@ -452,6 +489,20 @@ for i = 1:size(filenames,1)
     end
 end
 
+switch data.import.fileformat
+    case 'bamtom'
+        % create z-vector
+        p = out.parData;
+        zslice = linspace(p.startPos,p.endPos,p.nSlices)';
+        data.import.BAM.zslice = zslice;
+        if numel(zslice) > 1
+            for i = 1:numel(zslice)
+                tmp = shownames{i};
+                shownames{i} = [tmp,' z:',sprintf('%5.4f',zslice(i))];
+            end
+        end
+end
+
 % update the global data structure
 data.import.NMR.files = fnames;
 data.import.NMR.filesShort = shownames;
@@ -509,219 +560,247 @@ fnames = {subdirs.name};
     'SelectionMode','single',...
     'ListString',fnames);
 
-% 2) check corresponding SampleParameter.par file for reference and
-% calibration sample and other parameters
-datapath = fullfile(data.import.path,fnames{indx});
-% load SampleParameter file for sample
-[SampleParameter] = loadGUIParameters(datapath,'SampleParameters.par');
-if isfield(SampleParameter,'sampleVolume')
-    dataVol = SampleParameter.sampleVolume;
-else
-    dataVol = 1;
-end
-
-% 2a) background file #1
-backgroundFile1 = SampleParameter.backgroundFile;
-if isempty(backgroundFile1)
-    bnames = {subdirs.name};
-    bnames(indx) = [];
-    [indb,~] = listdlg('PromptString','Select Calibration File:',...
-        'SelectionMode','single',...
-        'ListString',bnames);
-    backgroundFile1 = bnames{indb};
-end
-if ~isempty(backgroundFile1)
-    ind = strfind(backgroundFile1,filesep);
-    if ~isempty(ind)
-        backgroundFile1 = backgroundFile1(ind(end)+1:end);
+if ~isempty(indx)
+    % 2) check corresponding SampleParameter.par file for reference and
+    % calibration sample and other parameters
+    datapath = fullfile(data.import.path,fnames{indx});
+    % load SampleParameter file for sample
+    [SampleParameter] = loadGUIParameters(datapath,'SampleParameters.par');
+    if isfield(SampleParameter,'sampleVolume')
+        dataVol = SampleParameter.sampleVolume;
+    else
+        dataVol = 1;
+    end
+    
+    % 2a) background file #1
+    backgroundFile1 = SampleParameter.backgroundFile;
+    if isempty(backgroundFile1)
+        bnames = {subdirs.name};
+        bnames(indx) = [];
+        [indb,~] = listdlg('PromptString','Select Background File:',...
+            'SelectionMode','single',...
+            'ListString',bnames);
+        if ~isempty(indb)
+            backgroundFile1 = bnames{indb};
+        else
+            backgroundFile1 = '';
+        end
+    end
+    if ~isempty(backgroundFile1)
+        ind = strfind(backgroundFile1,filesep);
+        if ~isempty(ind)
+            backgroundFile1 = backgroundFile1(ind(end)+1:end);
+        end
         fileInList = ismember(fnames,{backgroundFile1});
         if any(fileInList)
             backgroundpath1 = fullfile(data.import.path,fnames{fileInList});
         end
-    end
-else
-    backgroundpath1 = '';
-    backgroundFile1 = '';
-end
-backVol = 1;
-
-% 2b) calibration file
-c = 0;
-if isfield(SampleParameter,'calibrationFile0')
-    c = c + 1;
-    calibrationFiles{c} = SampleParameter.calibrationFile0;
-end
-if isfield(SampleParameter,'calibrationFile1')
-    c = c + 1;
-    calibrationFiles{c} = SampleParameter.calibrationFile1;
-end
-if isfield(SampleParameter,'calibrationFile2')
-    c = c + 1;
-    calibrationFiles{c} = SampleParameter.calibrationFile2;
-end
-if isfield(SampleParameter,'calibrationFile3')
-    c = c + 1;
-    calibrationFiles{c} = SampleParameter.calibrationFile3;
-end
-
-% find the non-empty one
-ind = ismember(calibrationFiles,{''});
-calibrationFiles(ind) = [];
-if isempty(calibrationFiles)
-    cnames = {subdirs.name};
-    cnames(indx) = [];
-    [indc,~] = listdlg('PromptString','Select Calibration File:',...
-        'SelectionMode','single',...
-        'ListString',cnames);
-    calibrationFiles = cnames{indc};
-else
-    % if there are more than one let the user select the correct one
-    if numel(calibrationFiles) > 1
-        [ind,~] = listdlg('PromptString','Select Calibration File:',...
-            'SelectionMode','single',...
-            'ListString',calibrationFiles);
-        calibrationFiles = calibrationFiles{ind};
     else
-        calibrationFiles = calibrationFiles{1};
+        backgroundpath1 = '';
+        backgroundFile1 = '';
     end
-end
-if ~isempty(calibrationFiles)
-    ind = strfind(calibrationFiles,filesep);
-    if ~isempty(ind)
-        calibrationFiles = calibrationFiles(ind(end)+1:end);
+    backVol = 1;
+    
+    % 2b) calibration file
+    c = 0;
+    if isfield(SampleParameter,'calibrationFile0')
+        c = c + 1;
+        calibrationFiles{c} = SampleParameter.calibrationFile0;
+    end
+    if isfield(SampleParameter,'calibrationFile1')
+        c = c + 1;
+        calibrationFiles{c} = SampleParameter.calibrationFile1;
+    end
+    if isfield(SampleParameter,'calibrationFile2')
+        c = c + 1;
+        calibrationFiles{c} = SampleParameter.calibrationFile2;
+    end
+    if isfield(SampleParameter,'calibrationFile3')
+        c = c + 1;
+        calibrationFiles{c} = SampleParameter.calibrationFile3;
+    end
+    
+    % find the non-empty one
+    ind = ismember(calibrationFiles,{''});
+    % there are three possibilities: 0, 1 and more than 1 calib. files    
+    calibrationFiles(ind) = [];
+    if isempty(calibrationFiles)
+        cnames = {subdirs.name};
+        cnames(indx) = [];
+        [indc,~] = listdlg('PromptString','Select Calibration File:',...
+            'SelectionMode','single',...
+            'ListString',cnames);
+        if ~isempty(indc)
+            calibrationFiles = cnames{indc};
+        else
+            calibrationFiles = '';
+        end        
+    else
+        % if there are more than one let the user select the correct one
+        if numel(calibrationFiles) > 1
+            [ind,~] = listdlg('PromptString','Select Calibration File:',...
+                'SelectionMode','single',...
+                'ListString',calibrationFiles);
+            calibrationFiles = calibrationFiles{ind};
+        else
+            calibrationFiles = calibrationFiles{1};
+        end
+    end
+    if ~isempty(calibrationFiles)
+        ind = strfind(calibrationFiles,filesep);
+        if ~isempty(ind)
+            calibrationFiles = calibrationFiles(ind(end)+1:end);
+        end
         fileInList = ismember(fnames,{calibrationFiles});
         if any(fileInList)
             calibrationpath = fullfile(data.import.path,fnames{fileInList});
         end
-    end
-else
-    calibrationpath = '';
-    calibrationFiles = '';
-end
-
-if ~isempty(calibrationpath)
-    [SampleParameterC] = loadGUIParameters(calibrationpath,'SampleParameters.par');
-    if isfield(SampleParameterC,'sampleVolume')
-        calibVol = SampleParameterC.sampleVolume;
     else
-        calibVol = 1;
+        calibrationpath = '';
+        calibrationFiles = '';
     end
     
-    % 2a) background file #2
-    backgroundFile2 = SampleParameterC.backgroundFile;
-    if isempty(backgroundFile2)
-        bnames = {subdirs.name};
-        bnames(indx) = [];
-        [indb,~] = listdlg('PromptString','Select Background File for Calibration:',...
-            'SelectionMode','single',...
-            'ListString',bnames);
-        backgroundFile2 = bnames{indb};
-    end
-    if ~isempty(backgroundFile2)
-        ind = strfind(backgroundFile2,filesep);
-        if ~isempty(ind)
-            backgroundFile2 = backgroundFile2(ind(end)+1:end);
+    if ~isempty(calibrationpath)
+        [SampleParameterC] = loadGUIParameters(calibrationpath,'SampleParameters.par');
+        if isfield(SampleParameterC,'sampleVolume')
+            calibVol = SampleParameterC.sampleVolume;
+        else
+            calibVol = 1;
+        end
+        
+        % 2a) background file #2
+        backgroundFile2 = SampleParameterC.backgroundFile;
+        if isempty(backgroundFile2)
+            bnames = {subdirs.name};
+            bnames(indx) = [];
+            [indb,~] = listdlg('PromptString','Select Background File for Calibration:',...
+                'SelectionMode','single',...
+                'ListString',bnames);
+            if ~isempty(indb)
+                backgroundFile2 = bnames{indb};
+            else
+                backgroundFile2 = '';
+            end  
+        end
+        if ~isempty(backgroundFile2)
+            ind = strfind(backgroundFile2,filesep);
+            if ~isempty(ind)
+                backgroundFile2 = backgroundFile2(ind(end)+1:end);
+            end
             fileInList = ismember(fnames,{backgroundFile2});
             if any(fileInList)
                 backgroundpath2 = fullfile(data.import.path,fnames{fileInList});
             end
+        else
+            backgroundpath2 = '';
+            backgroundFile2 = '';
         end
     else
-        backgroundpath2 = backgroundpath1;
-        backgroundFile2 = backgroundFile1;
+        calibVol = 1;
+        backgroundpath2 = '';
+        backgroundFile2 = '';
+    end
+    
+    % 3) now load the data
+    workpaths = {datapath,calibrationpath,backgroundpath1,backgroundpath2};
+    workfiles = {fnames{indx},[calibrationFiles,' - calibration'],...
+        [backgroundFile1,' - backgroundS'],[backgroundFile2,' - backgroundC']};
+    out = cell(size(workpaths));
+    count = 0;
+    keep = false(size(workpaths));
+    for i = 1:numel(workpaths)
+        if ~isempty(workpaths{i})
+            workdirs = dir(workpaths{i});
+            workdirs = workdirs(~ismember({workdirs.name},{'.','..'}));
+            isT2 = ismember({workdirs.name},{'T2CPMG'});
+            if any(isT2)
+                keep(i) = true;
+                count = count + 1;
+                T2path = fullfile(workdirs(isT2).folder,workdirs(isT2).name);
+                in.path = T2path;
+                in.fileformat = data.import.fileformat;
+                out{i} = LoadNMRData_driver(in);
+            end
+        end
     end    
-else
-    calibVol = 1;
-    backgroundpath2 = backgroundpath1;
-    backgroundFile2 = backgroundFile1;
-end
-
-% 3) now load the data
-workpaths = {datapath,calibrationpath,backgroundpath1,backgroundpath2};
-workfiles = {fnames{indx},[calibrationFiles,' - calibration'],...
-    [backgroundFile1,' - backgroundS'],[backgroundFile2,' - backgroundC']};
-out = cell(1,1);
-count = 0;
-for i = 1:numel(workpaths)
-    if ~isempty(workpaths{i})
-        workdirs = dir(workpaths{i});
-        workdirs = workdirs(~ismember({workdirs.name},{'.','..'}));
-        isT2 = ismember({workdirs.name},{'T2CPMG'});
-        if any(isT2)
-            count = count + 1;
-            T2path = fullfile(workdirs(isT2).folder,workdirs(isT2).name);
-            in.path = T2path;
-            in.fileformat = data.import.fileformat;
-            out{i} = LoadNMRData_driver(in);
+    
+    if isempty(backgroundpath1)
+        ref1 = struct;
+    else
+        background1 = out{3};
+        % get the background data 1
+        ref1.t = background1.nmrData{1}.time;
+        ref1.s = background1.nmrData{1}.signal;
+        [ref1.s,~] = rotateT2phase(ref1.s);
+    end
+    
+    if isempty(backgroundpath2)
+        ref2 = struct;
+    else
+        background2 = out{4};
+        % get the background data 2
+        ref2.t = background2.nmrData{1}.time;
+        ref2.s = background2.nmrData{1}.signal;
+        [ref2.s,~] = rotateT2phase(ref2.s);
+    end
+    
+    workpaths = workpaths(keep);
+    workfiles = workfiles(keep);
+    out = out(keep);
+    
+    ffnames = struct;
+    % shownames is just a dummy to hold all data file names that
+    % will be shown in the listbox
+    shownames = cell(1,1);
+    
+    for i = 1:count
+        ffnames(i).parfile = 'acqu.par';
+        ffnames(i).datafile = workfiles{i};
+        ffnames(i).T2specfile = '';
+        
+        shownames{i} = ffnames(i).datafile;
+        
+        % the NMR data
+        out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1000;
+        out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1000;
+        data.import.NMR.data{i} = out{i}.nmrData{1};
+        data.import.NMR.para{i} = out{i}.parData;
+        data.import.NMR.para{i}.SampleParameter = SampleParameter;
+        
+        % subtract the background signal
+        s = data.import.NMR.data{i}.signal;
+        if i==1 && isfield(ref1,'s')
+            s(1:numel(ref1.s)) = complex( real(s(1:numel(ref1.s)))-...
+                real(ref1.s),imag(s(1:numel(ref1.s)))-imag(ref1.s) );
+        elseif i==2 && isfield(ref2,'s')
+            s(1:numel(ref2.s)) = complex( real(s(1:numel(ref2.s)))-...
+                real(ref2.s),imag(s(1:numel(ref2.s)))-imag(ref2.s) );
+        end
+        
+        data.import.NMR.data{i}.signal = s;
+        data.import.NMR.data{i}.raw.signal = s;
+        
+        if ~isempty(strfind(workfiles{i},' - background'))
+            data.import.LIAG.sampleVol(i) = backVol;
+        elseif ~isempty(strfind(workfiles{i},' - calibration'))
+            data.import.LIAG.sampleVol(i) = calibVol;
+        elseif isempty(strfind(workfiles{i},' - background')) &&...
+                isempty(strfind(workfiles{i},' - calibration'))
+            data.import.LIAG.sampleVol(i) = dataVol;
         end
     end
+    data.import.LIAG.Tbulk = 1e6;
+    data.import.LIAG.workpaths = workpaths;
+    data.import.LIAG.datapath = datapath;
+    data.import.LIAG.calibrationpath = calibrationpath;
+    data.import.LIAG.backgroundpath1 = backgroundpath1;
+    data.import.LIAG.backgroundpath2 = backgroundpath2;
+    
+    % update the global data structure
+    data.import.NMR.files = ffnames;
+    data.import.NMR.filesShort = shownames;
+    
 end
-
-if isempty(backgroundpath1)
-    ref1 = struct;
-    ref2 = struct;
-else
-    background1 = out{3};
-    background2 = out{4};
-    % get the background data 1
-    ref1.t = background1.nmrData{1}.time;
-    ref1.s = background1.nmrData{1}.signal;
-    [ref1.s,~] = rotateT2phase(ref1.s);
-    
-    % get the background data 2
-    ref2.t = background2.nmrData{1}.time;
-    ref2.s = background2.nmrData{1}.signal;
-    [ref2.s,~] = rotateT2phase(ref2.s);
-end
-
-
-ffnames = struct;
-% shownames is just a dummy to hold all data file names that
-% will be shown in the listbox
-shownames = cell(1,1);
-
-for i = 1:count
-    ffnames(i).parfile = 'acqu.par';
-    ffnames(i).datafile = workfiles{i};
-    ffnames(i).T2specfile = '';
-    
-    shownames{i} = ffnames(i).datafile;
-    
-    % the NMR data
-    out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1000;
-    out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1000;
-    data.import.NMR.data{i} = out{i}.nmrData{1};
-    data.import.NMR.para{i} = out{i}.parData;
-    data.import.NMR.para{i}.SampleParameter = SampleParameter;
-    
-    % subtract the background signal
-    s = data.import.NMR.data{i}.signal;
-    if i==1 && isfield(ref1,'s')
-        s(1:numel(ref1.s)) = complex( real(s(1:numel(ref1.s)))-...
-            real(ref1.s),imag(s(1:numel(ref1.s))) );
-    elseif i==2 && isfield(ref2,'s')
-        s(1:numel(ref2.s)) = complex( real(s(1:numel(ref2.s)))-...
-            real(ref2.s),imag(s(1:numel(ref2.s))) );
-    end
-    
-    data.import.NMR.data{i}.signal = s;
-    data.import.NMR.data{i}.raw.signal = s;
-    
-    if ~isempty(strfind(workfiles{i},' - background'))
-        data.import.LIAG.sampleVol(i) = backVol;
-    elseif ~isempty(strfind(workfiles{i},' - calibration'))
-        data.import.LIAG.sampleVol(i) = calibVol;
-    elseif isempty(strfind(workfiles{i},' - background')) &&...
-            isempty(strfind(workfiles{i},' - calibration'))
-        data.import.LIAG.sampleVol(i) = dataVol;
-    end
-end
-data.import.LIAG.Tbulk = 1e6;
-data.import.LIAG.workpaths = workpaths;
-
-% update the global data structure
-data.import.NMR.files = ffnames;
-data.import.NMR.filesShort = shownames;
 
 end
 

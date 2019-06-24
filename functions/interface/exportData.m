@@ -48,188 +48,273 @@ switch fig_tag
         % which NMR signal
         id = get(gui.listbox_handles.signal,'Value');
         
-        % check if data can be exported
-        doexport = checkINV(INVdata,id);
-        
-        if doexport
-            % get the new file name
-            sfilename = data.import.NMR.filesShort{id};
-            ind1 = strfind(sfilename,'.');
-            if isempty(ind1)
-                sfilename = [sfilename,'_INV'];
-            else
-                sfilename = [sfilename(1:ind1-1),'_INV'];
-            end
+        % different export formats
+        switch format
             
-            % different export formats
-            switch format
-                case 'excelS'
-                    % get the file name
-                    [sfile,spath] = uiputfile('*.xlsx',...
-                        'Save inversion to Excel-file',...
-                        fullfile(data.import.path,[sfilename,'.xlsx']));
+            case 'LIAGcsvT2' % raw data
+                % check if there is any data at all
+                if isfield(data.import,'NMR')
                     
-                    % if user didn't cancel
-                    if sum([sfile spath]) > 0
-                        exportINV_EXCEL(gui,INVdata,id,sfile,spath);
-                    end
+                    % display info text
+                    displayStatusText(gui,...
+                        'Exporting LIAG csv T2 raw data ...');
+                    % which NMR signal
+                    id = get(gui.listbox_handles.signal,'Value');
+                    % export path
+                    spath = data.import.path;
+                    % export file names
+                    fname = data.import.NMR.data{id}.datfile;
+                    fname_org = [fname,'.org'];
+                    % ask the user if the imag part should be set to zero
+                    quest = 'Set imaginary part to ZERO?';
+                    title = 'Saving T2 data';
+                    answer = questdlg(quest,title,'Yes');
                     
-                case 'matS'
-                    % get the file name
-                    [sfile,spath] = uiputfile('*.mat',...
-                        'Save inversion to mat-file',...
-                        fullfile(data.import.path,[sfilename,'.mat']));
-                    
-                    % if user didn't cancel
-                    if sum([sfile spath]) > 0
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting inversion data to mat-file ...');
-                        % gather all data
-                        idata.NMRdata = data.import.NMR.data{id};
-                        idata.results = INVdata{id}.results;
-                        idata.NUCLEUSinv_GUI = INVdata{id};
-                        idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,'results');
-                        
-                        % save to file
-                        save(fullfile(spath,sfile),'idata');
-                        
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting inversion data to mat-file ... done');
-                    else
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting inversion data to mat-file ... canceled');
-                    end
-                    
-                case 'matA'
-                    % get the file name
-                    [sfile,spath] = uiputfile('*.mat',...
-                        'Save inversion to mat-file',...
-                        fullfile(data.import.path,'inversion_set.mat'));
-                    % if user didn't cancel
-                    if sum([sfile spath]) > 0
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting inversion set to mat-file ...');
-                        idata = struct;
-                        for id = 1:size(INVdata,1)
-                            if isstruct(INVdata{id})
-                                results = INVdata{id}.results;
-                                results = rmfield(results,'nmrraw');
-                                results.nmraw = data.import.NMR.data{id};
-                                idata.results(id) = results;                                
+                    switch answer
+                        case {'Yes','No'}
+                            % first copy original file to backup file
+                            sourcef = fullfile(spath,fname);
+                            destf = fullfile(spath,fname_org);
+                            [status,~,~] = copyfile(sourcef,destf);
+                            % if the backup was successful save the data
+                            if status == 1
+                                t = data.import.NMR.data{id}.time;
+                                s = data.import.NMR.data{id}.signal;
+                                
+                                switch answer
+                                    case 'Yes'
+                                        out = [t real(s) zeros(size(t))];
+                                    case 'No'
+                                        out = [t real(s) imag(s)];
+                                end
+                                dlmwrite(sourcef,out,'precision','%.6f');
+                                
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting LIAG csv T2 raw data ... done');
+                            else
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting LIAG csv T2 raw data ... canceled');
                             end
-                        end
-                        idata.NUCLEUSinv_GUI = INVdata{1};
-                        idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,'results');
-                        
-                        % save to file
-                        save(fullfile(spath,sfile),'idata');
-                        
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting inversion set to mat-file ... done');
-                    else
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting inversion set to mat-file ... canceled');
-                    end                    
-                    
-                case 'LIAG'
-                    
-                    if isfield(data.import,'LIAG')
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting LIAG archive data ...');
-                        % find id of sample
-                        id = 1;
-                        spath = data.import.LIAG.workpaths{id};
-                        sfilename = ['INV_',data.import.NMR.filesShort{id}];
-                        
-                        % session output
-                        silent.sname = fullfile(spath,[sfilename,'_session.mat']);
-                        exportINV('session',silent);
-                        
-                        % csv output
-                        csvname = fullfile(spath,[sfilename,'.csv']);
-                        exportINV_CSV(INVdata{id},csvname);
-                        
-                        % png graphics
-                        pngname = fullfile(spath,[sfilename,'.png']);
-                        [f,ax] = exportGraphics('INV','fig');
-                        
-                        figure(f);
-                        por = INVdata{id}.invstd.porosity;
-                        tname = [sfilename(5:end),' (water content: ',...
-                            sprintf('%2.1f',por*100),' vol. %)'];
-                        set(get(ax(1),'Title'),'String',tname,'Interpreter','none');
-                        
-                        yy = get(ax(2),'YLim');
-                        TLGM = INVdata{id}.results.invstd.Tlgm;
-                        T = INVdata{id}.results.invstd.T1T2me;
-                        F = INVdata{id}.results.invstd.T1T2f;
-                        F = 100.*por.*F./sum(F);
-                        amp = findApproxTlgmAmplitude(T,F,TLGM);
-                        stem(TLGM,amp,...
-                            'x-','Color',[0.3 0.3 0.3],'LineWidth',2,...
-                            'Tag','TLGM','Parent',ax(2));
-                        
-                        switch INVdata{id}.process.timescale
-                            case 's'
-                                CBW = INVdata{id}.param.CBWcutoff/1000;
-                                BVI = INVdata{id}.param.BVIcutoff/1000;
-                            case 'ms'
-                                CBW = INVdata{id}.param.CBWcutoff;
-                                BVI = INVdata{id}.param.BVIcutoff;
-                        end
-                        line([CBW CBW],[yy(1) yy(2)],'Color',[0.3 0.3 0.3],'LineStyle','--',...
-                            'LineWidth',1,'Parent',ax(2),'Tag','infolines');
-                        line([BVI BVI],[yy(1) yy(2)],'Color',[0.3 0.3 0.3],'LineStyle','--',...
-                            'LineWidth',1,'Parent',ax(2),'Tag','infolines');
-                        legend(ax(2),'RTD','TLGM','cutoffs');
-                        
-                        CBWa = abs(sum(F(T<=CBW))/sum(F));
-                        BVIa = abs(sum(F(T>CBW & T<=BVI))/sum(F));
-                        BVMa = abs(sum(F(T>BVI))/sum(F));
-%                         tname2 = ['CBW: ',sprintf('%2.1f',por*100*CBWa),...
-%                             ' | BVI: ',sprintf('%2.1f',por*100*BVIa),...
-%                             ' | BVM: ',sprintf('%2.1f',por*100*BVMa),...
-%                             ' vol. % | TLGM: ',sprintf('%4.3f',TLGM),' [s]'];
-                        tname2 = ['CBW / BVI / BVM: ',sprintf('%2.1f',por*100*CBWa),...
-                            ' / ',sprintf('%2.1f',por*100*BVIa),...
-                            ' / ',sprintf('%2.1f',por*100*BVMa),...
-                            ' vol. % | TLGM: ',sprintf('%4.3f',TLGM),' [s]'];
-                        set(get(ax(2),'Title'),'String',tname2,'Interpreter','none');
-                        
-                        set(f,'PaperType','A4','PaperUnits','centimeters',...
-                            'PaperOrientation','portrait');
-                        set(f,'PaperPositionMode','manual',...
-                            'PaperPosition',[0.6 6.2 19.7 17.2]);
-                        set(f,'Renderer','painter');
-                        print(f,pngname,'-r300','-dpng');
-                        close(f);
-                        
-                        % display info text
-                        displayStatusText(gui,...
-                            'Exporting LIAG archive data ... done');
-                        
-                    else
-                        helpdlg({'function: exportData',...
-                            'This routine works only on LIAG specific project data.'},...
-                            'No LIAG data');
+                        otherwise
+                            % display info text
+                            displayStatusText(gui,...
+                                'Exporting LIAG csv T2 raw data ... canceled');
                     end
-            end
+                end
+                
+            otherwise % inv data
+                % check if data can be exported
+                doexport_inv = checkINV(INVdata,id);
+                
+                if doexport_inv
+                    % get the new file name
+                    sfilename = data.import.NMR.filesShort{id};
+                    ind1 = strfind(sfilename,'.');
+                    if isempty(ind1)
+                        sfilename = [sfilename,'_INV'];
+                    else
+                        sfilename = [sfilename(1:ind1-1),'_INV'];
+                    end
+                    
+                    % different export formats
+                    switch format
+                        case 'excelS'
+                            % get the file name
+                            [sfile,spath] = uiputfile('*.xlsx',...
+                                'Save inversion to Excel-file',...
+                                fullfile(data.import.path,[sfilename,'.xlsx']));
+                            
+                            % if user didn't cancel
+                            if sum([sfile spath]) > 0
+                                exportINV_EXCEL(gui,INVdata,id,sfile,spath);
+                            end
+                            
+                        case 'matS'
+                            % get the file name
+                            [sfile,spath] = uiputfile('*.mat',...
+                                'Save inversion to mat-file',...
+                                fullfile(data.import.path,[sfilename,'.mat']));
+                            
+                            % if user didn't cancel
+                            if sum([sfile spath]) > 0
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting inversion data to mat-file ...');
+                                % gather all data
+                                idata.NMRdata = data.import.NMR.data{id};
+                                idata.results = INVdata{id}.results;
+                                idata.NUCLEUSinv_GUI = INVdata{id};
+                                idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,'results');
+                                
+                                % save to file
+                                save(fullfile(spath,sfile),'idata');
+                                
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting inversion data to mat-file ... done');
+                            else
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting inversion data to mat-file ... canceled');
+                            end
+                            
+                        case 'matA'
+                            % get the file name
+                            [sfile,spath] = uiputfile('*.mat',...
+                                'Save inversion to mat-file',...
+                                fullfile(data.import.path,'inversion_set.mat'));
+                            % if user didn't cancel
+                            if sum([sfile spath]) > 0
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting inversion set to mat-file ...');
+                                idata = struct;
+                                for id = 1:size(INVdata,1)
+                                    if isstruct(INVdata{id})
+                                        results = INVdata{id}.results;
+                                        results = rmfield(results,'nmrraw');
+                                        results.nmraw = data.import.NMR.data{id};
+                                        idata.results(id) = results;
+                                    end
+                                end
+                                idata.NUCLEUSinv_GUI = INVdata{1};
+                                idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,'results');
+                                
+                                % save to file
+                                save(fullfile(spath,sfile),'idata');
+                                
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting inversion set to mat-file ... done');
+                            else
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting inversion set to mat-file ... canceled');
+                            end
+                            
+                        case 'LIAG'
+                            
+                            if isfield(data.import,'LIAG')
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting LIAG archive data ...');
+                                % find id of sample
+                                id = 1;
+                                spath = data.import.LIAG.workpaths{id};
+                                sfilename = ['INV_',data.import.NMR.filesShort{id}];
+                                
+                                % session output
+                                silent.sname = fullfile(spath,[sfilename,'_session.mat']);
+                                exportINV('session',silent);
+                                
+                                % csv output
+                                csvname = fullfile(spath,[sfilename,'.csv']);
+                                exportINV_CSV(INVdata{id},csvname);
+                                
+                                % png graphics
+                                pngname = fullfile(spath,[sfilename,'.png']);
+                                [f,ax] = exportGraphics('INV','fig');
+                                
+                                figure(f);
+                                por = INVdata{id}.invstd.porosity;
+                                tname = [sfilename(5:end),' (water content: ',...
+                                    sprintf('%2.1f',por*100),' vol. %)'];
+                                set(get(ax(1),'Title'),'String',tname,'Interpreter','none');
+                                
+                                % get the cut-offs
+                                switch INVdata{id}.process.timescale
+                                    case 's'
+                                        CBW = INVdata{id}.param.CBWcutoff/1000;
+                                        BVI = INVdata{id}.param.BVIcutoff/1000;
+                                    case 'ms'
+                                        CBW = INVdata{id}.param.CBWcutoff;
+                                        BVI = INVdata{id}.param.BVIcutoff;
+                                end
+                                % ylim of relaxation time axis
+                                yy = get(ax(2),'YLim');
+                                lgdstr = cell(1,1);
+                                switch INVdata{id}.invstd.invtype
+                                    case {'ILA','NNLS'}
+                                        TLGM = INVdata{id}.results.invstd.Tlgm;
+                                        T = INVdata{id}.results.invstd.T1T2me;
+                                        F = INVdata{id}.results.invstd.T1T2f;
+                                        F = 100.*por.*F./sum(F);
+                                        amp = findApproxTlgmAmplitude(T,F,TLGM);
+                                        stem(TLGM,amp,...
+                                            'x-','Color',[0.3 0.3 0.3],'LineWidth',2,...
+                                            'Tag','TLGM','Parent',ax(2));
+                                        lgdstr{1} = 'RTD';
+                                        lgdstr{2} = 'TLGM';
+                                        
+                                        CBWa = abs(sum(F(T<=CBW))/sum(F));
+                                        BVIa = abs(sum(F(T>CBW & T<=BVI))/sum(F));
+                                        BVMa = abs(sum(F(T>BVI))/sum(F));
+                                        % tname2 = ['CBW: ',sprintf('%2.1f',por*100*CBWa),...
+                                        % ' | BVI: ',sprintf('%2.1f',por*100*BVIa),...
+                                        % ' | BVM: ',sprintf('%2.1f',por*100*BVMa),...
+                                        % ' vol. % | TLGM: ',sprintf('%4.3f',TLGM),' [s]'];
+                                        tname2 = ['CBW / BVI / BVM: ',sprintf('%2.1f',por*100*CBWa),...
+                                            ' / ',sprintf('%2.1f',por*100*BVIa),...
+                                            ' / ',sprintf('%2.1f',por*100*BVMa),...
+                                            ' vol. % | TLGM: ',sprintf('%5.4f',TLGM),' [s]'];
+                                        
+                                    case {'mono','free'}
+                                        F = INVdata{id}.results.invstd.E0(:);
+                                        switch INVdata{id}.results.nmrproc.T1T2
+                                            case 'T1'
+                                                T = INVdata{id}.results.invstd.T1(:);
+                                            case 'T2'
+                                                T = INVdata{id}.results.invstd.T2(:);
+                                        end
+                                        F = 100.*por.*F./sum(F);
+                                        CBWa = abs(sum(F(T<=CBW))/sum(F));
+                                        BVIa = abs(sum(F(T>CBW & T<=BVI))/sum(F));
+                                        BVMa = abs(sum(F(T>BVI))/sum(F));
+                                        tname2 = ['CBW / BVI / BVM: ',sprintf('%2.1f',por*100*CBWa),...
+                                            ' / ',sprintf('%2.1f',por*100*BVIa),...
+                                            ' / ',sprintf('%2.1f',por*100*BVMa),...
+                                            ' vol. %'];
+                                        for i = 1:numel(T)
+                                            lgdstr{i} = ['Tx',num2str(i)];
+                                        end
+                                end
+                                % print cut-off lines
+                                line([CBW CBW],[yy(1) yy(2)],'Color',[0.3 0.3 0.3],'LineStyle','--',...
+                                    'LineWidth',1,'Parent',ax(2),'Tag','infolines');
+                                line([BVI BVI],[yy(1) yy(2)],'Color',[0.3 0.3 0.3],'LineStyle','--',...
+                                    'LineWidth',1,'Parent',ax(2),'Tag','infolines');
+                                legend(ax(2),[lgdstr,'cutoffs']);
+                                set(get(ax(2),'Title'),'String',tname2,'Interpreter','none');
+                                
+                                set(f,'PaperType','A4','PaperUnits','centimeters',...
+                                    'PaperOrientation','portrait');
+                                set(f,'PaperPositionMode','manual',...
+                                    'PaperPosition',[0.6 6.2 19.7 17.2]);
+                                set(f,'Renderer','painter');
+                                print(f,pngname,'-r300','-dpng');
+                                close(f);
+                                
+                                % display info text
+                                displayStatusText(gui,...
+                                    'Exporting LIAG archive data ... done');
+                                
+                            else
+                                helpdlg({'function: exportData',...
+                                    'This routine works only on LIAG specific project data.'},...
+                                    'No LIAG data');
+                            end
+                    end
+                end
         end
-        
     case 'MOD'
         % check if data can be exported
-        doexport = checkMOD(data);
-        if doexport
+        doexport_mod = checkMOD(data);
+        if doexport_mod
             % different export formats
             switch format
-                case 'mat'                    
+                case 'mat'
                     % gather all relevant data
                     out = data.results;
                     if isfield(out.NMR.raw,'Tb')
@@ -255,7 +340,7 @@ switch fig_tag
                         displayStatusText(gui,'Saving to MAT-file ... canceled.');
                     end
                     
-                case 'xls'                    
+                case 'xls'
                     indd = data.pressure.DrainLevels;
                     indi = data.pressure.ImbLevels;
                     results = data.results;
@@ -412,7 +497,24 @@ switch INVdata.invstd.invtype
         F = 100*por.*F./sum(F);
         tmp4 = [INVdata.results.invstd.T1T2me(:)...
             INVdata.results.invstd.T1T2f(:) F];
-        header4 = {['relaxation times [',unit,']'],'frequency [-]',' water content [vol. %]'};
+        header4 = {['relaxation times [',unit,']'],'frequency [-]',...
+            ' water content [vol. %]'};
+        
+    case {'mono','free'}
+        por = INVdata.invstd.porosity;
+        F = 100*por.*INVdata.results.invstd.E0./sum(INVdata.results.invstd.E0);
+        switch INVdata.results.nmrproc.T1T2
+            case 'T1'
+                tmp4 = [INVdata.results.invstd.T1(:)...
+                    INVdata.results.invstd.E0(:) F(:)];
+                header4 = {['relaxation time(s) T1 [',unit,']'],...
+                    'amplitude [a.u.]',' water content [vol. %]'};
+            case 'T2'
+                tmp4 = [INVdata.results.invstd.T2(:)...
+                    INVdata.results.invstd.E0(:) F(:)];
+                header4 = {['relaxation time(s) T2 [',unit,']'],...
+                    'amplitude [a.u.]',' water content [vol. %]'};
+        end
         
     otherwise
         % Nothing to do
@@ -421,10 +523,10 @@ end
 % glue together headers
 cHeader = [header2 header3 header4];
 % insert commas
-commaHeader = [cHeader;repmat({','},1,numel(cHeader))]; 
+commaHeader = [cHeader;repmat({','},1,numel(cHeader))];
 commaHeader = commaHeader(:)';
 % cHeader as string with commas
-textHeader = cell2mat(commaHeader(1:numel(commaHeader)-1)); 
+textHeader = cell2mat(commaHeader(1:numel(commaHeader)-1));
 
 maxrows = max([size(tmp2,1) size(tmp3,1) size(tmp4,1)]);
 % glue together data
@@ -445,7 +547,7 @@ out(1:maxrows,yi:yi-1+size(tmp4,2)) = tmp4;
 
 % save to file
 %write header to file
-fid = fopen(sfile,'w'); 
+fid = fopen(sfile,'w');
 fprintf(fid,'%s\n',textHeader);
 fclose(fid);
 %write data to end of file

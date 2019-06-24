@@ -70,6 +70,8 @@ switch T1T2flag
         nmrData{1}.time = data.time;
         nmrData{1}.signal = data.signal;
         nmrData{1}.raw = data.raw;
+        nmrData{1}.phase = data.phase;
+
         clear data
 end
 
@@ -86,16 +88,18 @@ d = load(fullfile(datapath,fname));
 
 if size(d,2) == 3
     % a T2 measurement has three columns
-    data.flag   = 'T2';
-    data.time   = d(:,1);
+    data.flag = 'T2';
+    data.time = d(:,1);
     data.signal = complex(d(:,2),d(:,3));
+    [data.signal,data.phase] = rotateT2phase(data.signal);
 else
-    data.flag   = '0';
-    data.time   = 0;
+    data.flag = '0';
+    data.time = 0;
     data.signal = 0;
+    data.phase = 0;
 end
 
-data.raw.time   = data.time;
+data.raw.time = data.time;
 data.raw.signal = data.signal;
 
 end
@@ -113,12 +117,12 @@ for i = 1:size(d{1},1)
     
     ispace = strfind(str,' ');
     if ~isempty(ispace)
-        prop   = str(1:ispace(1)-1);
-        value  = str(ispace(end)+1:end);
+        prop = str(1:ispace(1)-1);
+        value = str(ispace(end)+1:end);
         valchk = str2double(value);
         
         str1 = [prop,' = ',value];
-        d1{i}= str1;
+        d1{i} = str1;
         
         if isnan(valchk)
             if isempty(value)

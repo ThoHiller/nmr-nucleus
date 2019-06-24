@@ -96,7 +96,7 @@ if Nsig > 1
                 if isfield(data.sig(i),'V_im')
                     nmrData{i}.signal = complex(data.sig(i).V_re,data.sig(i).V_im);
                     % if there is an imag part the signal gets phase corrected
-                    [nmrData{i}.signal,parData{i}.phase] = rotateT2phase(nmrData{i}.signal);
+                    [nmrData{i}.signal,nmrData{i}.phase] = rotateT2phase(nmrData{i}.signal);
                 else
                     nmrData{i}.signal = data.sig(i).V_re;
                 end

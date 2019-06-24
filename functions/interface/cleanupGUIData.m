@@ -51,6 +51,10 @@ if isfield(data.import,'LIAG')
     data.import = rmfield(data.import,'LIAG');
 end
 
+if isfield(data.import,'BAM')
+    data.import = rmfield(data.import,'BAM');
+end
+
 if isfield(data,'results')
     data = rmfield(data,'results');
 end

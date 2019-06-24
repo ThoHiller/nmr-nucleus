@@ -54,6 +54,8 @@ if ~isempty(INVdata)
             ix     = ix';
         case 'date'
             [~,ix] = sort(time);
+        case 'flip'
+            ix = flipud((1:1:N)');
     end
     
     % now apply changes - resort the imported data
@@ -67,7 +69,11 @@ if ~isempty(INVdata)
     % update the listbox entries
     shownames = get(gui.listbox_handles.signal,'String');
     set(gui.listbox_handles.signal,'String',{shownames{ix}});
-    set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);    
+    set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);
+    
+    if isfield(data.import,'BAM') && isfield(data.import.BAM,'zslice')
+        data.import.BAM.zslice = flipud(data.import.BAM.zslice);
+    end
 else
     % if there is no data to sort throw a help dialog
     helpdlg('Nothing to do because there is no data loaded!',...

@@ -176,6 +176,7 @@ if isfield(data.import,'NMRMOD')
             case 'T2'
                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EdT2(dL(i),:)';
         end
+        data.import.NMR.data{c}.phase = 0;
         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
         data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
         
@@ -215,6 +216,7 @@ if isfield(data.import,'NMRMOD')
             case 'T2'
                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT2(iL(i),:)';
         end
+        data.import.NMR.data{c}.phase = 0;
         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
         data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
         
