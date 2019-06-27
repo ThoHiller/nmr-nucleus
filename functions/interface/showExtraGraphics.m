@@ -123,15 +123,19 @@ if foundINV
     end
     
     if isfield(data.import,'BAM')
-        xval = data.import.BAM.zslice;
-        xlabelstr = 'position [m]';
+        if data.import.BAM.use_z
+            xval = data.import.BAM.zslice;
+            xlabelstr = 'position [m]';
+        else
+            xlabelstr = 'date' ;
+        end
     else
         xlabelstr = 'date' ;
     end
     
     % plot it
     switch method
-        case 'amp'           
+        case 'amp'
             f = figure;
             ax1 = subplot(311,'Parent',f);
             ax2 = subplot(312,'Parent',f);
@@ -185,7 +189,7 @@ if foundINV
                 end
             end
             
-        case 'ampvst'    
+        case 'ampvst'
             f = figure;
             ax1 = axes('Parent',f);
             

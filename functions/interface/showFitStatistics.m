@@ -146,7 +146,7 @@ if isfield(data,'results')
         if isfield(data.results,'invstd')
             invstd = data.results.invstd;
         end
-        loglinx = get(maingui.cm_handles.axes_raw_xaxis,'Label');
+        loglinx = get(maingui.cm_handles.axes_proc_xaxis,'Label');
         lgdstr = cell(1,1);
         lgdc = 0;
         % plot imaginary part

@@ -638,7 +638,7 @@ switch data.info.ExpertMode
             'String',num2str(data.param.sampVol));
 end
 
-% Matlab need some time
+% Matlab needs some time
 pause(0.001);
 
 end

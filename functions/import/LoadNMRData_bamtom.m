@@ -38,7 +38,7 @@ function out = LoadNMRData_bamtom(in)
 % load Parameter file
 [parData] = LoadParameterFile(in.path,[in.name,'.par']);
 % check if T1 or T2 data
-if strcmp(parData.measurementType,'CPMG_Lift')
+if ~isempty(strfind(parData.measurementType,'CPMG'))
     T1T2flag = 'T2';
 else
     T1T2flag = 'T1';
@@ -55,30 +55,59 @@ switch T1T2flag
         
         % read all 'nslices' measurements
         nslices = parData.nSlices;
+        ncsvfiles = numel(dir(fullfile(in.path,'*.csv')));
         
-        nmrData = cell(1,nslices);
-        for i = 1:nslices
-            % find data file
-            file = dir(fullfile(in.path,['*',sprintf('%03d',i),'.csv']));
+        if nslices == ncsvfiles
             
-            % read the data file
-            data = LoadDataFile(in.path,file.name,T1T2flag);
+            nmrData = cell(1,nslices);
+            for i = 1:nslices
+                % find data file
+                file = dir(fullfile(in.path,['*',sprintf('%03d',i),'.csv']));
+                
+                % read the data file
+                data = LoadDataFile(in.path,file.name,T1T2flag);
+                
+                % save the NMR data
+                nmrData{i}.flag = data.flag;
+                nmrData{i}.T1IRfac = 1;
+                nmrData{i}.time = data.time;
+                nmrData{i}.signal = data.signal;
+                nmrData{i}.raw = data.raw;
+                nmrData{i}.phase = data.phase;
+                nmrData{i}.phase_bam = data.phase_bam;
+                clear data
+                
+                % get file statistics
+                nmrData{i}.datfile = file.name;
+                nmrData{i}.date = file.date;
+                nmrData{i}.datenum = file.datenum;
+                nmrData{i}.bytes = file.bytes;
+            end
             
-            % save the NMR data
-            nmrData{i}.flag = data.flag;
-            nmrData{i}.T1IRfac = 1;
-            nmrData{i}.time = data.time;
-            nmrData{i}.signal = data.signal;
-            nmrData{i}.raw = data.raw;
-            nmrData{i}.phase = data.phase;
-            nmrData{i}.phase_bam = data.phase_bam;
-            clear data
+        else
             
-            % get file statistics
-            nmrData{i}.datfile = file.name;
-            nmrData{i}.date = file.date;
-            nmrData{i}.datenum = file.datenum;
-            nmrData{i}.bytes = file.bytes;
+            files = dir(fullfile(in.path,'*.csv'));
+            nmrData = cell(1,ncsvfiles);
+            for i = 1:ncsvfiles
+                % read the data file
+                data = LoadDataFile(in.path,files(i).name,T1T2flag);
+                
+                % save the NMR data
+                nmrData{i}.flag = data.flag;
+                nmrData{i}.T1IRfac = 1;
+                nmrData{i}.time = data.time;
+                nmrData{i}.signal = data.signal;
+                nmrData{i}.raw = data.raw;
+                nmrData{i}.phase = data.phase;
+                nmrData{i}.phase_bam = data.phase_bam;
+                clear data
+                
+                % get file statistics
+                nmrData{i}.datfile = files(i).name;
+                nmrData{i}.date = files(i).date;
+                nmrData{i}.datenum = files(i).datenum;
+                nmrData{i}.bytes = files(i).bytes;
+            end
         end
 end
 
@@ -126,7 +155,7 @@ d = textscan(fid,'%s','Delimiter','\n');
 fclose(fid);
 
 for i = 1:size(d{1},1)
-    str = char(d{1}(i));    
+    str = char(d{1}(i));
     if ~isempty(str) && ~strcmp(str(1),'#')
         str = fixParameterString(str);
         if ~isempty(strfind(str,'coilName')) || ~isempty(strfind(str,'measurementType'))

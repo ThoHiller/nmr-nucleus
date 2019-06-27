@@ -41,8 +41,8 @@ h0  = findobj('Tag','MOD');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.5';
-myui.date = '27.03.2019';
+myui.version = '0.1.7';
+myui.date = '27.06.2019';
 myui.author = 'Thomas Hiller';
 myui.email = 'thomas.hiller[at]leibniz-liag.de';
 myui.fontsize = 10;

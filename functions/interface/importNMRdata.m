@@ -189,6 +189,7 @@ try
                     calib = load(fullfile(cpath,isfile.name),'calib');
                     INVdata{id} = calib.calib;
                     data.calib = INVdata{id}.calib;
+                    data.import.LIAG.Tbulk = INVdata{id}.results.invstd.T2;
                     setappdata(fig,'INVdata',INVdata);
                     setappdata(fig,'data',data);
                     % color the list entry
@@ -491,15 +492,24 @@ end
 
 switch data.import.fileformat
     case 'bamtom'
-        % create z-vector
-        p = out.parData;
-        zslice = linspace(p.startPos,p.endPos,p.nSlices)';
-        data.import.BAM.zslice = zslice;
-        if numel(zslice) > 1
-            for i = 1:numel(zslice)
-                tmp = shownames{i};
-                shownames{i} = [tmp,' z:',sprintf('%5.4f',zslice(i))];
+        nslices = out.parData.nSlices;
+        ncsvfiles = numel(fnames);
+        
+        if nslices == ncsvfiles
+            % create z-vector
+            p = out.parData;
+            zslice = linspace(p.startPos,p.endPos,p.nSlices)';
+            data.import.BAM.use_z = true;
+            data.import.BAM.zslice = zslice;
+            if numel(zslice) > 1
+                for i = 1:numel(zslice)
+                    tmp = shownames{i};
+                    shownames{i} = [tmp,' z:',sprintf('%5.4f',zslice(i))];
+                end
             end
+        else
+            data.import.BAM.use_z = false;
+            data.import.BAM.zslice = 1:1:ncsvfiles;
         end
 end
 

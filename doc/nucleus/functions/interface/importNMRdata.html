@@ -274,708 +274,718 @@ This function is called by:
 0189                     calib = load(fullfile(cpath,isfile.name),<span class="string">'calib'</span>);
 0190                     INVdata{id} = calib.calib;
 0191                     data.calib = INVdata{id}.calib;
-0192                     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0193                     setappdata(fig,<span class="string">'data'</span>,data);
-0194                     <span class="comment">% color the list entry</span>
-0195                     strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
-0196                     str1 = strL{id};
-0197                     str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
-0198                         sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,<span class="keyword">...</span>
-0199                         str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0200                     strL{id} = str2;
-0201                     set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
-0202                 <span class="keyword">end</span>
-0203             <span class="keyword">otherwise</span>
-0204         <span class="keyword">end</span>
-0205         <span class="comment">% update GUI interface</span>
-0206         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0207     <span class="keyword">end</span>
-0208     
-0209 <span class="keyword">catch</span> ME
-0210     <span class="comment">% show error message in case import fails</span>
-0211     errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
-0212         <span class="string">'Check File Format settings.'</span>};
-0213     errordlg(errmsg,<span class="string">'importNMRdata: Error!'</span>);
-0214     
-0215 <span class="keyword">end</span>
-0216 
-0217 <span class="keyword">end</span>
-0218 
-0219 <span class="comment">%%</span>
-0220 <a name="_sub1" href="#_subfunctions" class="code">function [NMRpath,NMRfile] = getNMRPathFile(label,import)</a>
-0221 
-0222 NMRpath = -1;
-0223 NMRfile = -1;
-0224 <span class="comment">% for almost all import cases we load a folder ... but not for all</span>
-0225 <span class="keyword">switch</span> label
-0226     <span class="keyword">case</span> {<span class="string">'RWTH ascii'</span>,<span class="string">'RWTH field'</span>,<span class="string">'CoreLab ascii'</span>,<span class="string">'MOUSE'</span>,<span class="string">'LIAG single'</span>,<span class="keyword">...</span>
-0227             <span class="string">'BGR std'</span>,<span class="string">'BGR org'</span>,<span class="string">'BAM TOM'</span>}
-0228         <span class="comment">% if there is already a data folder present we start from here</span>
-0229         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
-0230             NMRpath = uigetdir(import.path,<span class="string">'Choose Data Path'</span>);
-0231         <span class="keyword">else</span>
-0232             <span class="comment">% otherwise we start at the current working dircetory</span>
-0233             <span class="comment">% 'NMRpath' holds the name of the choosen data path</span>
-0234             here = mfilename(<span class="string">'fullpath'</span>);
-0235             [pathstr,~,~] = fileparts(here);
-0236             NMRpath = uigetdir(pathstr,<span class="string">'Choose Data Path'</span>);
-0237         <span class="keyword">end</span>
-0238     <span class="keyword">case</span> <span class="string">'LIAG from project'</span>
-0239         <span class="comment">% if there is already a data folder present we start from here</span>
-0240         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
-0241             NMRpath = uigetdir(import.path,<span class="string">'Choose Project Path'</span>);
-0242         <span class="keyword">else</span>
-0243             <span class="comment">% otherwise we start at the current working dircetory</span>
-0244             <span class="comment">% 'NMRpath' holds the name of the choosen data path</span>
-0245             here = mfilename(<span class="string">'fullpath'</span>);
-0246             [pathstr,~,~] = fileparts(here);
-0247             NMRpath = uigetdir(pathstr,<span class="string">'Choose Project Path'</span>);
-0248         <span class="keyword">end</span>
-0249     <span class="keyword">case</span> <span class="string">'LIAG last project'</span>
-0250         <span class="comment">% there is already a data folder and we use this one</span>
-0251         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
-0252             NMRpath = import.path;
-0253         <span class="keyword">else</span>
-0254             <span class="comment">% otherwise we start at the current working dircetory</span>
-0255             <span class="comment">% 'NMRpath' holds the name of the choosen data path</span>
-0256             here = mfilename(<span class="string">'fullpath'</span>);
-0257             [pathstr,~,~] = fileparts(here);
-0258             NMRpath = uigetdir(pathstr,<span class="string">'Choose Project Path'</span>);
-0259         <span class="keyword">end</span>
-0260     <span class="keyword">case</span> {<span class="string">'Dart'</span>,<span class="string">'BGR mat'</span>,<span class="string">'NMR mat'</span>}
-0261         <span class="comment">% if there is already a data folder present we start from here</span>
-0262         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
-0263             [NMRfile,NMRpath] = uigetfile(import.path,<span class="string">'Choose Data file'</span>);
-0264         <span class="keyword">else</span>
-0265             <span class="comment">% otherwise we start at the current working dircetory</span>
-0266             <span class="comment">% 'foldername' hold s the name of the choosen data path</span>
-0267             here = mfilename(<span class="string">'fullpath'</span>);
-0268             [pathstr,~,~] = fileparts(here);
-0269             [NMRfile,NMRpath] = uigetfile(pathstr,<span class="string">'Choose Data file'</span>);
-0270         <span class="keyword">end</span>
-0271 <span class="keyword">end</span>
-0272 
-0273 <span class="keyword">end</span>
-0274 
-0275 <span class="comment">%%</span>
-0276 <a name="_sub2" href="#_subfunctions" class="code">function [data,gui] = importDataBGR(data,gui)</a>
-0277 
-0278 <span class="comment">% first check the subpaths</span>
-0279 <span class="comment">% there should be 'cpmgfastauto' and 't1test'</span>
-0280 t1path = dir(fullfile(data.import.path,<span class="string">'t1test'</span>));
-0281 t1path = t1path(~ismember({t1path.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
-0282 t2path = dir(fullfile(data.import.path,<span class="string">'cpmgfastauto'</span>));
-0283 t2path = t2path(~ismember({t2path.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
-0284 
-0285 fnames = struct;
-0286 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0287 <span class="comment">% will be shown in the listbox</span>
-0288 shownames = cell(1,1);
-0289 
-0290 c = 0;
-0291 <span class="keyword">if</span> ~isempty(t1path)
-0292     <span class="keyword">for</span> i = 1:size(t1path,1)
-0293         in.T1T2 = <span class="string">'T1'</span>;
-0294         in.path = fullfile(data.import.path,<span class="string">'t1test'</span>,t1path(i).name);
-0295         in.fileformat = data.import.fileformat;
-0296         out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0297         
-0298         <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0299             <span class="comment">% the individual file names</span>
-0300             c = c + 1;
-0301             fnames(c).parfile = <span class="string">'acq.par'</span>;
-0302             fnames(c).datafile = out.nmrData{j}.datfile;
-0303             
-0304             shownames{c} = [<span class="string">'T1_'</span>,t1path(i).name,<span class="string">'_'</span>,fnames(c).datafile];
-0305             
-0306             <span class="comment">% the NMR data</span>
-0307             <span class="comment">% here we fix the time scale from [ms] to [s]</span>
-0308             <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
-0309                 out.nmrData{j}.time = out.nmrData{j}.time/1000;
-0310                 out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-0311             <span class="keyword">end</span>
-0312             data.import.NMR.data{c} = out.nmrData{j};
-0313             data.import.NMR.para{c} = out.parData;
-0314         <span class="keyword">end</span>
-0315     <span class="keyword">end</span>
-0316 <span class="keyword">end</span>
-0317 
-0318 <span class="keyword">if</span> ~isempty(t2path)
-0319     <span class="keyword">for</span> i = 1:size(t2path,1)
-0320         in.T1T2 = <span class="string">'T2'</span>;
-0321         in.path = fullfile(data.import.path,<span class="string">'cpmgfastauto'</span>,t2path(i).name);
-0322         in.fileformat = data.import.fileformat;
-0323         out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0324         
-0325         <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0326             <span class="comment">% the individual file names</span>
-0327             c = c + 1;
-0328             fnames(c).parfile = <span class="string">'acq.par'</span>;
-0329             fnames(c).datafile = out.nmrData{j}.datfile;
-0330             fnames(c).T2specfile = <span class="string">''</span>;
-0331             
-0332             shownames{c} = [<span class="string">'T2_'</span>,t2path(i).name,<span class="string">'_'</span>,fnames(c).datafile];
-0333             
-0334             <span class="comment">% the NMR data</span>
-0335             <span class="comment">% here we fix the time scale from [ms] to [s]</span>
-0336             <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
-0337                 out.nmrData{j}.time = out.nmrData{j}.time/1000;
-0338                 out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-0339             <span class="keyword">end</span>
-0340             data.import.NMR.data{c} = out.nmrData{j};
-0341             data.import.NMR.para{c} = out.parData;
-0342         <span class="keyword">end</span>
-0343     <span class="keyword">end</span>
-0344 <span class="keyword">end</span>
-0345 
-0346 <span class="keyword">if</span> isempty(t1path) &amp;&amp; isempty(t2path)
-0347     helpdlg(<span class="string">'No data folders in the given directory.'</span>,<span class="string">'onMenuImport: No data.'</span>);
-0348 <span class="keyword">else</span>
-0349     <span class="comment">% update the global data structure</span>
-0350     data.import.NMR.files = fnames;
-0351     data.import.NMR.filesShort = shownames;
-0352 <span class="keyword">end</span>
-0353 
-0354 <span class="keyword">end</span>
-0355 
-0356 <span class="comment">%%</span>
-0357 <a name="_sub3" href="#_subfunctions" class="code">function [data,gui] = importDataBGRmat(data,gui)</a>
-0358 
-0359 in.path = fullfile(data.import.path);
-0360 in.name = data.import.file;
-0361 in.fileformat = data.import.fileformat;
-0362 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0363 
-0364 fnames = struct;
-0365 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0366 <span class="comment">% will be shown in the listbox</span>
-0367 shownames = cell(1,1);
-0368 
-0369 c = 0;
-0370 table = {true,0,1,<span class="string">'D'</span>};
-0371 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0372     <span class="comment">% the individual file names</span>
-0373     c = c + 1;
-0374     fnames(c).parfile = <span class="string">''</span>;
-0375     fnames(c).datafile = data.import.file;
-0376     fnames(c).T2specfile = <span class="string">''</span>;
-0377     
-0378     shownames{c} = out.parData{j}.file;
-0379     
-0380     data.import.NMR.data{c} = out.nmrData{j};
-0381     data.import.NMR.para{c} = out.parData{j};
-0382     
-0383     <span class="keyword">if</span> isfield(out,<span class="string">'pressData'</span>)
-0384         <span class="comment">% convert hPa to Pa</span>
-0385         table{c,1} = true;
-0386         table{c,2} = out.pressData.p(j)*1e2;
-0387         table{c,3} = out.pressData.S(j);
-0388         table{c,4} = <span class="string">'D'</span>;
-0389     <span class="keyword">end</span>
-0390 <span class="keyword">end</span>
-0391 
-0392 <span class="comment">% global Tbulk</span>
-0393 data.invstd.Tbulk = out.parData{1}.Tbulk;
-0394 <span class="comment">% global porosity</span>
-0395 data.import.BGR.porosity = out.parData{1}.porosity;
-0396 
-0397 data.import.NMR.files = fnames;
-0398 data.import.NMR.filesShort = shownames;
-0399 
-0400 <span class="comment">% import pressure / saturation data</span>
-0401 <span class="keyword">if</span> isfield(out,<span class="string">'pressData'</span>)
-0402     data.pressure.unit = <span class="string">'kPa'</span>;
-0403     data.pressure.unitfac = 1e-3;
-0404     data.pressure.table = table;
-0405 <span class="keyword">end</span>
-0406 
-0407 <span class="keyword">end</span>
-0408 
-0409 <span class="comment">%%</span>
-0410 <a name="_sub4" href="#_subfunctions" class="code">function [data,gui] = importDataDart(data,gui)</a>
-0411 
-0412 in.path = fullfile(data.import.path);
-0413 in.name = data.import.file;
-0414 in.fileformat = data.import.fileformat;
-0415 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0416 
-0417 fnames = struct;
-0418 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0419 <span class="comment">% will be shown in the listbox</span>
-0420 shownames = cell(1,1);
-0421 
-0422 c = 0;
-0423 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0424     <span class="comment">% the individual file names</span>
-0425     c = c + 1;
-0426     fnames(c).parfile = <span class="string">''</span>;
-0427     fnames(c).datafile = data.import.file;
-0428     fnames(c).T2specfile = <span class="string">''</span>;
-0429     
-0430     shownames{c} = [<span class="string">'depth_'</span>,sprintf(<span class="string">'%04.3f'</span>,out.parData{j}.depth)];
-0431     
-0432     <span class="comment">% the NMR data</span>
-0433     <span class="comment">% here we fix the time scale from [ms] to [s]</span>
-0434     <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
-0435         out.nmrData{j}.time = out.nmrData{j}.time/1000;
-0436         out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-0437     <span class="keyword">end</span>
-0438     data.import.NMR.data{c} = out.nmrData{j};
-0439     data.import.NMR.para{c} = out.parData{j};
-0440 <span class="keyword">end</span>
-0441 
-0442 data.import.NMR.files = fnames;
-0443 data.import.NMR.filesShort = shownames;
-0444 
-0445 <span class="keyword">end</span>
-0446 
-0447 <span class="comment">%%</span>
-0448 <a name="_sub5" href="#_subfunctions" class="code">function [data,gui] = importDataGeneral(data,gui)</a>
-0449 
-0450 <span class="comment">% look for all files ending with '.par'</span>
-0451 <span class="comment">% should exist for T1 and T2 measurements</span>
-0452 filenames = dir(fullfile(data.import.path,<span class="string">'*.par'</span>));
-0453 
-0454 fnames = struct;
-0455 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0456 <span class="comment">% will be shown in the listbox</span>
-0457 shownames = cell(1,1);
-0458 
-0459 <span class="comment">% loop over all found files and import the data</span>
-0460 c = 0;
-0461 in.path = data.import.path;
-0462 <span class="keyword">for</span> i = 1:size(filenames,1)
-0463     ind = strfind(filenames(i).name,<span class="string">'.'</span>);
-0464     ind = max(ind);
-0465     in.name = filenames(i).name(1:ind-1);
-0466     in.fileformat = data.import.fileformat;
-0467     out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0468     
-0469     <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0470         <span class="comment">% the individual file names</span>
-0471         c = c + 1;
-0472         fnames(c).parfile = filenames(i).name;
-0473         fnames(c).datafile = out.nmrData{j}.datfile;
-0474         <span class="keyword">if</span> strcmp(out.nmrData{j}.flag,<span class="string">'T2'</span>) &amp;&amp; isfield(out.nmrData{j},<span class="string">'specfile'</span>)
-0475             fnames(c).T2specfile = out.nmrData{j}.specfile;
-0476         <span class="keyword">else</span>
-0477             fnames(c).T2specfile = <span class="string">''</span>;
-0478         <span class="keyword">end</span>
-0479         shownames{c} = fnames(c).datafile;
-0480         
-0481         <span class="comment">% the NMR data</span>
-0482         <span class="comment">% here we fix the time scale from [ms] to [s]</span>
-0483         <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
-0484             out.nmrData{j}.time = out.nmrData{j}.time/1000;
-0485             out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-0486         <span class="keyword">end</span>
-0487         data.import.NMR.data{c} = out.nmrData{j};
-0488         data.import.NMR.para{c} = out.parData;
-0489     <span class="keyword">end</span>
-0490 <span class="keyword">end</span>
-0491 
-0492 <span class="keyword">switch</span> data.import.fileformat
-0493     <span class="keyword">case</span> <span class="string">'bamtom'</span>
-0494         <span class="comment">% create z-vector</span>
-0495         p = out.parData;
-0496         zslice = linspace(p.startPos,p.endPos,p.nSlices)';
-0497         data.import.BAM.zslice = zslice;
-0498         <span class="keyword">if</span> numel(zslice) &gt; 1
-0499             <span class="keyword">for</span> i = 1:numel(zslice)
-0500                 tmp = shownames{i};
-0501                 shownames{i} = [tmp,<span class="string">' z:'</span>,sprintf(<span class="string">'%5.4f'</span>,zslice(i))];
-0502             <span class="keyword">end</span>
-0503         <span class="keyword">end</span>
-0504 <span class="keyword">end</span>
-0505 
-0506 <span class="comment">% update the global data structure</span>
-0507 data.import.NMR.files = fnames;
-0508 data.import.NMR.filesShort = shownames;
-0509 
-0510 <span class="keyword">end</span>
-0511 
-0512 <span class="comment">%%</span>
-0513 <a name="_sub6" href="#_subfunctions" class="code">function [data,gui] = importDataLIAG(data,gui)</a>
-0514 
-0515 in.path = fullfile(data.import.path);
-0516 in.fileformat = data.import.fileformat;
-0517 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0518 
-0519 fnames = struct;
-0520 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0521 <span class="comment">% will be shown in the listbox</span>
-0522 shownames = cell(1,1);
-0523 
-0524 c = 0;
-0525 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0526     <span class="comment">% the individual file names</span>
-0527     c = c + 1;
-0528     fnames(c).parfile = <span class="string">'acqu.par'</span>;
-0529     fnames(c).datafile = out.nmrData{j}.datfile;
-0530     fnames(c).T2specfile = <span class="string">''</span>;
-0531     
-0532     shownames{c} = fnames(c).datafile;
-0533     
-0534     <span class="comment">% the NMR data</span>
-0535     <span class="comment">% here we fix the time scale from [ms] to [s]</span>
-0536     <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
-0537         out.nmrData{j}.time = out.nmrData{j}.time/1000;
-0538         out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-0539     <span class="keyword">end</span>
-0540     data.import.NMR.data{c} = out.nmrData{j};
-0541     data.import.NMR.para{c} = out.parData;
-0542 <span class="keyword">end</span>
-0543 
-0544 <span class="comment">% update the global data structure</span>
-0545 data.import.NMR.files = fnames;
-0546 data.import.NMR.filesShort = shownames;
-0547 
-0548 <span class="keyword">end</span>
-0549 
-0550 <span class="comment">%%</span>
-0551 <a name="_sub7" href="#_subfunctions" class="code">function [data,gui] = importDataLIAGproject(data,gui)</a>
-0552 
-0553 <span class="comment">% 1) show all folders and ask for sample</span>
-0554 subdirs = dir(data.import.path);
-0555 <span class="comment">% remove the dot-dirs</span>
-0556 subdirs = subdirs(~ismember({subdirs.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
+0192                     data.import.LIAG.Tbulk = INVdata{id}.results.invstd.T2;
+0193                     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0194                     setappdata(fig,<span class="string">'data'</span>,data);
+0195                     <span class="comment">% color the list entry</span>
+0196                     strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0197                     str1 = strL{id};
+0198                     str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0199                         sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,<span class="keyword">...</span>
+0200                         str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0201                     strL{id} = str2;
+0202                     set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+0203                 <span class="keyword">end</span>
+0204             <span class="keyword">otherwise</span>
+0205         <span class="keyword">end</span>
+0206         <span class="comment">% update GUI interface</span>
+0207         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0208     <span class="keyword">end</span>
+0209     
+0210 <span class="keyword">catch</span> ME
+0211     <span class="comment">% show error message in case import fails</span>
+0212     errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0213         <span class="string">'Check File Format settings.'</span>};
+0214     errordlg(errmsg,<span class="string">'importNMRdata: Error!'</span>);
+0215     
+0216 <span class="keyword">end</span>
+0217 
+0218 <span class="keyword">end</span>
+0219 
+0220 <span class="comment">%%</span>
+0221 <a name="_sub1" href="#_subfunctions" class="code">function [NMRpath,NMRfile] = getNMRPathFile(label,import)</a>
+0222 
+0223 NMRpath = -1;
+0224 NMRfile = -1;
+0225 <span class="comment">% for almost all import cases we load a folder ... but not for all</span>
+0226 <span class="keyword">switch</span> label
+0227     <span class="keyword">case</span> {<span class="string">'RWTH ascii'</span>,<span class="string">'RWTH field'</span>,<span class="string">'CoreLab ascii'</span>,<span class="string">'MOUSE'</span>,<span class="string">'LIAG single'</span>,<span class="keyword">...</span>
+0228             <span class="string">'BGR std'</span>,<span class="string">'BGR org'</span>,<span class="string">'BAM TOM'</span>}
+0229         <span class="comment">% if there is already a data folder present we start from here</span>
+0230         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
+0231             NMRpath = uigetdir(import.path,<span class="string">'Choose Data Path'</span>);
+0232         <span class="keyword">else</span>
+0233             <span class="comment">% otherwise we start at the current working dircetory</span>
+0234             <span class="comment">% 'NMRpath' holds the name of the choosen data path</span>
+0235             here = mfilename(<span class="string">'fullpath'</span>);
+0236             [pathstr,~,~] = fileparts(here);
+0237             NMRpath = uigetdir(pathstr,<span class="string">'Choose Data Path'</span>);
+0238         <span class="keyword">end</span>
+0239     <span class="keyword">case</span> <span class="string">'LIAG from project'</span>
+0240         <span class="comment">% if there is already a data folder present we start from here</span>
+0241         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
+0242             NMRpath = uigetdir(import.path,<span class="string">'Choose Project Path'</span>);
+0243         <span class="keyword">else</span>
+0244             <span class="comment">% otherwise we start at the current working dircetory</span>
+0245             <span class="comment">% 'NMRpath' holds the name of the choosen data path</span>
+0246             here = mfilename(<span class="string">'fullpath'</span>);
+0247             [pathstr,~,~] = fileparts(here);
+0248             NMRpath = uigetdir(pathstr,<span class="string">'Choose Project Path'</span>);
+0249         <span class="keyword">end</span>
+0250     <span class="keyword">case</span> <span class="string">'LIAG last project'</span>
+0251         <span class="comment">% there is already a data folder and we use this one</span>
+0252         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
+0253             NMRpath = import.path;
+0254         <span class="keyword">else</span>
+0255             <span class="comment">% otherwise we start at the current working dircetory</span>
+0256             <span class="comment">% 'NMRpath' holds the name of the choosen data path</span>
+0257             here = mfilename(<span class="string">'fullpath'</span>);
+0258             [pathstr,~,~] = fileparts(here);
+0259             NMRpath = uigetdir(pathstr,<span class="string">'Choose Project Path'</span>);
+0260         <span class="keyword">end</span>
+0261     <span class="keyword">case</span> {<span class="string">'Dart'</span>,<span class="string">'BGR mat'</span>,<span class="string">'NMR mat'</span>}
+0262         <span class="comment">% if there is already a data folder present we start from here</span>
+0263         <span class="keyword">if</span> isfield(import,<span class="string">'path'</span>)
+0264             [NMRfile,NMRpath] = uigetfile(import.path,<span class="string">'Choose Data file'</span>);
+0265         <span class="keyword">else</span>
+0266             <span class="comment">% otherwise we start at the current working dircetory</span>
+0267             <span class="comment">% 'foldername' hold s the name of the choosen data path</span>
+0268             here = mfilename(<span class="string">'fullpath'</span>);
+0269             [pathstr,~,~] = fileparts(here);
+0270             [NMRfile,NMRpath] = uigetfile(pathstr,<span class="string">'Choose Data file'</span>);
+0271         <span class="keyword">end</span>
+0272 <span class="keyword">end</span>
+0273 
+0274 <span class="keyword">end</span>
+0275 
+0276 <span class="comment">%%</span>
+0277 <a name="_sub2" href="#_subfunctions" class="code">function [data,gui] = importDataBGR(data,gui)</a>
+0278 
+0279 <span class="comment">% first check the subpaths</span>
+0280 <span class="comment">% there should be 'cpmgfastauto' and 't1test'</span>
+0281 t1path = dir(fullfile(data.import.path,<span class="string">'t1test'</span>));
+0282 t1path = t1path(~ismember({t1path.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
+0283 t2path = dir(fullfile(data.import.path,<span class="string">'cpmgfastauto'</span>));
+0284 t2path = t2path(~ismember({t2path.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
+0285 
+0286 fnames = struct;
+0287 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0288 <span class="comment">% will be shown in the listbox</span>
+0289 shownames = cell(1,1);
+0290 
+0291 c = 0;
+0292 <span class="keyword">if</span> ~isempty(t1path)
+0293     <span class="keyword">for</span> i = 1:size(t1path,1)
+0294         in.T1T2 = <span class="string">'T1'</span>;
+0295         in.path = fullfile(data.import.path,<span class="string">'t1test'</span>,t1path(i).name);
+0296         in.fileformat = data.import.fileformat;
+0297         out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0298         
+0299         <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0300             <span class="comment">% the individual file names</span>
+0301             c = c + 1;
+0302             fnames(c).parfile = <span class="string">'acq.par'</span>;
+0303             fnames(c).datafile = out.nmrData{j}.datfile;
+0304             
+0305             shownames{c} = [<span class="string">'T1_'</span>,t1path(i).name,<span class="string">'_'</span>,fnames(c).datafile];
+0306             
+0307             <span class="comment">% the NMR data</span>
+0308             <span class="comment">% here we fix the time scale from [ms] to [s]</span>
+0309             <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
+0310                 out.nmrData{j}.time = out.nmrData{j}.time/1000;
+0311                 out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+0312             <span class="keyword">end</span>
+0313             data.import.NMR.data{c} = out.nmrData{j};
+0314             data.import.NMR.para{c} = out.parData;
+0315         <span class="keyword">end</span>
+0316     <span class="keyword">end</span>
+0317 <span class="keyword">end</span>
+0318 
+0319 <span class="keyword">if</span> ~isempty(t2path)
+0320     <span class="keyword">for</span> i = 1:size(t2path,1)
+0321         in.T1T2 = <span class="string">'T2'</span>;
+0322         in.path = fullfile(data.import.path,<span class="string">'cpmgfastauto'</span>,t2path(i).name);
+0323         in.fileformat = data.import.fileformat;
+0324         out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0325         
+0326         <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0327             <span class="comment">% the individual file names</span>
+0328             c = c + 1;
+0329             fnames(c).parfile = <span class="string">'acq.par'</span>;
+0330             fnames(c).datafile = out.nmrData{j}.datfile;
+0331             fnames(c).T2specfile = <span class="string">''</span>;
+0332             
+0333             shownames{c} = [<span class="string">'T2_'</span>,t2path(i).name,<span class="string">'_'</span>,fnames(c).datafile];
+0334             
+0335             <span class="comment">% the NMR data</span>
+0336             <span class="comment">% here we fix the time scale from [ms] to [s]</span>
+0337             <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
+0338                 out.nmrData{j}.time = out.nmrData{j}.time/1000;
+0339                 out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+0340             <span class="keyword">end</span>
+0341             data.import.NMR.data{c} = out.nmrData{j};
+0342             data.import.NMR.para{c} = out.parData;
+0343         <span class="keyword">end</span>
+0344     <span class="keyword">end</span>
+0345 <span class="keyword">end</span>
+0346 
+0347 <span class="keyword">if</span> isempty(t1path) &amp;&amp; isempty(t2path)
+0348     helpdlg(<span class="string">'No data folders in the given directory.'</span>,<span class="string">'onMenuImport: No data.'</span>);
+0349 <span class="keyword">else</span>
+0350     <span class="comment">% update the global data structure</span>
+0351     data.import.NMR.files = fnames;
+0352     data.import.NMR.filesShort = shownames;
+0353 <span class="keyword">end</span>
+0354 
+0355 <span class="keyword">end</span>
+0356 
+0357 <span class="comment">%%</span>
+0358 <a name="_sub3" href="#_subfunctions" class="code">function [data,gui] = importDataBGRmat(data,gui)</a>
+0359 
+0360 in.path = fullfile(data.import.path);
+0361 in.name = data.import.file;
+0362 in.fileformat = data.import.fileformat;
+0363 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0364 
+0365 fnames = struct;
+0366 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0367 <span class="comment">% will be shown in the listbox</span>
+0368 shownames = cell(1,1);
+0369 
+0370 c = 0;
+0371 table = {true,0,1,<span class="string">'D'</span>};
+0372 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0373     <span class="comment">% the individual file names</span>
+0374     c = c + 1;
+0375     fnames(c).parfile = <span class="string">''</span>;
+0376     fnames(c).datafile = data.import.file;
+0377     fnames(c).T2specfile = <span class="string">''</span>;
+0378     
+0379     shownames{c} = out.parData{j}.file;
+0380     
+0381     data.import.NMR.data{c} = out.nmrData{j};
+0382     data.import.NMR.para{c} = out.parData{j};
+0383     
+0384     <span class="keyword">if</span> isfield(out,<span class="string">'pressData'</span>)
+0385         <span class="comment">% convert hPa to Pa</span>
+0386         table{c,1} = true;
+0387         table{c,2} = out.pressData.p(j)*1e2;
+0388         table{c,3} = out.pressData.S(j);
+0389         table{c,4} = <span class="string">'D'</span>;
+0390     <span class="keyword">end</span>
+0391 <span class="keyword">end</span>
+0392 
+0393 <span class="comment">% global Tbulk</span>
+0394 data.invstd.Tbulk = out.parData{1}.Tbulk;
+0395 <span class="comment">% global porosity</span>
+0396 data.import.BGR.porosity = out.parData{1}.porosity;
+0397 
+0398 data.import.NMR.files = fnames;
+0399 data.import.NMR.filesShort = shownames;
+0400 
+0401 <span class="comment">% import pressure / saturation data</span>
+0402 <span class="keyword">if</span> isfield(out,<span class="string">'pressData'</span>)
+0403     data.pressure.unit = <span class="string">'kPa'</span>;
+0404     data.pressure.unitfac = 1e-3;
+0405     data.pressure.table = table;
+0406 <span class="keyword">end</span>
+0407 
+0408 <span class="keyword">end</span>
+0409 
+0410 <span class="comment">%%</span>
+0411 <a name="_sub4" href="#_subfunctions" class="code">function [data,gui] = importDataDart(data,gui)</a>
+0412 
+0413 in.path = fullfile(data.import.path);
+0414 in.name = data.import.file;
+0415 in.fileformat = data.import.fileformat;
+0416 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0417 
+0418 fnames = struct;
+0419 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0420 <span class="comment">% will be shown in the listbox</span>
+0421 shownames = cell(1,1);
+0422 
+0423 c = 0;
+0424 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0425     <span class="comment">% the individual file names</span>
+0426     c = c + 1;
+0427     fnames(c).parfile = <span class="string">''</span>;
+0428     fnames(c).datafile = data.import.file;
+0429     fnames(c).T2specfile = <span class="string">''</span>;
+0430     
+0431     shownames{c} = [<span class="string">'depth_'</span>,sprintf(<span class="string">'%04.3f'</span>,out.parData{j}.depth)];
+0432     
+0433     <span class="comment">% the NMR data</span>
+0434     <span class="comment">% here we fix the time scale from [ms] to [s]</span>
+0435     <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
+0436         out.nmrData{j}.time = out.nmrData{j}.time/1000;
+0437         out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+0438     <span class="keyword">end</span>
+0439     data.import.NMR.data{c} = out.nmrData{j};
+0440     data.import.NMR.para{c} = out.parData{j};
+0441 <span class="keyword">end</span>
+0442 
+0443 data.import.NMR.files = fnames;
+0444 data.import.NMR.filesShort = shownames;
+0445 
+0446 <span class="keyword">end</span>
+0447 
+0448 <span class="comment">%%</span>
+0449 <a name="_sub5" href="#_subfunctions" class="code">function [data,gui] = importDataGeneral(data,gui)</a>
+0450 
+0451 <span class="comment">% look for all files ending with '.par'</span>
+0452 <span class="comment">% should exist for T1 and T2 measurements</span>
+0453 filenames = dir(fullfile(data.import.path,<span class="string">'*.par'</span>));
+0454 
+0455 fnames = struct;
+0456 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0457 <span class="comment">% will be shown in the listbox</span>
+0458 shownames = cell(1,1);
+0459 
+0460 <span class="comment">% loop over all found files and import the data</span>
+0461 c = 0;
+0462 in.path = data.import.path;
+0463 <span class="keyword">for</span> i = 1:size(filenames,1)
+0464     ind = strfind(filenames(i).name,<span class="string">'.'</span>);
+0465     ind = max(ind);
+0466     in.name = filenames(i).name(1:ind-1);
+0467     in.fileformat = data.import.fileformat;
+0468     out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0469     
+0470     <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0471         <span class="comment">% the individual file names</span>
+0472         c = c + 1;
+0473         fnames(c).parfile = filenames(i).name;
+0474         fnames(c).datafile = out.nmrData{j}.datfile;
+0475         <span class="keyword">if</span> strcmp(out.nmrData{j}.flag,<span class="string">'T2'</span>) &amp;&amp; isfield(out.nmrData{j},<span class="string">'specfile'</span>)
+0476             fnames(c).T2specfile = out.nmrData{j}.specfile;
+0477         <span class="keyword">else</span>
+0478             fnames(c).T2specfile = <span class="string">''</span>;
+0479         <span class="keyword">end</span>
+0480         shownames{c} = fnames(c).datafile;
+0481         
+0482         <span class="comment">% the NMR data</span>
+0483         <span class="comment">% here we fix the time scale from [ms] to [s]</span>
+0484         <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
+0485             out.nmrData{j}.time = out.nmrData{j}.time/1000;
+0486             out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+0487         <span class="keyword">end</span>
+0488         data.import.NMR.data{c} = out.nmrData{j};
+0489         data.import.NMR.para{c} = out.parData;
+0490     <span class="keyword">end</span>
+0491 <span class="keyword">end</span>
+0492 
+0493 <span class="keyword">switch</span> data.import.fileformat
+0494     <span class="keyword">case</span> <span class="string">'bamtom'</span>
+0495         nslices = out.parData.nSlices;
+0496         ncsvfiles = numel(fnames);
+0497         
+0498         <span class="keyword">if</span> nslices == ncsvfiles
+0499             <span class="comment">% create z-vector</span>
+0500             p = out.parData;
+0501             zslice = linspace(p.startPos,p.endPos,p.nSlices)';
+0502             data.import.BAM.use_z = true;
+0503             data.import.BAM.zslice = zslice;
+0504             <span class="keyword">if</span> numel(zslice) &gt; 1
+0505                 <span class="keyword">for</span> i = 1:numel(zslice)
+0506                     tmp = shownames{i};
+0507                     shownames{i} = [tmp,<span class="string">' z:'</span>,sprintf(<span class="string">'%5.4f'</span>,zslice(i))];
+0508                 <span class="keyword">end</span>
+0509             <span class="keyword">end</span>
+0510         <span class="keyword">else</span>
+0511             data.import.BAM.use_z = false;
+0512             data.import.BAM.zslice = 1:1:ncsvfiles;
+0513         <span class="keyword">end</span>
+0514 <span class="keyword">end</span>
+0515 
+0516 <span class="comment">% update the global data structure</span>
+0517 data.import.NMR.files = fnames;
+0518 data.import.NMR.filesShort = shownames;
+0519 
+0520 <span class="keyword">end</span>
+0521 
+0522 <span class="comment">%%</span>
+0523 <a name="_sub6" href="#_subfunctions" class="code">function [data,gui] = importDataLIAG(data,gui)</a>
+0524 
+0525 in.path = fullfile(data.import.path);
+0526 in.fileformat = data.import.fileformat;
+0527 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0528 
+0529 fnames = struct;
+0530 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0531 <span class="comment">% will be shown in the listbox</span>
+0532 shownames = cell(1,1);
+0533 
+0534 c = 0;
+0535 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0536     <span class="comment">% the individual file names</span>
+0537     c = c + 1;
+0538     fnames(c).parfile = <span class="string">'acqu.par'</span>;
+0539     fnames(c).datafile = out.nmrData{j}.datfile;
+0540     fnames(c).T2specfile = <span class="string">''</span>;
+0541     
+0542     shownames{c} = fnames(c).datafile;
+0543     
+0544     <span class="comment">% the NMR data</span>
+0545     <span class="comment">% here we fix the time scale from [ms] to [s]</span>
+0546     <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
+0547         out.nmrData{j}.time = out.nmrData{j}.time/1000;
+0548         out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+0549     <span class="keyword">end</span>
+0550     data.import.NMR.data{c} = out.nmrData{j};
+0551     data.import.NMR.para{c} = out.parData;
+0552 <span class="keyword">end</span>
+0553 
+0554 <span class="comment">% update the global data structure</span>
+0555 data.import.NMR.files = fnames;
+0556 data.import.NMR.filesShort = shownames;
 0557 
-0558 fnames = {subdirs.name};
-0559 [indx,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Sample:'</span>,<span class="keyword">...</span>
-0560     <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
-0561     <span class="string">'ListString'</span>,fnames);
+0558 <span class="keyword">end</span>
+0559 
+0560 <span class="comment">%%</span>
+0561 <a name="_sub7" href="#_subfunctions" class="code">function [data,gui] = importDataLIAGproject(data,gui)</a>
 0562 
-0563 <span class="keyword">if</span> ~isempty(indx)
-0564     <span class="comment">% 2) check corresponding SampleParameter.par file for reference and</span>
-0565     <span class="comment">% calibration sample and other parameters</span>
-0566     datapath = fullfile(data.import.path,fnames{indx});
-0567     <span class="comment">% load SampleParameter file for sample</span>
-0568     [SampleParameter] = <a href="#_sub9" class="code" title="subfunction data = loadGUIParameters(datapath,fname)">loadGUIParameters</a>(datapath,<span class="string">'SampleParameters.par'</span>);
-0569     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'sampleVolume'</span>)
-0570         dataVol = SampleParameter.sampleVolume;
-0571     <span class="keyword">else</span>
-0572         dataVol = 1;
-0573     <span class="keyword">end</span>
-0574     
-0575     <span class="comment">% 2a) background file #1</span>
-0576     backgroundFile1 = SampleParameter.backgroundFile;
-0577     <span class="keyword">if</span> isempty(backgroundFile1)
-0578         bnames = {subdirs.name};
-0579         bnames(indx) = [];
-0580         [indb,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Background File:'</span>,<span class="keyword">...</span>
-0581             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
-0582             <span class="string">'ListString'</span>,bnames);
-0583         <span class="keyword">if</span> ~isempty(indb)
-0584             backgroundFile1 = bnames{indb};
-0585         <span class="keyword">else</span>
-0586             backgroundFile1 = <span class="string">''</span>;
-0587         <span class="keyword">end</span>
-0588     <span class="keyword">end</span>
-0589     <span class="keyword">if</span> ~isempty(backgroundFile1)
-0590         ind = strfind(backgroundFile1,filesep);
-0591         <span class="keyword">if</span> ~isempty(ind)
-0592             backgroundFile1 = backgroundFile1(ind(end)+1:end);
-0593         <span class="keyword">end</span>
-0594         fileInList = ismember(fnames,{backgroundFile1});
-0595         <span class="keyword">if</span> any(fileInList)
-0596             backgroundpath1 = fullfile(data.import.path,fnames{fileInList});
+0563 <span class="comment">% 1) show all folders and ask for sample</span>
+0564 subdirs = dir(data.import.path);
+0565 <span class="comment">% remove the dot-dirs</span>
+0566 subdirs = subdirs(~ismember({subdirs.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
+0567 
+0568 fnames = {subdirs.name};
+0569 [indx,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Sample:'</span>,<span class="keyword">...</span>
+0570     <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
+0571     <span class="string">'ListString'</span>,fnames);
+0572 
+0573 <span class="keyword">if</span> ~isempty(indx)
+0574     <span class="comment">% 2) check corresponding SampleParameter.par file for reference and</span>
+0575     <span class="comment">% calibration sample and other parameters</span>
+0576     datapath = fullfile(data.import.path,fnames{indx});
+0577     <span class="comment">% load SampleParameter file for sample</span>
+0578     [SampleParameter] = <a href="#_sub9" class="code" title="subfunction data = loadGUIParameters(datapath,fname)">loadGUIParameters</a>(datapath,<span class="string">'SampleParameters.par'</span>);
+0579     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'sampleVolume'</span>)
+0580         dataVol = SampleParameter.sampleVolume;
+0581     <span class="keyword">else</span>
+0582         dataVol = 1;
+0583     <span class="keyword">end</span>
+0584     
+0585     <span class="comment">% 2a) background file #1</span>
+0586     backgroundFile1 = SampleParameter.backgroundFile;
+0587     <span class="keyword">if</span> isempty(backgroundFile1)
+0588         bnames = {subdirs.name};
+0589         bnames(indx) = [];
+0590         [indb,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Background File:'</span>,<span class="keyword">...</span>
+0591             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
+0592             <span class="string">'ListString'</span>,bnames);
+0593         <span class="keyword">if</span> ~isempty(indb)
+0594             backgroundFile1 = bnames{indb};
+0595         <span class="keyword">else</span>
+0596             backgroundFile1 = <span class="string">''</span>;
 0597         <span class="keyword">end</span>
-0598     <span class="keyword">else</span>
-0599         backgroundpath1 = <span class="string">''</span>;
-0600         backgroundFile1 = <span class="string">''</span>;
-0601     <span class="keyword">end</span>
-0602     backVol = 1;
-0603     
-0604     <span class="comment">% 2b) calibration file</span>
-0605     c = 0;
-0606     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile0'</span>)
-0607         c = c + 1;
-0608         calibrationFiles{c} = SampleParameter.calibrationFile0;
-0609     <span class="keyword">end</span>
-0610     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile1'</span>)
-0611         c = c + 1;
-0612         calibrationFiles{c} = SampleParameter.calibrationFile1;
-0613     <span class="keyword">end</span>
-0614     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile2'</span>)
-0615         c = c + 1;
-0616         calibrationFiles{c} = SampleParameter.calibrationFile2;
-0617     <span class="keyword">end</span>
-0618     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile3'</span>)
-0619         c = c + 1;
-0620         calibrationFiles{c} = SampleParameter.calibrationFile3;
-0621     <span class="keyword">end</span>
-0622     
-0623     <span class="comment">% find the non-empty one</span>
-0624     ind = ismember(calibrationFiles,{<span class="string">''</span>});
-0625     <span class="comment">% there are three possibilities: 0, 1 and more than 1 calib. files</span>
-0626     calibrationFiles(ind) = [];
-0627     <span class="keyword">if</span> isempty(calibrationFiles)
-0628         cnames = {subdirs.name};
-0629         cnames(indx) = [];
-0630         [indc,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Calibration File:'</span>,<span class="keyword">...</span>
-0631             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
-0632             <span class="string">'ListString'</span>,cnames);
-0633         <span class="keyword">if</span> ~isempty(indc)
-0634             calibrationFiles = cnames{indc};
-0635         <span class="keyword">else</span>
-0636             calibrationFiles = <span class="string">''</span>;
-0637         <span class="keyword">end</span>        
-0638     <span class="keyword">else</span>
-0639         <span class="comment">% if there are more than one let the user select the correct one</span>
-0640         <span class="keyword">if</span> numel(calibrationFiles) &gt; 1
-0641             [ind,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Calibration File:'</span>,<span class="keyword">...</span>
-0642                 <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
-0643                 <span class="string">'ListString'</span>,calibrationFiles);
-0644             calibrationFiles = calibrationFiles{ind};
+0598     <span class="keyword">end</span>
+0599     <span class="keyword">if</span> ~isempty(backgroundFile1)
+0600         ind = strfind(backgroundFile1,filesep);
+0601         <span class="keyword">if</span> ~isempty(ind)
+0602             backgroundFile1 = backgroundFile1(ind(end)+1:end);
+0603         <span class="keyword">end</span>
+0604         fileInList = ismember(fnames,{backgroundFile1});
+0605         <span class="keyword">if</span> any(fileInList)
+0606             backgroundpath1 = fullfile(data.import.path,fnames{fileInList});
+0607         <span class="keyword">end</span>
+0608     <span class="keyword">else</span>
+0609         backgroundpath1 = <span class="string">''</span>;
+0610         backgroundFile1 = <span class="string">''</span>;
+0611     <span class="keyword">end</span>
+0612     backVol = 1;
+0613     
+0614     <span class="comment">% 2b) calibration file</span>
+0615     c = 0;
+0616     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile0'</span>)
+0617         c = c + 1;
+0618         calibrationFiles{c} = SampleParameter.calibrationFile0;
+0619     <span class="keyword">end</span>
+0620     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile1'</span>)
+0621         c = c + 1;
+0622         calibrationFiles{c} = SampleParameter.calibrationFile1;
+0623     <span class="keyword">end</span>
+0624     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile2'</span>)
+0625         c = c + 1;
+0626         calibrationFiles{c} = SampleParameter.calibrationFile2;
+0627     <span class="keyword">end</span>
+0628     <span class="keyword">if</span> isfield(SampleParameter,<span class="string">'calibrationFile3'</span>)
+0629         c = c + 1;
+0630         calibrationFiles{c} = SampleParameter.calibrationFile3;
+0631     <span class="keyword">end</span>
+0632     
+0633     <span class="comment">% find the non-empty one</span>
+0634     ind = ismember(calibrationFiles,{<span class="string">''</span>});
+0635     <span class="comment">% there are three possibilities: 0, 1 and more than 1 calib. files</span>
+0636     calibrationFiles(ind) = [];
+0637     <span class="keyword">if</span> isempty(calibrationFiles)
+0638         cnames = {subdirs.name};
+0639         cnames(indx) = [];
+0640         [indc,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Calibration File:'</span>,<span class="keyword">...</span>
+0641             <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
+0642             <span class="string">'ListString'</span>,cnames);
+0643         <span class="keyword">if</span> ~isempty(indc)
+0644             calibrationFiles = cnames{indc};
 0645         <span class="keyword">else</span>
-0646             calibrationFiles = calibrationFiles{1};
-0647         <span class="keyword">end</span>
-0648     <span class="keyword">end</span>
-0649     <span class="keyword">if</span> ~isempty(calibrationFiles)
-0650         ind = strfind(calibrationFiles,filesep);
-0651         <span class="keyword">if</span> ~isempty(ind)
-0652             calibrationFiles = calibrationFiles(ind(end)+1:end);
-0653         <span class="keyword">end</span>
-0654         fileInList = ismember(fnames,{calibrationFiles});
-0655         <span class="keyword">if</span> any(fileInList)
-0656             calibrationpath = fullfile(data.import.path,fnames{fileInList});
+0646             calibrationFiles = <span class="string">''</span>;
+0647         <span class="keyword">end</span>        
+0648     <span class="keyword">else</span>
+0649         <span class="comment">% if there are more than one let the user select the correct one</span>
+0650         <span class="keyword">if</span> numel(calibrationFiles) &gt; 1
+0651             [ind,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Calibration File:'</span>,<span class="keyword">...</span>
+0652                 <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
+0653                 <span class="string">'ListString'</span>,calibrationFiles);
+0654             calibrationFiles = calibrationFiles{ind};
+0655         <span class="keyword">else</span>
+0656             calibrationFiles = calibrationFiles{1};
 0657         <span class="keyword">end</span>
-0658     <span class="keyword">else</span>
-0659         calibrationpath = <span class="string">''</span>;
-0660         calibrationFiles = <span class="string">''</span>;
-0661     <span class="keyword">end</span>
-0662     
-0663     <span class="keyword">if</span> ~isempty(calibrationpath)
-0664         [SampleParameterC] = <a href="#_sub9" class="code" title="subfunction data = loadGUIParameters(datapath,fname)">loadGUIParameters</a>(calibrationpath,<span class="string">'SampleParameters.par'</span>);
-0665         <span class="keyword">if</span> isfield(SampleParameterC,<span class="string">'sampleVolume'</span>)
-0666             calibVol = SampleParameterC.sampleVolume;
-0667         <span class="keyword">else</span>
-0668             calibVol = 1;
-0669         <span class="keyword">end</span>
-0670         
-0671         <span class="comment">% 2a) background file #2</span>
-0672         backgroundFile2 = SampleParameterC.backgroundFile;
-0673         <span class="keyword">if</span> isempty(backgroundFile2)
-0674             bnames = {subdirs.name};
-0675             bnames(indx) = [];
-0676             [indb,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Background File for Calibration:'</span>,<span class="keyword">...</span>
-0677                 <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
-0678                 <span class="string">'ListString'</span>,bnames);
-0679             <span class="keyword">if</span> ~isempty(indb)
-0680                 backgroundFile2 = bnames{indb};
-0681             <span class="keyword">else</span>
-0682                 backgroundFile2 = <span class="string">''</span>;
-0683             <span class="keyword">end</span>  
-0684         <span class="keyword">end</span>
-0685         <span class="keyword">if</span> ~isempty(backgroundFile2)
-0686             ind = strfind(backgroundFile2,filesep);
-0687             <span class="keyword">if</span> ~isempty(ind)
-0688                 backgroundFile2 = backgroundFile2(ind(end)+1:end);
-0689             <span class="keyword">end</span>
-0690             fileInList = ismember(fnames,{backgroundFile2});
-0691             <span class="keyword">if</span> any(fileInList)
-0692                 backgroundpath2 = fullfile(data.import.path,fnames{fileInList});
-0693             <span class="keyword">end</span>
-0694         <span class="keyword">else</span>
-0695             backgroundpath2 = <span class="string">''</span>;
-0696             backgroundFile2 = <span class="string">''</span>;
-0697         <span class="keyword">end</span>
-0698     <span class="keyword">else</span>
-0699         calibVol = 1;
-0700         backgroundpath2 = <span class="string">''</span>;
-0701         backgroundFile2 = <span class="string">''</span>;
-0702     <span class="keyword">end</span>
-0703     
-0704     <span class="comment">% 3) now load the data</span>
-0705     workpaths = {datapath,calibrationpath,backgroundpath1,backgroundpath2};
-0706     workfiles = {fnames{indx},[calibrationFiles,<span class="string">' - calibration'</span>],<span class="keyword">...</span>
-0707         [backgroundFile1,<span class="string">' - backgroundS'</span>],[backgroundFile2,<span class="string">' - backgroundC'</span>]};
-0708     out = cell(size(workpaths));
-0709     count = 0;
-0710     keep = false(size(workpaths));
-0711     <span class="keyword">for</span> i = 1:numel(workpaths)
-0712         <span class="keyword">if</span> ~isempty(workpaths{i})
-0713             workdirs = dir(workpaths{i});
-0714             workdirs = workdirs(~ismember({workdirs.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
-0715             isT2 = ismember({workdirs.name},{<span class="string">'T2CPMG'</span>});
-0716             <span class="keyword">if</span> any(isT2)
-0717                 keep(i) = true;
-0718                 count = count + 1;
-0719                 T2path = fullfile(workdirs(isT2).folder,workdirs(isT2).name);
-0720                 in.path = T2path;
-0721                 in.fileformat = data.import.fileformat;
-0722                 out{i} = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0723             <span class="keyword">end</span>
-0724         <span class="keyword">end</span>
-0725     <span class="keyword">end</span>    
-0726     
-0727     <span class="keyword">if</span> isempty(backgroundpath1)
-0728         ref1 = struct;
-0729     <span class="keyword">else</span>
-0730         background1 = out{3};
-0731         <span class="comment">% get the background data 1</span>
-0732         ref1.t = background1.nmrData{1}.time;
-0733         ref1.s = background1.nmrData{1}.signal;
-0734         [ref1.s,~] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(ref1.s);
-0735     <span class="keyword">end</span>
+0658     <span class="keyword">end</span>
+0659     <span class="keyword">if</span> ~isempty(calibrationFiles)
+0660         ind = strfind(calibrationFiles,filesep);
+0661         <span class="keyword">if</span> ~isempty(ind)
+0662             calibrationFiles = calibrationFiles(ind(end)+1:end);
+0663         <span class="keyword">end</span>
+0664         fileInList = ismember(fnames,{calibrationFiles});
+0665         <span class="keyword">if</span> any(fileInList)
+0666             calibrationpath = fullfile(data.import.path,fnames{fileInList});
+0667         <span class="keyword">end</span>
+0668     <span class="keyword">else</span>
+0669         calibrationpath = <span class="string">''</span>;
+0670         calibrationFiles = <span class="string">''</span>;
+0671     <span class="keyword">end</span>
+0672     
+0673     <span class="keyword">if</span> ~isempty(calibrationpath)
+0674         [SampleParameterC] = <a href="#_sub9" class="code" title="subfunction data = loadGUIParameters(datapath,fname)">loadGUIParameters</a>(calibrationpath,<span class="string">'SampleParameters.par'</span>);
+0675         <span class="keyword">if</span> isfield(SampleParameterC,<span class="string">'sampleVolume'</span>)
+0676             calibVol = SampleParameterC.sampleVolume;
+0677         <span class="keyword">else</span>
+0678             calibVol = 1;
+0679         <span class="keyword">end</span>
+0680         
+0681         <span class="comment">% 2a) background file #2</span>
+0682         backgroundFile2 = SampleParameterC.backgroundFile;
+0683         <span class="keyword">if</span> isempty(backgroundFile2)
+0684             bnames = {subdirs.name};
+0685             bnames(indx) = [];
+0686             [indb,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Select Background File for Calibration:'</span>,<span class="keyword">...</span>
+0687                 <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="keyword">...</span>
+0688                 <span class="string">'ListString'</span>,bnames);
+0689             <span class="keyword">if</span> ~isempty(indb)
+0690                 backgroundFile2 = bnames{indb};
+0691             <span class="keyword">else</span>
+0692                 backgroundFile2 = <span class="string">''</span>;
+0693             <span class="keyword">end</span>  
+0694         <span class="keyword">end</span>
+0695         <span class="keyword">if</span> ~isempty(backgroundFile2)
+0696             ind = strfind(backgroundFile2,filesep);
+0697             <span class="keyword">if</span> ~isempty(ind)
+0698                 backgroundFile2 = backgroundFile2(ind(end)+1:end);
+0699             <span class="keyword">end</span>
+0700             fileInList = ismember(fnames,{backgroundFile2});
+0701             <span class="keyword">if</span> any(fileInList)
+0702                 backgroundpath2 = fullfile(data.import.path,fnames{fileInList});
+0703             <span class="keyword">end</span>
+0704         <span class="keyword">else</span>
+0705             backgroundpath2 = <span class="string">''</span>;
+0706             backgroundFile2 = <span class="string">''</span>;
+0707         <span class="keyword">end</span>
+0708     <span class="keyword">else</span>
+0709         calibVol = 1;
+0710         backgroundpath2 = <span class="string">''</span>;
+0711         backgroundFile2 = <span class="string">''</span>;
+0712     <span class="keyword">end</span>
+0713     
+0714     <span class="comment">% 3) now load the data</span>
+0715     workpaths = {datapath,calibrationpath,backgroundpath1,backgroundpath2};
+0716     workfiles = {fnames{indx},[calibrationFiles,<span class="string">' - calibration'</span>],<span class="keyword">...</span>
+0717         [backgroundFile1,<span class="string">' - backgroundS'</span>],[backgroundFile2,<span class="string">' - backgroundC'</span>]};
+0718     out = cell(size(workpaths));
+0719     count = 0;
+0720     keep = false(size(workpaths));
+0721     <span class="keyword">for</span> i = 1:numel(workpaths)
+0722         <span class="keyword">if</span> ~isempty(workpaths{i})
+0723             workdirs = dir(workpaths{i});
+0724             workdirs = workdirs(~ismember({workdirs.name},{<span class="string">'.'</span>,<span class="string">'..'</span>}));
+0725             isT2 = ismember({workdirs.name},{<span class="string">'T2CPMG'</span>});
+0726             <span class="keyword">if</span> any(isT2)
+0727                 keep(i) = true;
+0728                 count = count + 1;
+0729                 T2path = fullfile(workdirs(isT2).folder,workdirs(isT2).name);
+0730                 in.path = T2path;
+0731                 in.fileformat = data.import.fileformat;
+0732                 out{i} = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0733             <span class="keyword">end</span>
+0734         <span class="keyword">end</span>
+0735     <span class="keyword">end</span>    
 0736     
-0737     <span class="keyword">if</span> isempty(backgroundpath2)
-0738         ref2 = struct;
+0737     <span class="keyword">if</span> isempty(backgroundpath1)
+0738         ref1 = struct;
 0739     <span class="keyword">else</span>
-0740         background2 = out{4};
-0741         <span class="comment">% get the background data 2</span>
-0742         ref2.t = background2.nmrData{1}.time;
-0743         ref2.s = background2.nmrData{1}.signal;
-0744         [ref2.s,~] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(ref2.s);
+0740         background1 = out{3};
+0741         <span class="comment">% get the background data 1</span>
+0742         ref1.t = background1.nmrData{1}.time;
+0743         ref1.s = background1.nmrData{1}.signal;
+0744         [ref1.s,~] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(ref1.s);
 0745     <span class="keyword">end</span>
 0746     
-0747     workpaths = workpaths(keep);
-0748     workfiles = workfiles(keep);
-0749     out = out(keep);
-0750     
-0751     ffnames = struct;
-0752     <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0753     <span class="comment">% will be shown in the listbox</span>
-0754     shownames = cell(1,1);
-0755     
-0756     <span class="keyword">for</span> i = 1:count
-0757         ffnames(i).parfile = <span class="string">'acqu.par'</span>;
-0758         ffnames(i).datafile = workfiles{i};
-0759         ffnames(i).T2specfile = <span class="string">''</span>;
-0760         
-0761         shownames{i} = ffnames(i).datafile;
-0762         
-0763         <span class="comment">% the NMR data</span>
-0764         out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1000;
-0765         out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1000;
-0766         data.import.NMR.data{i} = out{i}.nmrData{1};
-0767         data.import.NMR.para{i} = out{i}.parData;
-0768         data.import.NMR.para{i}.SampleParameter = SampleParameter;
-0769         
-0770         <span class="comment">% subtract the background signal</span>
-0771         s = data.import.NMR.data{i}.signal;
-0772         <span class="keyword">if</span> i==1 &amp;&amp; isfield(ref1,<span class="string">'s'</span>)
-0773             s(1:numel(ref1.s)) = complex( real(s(1:numel(ref1.s)))-<span class="keyword">...</span>
-0774                 real(ref1.s),imag(s(1:numel(ref1.s)))-imag(ref1.s) );
-0775         <span class="keyword">elseif</span> i==2 &amp;&amp; isfield(ref2,<span class="string">'s'</span>)
-0776             s(1:numel(ref2.s)) = complex( real(s(1:numel(ref2.s)))-<span class="keyword">...</span>
-0777                 real(ref2.s),imag(s(1:numel(ref2.s)))-imag(ref2.s) );
-0778         <span class="keyword">end</span>
+0747     <span class="keyword">if</span> isempty(backgroundpath2)
+0748         ref2 = struct;
+0749     <span class="keyword">else</span>
+0750         background2 = out{4};
+0751         <span class="comment">% get the background data 2</span>
+0752         ref2.t = background2.nmrData{1}.time;
+0753         ref2.s = background2.nmrData{1}.signal;
+0754         [ref2.s,~] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(ref2.s);
+0755     <span class="keyword">end</span>
+0756     
+0757     workpaths = workpaths(keep);
+0758     workfiles = workfiles(keep);
+0759     out = out(keep);
+0760     
+0761     ffnames = struct;
+0762     <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0763     <span class="comment">% will be shown in the listbox</span>
+0764     shownames = cell(1,1);
+0765     
+0766     <span class="keyword">for</span> i = 1:count
+0767         ffnames(i).parfile = <span class="string">'acqu.par'</span>;
+0768         ffnames(i).datafile = workfiles{i};
+0769         ffnames(i).T2specfile = <span class="string">''</span>;
+0770         
+0771         shownames{i} = ffnames(i).datafile;
+0772         
+0773         <span class="comment">% the NMR data</span>
+0774         out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1000;
+0775         out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1000;
+0776         data.import.NMR.data{i} = out{i}.nmrData{1};
+0777         data.import.NMR.para{i} = out{i}.parData;
+0778         data.import.NMR.para{i}.SampleParameter = SampleParameter;
 0779         
-0780         data.import.NMR.data{i}.signal = s;
-0781         data.import.NMR.data{i}.raw.signal = s;
-0782         
-0783         <span class="keyword">if</span> ~isempty(strfind(workfiles{i},<span class="string">' - background'</span>))
-0784             data.import.LIAG.sampleVol(i) = backVol;
-0785         <span class="keyword">elseif</span> ~isempty(strfind(workfiles{i},<span class="string">' - calibration'</span>))
-0786             data.import.LIAG.sampleVol(i) = calibVol;
-0787         <span class="keyword">elseif</span> isempty(strfind(workfiles{i},<span class="string">' - background'</span>)) &amp;&amp;<span class="keyword">...</span>
-0788                 isempty(strfind(workfiles{i},<span class="string">' - calibration'</span>))
-0789             data.import.LIAG.sampleVol(i) = dataVol;
-0790         <span class="keyword">end</span>
-0791     <span class="keyword">end</span>
-0792     data.import.LIAG.Tbulk = 1e6;
-0793     data.import.LIAG.workpaths = workpaths;
-0794     data.import.LIAG.datapath = datapath;
-0795     data.import.LIAG.calibrationpath = calibrationpath;
-0796     data.import.LIAG.backgroundpath1 = backgroundpath1;
-0797     data.import.LIAG.backgroundpath2 = backgroundpath2;
-0798     
-0799     <span class="comment">% update the global data structure</span>
-0800     data.import.NMR.files = ffnames;
-0801     data.import.NMR.filesShort = shownames;
-0802     
-0803 <span class="keyword">end</span>
-0804 
-0805 <span class="keyword">end</span>
-0806 
-0807 <span class="comment">%%</span>
-0808 <a name="_sub8" href="#_subfunctions" class="code">function [data,gui] = importDataMouse(data,gui)</a>
-0809 
-0810 in.path = fullfile(data.import.path);
-0811 in.fileformat = data.import.fileformat;
-0812 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
-0813 
-0814 fnames = struct;
-0815 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
-0816 <span class="comment">% will be shown in the listbox</span>
-0817 shownames = cell(1,1);
-0818 
-0819 c = 0;
-0820 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
-0821     <span class="comment">% the individual file names</span>
-0822     c = c + 1;
-0823     fnames(c).parfile = <span class="string">'acq.par'</span>;
-0824     fnames(c).datafile = out.nmrData{j}.datfile;
-0825     fnames(c).T2specfile = <span class="string">''</span>;
-0826     
-0827     shownames{c} = [<span class="string">'T2_'</span>,fnames(c).datafile];
-0828     
-0829     <span class="comment">% the NMR data</span>
-0830     <span class="comment">% here we fix the time scale from [ms] to [s]</span>
-0831     <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
-0832         out.nmrData{j}.time = out.nmrData{j}.time/1000;
-0833         out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-0834     <span class="keyword">end</span>
-0835     data.import.NMR.data{c} = out.nmrData{j};
-0836     data.import.NMR.para{c} = out.parData;
-0837 <span class="keyword">end</span>
-0838 
-0839 <span class="comment">% update the global data structure</span>
-0840 data.import.NMR.files = fnames;
-0841 data.import.NMR.filesShort = shownames;
-0842 
-0843 <span class="keyword">end</span>
-0844 
-0845 <span class="comment">%%</span>
-0846 <a name="_sub9" href="#_subfunctions" class="code">function data = loadGUIParameters(datapath,fname)</a>
-0847 fid = fopen(fullfile(datapath,fname));
-0848 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
-0849 fclose(fid);
-0850 data = struct;
-0851 <span class="keyword">for</span> i = 1:size(d{1},1)
-0852     str = char(d{1}(i));
-0853     str = <a href="../../../nucleus/functions/import/fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
-0854     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
-0855 <span class="keyword">end</span>
-0856 
-0857 <span class="keyword">end</span>
-0858 
-0859 <span class="comment">%%</span>
-0860 <a name="_sub10" href="#_subfunctions" class="code">function data = loadGUIrawdata(data,NMRpath,NMRfile)</a>
-0861 
-0862 load(fullfile(NMRpath,<span class="string">'NUCLEUSinv_raw.mat'</span>),<span class="string">'savedata'</span>);
-0863 
-0864 data.import.file = NMRfile;
-0865 data.import.path = NMRpath;
-0866 data.import.NMR = savedata;
-0867 
-0868 <span class="keyword">end</span>
-0869 
-0870 <span class="comment">%------------- END OF CODE --------------</span>
+0780         <span class="comment">% subtract the background signal</span>
+0781         s = data.import.NMR.data{i}.signal;
+0782         <span class="keyword">if</span> i==1 &amp;&amp; isfield(ref1,<span class="string">'s'</span>)
+0783             s(1:numel(ref1.s)) = complex( real(s(1:numel(ref1.s)))-<span class="keyword">...</span>
+0784                 real(ref1.s),imag(s(1:numel(ref1.s)))-imag(ref1.s) );
+0785         <span class="keyword">elseif</span> i==2 &amp;&amp; isfield(ref2,<span class="string">'s'</span>)
+0786             s(1:numel(ref2.s)) = complex( real(s(1:numel(ref2.s)))-<span class="keyword">...</span>
+0787                 real(ref2.s),imag(s(1:numel(ref2.s)))-imag(ref2.s) );
+0788         <span class="keyword">end</span>
+0789         
+0790         data.import.NMR.data{i}.signal = s;
+0791         data.import.NMR.data{i}.raw.signal = s;
+0792         
+0793         <span class="keyword">if</span> ~isempty(strfind(workfiles{i},<span class="string">' - background'</span>))
+0794             data.import.LIAG.sampleVol(i) = backVol;
+0795         <span class="keyword">elseif</span> ~isempty(strfind(workfiles{i},<span class="string">' - calibration'</span>))
+0796             data.import.LIAG.sampleVol(i) = calibVol;
+0797         <span class="keyword">elseif</span> isempty(strfind(workfiles{i},<span class="string">' - background'</span>)) &amp;&amp;<span class="keyword">...</span>
+0798                 isempty(strfind(workfiles{i},<span class="string">' - calibration'</span>))
+0799             data.import.LIAG.sampleVol(i) = dataVol;
+0800         <span class="keyword">end</span>
+0801     <span class="keyword">end</span>
+0802     data.import.LIAG.Tbulk = 1e6;
+0803     data.import.LIAG.workpaths = workpaths;
+0804     data.import.LIAG.datapath = datapath;
+0805     data.import.LIAG.calibrationpath = calibrationpath;
+0806     data.import.LIAG.backgroundpath1 = backgroundpath1;
+0807     data.import.LIAG.backgroundpath2 = backgroundpath2;
+0808     
+0809     <span class="comment">% update the global data structure</span>
+0810     data.import.NMR.files = ffnames;
+0811     data.import.NMR.filesShort = shownames;
+0812     
+0813 <span class="keyword">end</span>
+0814 
+0815 <span class="keyword">end</span>
+0816 
+0817 <span class="comment">%%</span>
+0818 <a name="_sub8" href="#_subfunctions" class="code">function [data,gui] = importDataMouse(data,gui)</a>
+0819 
+0820 in.path = fullfile(data.import.path);
+0821 in.fileformat = data.import.fileformat;
+0822 out = <a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>(in);
+0823 
+0824 fnames = struct;
+0825 <span class="comment">% shownames is just a dummy to hold all data file names that</span>
+0826 <span class="comment">% will be shown in the listbox</span>
+0827 shownames = cell(1,1);
+0828 
+0829 c = 0;
+0830 <span class="keyword">for</span> j = 1:size(out.nmrData,2)
+0831     <span class="comment">% the individual file names</span>
+0832     c = c + 1;
+0833     fnames(c).parfile = <span class="string">'acq.par'</span>;
+0834     fnames(c).datafile = out.nmrData{j}.datfile;
+0835     fnames(c).T2specfile = <span class="string">''</span>;
+0836     
+0837     shownames{c} = [<span class="string">'T2_'</span>,fnames(c).datafile];
+0838     
+0839     <span class="comment">% the NMR data</span>
+0840     <span class="comment">% here we fix the time scale from [ms] to [s]</span>
+0841     <span class="keyword">if</span> max(out.nmrData{j}.time) &gt; 100
+0842         out.nmrData{j}.time = out.nmrData{j}.time/1000;
+0843         out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+0844     <span class="keyword">end</span>
+0845     data.import.NMR.data{c} = out.nmrData{j};
+0846     data.import.NMR.para{c} = out.parData;
+0847 <span class="keyword">end</span>
+0848 
+0849 <span class="comment">% update the global data structure</span>
+0850 data.import.NMR.files = fnames;
+0851 data.import.NMR.filesShort = shownames;
+0852 
+0853 <span class="keyword">end</span>
+0854 
+0855 <span class="comment">%%</span>
+0856 <a name="_sub9" href="#_subfunctions" class="code">function data = loadGUIParameters(datapath,fname)</a>
+0857 fid = fopen(fullfile(datapath,fname));
+0858 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0859 fclose(fid);
+0860 data = struct;
+0861 <span class="keyword">for</span> i = 1:size(d{1},1)
+0862     str = char(d{1}(i));
+0863     str = <a href="../../../nucleus/functions/import/fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0864     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
+0865 <span class="keyword">end</span>
+0866 
+0867 <span class="keyword">end</span>
+0868 
+0869 <span class="comment">%%</span>
+0870 <a name="_sub10" href="#_subfunctions" class="code">function data = loadGUIrawdata(data,NMRpath,NMRfile)</a>
 0871 
-0872 <span class="comment">%% License:</span>
-0873 <span class="comment">% MIT License</span>
-0874 <span class="comment">%</span>
-0875 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0876 <span class="comment">%</span>
-0877 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0878 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0879 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0880 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0881 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0882 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0883 <span class="comment">%</span>
-0884 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0885 <span class="comment">% copies or substantial portions of the Software.</span>
+0872 load(fullfile(NMRpath,<span class="string">'NUCLEUSinv_raw.mat'</span>),<span class="string">'savedata'</span>);
+0873 
+0874 data.import.file = NMRfile;
+0875 data.import.path = NMRpath;
+0876 data.import.NMR = savedata;
+0877 
+0878 <span class="keyword">end</span>
+0879 
+0880 <span class="comment">%------------- END OF CODE --------------</span>
+0881 
+0882 <span class="comment">%% License:</span>
+0883 <span class="comment">% MIT License</span>
+0884 <span class="comment">%</span>
+0885 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0886 <span class="comment">%</span>
-0887 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0888 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0889 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0890 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0891 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0892 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0893 <span class="comment">% SOFTWARE.</span></pre></div>
+0887 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0888 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0889 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0890 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0891 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0892 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0893 <span class="comment">%</span>
+0894 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0895 <span class="comment">% copies or substantial portions of the Software.</span>
+0896 <span class="comment">%</span>
+0897 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0898 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0899 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0900 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0901 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0902 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0903 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>
