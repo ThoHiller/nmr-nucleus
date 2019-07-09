@@ -2,17 +2,17 @@ function switchToolTips(gui,onoff) %#ok<INUSL>
 %switchToolTips switches GUI tool tips either "on" or "off"
 %
 % Syntax:
-%       gui = switchToolTips(gui,onoff)
+%       switchToolTips(gui,onoff)
 %
 % Inputs:
 %       gui - figure gui elements structure
 %       onoff - 'on' or 'off'
 %
 % Outputs:
-%       gui
+%       none
 %
 % Example:
-%       gui = switchToolTips(gui,'on')
+%       switchToolTips(gui,'on')
 %
 % Other m-files required:
 %       none

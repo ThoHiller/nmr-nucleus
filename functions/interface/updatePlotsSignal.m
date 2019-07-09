@@ -53,6 +53,7 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     clearSingleAxis(ax);
     clearSingleAxis(axI);
     hold(ax,'on');
+    hold(axI,'on');
     
     % data
     if isreal(nmrraw.s)
@@ -109,7 +110,7 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         set(get(ax,'XLabel'),'String','time [ms]');
     end
     if strcmp(nmrproc.T1T2,'T2') && ~isreal(nmrraw.s)
-        set(get(ax,'YLabel'),'String','\Re');
+        set(get(ax,'YLabel'),'String','\Reeal');
     else
         set(get(ax,'YLabel'),'String','amplitude [a.u.]');
     end
@@ -120,14 +121,15 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axI);
         imag_mean = mean(imag(nmrraw.s));
         imag_std = std(imag(nmrraw.s));
-        set(axI,'XTickLabel','');
+        yticks = linspace(min(imag(nmrraw.s)),max(imag(nmrraw.s)),3);
+        set(axI,'XTickLabel','','YTick',yticks,'YTickLabelMode','auto');
         switch loglinx
             case 'x-axis -> lin' % log axes
                 set(axI,'XScale','log','XLim',xlims);
             case 'x-axis -> log' % lin axes
                 set(axI,'XScale','lin','XLim',xlims);
         end
-        set(get(axI,'YLabel'),'String','\Im');
+        set(get(axI,'YLabel'),'String','\Immag');
     end
     
     % grid
@@ -222,12 +224,13 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         lgdstr = {'signal','fit'};
         switch nmrproc.T1T2
             case 'T1'
-                legend(ax,lgdstr,'Location','NorthWest',...
+                lgh = legend(ax,lgdstr,'Location','NorthWest',...
                     'Tag','fitlegend','FontSize',10);
             case 'T2'
-                legend(ax,lgdstr,'Location','NorthEast',...
+                lgh = legend(ax,lgdstr,'Location','NorthEast',...
                     'Tag','fitlegend','FontSize',10);
         end
+        set(lgh,'TextColor',gui.myui.colors.panelFG);
     end
     
     % grid
@@ -235,8 +238,9 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     
     %% residual plot
     if isfield(data.results,'invstd')
+        col = gui.myui.colors.axisL;
         xlims = get(ax,'XLim');
-        line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axE);
+        line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color',col,'Parent',axE);
         if nmrproc.noise > 0
             err_mean = mean(invstd.residual./nmrproc.e);
             err_std = std(invstd.residual./nmrproc.e);
@@ -245,9 +249,9 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
             line(xlims,[err_mean+err_std err_mean+err_std],...
                 'LineStyle','--','LineWidth',1,'Color','r','Parent',axE);
             line(xlims,[-1 -1],'LineStyle','-.','LineWidth',1,...
-                'Color','k','Parent',axE);
+                'Color',col,'Parent',axE);
             line(xlims,[1 1],'LineStyle','-.','LineWidth',1,...
-                'Color','k','Parent',axE);
+                'Color',col,'Parent',axE);
             set(axE,'XTickLabel','');
             set(axE,'YLim',[-2 2]);
             set(axE,'YTick',[-1 0 1],'YTickLabelMode','auto');
@@ -257,9 +261,9 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
             err_mean = mean(invstd.residual);
             err_std = std(invstd.residual);
             line(xlims,[err_mean-1*err_std err_mean-1*err_std],...
-                'LineStyle','-.','LineWidth',1,'Color','k','Parent',axE);
+                'LineStyle','-.','LineWidth',1,'Color',col,'Parent',axE);
             line(xlims,[err_mean+1*err_std err_mean+1*err_std],...
-                'LineStyle','-.','LineWidth',1,'Color','k','Parent',axE);
+                'LineStyle','-.','LineWidth',1,'Color',col,'Parent',axE);
             set(axE,'XTickLabel','');
             set(axE,'YLim',[err_mean-3*err_std err_mean+3*err_std]);
             set(axE,'YTick',[err_mean-3*err_std 0 err_mean+3*err_std],...

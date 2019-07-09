@@ -35,8 +35,8 @@ fig = findobj('Tag','INV');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 
-% default color is grey
-col = [0.5 0.5 0.5];
+% default color
+col = gui.myui.colors.axisL;
 
 %% CUT OFF info
 % RTD axis

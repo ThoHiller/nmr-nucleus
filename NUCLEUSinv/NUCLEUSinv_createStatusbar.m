@@ -36,12 +36,13 @@ gui.statusbar = uix.HBox('Parent',gui.bottom);
 gui.panels.status.main = uix.Panel('Parent',gui.statusbar);
 gui.panels.status.mode = uix.Panel('Parent',gui.statusbar);
 gui.panels.status.optim = uix.Panel('Parent',gui.statusbar);
+gui.panels.status.solver = uix.Panel('Parent',gui.statusbar);
 gui.panels.status.stats = uix.Panel('Parent',gui.statusbar);
 gui.panels.status.joint = uix.Panel('Parent',gui.statusbar);
 gui.panels.status.invinfo = uix.Panel('Parent',gui.statusbar);
 gui.panels.status.tooltips = uix.Panel('Parent',gui.statusbar);
 % adjust their widths
-set(gui.statusbar,'Widths',[400 -1 -1 -1 -1 -1 -1]);
+set(gui.statusbar,'Widths',[400 -1 -1 -1 -1 -1 -1 -1]);
 
 %% add the individual text fields
 gui.textStatus = uicontrol('Style','Text','Parent',gui.panels.status.main,'String','',...
@@ -49,9 +50,11 @@ gui.textStatus = uicontrol('Style','Text','Parent',gui.panels.status.main,'Strin
 gui.textMode = uicontrol('Style','Text','Parent',gui.panels.status.mode,'String','',...
     'HorizontalAlignment','left','FontSize',8);
 gui.textOptim = uicontrol('Style','Text','Parent',gui.panels.status.optim,'String','',...
-    'HorizontalAlignment','left','FontSize',8,'ForegroundColor',[0.4 0.4 0.4]);
+    'HorizontalAlignment','left','FontSize',8);
+gui.textSolver = uicontrol('Style','Text','Parent',gui.panels.status.solver,'String','',...
+    'HorizontalAlignment','left','FontSize',8);
 gui.textStats = uicontrol('Style','Text','Parent',gui.panels.status.stats,'String','',...
-    'HorizontalAlignment','left','FontSize',8,'ForegroundColor',[0.4 0.4 0.4]);
+    'HorizontalAlignment','left','FontSize',8);
 gui.textJoint = uicontrol('Style','Text','Parent',gui.panels.status.joint,'String','',...
     'HorizontalAlignment','left','FontSize',8);
 gui.textInvinfo = uicontrol('Style','Text','Parent',gui.panels.status.invinfo,'String','',...

@@ -35,6 +35,7 @@ function updatePlotsPSD
 fig = findobj('Tag','MOD');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
+colors = gui.myui.colors;
 
 % get the results
 results = data.results;
@@ -42,12 +43,13 @@ results = data.results;
 % clear the PSD axes
 ax = gui.axes_handles.geo;
 clearSingleAxis(ax);
+hold(ax,'on')
 
 % check if it is a single pore or a pore size distribution (PSD)
 % the radius is plotted in [µm] hence the factor 1e6
 switch data.geometry.ispsd    
     case 0        
-        stem(results.GEOM.radius,1,'ko-','LineWidth',2,'Parent',ax);
+        stem(results.GEOM.radius,1,'o-','Color',colors.axisL,'LineWidth',2,'Parent',ax);
         set(ax,'XScale','log','XLim',data.geometry.range);
         set(ax,'YLim',[0 1.1],'YTick',0:0.2:1);
         
@@ -55,17 +57,17 @@ switch data.geometry.ispsd
         isfreqchecked = get(gui.cm_handles.geo_cm_viewfreq,'Checked');        
         switch isfreqchecked            
             case 'on'                
-                plot(results.psddata.r,results.psddata.psd,'k-','LineWidth',2,'Parent',ax);
+                plot(results.psddata.r,results.psddata.psd,'-','Color',colors.axisL,'LineWidth',2,'Parent',ax);
                 xticks = log10(min(results.psddata.r)):1:log10(max(results.psddata.r));
                 set(ax,'XScale','log','XLim',[min(results.psddata.r) max(results.psddata.r)],'XTick',10.^xticks);
-                set(ax,'YLim',[0 max(results.psddata.psd)*1.1]);
+                set(ax,'YLim',[0 max(results.psddata.psd)*1.1],'YTickMode','auto');
                 set(get(ax,'YLabel'),'String','frequency [-]');
                 
             case 'off'                
-                plot(results.psddata.r,cumsum(results.psddata.psd),'k-','LineWidth',2,'Parent',ax);
+                plot(results.psddata.r,cumsum(results.psddata.psd),'-','Color',colors.axisL,'LineWidth',2,'Parent',ax);
                 xticks = log10(min(results.psddata.r)):1:log10(max(results.psddata.r));
                 set(ax,'XScale','log','XLim',[min(results.psddata.r) max(results.psddata.r)],'XTick',10.^xticks);
-                set(ax,'YLim',[0 1.1]);
+                set(ax,'YLim',[0 1.1],'YTickMode','auto');
                 set(get(ax,'YLabel'),'String','cumulative [-]');
                 
             otherwise                

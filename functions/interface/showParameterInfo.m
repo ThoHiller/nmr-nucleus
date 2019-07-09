@@ -55,7 +55,7 @@ if isfield(data.import,'NMR')
                 end
             end
             f1 = figure('Name',[fname,' Parameter Info'],'NumberTitle','off',...
-                'ToolBar','none','MenuBar','none');
+                'ToolBar','none','MenuBar','none','Color',gui.myui.colors.panelBG);
             pos0 = get(fig,'Position');
             pos1 = get(f1,'Position');
             cent(1) = (pos0(1)+pos0(3)/2);
@@ -67,6 +67,8 @@ if isfield(data.import,'NMR')
             pos = get(f1,'Position');
             w = (pos(3)-80)/2;
             set(th,'Position',[20 20 pos(3)-40 pos(4)-40],'ColumnWidth',{w w});
+            set(th,'BackGroundColor',gui.myui.colors.tableBG,...
+                'ForeGroundColor',gui.myui.colors.tableFG)
         end
     else
         helpdlg({'function: showParameterInfo',...

@@ -119,7 +119,7 @@ if isfield(data.results,'invstd')
                         'LineWidth',2,'Parent',ax);
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',[0.3 0.3 0.3],...
+                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
                         'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
@@ -132,7 +132,7 @@ if isfield(data.results,'invstd')
                         'LineWidth',2,'Parent',ax);
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',[0.3 0.3 0.3],...
+                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
                         'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits

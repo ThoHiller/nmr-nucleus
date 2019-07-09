@@ -98,7 +98,7 @@ gui.text_handles.invjoint_InvType = uicontrol('Parent',gui.panels.invjoint.HBox1
     'String','inversion method');
 tstr = 'tba';
 
-switch data.info.optim
+switch data.info.has_optim
     case 'on'
         gui.popup_handles.invjoint_InvType = uicontrol('Parent',gui.panels.invjoint.HBox1,...
             'Style','popup','FontSize',myui.fontsize,...

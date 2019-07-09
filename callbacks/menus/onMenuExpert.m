@@ -57,6 +57,16 @@ switch onoff
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
         
+        % deactivate solver menu and set to default
+        onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+        % get changed GUI data
+        data = getappdata(fig,'data');
+        set(gui.menu.extra_solver,'Enable','off');        
+
+        % update GUI data
+        setappdata(fig,'data',data);
+        setappdata(fig,'gui',gui);
+        
         % deactivate joint inversion panels        
         onMenuJointInversion(gui.menu.extra_joint_off);
         % get changed GUI data
@@ -79,6 +89,14 @@ switch onoff
         set(gui.menu.extra_expert_on,'Checked','on');
         set(gui.menu.extra_expert_off,'Checked','off');
         
+        % activate solver menu if optimization toolbox is available
+        switch data.info.has_optim
+            case 'on'
+                set(gui.menu.extra_solver,'Enable','on');
+            case 'off'
+                set(gui.menu.extra_solver,'Enable','off');
+        end
+        
         % activate joint inversion menu
         set(gui.menu.extra_joint,'Enable','on');
         
@@ -97,6 +115,7 @@ gui = makeINIfile(gui,'update');
 NUCLEUSinv_updateInterface;
 % update status information
 updateStatusInformation;
+updateToolTips;
 onFigureSizeChange(fig);
 
 end

@@ -50,7 +50,7 @@ switch fig_tag
         info{end+1,1}  = ['date: ',myui.date];
         info{end+1,1}  = ' ';
         
-        switch data.info.optim
+        switch data.info.has_optim
             case 'on'
                 info{end+1,1}  = 'Optimization Toolbox: IS available.';
                 info{end+1,1}  = 'All inversion features can be used.';

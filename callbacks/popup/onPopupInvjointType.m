@@ -43,7 +43,7 @@ switch value
     case 1 % free
         % if the optimization toolbox is not there then the fixed
         % inversion is the default
-        switch data.info.optim
+        switch data.info.has_optim
             case 'on'
                 data.invjoint.invtype = 'free';
             case 'off'

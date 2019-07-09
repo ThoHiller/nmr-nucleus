@@ -45,7 +45,7 @@ end
 if numel(scr) > 4
     % dual screen mode
     % GUI on second screen
-    gh = 720; % reference height
+    gh = 728; % reference height
     gw = ceil(gh*aspect_ratio); % reference width (1152)
     if any(scr(:,1)<0)
         pos = [-sw+(sw-gw)/2 (sh-gh)/3 gw gh];
@@ -61,7 +61,7 @@ else
     if any(scr(:,4)<800)
         gh = 600; % reference height for small screens
     else
-        gh = 720; % reference height
+        gh = 728; % reference height
     end
     gw = ceil(gh*aspect_ratio); % reference width (960)
     pos = [(sw-gw)/2 (sh-gh)/2 gw gh];

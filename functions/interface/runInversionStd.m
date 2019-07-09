@@ -21,7 +21,7 @@ function runInversionStd
 %       fitDataFree
 %       fitDataFree_fmin
 %       fitDataInvLaplace
-%       fitDataNNLS
+%       fitDataLSQ
 %       getLambdaFromLCurve
 %       NUCLEUSinv_updateInterface
 %       onPushRun
@@ -110,7 +110,7 @@ if ~isempty(id) && ~isempty(INVdata)
             if isfield(data.results.nmrproc,'W')
                 param.W = data.results.nmrproc.W;
             end
-            param.optim = data.info.optim;
+            param.solver = data.info.solver;
             
             % status bar information
             infostring = 'L-curve calculation ... ';
@@ -138,7 +138,7 @@ if ~isempty(id) && ~isempty(INVdata)
                 % if "UserData" is 1 STOP was not pressed -> continue
                 if get(gui.push_handles.invstd_run,'UserData') == 1
                     param.lambda = lambda_range(i);
-                    invdata = fitDataNNLS(data.results.nmrproc.t,data.results.nmrproc.s,param);                  
+                    invdata = fitDataLSQ(data.results.nmrproc.t,data.results.nmrproc.s,param);                  
                     % output data
                     RMS(i) = invdata.rms;
                     RN(i) = invdata.rn;
@@ -200,7 +200,7 @@ if ~isempty(id) && ~isempty(INVdata)
             if isfield(data.results.nmrproc,'W')
                 param.W = data.results.nmrproc.W;
             end
-            param.optim = data.info.optim;
+            param.solver = data.info.solver;
             
             % status bar information
             infostring = 'Chi2 iteration ... ';
@@ -214,7 +214,7 @@ if ~isempty(id) && ~isempty(INVdata)
             chi2 = [0 0];
             for i = 1:length(lambda_range)
                 param.lambda = lambda_range(i);
-                invdata = fitDataNNLS(data.results.nmrproc.t,data.results.nmrproc.s,param);
+                invdata = fitDataLSQ(data.results.nmrproc.t,data.results.nmrproc.s,param);
                 % output data
                 chi2(i) = invdata.chi2;
             end
@@ -234,7 +234,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     iter = iter + 1;
                     
                     param.lambda = lam;
-                    invdata = fitDataNNLS(data.results.nmrproc.t,data.results.nmrproc.s,param);
+                    invdata = fitDataLSQ(data.results.nmrproc.t,data.results.nmrproc.s,param);
                     % output data
                     c = invdata.chi2;
                     
@@ -321,12 +321,12 @@ if ~isempty(id) && ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.optim;
+                    param.optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     % status bar information
-                    switch data.info.optim
+                    switch data.info.has_optim
                         case 'on'
                             infostring = 'Inversion using ''Optimization Toolbox'' ... ';
                         case 'off'
@@ -340,12 +340,12 @@ if ~isempty(id) && ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.optim;
+                    param.optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     % status bar information
-                    switch data.info.optim
+                    switch data.info.has_optim
                         case 'on'
                             infostring = 'Inversion using ''Optimization Toolbox'' ... ';
                         case 'off'
@@ -383,20 +383,20 @@ if ~isempty(id) && ~isempty(INVdata)
                     param.Lorder = data.invstd.Lorder;
                     param.lambda = data.invstd.lambda;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.optim;
+                    param.solver = data.info.solver;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     
                     % status bar information
-                    switch data.info.optim
-                        case 'on'
+                    switch data.info.solver
+                        case 'lsqlin'
                             infostring = 'Inversion using ''Optimization Toolbox'' ... ';
-                        case 'off'
+                        case 'lsqnonneg'
                             infostring = 'Inversion using ''lsqnonneg'' ... ';
                     end
                     displayStatusText(gui,infostring);
-                    invstd = fitDataNNLS(data.results.nmrproc.t,...
+                    invstd = fitDataLSQ(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
             end            
             % normalize to 1

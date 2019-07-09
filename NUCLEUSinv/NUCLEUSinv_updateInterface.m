@@ -58,7 +58,7 @@ switch data.info.ExpertMode
         gui = updateTimescale(gui,data.process.timescale);
         if data.invstd.porosity <= 1
             set(gui.edit_handles.invstd_porosity,'Enable','on',...
-                'BackgroundColor','w',...
+                'BackgroundColor',gui.myui.colors.editBG,...
                 'String',num2str(data.invstd.porosity));
         else
             set(gui.edit_handles.invstd_porosity,'Enable','on',...
@@ -68,16 +68,8 @@ switch data.info.ExpertMode
         
         %% update standard inversion panel
         % inversion method popup
-        switch data.info.optim
-            case 'on'
-                istring = {'Mono exp.','Several free exp. (2-5)',...
-                    'Multi exp. (LSQLIN)',...
-                    'Multi exp. (InvLaplace)'};
-            case 'off'
-                istring = {'Mono exp.','Several free exp. (2-5)',...
-                    'Multi exp. (NNLS)',...
-                    'Multi exp. (InvLaplace)'};
-        end
+        istring = {'Mono exp.','Several free exp. (2-5)',...
+            'Multi exp. (LSQ)','Multi exp. (InvLaplace)'};
         set(gui.popup_handles.invstd_InvType,'String',istring);
         switch data.invstd.invtype
             case 'mono'
@@ -527,14 +519,7 @@ switch data.info.ExpertMode
         
         %% update standard inversion panel
         % inversion method popup
-        switch data.info.optim
-            case 'on'
-                istring = {'Mono exp.','Several free exp. (2-5)',...
-                    'Multi exp. (LSQLIN)'};
-            case 'off'
-                istring = {'Mono exp.','Several free exp. (2-5)',...
-                    'Multi exp. (NNLS)'};
-        end
+        istring = {'Mono exp.','Several free exp. (2-5)','Multi exp. (LSQ)'};        
         set(gui.popup_handles.invstd_InvType,'String',istring);
         switch data.invstd.invtype
             case 'mono'

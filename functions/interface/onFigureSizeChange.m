@@ -69,6 +69,9 @@ if ~isempty(gui)
     end
 end
 
+% check that the GUI is not smaller than the minimum size
+set(fig, 'position', max([0 0 610 358], fig.Position));
+
 end
 
 %------------- END OF CODE --------------

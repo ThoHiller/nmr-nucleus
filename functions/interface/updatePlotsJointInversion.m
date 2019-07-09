@@ -173,18 +173,19 @@ if isfield(data.results,'invjoint')
     set(get(ax,'YLabel'),'String','amplitude [a.u.]');
     
     % legend
-    legend(ax,lgdstr,'Location','NorthEast','Tag','alllegend','FontSize',10);
+    lgh = legend(ax,lgdstr,'Location','NorthEast','Tag','alllegend');
+    set(lgh,'FontSize',10,'TextColor',col.panelFG);
     % grid
     grid(ax,'on');
     
     %% residual plot    
     xlims = get(ax,'XLim');
-    line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axE);
+    line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color',col.axisL,'Parent',axE);
     if nmr{levels(1)}.noise > 0
         line(xlims,[-1 -1],'LineStyle','-.','LineWidth',1,...
-            'Color','k','Parent',axE);
+            'Color',col.axisL,'Parent',axE);
         line(xlims,[1 1],'LineStyle','-.','LineWidth',1,...
-            'Color','k','Parent',axE);
+            'Color',col.axisL,'Parent',axE);
         set(axE,'XTickLabel','');
         set(axE,'YLim',[-max(abs(ylimsE)) max(abs(ylimsE))]);
         set(axE,'YTickMode','auto','YTickLabelMode','auto');
@@ -285,7 +286,8 @@ if isfield(data.results,'invjoint')
     set(get(ax,'XLabel'),'String',xlstring);
     
     % legend
-    legend(ax,lgdstr,'Location','NorthEast','Tag','psdjlegend','FontSize',10);
+    lgh = legend(ax,lgdstr,'Location','NorthEast','Tag','psdjlegend');
+    set(lgh,'FontSize',10,'TextColor',col.panelFG);
     % grid
     grid(ax,'on');
     
@@ -355,7 +357,8 @@ if isfield(data.results,'invjoint')
         set(get(ax,'YLabel'),'String','saturation [-]');
     end
     % legend
-    legend(ax,lgdstr,'Location','NorthEast','Tag','cpslegend','FontSize',10);
+    lgh = legend(ax,lgdstr,'Location','NorthEast','Tag','cpslegend');
+    set(lgh,'FontSize',10,'TextColor',col.panelFG);
     % grid
     grid(ax,'on');
     

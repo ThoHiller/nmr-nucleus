@@ -103,281 +103,309 @@ This function is called by:
 0034 fig_tag = get(fig,<span class="string">'Tag'</span>);
 0035 data = getappdata(fig,<span class="string">'data'</span>);
 0036 maingui = getappdata(fig,<span class="string">'gui'</span>);
-0037 
-0038 <span class="comment">%% proceed if there is data</span>
-0039 <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
-0040     <span class="keyword">if</span> isfield(data.results,<span class="string">'nmrraw'</span>) &amp;&amp; isfield(data.results,<span class="string">'nmrproc'</span>)
-0041         
-0042         <span class="comment">% check if the figure is already open</span>
-0043         fig_stat = findobj(<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>);
-0044         <span class="comment">% if not, create it</span>
-0045         <span class="keyword">if</span> isempty(fig_stat)
-0046             <span class="comment">% draw the figure on top of NUCLEUSinv</span>
-0047             fig_stat = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - Fit Statistics'</span>,<span class="keyword">...</span>
-0048                 <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>);
-0049             pos0 = get(fig,<span class="string">'Position'</span>);
-0050             pos1 = get(fig_stat,<span class="string">'Position'</span>);
-0051             cent(1) = (pos0(1)+pos0(3)/2);
-0052             cent(2) = (pos0(2)+pos0(4)/2);
-0053             set(fig_stat,<span class="string">'Position'</span>,[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
-0054             
-0055             <span class="comment">% create the layout</span>
-0056             gui.main = uix.VBox(<span class="string">'Parent'</span>,fig_stat,<span class="string">'Spacing'</span>,10,<span class="string">'Padding'</span>,10);
-0057             gui.row1 = uicontainer(<span class="string">'Parent'</span>,gui.main); <span class="comment">% axes Im</span>
-0058             gui.row2 = uicontainer(<span class="string">'Parent'</span>,gui.main); <span class="comment">% axes res</span>
-0059             gui.row3 = uix.HBox(<span class="string">'Parent'</span>,gui.main); <span class="comment">% histogram + text</span>
-0060             set(gui.main,<span class="string">'Heights'</span>,[-1 -1 -1.5]);
-0061             
-0062             <span class="comment">% Im and res axes</span>
-0063             gui.axes_handles.imag = axes(<span class="string">'Parent'</span>,gui.row1);
-0064             gui.axes_handles.err = axes(<span class="string">'Parent'</span>,gui.row2);
-0065             
-0066             uix.Empty(<span class="string">'Parent'</span>,gui.row3);
-0067             gui.box1 = uicontainer(<span class="string">'Parent'</span>,gui.row3); <span class="comment">% histogram axes</span>
-0068             gui.box2 = uix.VBox(<span class="string">'Parent'</span>,gui.row3,<span class="string">'Padding'</span>,10,<span class="string">'Spacing'</span>,5); <span class="comment">% text</span>
-0069             uix.Empty(<span class="string">'Parent'</span>,gui.row3);
-0070             set(gui.row3,<span class="string">'Widths'</span>,[40 -1 300 60]);
-0071             
-0072             <span class="comment">% histogram axes</span>
-0073             gui.axes_handles.hist = axes(<span class="string">'Parent'</span>,gui.box1);
-0074             
-0075             <span class="comment">% all text boxes</span>
-0076             uix.Empty(<span class="string">'Parent'</span>,gui.box2);
-0077             gui.row31 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'Spacing'</span>,10);
-0078             gui.row32 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'Spacing'</span>,10);
-0079             gui.row33 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'Spacing'</span>,10);
-0080             gui.row34 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'Spacing'</span>,10);
-0081             gui.row35 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'Spacing'</span>,10);
-0082             gui.row36 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'Spacing'</span>,10);
-0083             uix.Empty(<span class="string">'Parent'</span>,gui.box2);
-0084             set(gui.box2,<span class="string">'Heights'</span>,[50 -1 -1 -1 -1 -1 -1 50]);
-0085             
-0086             gui.text11 = uicontrol(<span class="string">'Parent'</span>,gui.row31,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0087                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03BC'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'2111'</span>)),<span class="string">'mag)'</span>],<span class="keyword">...</span>
-0088                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0089             gui.text12 = uicontrol(<span class="string">'Parent'</span>,gui.row31,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
-0090                 <span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0091             
-0092             gui.text21 = uicontrol(<span class="string">'Parent'</span>,gui.row32,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0093                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03BC'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'03B5'</span>)),<span class="string">')'</span>],<span class="keyword">...</span>
-0094                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0095             gui.text22 = uicontrol(<span class="string">'Parent'</span>,gui.row32,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
-0096                 <span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0097             
-0098             gui.text31 = uicontrol(<span class="string">'Parent'</span>,gui.row33,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0099                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03C3'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'2111'</span>)),<span class="string">'mag)'</span>],<span class="keyword">...</span>
-0100                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0101             gui.text32 = uicontrol(<span class="string">'Parent'</span>,gui.row33,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
-0102                 <span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0103             
-0104             gui.text41 = uicontrol(<span class="string">'Parent'</span>,gui.row34,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0105                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03C3'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'03B5'</span>)),<span class="string">')'</span>],<span class="keyword">...</span>
-0106                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0107             gui.text42 = uicontrol(<span class="string">'Parent'</span>,gui.row34,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
-0108                 <span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0109             
-0110             gui.text51 = uicontrol(<span class="string">'Parent'</span>,gui.row35,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0111                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03A7'</span>)),char(hex2dec(<span class="string">'0B2'</span>))],<span class="keyword">...</span>
-0112                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0113             gui.text52 = uicontrol(<span class="string">'Parent'</span>,gui.row35,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
-0114                 <span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0115             
-0116             gui.text61 = uicontrol(<span class="string">'Parent'</span>,gui.row36,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">'RMS'</span>,<span class="keyword">...</span>
-0117                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0118             gui.text62 = uicontrol(<span class="string">'Parent'</span>,gui.row36,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
-0119                 <span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0120             
-0121             <span class="comment">% Java Hack to adjust vertical alignment of text fields</span>
-0122             jh = findjobj(gui.text11); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0123             jh = findjobj(gui.text21); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0124             jh = findjobj(gui.text31); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0125             jh = findjobj(gui.text41); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0126             jh = findjobj(gui.text51); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0127             jh = findjobj(gui.text61); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0128             
-0129             <span class="comment">% save to GUI</span>
-0130             setappdata(fig_stat,<span class="string">'gui'</span>,gui);
-0131         <span class="keyword">end</span>
-0132         <span class="comment">% if the figure is already open load the GUI data</span>
-0133         gui = getappdata(fig_stat,<span class="string">'gui'</span>);
-0134         
-0135         <span class="comment">% get axes handles</span>
-0136         ax1 = gui.axes_handles.imag;
-0137         ax2 = gui.axes_handles.err;
-0138         ax3 = gui.axes_handles.hist;
-0139         <span class="comment">% clear all axes</span>
-0140         <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig_stat);
-0141         
-0142         <span class="comment">%% gather the fit statistics for the current inversion</span>
-0143         text = cell(1,1);
-0144         nmrraw = data.results.nmrraw;
-0145         nmrproc = data.results.nmrproc;
-0146         <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0147             invstd = data.results.invstd;
-0148         <span class="keyword">end</span>
-0149         loglinx = get(maingui.cm_handles.axes_proc_xaxis,<span class="string">'Label'</span>);
-0150         lgdstr = cell(1,1);
-0151         lgdc = 0;
-0152         <span class="comment">% plot imaginary part</span>
-0153         <span class="keyword">if</span> ~isreal(nmrraw.s)
-0154             plot(nmrraw.t,imag(nmrraw.s),<span class="string">'Color'</span>,maingui.myui.colors.IM,<span class="string">'Parent'</span>,ax1);
-0155             xlims = get(maingui.axes_handles.raw,<span class="string">'XLim'</span>);
-0156             line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax1);
-0157             <span class="comment">% get statistics</span>
-0158             imag_mean = mean(imag(nmrraw.s));
-0159             imag_std = std(imag(nmrraw.s));
-0160             set(ax1,<span class="string">'XTickLabel'</span>,get(maingui.axes_handles.raw,<span class="string">'XTickLabel'</span>));
-0161             <span class="keyword">switch</span> loglinx
-0162                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0163                     set(ax1,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
-0164                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0165                     set(ax1,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
-0166             <span class="keyword">end</span>
-0167             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Immag'</span>);
-0168             grid(ax1,<span class="string">'on'</span>);
-0169             
-0170             <span class="comment">% draw first histogram</span>
-0171             min1 = mean(imag(nmrraw.s))-5*std(imag(nmrraw.s));
-0172             max1 = mean(imag(nmrraw.s))+5*std(imag(nmrraw.s));
-0173             bins1 = linspace(min1,max1,100);
-0174             n1 = hist(imag(nmrraw.s),bins1);
-0175             n1 = n1./trapz(bins1,n1);
-0176             stairs(bins1,n1,<span class="string">'Color'</span>,maingui.myui.colors.IM,<span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax3);
-0177             hold(ax3,<span class="string">'on'</span>);
-0178             line([mean(imag(nmrraw.s)) mean(imag(nmrraw.s))],[0 max(n1)],<span class="keyword">...</span>
-0179                 <span class="string">'color'</span>,<span class="string">'g'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,ax3);
-0180             
-0181             lgdc = lgdc + 1;
-0182             lgdstr{lgdc} = <span class="string">'\Immag'</span>;
-0183             lgdc = lgdc + 1;
-0184             lgdstr{lgdc} = <span class="string">'\mu(\Immag)'</span>;
-0185             
-0186             <span class="comment">% update the text fields</span>
-0187             set(gui.text12,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,imag_mean));
-0188             set(gui.text32,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,imag_std));
-0189         <span class="keyword">end</span>
-0190         
-0191         <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
-0192             <span class="comment">% plot residuals</span>
-0193             <span class="keyword">if</span> nmrproc.noise &gt; 0
-0194                 plot(nmrproc.t,invstd.residual./nmrproc.e,<span class="string">'Parent'</span>,ax2);
-0195                 <span class="comment">% get statistics</span>
-0196                 err_mean = mean(invstd.residual./nmrproc.e);
-0197                 err_std = std(invstd.residual./nmrproc.e);
-0198             <span class="keyword">else</span>
-0199                 plot(nmrproc.t,invstd.residual,<span class="string">'Parent'</span>,ax2);
-0200                 <span class="comment">% get statistics</span>
-0201                 err_mean = mean(invstd.residual);
-0202                 err_std = std(invstd.residual);
-0203             <span class="keyword">end</span>
-0204             xlims = get(maingui.axes_handles.proc,<span class="string">'XLim'</span>);
-0205             line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
-0206             
-0207             <span class="keyword">if</span> nmrproc.noise &gt; 0
-0208                 line(xlims,[-1 -1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
-0209                 line(xlims,[1 1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
-0210                 line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
-0211                     <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,ax2);
-0212                 line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
-0213                     <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,ax2);
-0214             <span class="keyword">else</span>
-0215                 line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
-0216                     <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
-0217                 line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
-0218                     <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
-0219             <span class="keyword">end</span>
-0220             
-0221             set(ax2,<span class="string">'XTickLabel'</span>,get(maingui.axes_handles.proc,<span class="string">'XTickLabel'</span>));
-0222             set(ax2,<span class="string">'YLim'</span>,[err_mean-3*err_std err_mean+3*err_std]);
-0223             <span class="keyword">switch</span> loglinx
-0224                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0225                     set(ax2,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
-0226                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0227                     set(ax2,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
-0228             <span class="keyword">end</span>
-0229             set(get(ax2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>)
-0230             set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\epsilon'</span>);
-0231             grid(ax2,<span class="string">'on'</span>);
-0232             
-0233             <span class="comment">% update the text fields</span>
-0234             set(gui.text22,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,err_mean));
-0235             set(gui.text42,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,err_std));
-0236             <span class="keyword">if</span> nmrproc.noise &gt; 0
-0237                 <span class="keyword">if</span> isfield(invstd,<span class="string">'chi2'</span>)
-0238                     set(gui.text52,<span class="string">'String'</span>,sprintf(<span class="string">'%5.3f'</span>,invstd.chi2));
-0239                 <span class="keyword">else</span>
-0240                     set(gui.text52,<span class="string">'String'</span>,sprintf(<span class="string">'%5.3f'</span>,err_std));
-0241                 <span class="keyword">end</span>
+0037 colors = maingui.myui.colors;
+0038 
+0039 <span class="comment">%% proceed if there is data</span>
+0040 <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
+0041     <span class="keyword">if</span> isfield(data.results,<span class="string">'nmrraw'</span>) &amp;&amp; isfield(data.results,<span class="string">'nmrproc'</span>)
+0042         
+0043         <span class="comment">% check if the figure is already open</span>
+0044         fig_stat = findobj(<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>);
+0045         <span class="comment">% if not, create it</span>
+0046         <span class="keyword">if</span> isempty(fig_stat)
+0047             <span class="comment">% draw the figure on top of NUCLEUSinv</span>
+0048             fig_stat = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - Fit Statistics'</span>,<span class="keyword">...</span>
+0049                 <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>);
+0050             pos0 = get(fig,<span class="string">'Position'</span>);
+0051             pos1 = get(fig_stat,<span class="string">'Position'</span>);
+0052             cent(1) = (pos0(1)+pos0(3)/2);
+0053             cent(2) = (pos0(2)+pos0(4)/2);
+0054             set(fig_stat,<span class="string">'Position'</span>,[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
+0055             
+0056             <span class="comment">% create the layout</span>
+0057             gui.main = uix.VBox(<span class="string">'Parent'</span>,fig_stat,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10,<span class="string">'Padding'</span>,10);
+0058             gui.row1 = uicontainer(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% axes Im</span>
+0059             gui.row2 = uicontainer(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% axes res</span>
+0060             gui.row3 = uix.HBox(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% histogram + text</span>
+0061             set(gui.main,<span class="string">'Heights'</span>,[-1 -1 -1.5]);
+0062             
+0063             <span class="comment">% Im and res axes</span>
+0064             gui.axes_handles.imag = axes(<span class="string">'Parent'</span>,gui.row1,<span class="keyword">...</span>
+0065                 <span class="string">'Color'</span>,colors.axisBG,<span class="string">'XColor'</span>,colors.axisFG,<span class="keyword">...</span>
+0066                 <span class="string">'YColor'</span>,colors.axisFG);
+0067             gui.axes_handles.err = axes(<span class="string">'Parent'</span>,gui.row2,<span class="keyword">...</span>
+0068                 <span class="string">'Color'</span>,colors.axisBG,<span class="string">'XColor'</span>,colors.axisFG,<span class="keyword">...</span>
+0069                 <span class="string">'YColor'</span>,colors.axisFG);
+0070             
+0071             uix.Empty(<span class="string">'Parent'</span>,gui.row3);
+0072             gui.box1 = uicontainer(<span class="string">'Parent'</span>,gui.row3,<span class="keyword">...</span>
+0073                 <span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% histogram axes</span>
+0074             gui.box2 = uix.VBox(<span class="string">'Parent'</span>,gui.row3,<span class="keyword">...</span>
+0075                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Padding'</span>,10,<span class="string">'Spacing'</span>,5); <span class="comment">% text</span>
+0076             uix.Empty(<span class="string">'Parent'</span>,gui.row3);
+0077             set(gui.row3,<span class="string">'Widths'</span>,[40 -1 300 60]);
+0078             
+0079             <span class="comment">% histogram axes</span>
+0080             gui.axes_handles.hist = axes(<span class="string">'Parent'</span>,gui.box1,<span class="keyword">...</span>
+0081                 <span class="string">'Color'</span>,colors.axisBG,<span class="string">'XColor'</span>,colors.axisFG,<span class="keyword">...</span>
+0082                 <span class="string">'YColor'</span>,colors.axisFG);
+0083             
+0084             <span class="comment">% all text boxes</span>
+0085             uix.Empty(<span class="string">'Parent'</span>,gui.box2);
+0086             gui.row31 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10);
+0087             gui.row32 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10);
+0088             gui.row33 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10);
+0089             gui.row34 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10);
+0090             gui.row35 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10);
+0091             gui.row36 = uix.HBox(<span class="string">'Parent'</span>,gui.box2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,10);
+0092             uix.Empty(<span class="string">'Parent'</span>,gui.box2);
+0093             set(gui.box2,<span class="string">'Heights'</span>,[-1 -1 -1 -1 -1 -1 -1 -1]);
+0094             
+0095             gui.text11 = uicontrol(<span class="string">'Parent'</span>,gui.row31,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0096                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03BC'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'2111'</span>)),<span class="string">'mag)'</span>],<span class="keyword">...</span>
+0097                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="keyword">...</span>
+0098                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0099             gui.text12 = uicontrol(<span class="string">'Parent'</span>,gui.row31,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0100                 <span class="string">'FontSize'</span>,maingui.myui.fontsize,<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0101                 <span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0102             
+0103             gui.text21 = uicontrol(<span class="string">'Parent'</span>,gui.row32,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0104                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03BC'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'03B5'</span>)),<span class="string">')'</span>],<span class="keyword">...</span>
+0105                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="keyword">...</span>
+0106                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0107             gui.text22 = uicontrol(<span class="string">'Parent'</span>,gui.row32,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0108                 <span class="string">'FontSize'</span>,maingui.myui.fontsize,<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0109                 <span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0110             
+0111             gui.text31 = uicontrol(<span class="string">'Parent'</span>,gui.row33,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0112                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03C3'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'2111'</span>)),<span class="string">'mag)'</span>],<span class="keyword">...</span>
+0113                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="keyword">...</span>
+0114                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0115             gui.text32 = uicontrol(<span class="string">'Parent'</span>,gui.row33,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0116                 <span class="string">'FontSize'</span>,maingui.myui.fontsize,<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0117                 <span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0118             
+0119             gui.text41 = uicontrol(<span class="string">'Parent'</span>,gui.row34,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0120                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03C3'</span>)),<span class="string">'('</span>,char(hex2dec(<span class="string">'03B5'</span>)),<span class="string">')'</span>],<span class="keyword">...</span>
+0121                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="keyword">...</span>
+0122                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0123             gui.text42 = uicontrol(<span class="string">'Parent'</span>,gui.row34,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0124                 <span class="string">'FontSize'</span>,maingui.myui.fontsize,<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0125                 <span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0126             
+0127             gui.text51 = uicontrol(<span class="string">'Parent'</span>,gui.row35,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0128                 <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03A7'</span>)),char(hex2dec(<span class="string">'0B2'</span>))],<span class="keyword">...</span>
+0129                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="keyword">...</span>
+0130                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0131             gui.text52 = uicontrol(<span class="string">'Parent'</span>,gui.row35,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0132                 <span class="string">'FontSize'</span>,maingui.myui.fontsize,<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0133                 <span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0134             
+0135             gui.text61 = uicontrol(<span class="string">'Parent'</span>,gui.row36,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'String'</span>,<span class="string">'RMS'</span>,<span class="keyword">...</span>
+0136                 <span class="string">'FontSize'</span>,maingui.myui.fontsize+4,<span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="keyword">...</span>
+0137                 <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0138             gui.text62 = uicontrol(<span class="string">'Parent'</span>,gui.row36,<span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,<span class="string">''</span>,<span class="keyword">...</span>
+0139                 <span class="string">'FontSize'</span>,maingui.myui.fontsize,<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0140                 <span class="string">'ForeGroundColor'</span>,colors.panelFG);
+0141             
+0142             <span class="comment">% Java Hack to adjust vertical alignment of text fields</span>
+0143             jh = findjobj(gui.text11); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0144             jh = findjobj(gui.text21); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0145             jh = findjobj(gui.text31); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0146             jh = findjobj(gui.text41); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0147             jh = findjobj(gui.text51); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0148             jh = findjobj(gui.text61); jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0149             
+0150             <span class="comment">% save to GUI</span>
+0151             setappdata(fig_stat,<span class="string">'gui'</span>,gui);
+0152         <span class="keyword">end</span>
+0153         <span class="comment">% if the figure is already open load the GUI data</span>
+0154         gui = getappdata(fig_stat,<span class="string">'gui'</span>);
+0155         
+0156         <span class="comment">% get axes handles</span>
+0157         ax1 = gui.axes_handles.imag;
+0158         ax2 = gui.axes_handles.err;
+0159         ax3 = gui.axes_handles.hist;
+0160         <span class="comment">% clear all axes</span>
+0161         <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig_stat);
+0162         hold(ax1,<span class="string">'on'</span>);
+0163         hold(ax2,<span class="string">'on'</span>);
+0164         hold(ax3,<span class="string">'on'</span>);
+0165         
+0166         <span class="comment">%% gather the fit statistics for the current inversion</span>
+0167         text = cell(1,1);
+0168         nmrraw = data.results.nmrraw;
+0169         nmrproc = data.results.nmrproc;
+0170         <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0171             invstd = data.results.invstd;
+0172         <span class="keyword">end</span>
+0173         loglinx = get(maingui.cm_handles.axes_proc_xaxis,<span class="string">'Label'</span>);
+0174         lgdstr = cell(1,1);
+0175         lgdc = 0;
+0176         <span class="comment">% plot imaginary part</span>
+0177         <span class="keyword">if</span> ~isreal(nmrraw.s)
+0178             plot(nmrraw.t,imag(nmrraw.s),<span class="string">'Color'</span>,colors.IM,<span class="string">'Parent'</span>,ax1);
+0179             xlims = get(maingui.axes_handles.raw,<span class="string">'XLim'</span>);
+0180             line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Color'</span>,colors.axisL,<span class="string">'Parent'</span>,ax1);
+0181             <span class="comment">% get statistics</span>
+0182             imag_mean = mean(imag(nmrraw.s));
+0183             imag_std = std(imag(nmrraw.s));
+0184             set(ax1,<span class="string">'XTickLabel'</span>,get(maingui.axes_handles.raw,<span class="string">'XTickLabel'</span>));
+0185             <span class="keyword">switch</span> loglinx
+0186                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0187                     set(ax1,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
+0188                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0189                     set(ax1,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
+0190             <span class="keyword">end</span>
+0191             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Immag'</span>);
+0192             grid(ax1,<span class="string">'on'</span>);
+0193             
+0194             <span class="comment">% draw first histogram</span>
+0195             min1 = mean(imag(nmrraw.s))-5*std(imag(nmrraw.s));
+0196             max1 = mean(imag(nmrraw.s))+5*std(imag(nmrraw.s));
+0197             bins1 = linspace(min1,max1,100);
+0198             n1 = hist(imag(nmrraw.s),bins1);
+0199             n1 = n1./trapz(bins1,n1);
+0200             stairs(bins1,n1,<span class="string">'Color'</span>,maingui.myui.colors.IM,<span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax3);
+0201             hold(ax3,<span class="string">'on'</span>);
+0202             line(xlims,[imag_mean imag_mean],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Color'</span>,<span class="string">'g'</span>,<span class="string">'Parent'</span>,ax1);
+0203             line([imag_mean imag_mean],[0 max(n1)],<span class="keyword">...</span>
+0204                 <span class="string">'color'</span>,<span class="string">'g'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,ax3);
+0205             
+0206             lgdc = lgdc + 1;
+0207             lgdstr{lgdc} = <span class="string">'\Immag'</span>;
+0208             lgdc = lgdc + 1;
+0209             lgdstr{lgdc} = <span class="string">'\mu(\Immag)'</span>;
+0210             
+0211             <span class="comment">% update the text fields</span>
+0212             set(gui.text12,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,imag_mean));
+0213             set(gui.text32,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,imag_std));
+0214         <span class="keyword">end</span>
+0215         
+0216         <span class="keyword">if</span> isfield(data.results,<span class="string">'invstd'</span>)
+0217             <span class="comment">% plot residuals</span>
+0218             <span class="keyword">if</span> nmrproc.noise &gt; 0
+0219                 plot(nmrproc.t,invstd.residual./nmrproc.e,<span class="string">'Parent'</span>,ax2);
+0220                 <span class="comment">% get statistics</span>
+0221                 residual = invstd.residual./nmrproc.e;
+0222                 err_mean = mean(residual);
+0223                 err_std = std(residual);
+0224             <span class="keyword">else</span>
+0225                 plot(nmrproc.t,invstd.residual,<span class="string">'Parent'</span>,ax2);
+0226                 <span class="comment">% get statistics</span>
+0227                 residual = invstd.residual;
+0228                 err_mean = mean(residual);
+0229                 err_std = std(residual);
+0230             <span class="keyword">end</span>
+0231             xlims = get(maingui.axes_handles.proc,<span class="string">'XLim'</span>);
+0232             line(xlims,[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Color'</span>,colors.axisL,<span class="string">'Parent'</span>,ax2);
+0233             line(xlims,[err_mean err_mean],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Color'</span>,<span class="string">'b'</span>,<span class="string">'Parent'</span>,ax2);
+0234             
+0235             <span class="keyword">if</span> nmrproc.noise &gt; 0
+0236                 line(xlims,[-1 -1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,colors.axisL,<span class="string">'Parent'</span>,ax2);
+0237                 line(xlims,[1 1],<span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,colors.axisL,<span class="string">'Parent'</span>,ax2);
+0238                 line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
+0239                     <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,ax2);
+0240                 line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
+0241                     <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="string">'Parent'</span>,ax2);
 0242             <span class="keyword">else</span>
-0243                 set(gui.text52,<span class="string">'String'</span>,<span class="string">''</span>);
-0244             <span class="keyword">end</span>
-0245             set(gui.text62,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,invstd.rms));
-0246             
-0247             <span class="comment">% draw second histogram</span>
-0248             min2 = mean(invstd.residual)-5*std(invstd.residual);
-0249             max2 = mean(invstd.residual)+5*std(invstd.residual);
-0250             bins2 = linspace(min2,max2,100);
-0251             n2 = hist(invstd.residual,bins2);
-0252             n2 = n2./trapz(bins2,n2);
-0253             stairs(bins2,n2,<span class="string">'Parent'</span>,ax3);
-0254             line([mean(invstd.residual) mean(invstd.residual)],[0 max(n2)],<span class="keyword">...</span>
-0255                 <span class="string">'color'</span>,<span class="string">'b'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,ax3);
-0256             set(get(ax3,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Immag | \epsilon'</span>);
-0257             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'count'</span>);
-0258             grid(ax3,<span class="string">'on'</span>);
-0259             
-0260             lgdc = lgdc + 1;
-0261             lgdstr{lgdc} = <span class="string">'\epsilon'</span>;
-0262             lgdc = lgdc + 1;
-0263             lgdstr{lgdc} = <span class="string">'\mu(\epsilon)'</span>;
-0264         <span class="keyword">end</span>
-0265         lgh = legend(ax3,lgdstr);
-0266         set(lgh,<span class="string">'FontSize'</span>,12);
-0267         
-0268         set(ax1,<span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0269         set(ax2,<span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0270         set(ax3,<span class="string">'FontSize'</span>,maingui.myui.fontsize);
-0271         
-0272         set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'FontSize'</span>,16);
-0273         set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'FontSize'</span>,16);
-0274         
-0275     <span class="keyword">else</span>
-0276         helpdlg({<span class="string">'function: showFitStatistics'</span>,<span class="keyword">...</span>
-0277             <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
-0278             <span class="string">'Load NMR data first.'</span>);
-0279     <span class="keyword">end</span>
-0280 <span class="keyword">else</span>
-0281     helpdlg({<span class="string">'function: showFitStatistics'</span>,<span class="keyword">...</span>
-0282         <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
-0283         <span class="string">'Load NMR data first.'</span>);
-0284 <span class="keyword">end</span>
-0285 
-0286 <span class="keyword">end</span>
-0287 
-0288 <span class="comment">%------------- END OF CODE --------------</span>
-0289 
-0290 <span class="comment">%% License:</span>
-0291 <span class="comment">% MIT License</span>
-0292 <span class="comment">%</span>
-0293 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0294 <span class="comment">%</span>
-0295 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0296 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0297 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0298 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0299 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0300 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0301 <span class="comment">%</span>
-0302 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0303 <span class="comment">% copies or substantial portions of the Software.</span>
-0304 <span class="comment">%</span>
-0305 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0306 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0307 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0308 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0309 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0310 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0311 <span class="comment">% SOFTWARE.</span></pre></div>
+0243                 line(xlims,[err_mean-err_std err_mean-err_std],<span class="keyword">...</span>
+0244                     <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
+0245                 line(xlims,[err_mean+err_std err_mean+err_std],<span class="keyword">...</span>
+0246                     <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Color'</span>,<span class="string">'k'</span>,<span class="string">'Parent'</span>,ax2);
+0247             <span class="keyword">end</span>
+0248             
+0249             set(ax2,<span class="string">'XTickLabel'</span>,get(maingui.axes_handles.proc,<span class="string">'XTickLabel'</span>));
+0250             set(ax2,<span class="string">'YLim'</span>,[err_mean-3*err_std err_mean+3*err_std]);
+0251             <span class="keyword">switch</span> loglinx
+0252                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0253                     set(ax2,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,xlims);
+0254                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0255                     set(ax2,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,xlims);
+0256             <span class="keyword">end</span>
+0257             set(get(ax2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>)
+0258             set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\epsilon'</span>);
+0259             grid(ax2,<span class="string">'on'</span>);
+0260             
+0261             <span class="comment">% update the text fields</span>
+0262             set(gui.text22,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,err_mean));
+0263             set(gui.text42,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,err_std));
+0264             <span class="keyword">if</span> nmrproc.noise &gt; 0
+0265                 <span class="keyword">if</span> isfield(invstd,<span class="string">'chi2'</span>)
+0266                     set(gui.text52,<span class="string">'String'</span>,sprintf(<span class="string">'%5.3f'</span>,invstd.chi2));
+0267                 <span class="keyword">else</span>
+0268                     set(gui.text52,<span class="string">'String'</span>,sprintf(<span class="string">'%5.3f'</span>,err_std));
+0269                 <span class="keyword">end</span>
+0270             <span class="keyword">else</span>
+0271                 set(gui.text52,<span class="string">'String'</span>,<span class="string">''</span>);
+0272             <span class="keyword">end</span>
+0273             set(gui.text62,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4e'</span>,invstd.rms));
+0274             
+0275             <span class="comment">% draw second histogram</span>
+0276             min2 = mean(invstd.residual)-5*std(invstd.residual);
+0277             max2 = mean(invstd.residual)+5*std(invstd.residual);
+0278             bins2 = linspace(min2,max2,100);
+0279             n2 = hist(invstd.residual,bins2);
+0280             n2 = n2./trapz(bins2,n2);
+0281             stairs(bins2,n2,<span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax3);
+0282             line([mean(invstd.residual) mean(invstd.residual)],[0 max(n2)],<span class="keyword">...</span>
+0283                 <span class="string">'color'</span>,<span class="string">'b'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,ax3);
+0284             set(get(ax3,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Immag &amp; \epsilon'</span>);
+0285             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'count'</span>);
+0286             grid(ax3,<span class="string">'on'</span>);
+0287             
+0288             lgdc = lgdc + 1;
+0289             lgdstr{lgdc} = <span class="string">'\epsilon'</span>;
+0290             lgdc = lgdc + 1;
+0291             lgdstr{lgdc} = <span class="string">'\mu(\epsilon)'</span>;
+0292         <span class="keyword">end</span>
+0293         lgh = legend(ax3,lgdstr);
+0294         set(lgh,<span class="string">'FontSize'</span>,12,<span class="string">'TextColor'</span>,colors.panelFG);
+0295         
+0296         set(ax1,<span class="string">'FontSize'</span>,maingui.myui.fontsize);
+0297         set(ax2,<span class="string">'FontSize'</span>,maingui.myui.fontsize);
+0298         set(ax3,<span class="string">'FontSize'</span>,maingui.myui.fontsize);
+0299         
+0300         set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'FontSize'</span>,16);
+0301         set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'FontSize'</span>,16);
+0302         
+0303     <span class="keyword">else</span>
+0304         helpdlg({<span class="string">'function: showFitStatistics'</span>,<span class="keyword">...</span>
+0305             <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
+0306             <span class="string">'Load NMR data first.'</span>);
+0307     <span class="keyword">end</span>
+0308 <span class="keyword">else</span>
+0309     helpdlg({<span class="string">'function: showFitStatistics'</span>,<span class="keyword">...</span>
+0310         <span class="string">'Cannot continue because no data is loaded!'</span>},<span class="keyword">...</span>
+0311         <span class="string">'Load NMR data first.'</span>);
+0312 <span class="keyword">end</span>
+0313 
+0314 <span class="keyword">end</span>
+0315 
+0316 <span class="comment">%------------- END OF CODE --------------</span>
+0317 
+0318 <span class="comment">% License:</span>
+0319 <span class="comment">% MIT License</span>
+0320 <span class="comment">%</span>
+0321 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0322 <span class="comment">%</span>
+0323 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0324 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0325 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0326 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0327 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0328 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0329 <span class="comment">%</span>
+0330 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0331 <span class="comment">% copies or substantial portions of the Software.</span>
+0332 <span class="comment">%</span>
+0333 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0334 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0335 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0336 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0337 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0338 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0339 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -41,11 +41,18 @@ switch data.info.ExpertMode
         set(gui.textMode,'String','Expert Mode: OFF');
 end
 
-switch data.info.optim
+switch data.info.has_optim
     case 'on'
         set(gui.textOptim,'String','Optim. Toolbox: ON');
     case 'off'
         set(gui.textOptim,'String','Optim. Toolbox: OFF');
+end
+
+switch data.info.solver
+    case 'lsqnonneg'
+        set(gui.textSolver,'String','LSQNONNEG');
+    case 'lsqlin'
+        set(gui.textSolver,'String','LSQLIN');
 end
 
 switch data.info.stat

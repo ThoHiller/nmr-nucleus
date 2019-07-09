@@ -42,6 +42,8 @@ gui = getappdata(fig,'gui');
 
 if foundINV
     
+    try
+    
     % find the first INVdata set
     for id = 1:size(INVdata,1)
         if isstruct(INVdata{id})
@@ -230,6 +232,12 @@ if foundINV
                         f  = figure;
                         ax = axes('Parent',f);
                         hold(ax,'on')
+                        
+                        % remove the backgound file
+                        Tspec(isnan(Tspec)) = [];
+                        xi = numel(Tspec)/numel(Tt);
+                        Tspec = reshape(Tspec,[xi numel(Tt)]);
+                        
                         surf(xx,yy,zeros(size(xx)),Tspec./max(Tspec(:)),'Parent',ax);
                         shading(ax,'flat');
                         xticks = log10(min(Tt)):1:log10(max(Tt));
@@ -256,6 +264,13 @@ if foundINV
                         'Cannot plot RTDs because the inversion was not multi exponential'},...
                         'Invert NMR data first.');
             end
+    end
+    
+    catch ME
+        % show error message in case import fails
+        errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
+            'Cannot show figure.'};
+        errordlg(errmsg,'showExtraGraphics: Error!');
     end
 else
     helpdlg({'function: showExtraGraphics',...

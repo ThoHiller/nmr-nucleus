@@ -66,10 +66,10 @@ set/used
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>	 updates all GUI elements</li><li><a href="onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>	 handles the call from the menu that activates / deactivates</li><li><a href="../../../nucleus/functions/interface/makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>	 creates or updates the ini-File</li><li><a href="../../../nucleus/functions/interface/onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>	 fixes an ugly Matlab bug when resizing a box-panel</li><li><a href="../../../nucleus/functions/interface/updateStatusInformation.html" class="code" title="function updateStatusInformation">updateStatusInformation</a>	 updates all fields inside the bottom status bar</li></ul>
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>	 updates all GUI elements</li><li><a href="onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>	 handles the call from the menu that activates / deactivates</li><li><a href="onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>	 handles the call from the menu that allows to choose the LSQ</li><li><a href="../../../nucleus/functions/interface/makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>	 creates or updates the ini-File</li><li><a href="../../../nucleus/functions/interface/onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>	 fixes an ugly Matlab bug when resizing a box-panel</li><li><a href="../../../nucleus/functions/interface/updateStatusInformation.html" class="code" title="function updateStatusInformation">updateStatusInformation</a>	 updates all fields inside the bottom status bar</li><li><a href="../../../nucleus/functions/interface/updateToolTips.html" class="code" title="function updateToolTips">updateToolTips</a>	 updates tool tip entries dependent on the chosen settings</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_createMenus.html" class="code" title="function gui = NUCLEUSinv_createMenus(gui)">NUCLEUSinv_createMenus</a>	 creates all GUI menus</li><li><a href="../../../nucleus/functions/interface/enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>	 activates all necessary GUI elements after successful</li><li><a href="../../../nucleus/functions/interface/importINV2INV.html" class="code" title="function importINV2INV(src)">importINV2INV</a>	 imports a previously saved NUCLEUSinv session</li></ul>
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_createMenus.html" class="code" title="function gui = NUCLEUSinv_createMenus(data,gui)">NUCLEUSinv_createMenus</a>	 creates all GUI menus</li><li><a href="../../../nucleus/functions/interface/enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>	 activates all necessary GUI elements after successful</li><li><a href="../../../nucleus/functions/interface/importINV2INV.html" class="code" title="function importINV2INV(src)">importINV2INV</a>	 imports a previously saved NUCLEUSinv session</li></ul>
 <!-- crossreference -->
 
 
@@ -134,74 +134,93 @@ This function is called by:
 0057         setappdata(fig,<span class="string">'data'</span>,data);
 0058         setappdata(fig,<span class="string">'gui'</span>,gui);
 0059         
-0060         <span class="comment">% deactivate joint inversion panels</span>
-0061         <a href="onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>(gui.menu.extra_joint_off);
+0060         <span class="comment">% deactivate solver menu and set to default</span>
+0061         <a href="onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqnonneg);
 0062         <span class="comment">% get changed GUI data</span>
 0063         data = getappdata(fig,<span class="string">'data'</span>);
-0064         INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
-0065         <span class="comment">% default std inversion settings</span>
-0066         data.invstd.invtype = <span class="string">'NNLS'</span>;
-0067         data.invstd.regtype = <span class="string">'manual'</span>;
-0068         data.invstd.lambda = 1;        
-0069         <span class="comment">% deactivate joint inversion menu</span>
-0070         set(gui.menu.extra_joint,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0071         
-0072         set(gui.menu.extra_graphics_amp,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0073         set(gui.menu.extra_graphics_amp2,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0074         set(gui.menu.extra_graphics_rtd,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0075         
-0076     <span class="keyword">case</span> <span class="string">'On'</span>
-0077         data.info.ExpertMode = <span class="string">'on'</span>;
-0078         <span class="comment">% menu entry</span>
-0079         set(gui.menu.extra_expert_on,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0080         set(gui.menu.extra_expert_off,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0064         set(gui.menu.extra_solver,<span class="string">'Enable'</span>,<span class="string">'off'</span>);        
+0065 
+0066         <span class="comment">% update GUI data</span>
+0067         setappdata(fig,<span class="string">'data'</span>,data);
+0068         setappdata(fig,<span class="string">'gui'</span>,gui);
+0069         
+0070         <span class="comment">% deactivate joint inversion panels</span>
+0071         <a href="onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>(gui.menu.extra_joint_off);
+0072         <span class="comment">% get changed GUI data</span>
+0073         data = getappdata(fig,<span class="string">'data'</span>);
+0074         INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0075         <span class="comment">% default std inversion settings</span>
+0076         data.invstd.invtype = <span class="string">'NNLS'</span>;
+0077         data.invstd.regtype = <span class="string">'manual'</span>;
+0078         data.invstd.lambda = 1;        
+0079         <span class="comment">% deactivate joint inversion menu</span>
+0080         set(gui.menu.extra_joint,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
 0081         
-0082         <span class="comment">% activate joint inversion menu</span>
-0083         set(gui.menu.extra_joint,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0084         
-0085         set(gui.menu.extra_graphics_amp,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0086         set(gui.menu.extra_graphics_amp2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0087         set(gui.menu.extra_graphics_rtd,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0088 <span class="keyword">end</span>
-0089 
-0090 <span class="comment">% update GUI data</span>
-0091 setappdata(fig,<span class="string">'data'</span>,data);
-0092 setappdata(fig,<span class="string">'gui'</span>,gui);
-0093 <span class="comment">% update ini-file</span>
-0094 gui.myui.inidata.expertmode = data.info.ExpertMode;
-0095 gui = <a href="../../../nucleus/functions/interface/makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
-0096 <span class="comment">% update interface</span>
-0097 <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0098 <span class="comment">% update status information</span>
-0099 <a href="../../../nucleus/functions/interface/updateStatusInformation.html" class="code" title="function updateStatusInformation">updateStatusInformation</a>;
-0100 <a href="../../../nucleus/functions/interface/onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>(fig);
-0101 
-0102 <span class="keyword">end</span>
-0103 
-0104 <span class="comment">%------------- END OF CODE --------------</span>
-0105 
-0106 <span class="comment">%% License:</span>
-0107 <span class="comment">% MIT License</span>
-0108 <span class="comment">%</span>
-0109 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0110 <span class="comment">%</span>
-0111 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0112 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0113 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0114 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0115 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0116 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0117 <span class="comment">%</span>
-0118 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0119 <span class="comment">% copies or substantial portions of the Software.</span>
-0120 <span class="comment">%</span>
-0121 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0122 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0123 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0124 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0125 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0126 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0127 <span class="comment">% SOFTWARE.</span></pre></div>
+0082         set(gui.menu.extra_graphics_amp,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0083         set(gui.menu.extra_graphics_amp2,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0084         set(gui.menu.extra_graphics_rtd,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0085         
+0086     <span class="keyword">case</span> <span class="string">'On'</span>
+0087         data.info.ExpertMode = <span class="string">'on'</span>;
+0088         <span class="comment">% menu entry</span>
+0089         set(gui.menu.extra_expert_on,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0090         set(gui.menu.extra_expert_off,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0091         
+0092         <span class="comment">% activate solver menu if optimization toolbox is available</span>
+0093         <span class="keyword">switch</span> data.info.has_optim
+0094             <span class="keyword">case</span> <span class="string">'on'</span>
+0095                 set(gui.menu.extra_solver,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0096             <span class="keyword">case</span> <span class="string">'off'</span>
+0097                 set(gui.menu.extra_solver,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0098         <span class="keyword">end</span>
+0099         
+0100         <span class="comment">% activate joint inversion menu</span>
+0101         set(gui.menu.extra_joint,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0102         
+0103         set(gui.menu.extra_graphics_amp,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0104         set(gui.menu.extra_graphics_amp2,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0105         set(gui.menu.extra_graphics_rtd,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0106 <span class="keyword">end</span>
+0107 
+0108 <span class="comment">% update GUI data</span>
+0109 setappdata(fig,<span class="string">'data'</span>,data);
+0110 setappdata(fig,<span class="string">'gui'</span>,gui);
+0111 <span class="comment">% update ini-file</span>
+0112 gui.myui.inidata.expertmode = data.info.ExpertMode;
+0113 gui = <a href="../../../nucleus/functions/interface/makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
+0114 <span class="comment">% update interface</span>
+0115 <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0116 <span class="comment">% update status information</span>
+0117 <a href="../../../nucleus/functions/interface/updateStatusInformation.html" class="code" title="function updateStatusInformation">updateStatusInformation</a>;
+0118 <a href="../../../nucleus/functions/interface/updateToolTips.html" class="code" title="function updateToolTips">updateToolTips</a>;
+0119 <a href="../../../nucleus/functions/interface/onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>(fig);
+0120 
+0121 <span class="keyword">end</span>
+0122 
+0123 <span class="comment">%------------- END OF CODE --------------</span>
+0124 
+0125 <span class="comment">%% License:</span>
+0126 <span class="comment">% MIT License</span>
+0127 <span class="comment">%</span>
+0128 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0129 <span class="comment">%</span>
+0130 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0131 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0132 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0133 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0134 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0135 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0136 <span class="comment">%</span>
+0137 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0138 <span class="comment">% copies or substantial portions of the Software.</span>
+0139 <span class="comment">%</span>
+0140 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0141 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0142 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0143 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0144 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0145 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0146 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

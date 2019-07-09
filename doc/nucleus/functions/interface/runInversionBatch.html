@@ -46,7 +46,7 @@ the same inversion parameters as for the current one
        fitDataFree
        fitDataFree_fmin
        fitDataInvLaplace
-       fitDataNNLS
+       fitDataLSQ
        onPushRun
        onPushStop
        processNMRDataControl
@@ -67,7 +67,7 @@ the same inversion parameters as for the current one
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>	 handles the callbacks to all RUN push buttons in both GUIs and</li><li><a href="../../../nucleus/callbacks/push/onPushStop.html" class="code" title="function onPushStop(src,~)">onPushStop</a>	 recognizes that a STOP push button was pressed and resets the</li><li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 clears all axes of a given figure</li><li><a href="processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>	 prepares simple NMR raw data processing</li><li><a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>	 deletes all inversion result fields from NUCLEUSinv</li><li><a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="../../../nucleus/functions/inversion/fitDataInvLaplace.html" class="code" title="function fitdata = fitDataInvLaplace(time,signal,parameter)">fitDataInvLaplace</a>	 is a control routine that uses an Inverse Laplace</li><li><a href="../../../nucleus/functions/inversion/fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>	 is a control routine that uses the 'Regularization Toolbox'</li></ul>
+<li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>	 handles the callbacks to all RUN push buttons in both GUIs and</li><li><a href="../../../nucleus/callbacks/push/onPushStop.html" class="code" title="function onPushStop(src,~)">onPushStop</a>	 recognizes that a STOP push button was pressed and resets the</li><li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 clears all axes of a given figure</li><li><a href="processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>	 prepares simple NMR raw data processing</li><li><a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>	 deletes all inversion result fields from NUCLEUSinv</li><li><a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="../../../nucleus/functions/inversion/fitDataInvLaplace.html" class="code" title="function fitdata = fitDataInvLaplace(time,signal,parameter)">fitDataInvLaplace</a>	 is a control routine that uses an Inverse Laplace</li><li><a href="../../../nucleus/functions/inversion/fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/callbacks/contextmenus/onContextSignalList.html" class="code" title="function onContextSignalList(src,~)">onContextSignalList</a>	 handles the calls from the context menu of the data</li></ul>
@@ -97,7 +97,7 @@ This function is called by:
 0019 <span class="comment">%       fitDataFree</span>
 0020 <span class="comment">%       fitDataFree_fmin</span>
 0021 <span class="comment">%       fitDataInvLaplace</span>
-0022 <span class="comment">%       fitDataNNLS</span>
+0022 <span class="comment">%       fitDataLSQ</span>
 0023 <span class="comment">%       onPushRun</span>
 0024 <span class="comment">%       onPushStop</span>
 0025 <span class="comment">%       processNMRDataControl</span>
@@ -185,7 +185,7 @@ This function is called by:
 0107                     flag = data.results.nmrproc.T1T2;
 0108                     param.T1IRfac = data.results.nmrproc.T1IRfac;
 0109                     param.noise = data.results.nmrproc.noise;
-0110                     param.optim = data.info.optim;
+0110                     param.optim = data.info.has_optim;
 0111                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
 0112                         param.W = data.results.nmrproc.W;
 0113                     <span class="keyword">end</span>
@@ -197,7 +197,7 @@ This function is called by:
 0119                     flag = data.results.nmrproc.T1T2;
 0120                     param.T1IRfac = data.results.nmrproc.T1IRfac;
 0121                     param.noise = data.results.nmrproc.noise;
-0122                     param.optim = data.info.optim;
+0122                     param.optim = data.info.has_optim;
 0123                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
 0124                         param.W = data.results.nmrproc.W;
 0125                     <span class="keyword">end</span>
@@ -214,12 +214,12 @@ This function is called by:
 0136                     param.Lorder = data.invstd.Lorder;
 0137                     param.lambda = data.invstd.lambda;
 0138                     param.noise = data.results.nmrproc.noise;
-0139                     param.optim = data.info.optim;
+0139                     param.solver = data.info.solver;
 0140                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
 0141                         param.W = data.results.nmrproc.W;
 0142                     <span class="keyword">end</span>
 0143                     
-0144                     invstd = <a href="../../../nucleus/functions/inversion/fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0144                     invstd = <a href="../../../nucleus/functions/inversion/fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(data.results.nmrproc.t,<span class="keyword">...</span>
 0145                         data.results.nmrproc.s,param);
 0146                     
 0147                 <span class="keyword">case</span> <span class="string">'ILA'</span>

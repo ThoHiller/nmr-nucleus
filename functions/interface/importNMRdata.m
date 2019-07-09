@@ -495,22 +495,73 @@ switch data.import.fileformat
         nslices = out.parData.nSlices;
         ncsvfiles = numel(fnames);
         
-        if nslices == ncsvfiles
-            % create z-vector
-            p = out.parData;
-            zslice = linspace(p.startPos,p.endPos,p.nSlices)';
-            data.import.BAM.use_z = true;
-            data.import.BAM.zslice = zslice;
-            if numel(zslice) > 1
-                for i = 1:numel(zslice)
-                    tmp = shownames{i};
-                    shownames{i} = [tmp,' z:',sprintf('%5.4f',zslice(i))];
-                end
+        % check for background file ("Leermessung")
+        has_bg = false;
+        for i = 1:numel(fnames)
+            if ~isempty(strfind(fnames(i).datafile,'000'))
+                has_bg = true;
+                index_bg = i;
+                break;
             end
-        else
-            data.import.BAM.use_z = false;
-            data.import.BAM.zslice = 1:1:ncsvfiles;
         end
+        
+        if has_bg
+            % background data set
+            bg = data.import.NMR.data{index_bg};
+            
+            % vector of indices of the files that get corrected
+            ind_files = 1:1:ncsvfiles;
+            ind_files(ind_files==index_bg) = [];
+            
+            for i = ind_files                
+                % subtract the background signal
+                s = data.import.NMR.data{i}.signal;
+                s_bg = bg.signal;
+                s(1:numel(s_bg)) = complex( real(s(1:numel(s_bg)))-...
+                        real(s_bg),imag(s(1:numel(s_bg)))-imag(s_bg) );
+                % update original data set
+                data.import.NMR.data{i}.signal = s;                
+            end
+            
+            % check if the number of slices is equal to the number of files
+            % (excluding the background file)
+            if nslices == numel(ind_files)
+                % create z-vector
+                p = out.parData;
+                zslice = linspace(p.startPos,p.endPos,p.nSlices)';
+                data.import.BAM.use_z = true;
+                data.import.BAM.zslice = zslice;
+                if numel(zslice) > 1
+                    c = 0;
+                    for i = ind_files
+                        c = c + 1;
+                        tmp = shownames{i};
+                        shownames{i} = [tmp,' z:',sprintf('%5.4f',zslice(c))];
+                    end
+                end
+            else
+                data.import.BAM.use_z = false;
+                data.import.BAM.zslice = 1:1:max([numel(ind_files) 1]);
+            end
+            
+        else
+            if nslices == ncsvfiles
+                % create z-vector
+                p = out.parData;
+                zslice = linspace(p.startPos,p.endPos,p.nSlices)';
+                data.import.BAM.use_z = true;
+                data.import.BAM.zslice = zslice;
+                if numel(zslice) > 1
+                    for i = 1:numel(zslice)
+                        tmp = shownames{i};
+                        shownames{i} = [tmp,' z:',sprintf('%5.4f',zslice(i))];
+                    end
+                end
+            else
+                data.import.BAM.use_z = false;
+                data.import.BAM.zslice = 1:1:ncsvfiles;
+            end
+        end    
 end
 
 % update the global data structure

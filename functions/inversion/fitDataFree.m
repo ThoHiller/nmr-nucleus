@@ -94,14 +94,22 @@ switch parameter.optim
         switch flag
             case 'T1'
                 % solver options
-                options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
-                    'LargeScale','on','MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);                
+                options = optimoptions('lsqcurvefit');
+                options.Display = parameter.info;
+                options.OptimalityTolerance = 1e-18;
+                options.StepTolerance = 1e-18;
+%                 options.MaxIterations = 1e3;
                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)fcn_fitFreeT1(x,t,IRfac),...
                     x0,t,s,zeros(size(x0)),[],options);
             case 'T2'
                 % solver options
-                options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
-                    'Jacobian','on','Algorithm','levenberg-marquardt','MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);
+                options = optimoptions('lsqnonlin');
+                options.Algorithm = 'levenberg-marquardt';
+                options.Display = parameter.info;
+                options.OptimalityTolerance = 1e-18;
+                options.StepTolerance = 1e-18;
+%                 options.MaxIterations = 1e3;
+                
                 iparam.t = t;
                 iparam.s = s;
                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...

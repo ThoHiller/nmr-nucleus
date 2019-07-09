@@ -33,10 +33,12 @@ function updatePlotsNMR
 fig = findobj('Tag','MOD');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
+colors = gui.myui.colors;
 
 % axis handle
 ax = gui.axes_handles.nmr;
 clearSingleAxis(ax);
+hold(ax,'on');
 
 if isfield(data.results,'NMR')  
     % drainage and imbibition levels

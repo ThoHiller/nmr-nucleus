@@ -15,13 +15,16 @@ function NUCLEUSmod_createGUI(h,wbon)
 %       NUCLEUSmod_createGUI(gcf,1)
 %
 % Other m-files required:
+%       fixAxes.m
 %       NUCLEUSmod_createMenus.m
 %       NUCLEUSmod_createPanelGeometry.m
 %       NUCLEUSmod_createPanelCPS.m
 %       NUCLEUSmod_createPanelNMR.m
 %       NUCLEUSmod_createPanelPlots.m
+%
 % Subfunctions:
 %       none
+%
 % MAT-files required:
 %       none
 %
@@ -127,6 +130,7 @@ gui.myui = myui;
 setappdata(h,'gui',gui);
 setappdata(h,'data',data);
 displayStatusText(gui,'NUCLEUSmod successfully started');
+fixAxes(gui.plots.cps.box);
 
 end
 

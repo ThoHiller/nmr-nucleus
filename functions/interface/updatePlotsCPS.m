@@ -33,6 +33,7 @@ function updatePlotsCPS
 fig = findobj('Tag','MOD');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
+colors = gui.myui.colors;
 
 % only proceed if there is cps data
 if isfield(data.results,'SAT')
@@ -44,6 +45,7 @@ if isfield(data.results,'SAT')
         set(ph,'HandleVisibility','on')
     end
     cla(ax);
+    hold(ax,'on');
     
     % get pressure
     SAT = data.results.SAT;    
@@ -52,8 +54,8 @@ if isfield(data.results,'SAT')
     
     % plot the cps data
     hold(ax,'on');
-    plot(plotpress,SAT.Sdfull,'k-','LineWidth',2,'Parent',ax);
-    plot(plotpress,SAT.Sifull,'k--','LineWidth',2,'Parent',ax);
+    plot(plotpress,SAT.Sdfull,'-','Color',colors.axisL,'LineWidth',2,'Parent',ax);
+    plot(plotpress,SAT.Sifull,'--','Color',colors.axisL,'LineWidth',2,'Parent',ax);
     
     % depending on the pressure spacing adjust the x-axis
     switch data.pressure.loglin
@@ -72,7 +74,8 @@ if isfield(data.results,'SAT')
     % labels and legend
     set(get(ax,'XLabel'),'String',xlstring);
     set(get(ax,'YLabel'),'String','saturation [-]');
-    legend(ax,'drain','imb','Location','best')
+    lgh = legend(ax,'drain','imb','Location','best');
+    set(lgh,'TextColor',colors.panelFG,'Color',colors.axisBG);
     % update GUI data
     setappdata(fig,'gui',gui);
     % now add the saturation level points on the curves

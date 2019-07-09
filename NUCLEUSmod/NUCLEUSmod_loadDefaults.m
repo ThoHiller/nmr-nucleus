@@ -88,7 +88,6 @@ out.nmr.loglinx = 2;
 % use linear y-axes as default (log=1, lin=2)
 out.nmr.logliny = 2;
 
-
 return
 
 %------------- END OF CODE --------------

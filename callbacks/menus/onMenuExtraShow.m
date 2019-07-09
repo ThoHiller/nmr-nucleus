@@ -141,8 +141,7 @@ switch fig_tag
                 
             otherwise
                 % nothing to do
-        end
-        
+        end        
 end
 
 setappdata(fig,'gui',gui);

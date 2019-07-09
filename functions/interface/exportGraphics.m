@@ -38,7 +38,7 @@ gui = getappdata(fig,'gui');
 % get GUI position
 posf = get(fig,'Position');
 % opening the figure
-expfig = figure;
+expfig = figure('Color',gui.myui.colors.panelBG);
 
 % check which layout
 switch get(gui.menu.file_export_graphics_layout_vert,'Checked')
@@ -148,12 +148,15 @@ switch fig_tag
         % add the legend(s) and remove the info lines (CBW etc) from the
         % distribution plots
         if isjoint
-            legend(ax1,'show');
-            legend(ax3,'show');
+            lgh1 = legend(ax1,'show');
+            lgh2 = legend(ax3,'show');
+            set(lgh1,'TextColor',gui.myui.colors.panelFG);
+            set(lgh2,'TextColor',gui.myui.colors.panelFG);
             h1 = findobj([ax1 ax2 ax3],'Tag','infolines');
             h2 = findobj([ax1 ax2 ax3],'Tag','TLGM');
         else
-            legend(ax1,'show');
+            lgh = legend(ax1,'show');
+            set(lgh,'TextColor',gui.myui.colors.panelFG);
             h1 = findobj([ax1 ax2],'Tag','infolines');
             h2 = findobj([ax1 ax2],'Tag','TLGM');
         end
@@ -236,7 +239,7 @@ switch fig_tag
         set(ax2,'Position',pos2);
         set(ax3,'Position',pos3);
         lh2 = legend(ax2,'show','Location','NorthEast');
-        set(lh2,'FontSize',10);
+        set(lh2,'FontSize',10,'TextColor',gui.myui.colors.panelFG);
         
         % adjust the export figure height and axes size
         switch horzvert

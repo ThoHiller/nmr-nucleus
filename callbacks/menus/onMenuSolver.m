@@ -1,20 +1,22 @@
-function updatePlotsGeometryType(ax)
-%updatePlotsGeometryType plots the cross-sectional shape as a reference
+function onMenuSolver(src,~)
+%onMenuSolver handles the call from the menu that allows to choose the LSQ
+%solver
 %
 % Syntax:
-%       updatePlotsGeometryType
+%       onMenuSolver
 %
 % Inputs:
-%       ax - axes handle where to plot the geometry
+%       src - handle of the calling object
 %
 % Outputs:
 %       none
 %
 % Example:
-%       updatePlotsGeometryType
+%       onMenuSolver(src,~)
 %
 % Other m-files required:
-%       none
+%       NUCLEUSinv_updateInterface
+%       updateStatusInformation
 %
 % Subfunctions:
 %       none
@@ -22,7 +24,7 @@ function updatePlotsGeometryType(ax)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSmod
+% See also: NUCLEUSinv
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
@@ -30,38 +32,37 @@ function updatePlotsGeometryType(ax)
 %------------- BEGIN CODE --------------
 
 %% get GUI handle and data
-fig = findobj('Tag','MOD');
+fig = findobj('Tag','INV');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
-colors = gui.myui.colors;
 
-% clear the current axis
-cla(ax);
-hold(ax,'on');
+% solver
+solver = get(src,'Label');
 
-% check the geometry type and plot the cross-sectional shape
-if strcmp(data.geometry.type,'cyl') == 1 % cylindrical
-    r = data.geometry.modes(1,1);
-    phi = linspace(0,2*pi,360);
-    x = r.*cos(phi);
-    y = r.*sin(phi);
-    plot(x,y,'-','Color',colors.axisL,'LineWidth',2,'Parent',ax);
-else % right angular & % polygonal
-    if numel(data.results.psddata.psd) == 1
-        P = data.results.GEOM.Points;
-    else
-        P = squeeze(data.results.GEOM.Points(1,:,:));
-    end
-    patch('Vertices',P,'Faces',1:1:size(P,1),'FaceColor','none',...
-        'FaceAlpha',0,'EdgeColor',colors.axisL,'LineWidth',2,'Parent',ax);
+% switch solver
+if strfind(solver,'LSQLIN')
+        data.info.solver = 'lsqlin';
+        % menu entry
+        set(gui.menu.extra_solver_lsqlin,'Checked','on');
+        set(gui.menu.extra_solver_lsqnonneg,'Checked','off');
+        
+        % update the tooltips
+
+elseif strfind(solver,'LSQNONNEG')
+        data.info.solver = 'lsqnonneg';
+        % menu entry
+        set(gui.menu.extra_solver_lsqlin,'Checked','off');
+        set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
 end
 
-% axis settings
-axis(ax,'equal');
-axis(ax,'tight');
-set(ax,'XScale','lin','XLim',get(ax,'XLim').*[1.3 1.3],'XTick',[]);
-set(ax,'XTickLabel','','YTickLabel','','Color','none',...
-    'XColor','none','YColor','none');
+% update GUI data
+setappdata(fig,'data',data);
+setappdata(fig,'gui',gui);
+% update interface
+NUCLEUSinv_updateInterface;
+% update status information
+updateStatusInformation;
+updateToolTips;
 
 end
 
@@ -70,7 +71,7 @@ end
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2019 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

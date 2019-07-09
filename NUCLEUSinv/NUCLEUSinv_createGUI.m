@@ -15,6 +15,7 @@ function NUCLEUSinv_createGUI(h,wbon)
 %       NUCLEUSinv_createGUI(gcf,1)
 %
 % Other m-files required:
+%       changeColorTheme.m
 %       NUCLEUSinv_createMenus.m
 %       NUCLEUSinv_createPanelData.m
 %       NUCLEUSinv_createPanelProcess.m
@@ -22,8 +23,11 @@ function NUCLEUSinv_createGUI(h,wbon)
 %       NUCLEUSinv_createPanelInversionStd.m
 %       NUCLEUSinv_createPanelInversionJoint.m
 %       NUCLEUSinv_createPanelPlots.m
-%       NUCLEUSinv_createPanelInfo
-%       NUCLEUSinv_createStatusbar
+%       NUCLEUSinv_createPanelInfo.m
+%       NUCLEUSinv_createStatusbar.m
+%       switchToolTips.m
+%       updateStatusInformation.m
+%       updateToolTips.m
 %
 % Subfunctions:
 %       none
@@ -71,7 +75,7 @@ data.info.ToolTips = myui.inidata.tooltips;
 if wbon
     waitbar(1/steps,hwb,'loading GUI elements - menus');
 end
-gui = NUCLEUSinv_createMenus(gui);
+gui = NUCLEUSinv_createMenus(data,gui);
 
 %% MAIN GUI "BOX"
 % make everything invisible during creation
@@ -79,10 +83,11 @@ gui.main = uix.VBox('Parent',gui.figh,'Visible','off');
 % gui.main = uix.VBox('Parent',gui.figh);
 
 % top part for settings and plots
-gui.top = uix.HBoxFlex('Parent',gui.main,'Spacing',5);
+gui.top = uix.HBoxFlex('Parent',gui.main,'Spacing',0);
 % bottom part for the statusbar
 gui.bottom = uix.HBox('Parent',gui.main);
-set(gui.main,'Heights',[-1 20]);
+% minimum heights of main elements
+set(gui.main,'Heights',[-1 20],'MinimumHeights',[250+4*22 20]);
 
 % all control panels are on the left inside a vertically scrollable panel
 gui.left = uix.ScrollingPanel('Parent',gui.top);
@@ -117,7 +122,7 @@ myui.heights = [250 22 22 22 22; -1 109 137 190 299];
 % panel header is always 22 high
 set(gui.panels.main,'Heights',myui.heights(2,:),...
     'MinimumHeights',[250 22 22 22 22]);
-set(gui.left,'Heights',-1,'MinimumHeights',593);
+set(gui.left,'Heights',-1,'MinimumHeights',250+109+22+190+22);
 
 % 1. data panel
 if wbon
@@ -149,7 +154,7 @@ if wbon
 end
 % adjust the default joint inversion method depending on Optimization
 % toolbox availability
-switch data.info.optim
+switch data.info.has_optim
     case 'on'
         data.invjoint.invtype = 'free';
     case 'off'
@@ -187,11 +192,14 @@ set(gui.panels.petro.main,'Minimized',true);
 set(gui.panels.invjoint.main,'Minimized',true);
 set(gui.center,'Heights',[-1 -1 22]);
 set(gui.plots.CPSPanel,'Minimized',true);
+% minimum size of bottom status bar
+set(gui.bottom,'MinimumWidths',610);
 
 % make the GUI visible again; "gui" needs to be saved because
 % otherwise "fixAxes" throws an error (in NUCLEUSmod); strangely here it
 % also works without it, but I put it for consistency reasons
 setappdata(h,'gui',gui);
+% changeColorTheme('INV',myui.colors.theme);
 set(gui.main,'Visible','on');
 
 %% enable all menus
@@ -208,6 +216,7 @@ setappdata(h,'gui',gui);
 setappdata(h,'data',data);
 displayStatusText(gui,'NUCLEUSinv successfully started');
 updateStatusInformation;
+updateToolTips;
 
 end
 

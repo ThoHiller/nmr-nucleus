@@ -38,6 +38,7 @@ function PhaseView(src,~)
 fig = ancestor(src,'figure','toplevel');
 nucleus.data = getappdata(fig,'data');
 nucleus.gui = getappdata(fig,'gui');
+colors = nucleus.gui.myui.colors;
 
 %% proceed if there is data
 if isfield(nucleus.data,'results')
@@ -57,51 +58,60 @@ if isfield(nucleus.data,'results')
             set(fig_phase,'Position',[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
             
             % create the layout
-            gui.main = uix.VBox('Parent',fig_phase,'Spacing',5,'Padding',5);
-            gui.row1 = uicontainer('Parent',gui.main); % axes real
-            gui.row2 = uicontainer('Parent',gui.main); % axes imag
-            gui.row3 = uicontainer('Parent',gui.main); % axes SSE
-            gui.row4 = uix.HBox('Parent',gui.main,'Spacing',5); % control elements
+            gui.main = uix.VBox('Parent',fig_phase,'BackGroundColor',colors.panelBG,'Spacing',5,'Padding',5);
+            gui.row1 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes real
+            gui.row2 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes imag
+            gui.row3 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes SSE
+            gui.row4 = uix.HBox('Parent',gui.main,'BackGroundColor',colors.panelBG,'Spacing',5); % control elements
             set(gui.main,'Heights',[-1 -1 -1 90]);
             
             % all axes
-            gui.axes_handles.real = axes('Parent',gui.row1);
-            gui.axes_handles.imag = axes('Parent',gui.row2);
-            gui.axes_handles.sse = axes('Parent',gui.row3);
+            gui.axes_handles.real = axes('Parent',gui.row1,...
+                'Color',colors.axisBG,'XColor',colors.axisFG,...
+                'YColor',colors.axisFG);
+            gui.axes_handles.imag = axes('Parent',gui.row2,...
+                'Color',colors.axisBG,'XColor',colors.axisFG,...
+                'YColor',colors.axisFG);
+            gui.axes_handles.sse = axes('Parent',gui.row3,...
+                'Color',colors.axisBG,'XColor',colors.axisFG,...
+                'YColor',colors.axisFG);
             
             % 3 horizontal boxes
             uix.Empty('Parent',gui.row4);
-            gui.vbox1 = uix.VBox('Parent',gui.row4,'Spacing',5,'Padding',5); % control elements
+            gui.vbox1 = uix.VBox('Parent',gui.row4,'BackGroundColor',colors.panelBG,'Spacing',5,'Padding',5); % control elements
             uix.Empty('Parent',gui.row4);
             set(gui.row4,'Widths',[-1 -2 -1]);
             
             % edit field
-            gui.hbox11 = uix.HBox('Parent',gui.vbox1,'Spacing',5);
+            gui.hbox11 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
             uix.Empty('Parent',gui.hbox11);
             gui.edit_phase = uicontrol('Parent',gui.hbox11,...
                 'Style','edit','FontSize',nucleus.gui.myui.fontsize,'Tag','phase',...
-                'String',num2str(0),...
+                'String',num2str(0),'BackGroundColor',colors.editBG,...
+                'ForeGroundColor',colors.panelFG,...
                 'Callback',@pv_updatePhase);
             uix.Empty('Parent',gui.hbox11);
             set(gui.hbox11,'Widths',[-1 -1 -1]);
             
             % slider
-            gui.hbox12 = uix.HBox('Parent',gui.vbox1,'Spacing',5);
-            gui.hbox121 = uix.HBox('Parent',gui.hbox12,'Spacing',5);
+            gui.hbox12 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
+            gui.hbox121 = uix.HBox('Parent',gui.hbox12,'BackGroundColor',colors.panelBG,'Spacing',5);
             gui.text_down = uicontrol('Parent',gui.hbox121,'Style','text',...
                 'String','down','FontSize',nucleus.gui.myui.fontsize,...
+                'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG,...
                 'HorizontalAlignment','right');
             gui.slider = uicontrol('Parent',gui.hbox12,'Style','slider',...
                 'Min',-180,'Max',180,'Value',0,'SliderStep',[0.1/360 5/360],...
                 'Callback',@pv_updateSlider);
-            gui.hbox122 = uix.HBox('Parent',gui.hbox12,'Spacing',5);
+            gui.hbox122 = uix.HBox('Parent',gui.hbox12,'BackGroundColor',colors.panelBG,'Spacing',5);
             gui.text_up = uicontrol('Parent',gui.hbox122,'Style','text',...
                 'String','up','FontSize',nucleus.gui.myui.fontsize,...
+                'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG,...
                 'HorizontalAlignment','left');
             set(gui.hbox12,'Widths',[-1 -9 -1]);
             
             % buttons
-            gui.hbox13 = uix.HBox('Parent',gui.vbox1,'Spacing',5);
+            gui.hbox13 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
             uix.Empty('Parent',gui.hbox13);
             gui.push_default = uicontrol('Parent',gui.hbox13,...
                 'Style','pushbutton','FontSize',nucleus.gui.myui.fontsize,'Tag','default',...
@@ -241,6 +251,9 @@ ax2 = gui.axes_handles.imag;
 ax3 = gui.axes_handles.sse;
 % clear all axes
 clearAllAxes(fig_phase);
+hold(ax1,'on');
+hold(ax2,'on');
+hold(ax3,'on');
 
 plot(data.time,real(data.signal_rot),'Color',gui.myui.colors.RE,'Parent',ax1);
 plot(data.time,imag(data.signal_rot),'Color',gui.myui.colors.IM,'Parent',ax2);
@@ -257,8 +270,7 @@ end
 grid(ax1,'on');
 grid(ax2,'on');
 
-hold(ax2,'on');
-line(get(ax2,'XLim'),[0 0],'LineStyle','--','Color','k','LineWidth',1,'Parent',ax2);
+line(get(ax2,'XLim'),[0 0],'LineStyle','--','Color',gui.myui.colors.axisL,'LineWidth',1,'Parent',ax2);
 hold(ax2,'off');
 
 %residual of current phase angle
@@ -270,22 +282,23 @@ sse_i = sum(res_i.^2);
 set(get(ax1,'XLabel'),'String','time');
 set(get(ax1,'YLabel'),'String','\Reeal');
 text(0.975,0.8,['\Sigma \epsilon^2 = ',sprintf('%6.5e',sse_r)],...
-    'HorizontalAlignment','right','BackgroundColor','w','Units','normalized',...
+    'HorizontalAlignment','right','BackgroundColor',gui.myui.colors.axisBG,...
+    'Color',gui.myui.colors.panelFG,'Units','normalized',...
     'FontSize',12,'Parent',ax1);
 set(get(ax2,'XLabel'),'String','time');
 set(get(ax2,'YLabel'),'String','\Immag');
 text(0.975,0.8,['\Sigma \epsilon^2 = ',sprintf('%6.5e',sse_i)],...
-    'HorizontalAlignment','right','BackgroundColor','w','Units','normalized',...
+    'HorizontalAlignment','right','BackgroundColor',gui.myui.colors.axisBG,...
+    'Color',gui.myui.colors.panelFG,'Units','normalized',...
     'FontSize',12,'Parent',ax2);
 
-hold(ax3,'on');
 ymin = min([-1.*data.sse_r data.sse_i]);
 ymax = max([-1.*data.sse_r data.sse_i]);
 plot(data.beta_range-180,-1.*data.sse_r,'Color',gui.myui.colors.RE,'Parent',ax3);
 plot(data.beta_range-180,data.sse_i,'Color',gui.myui.colors.IM,'Parent',ax3);
-line([data.phase data.phase],[ymin ymax],'Color','k','LineStyle','--','Parent',ax3)
+line([data.phase data.phase],[ymin ymax],'Color',gui.myui.colors.axisL,'LineStyle','--','Parent',ax3)
 lgh = legend(ax3,'\Reeal','\Immag','\phi');
-set(lgh,'FontSize',12);
+set(lgh,'FontSize',12,'TextColor',gui.myui.colors.panelFG);
 
 set(ax3,'XLim',[-180 180],'XTick',-180:30:180);
 set(ax3,'YLim',[ymin ymax]);

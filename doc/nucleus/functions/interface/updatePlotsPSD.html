@@ -63,7 +63,7 @@ This function calls:
 <li><a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>	 can be used to globally change the general appearance of axes</li><li><a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>	 clears an individual axis</li><li><a href="updatePlotsGeometryType.html" class="code" title="function updatePlotsGeometryType(ax)">updatePlotsGeometryType</a>	 plots the cross-sectional shape as a reference</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/callbacks/contextmenus/onContextPlotsPSD.html" class="code" title="function onContextPlotsPSD(src,~)">onContextPlotsPSD</a>	 checks the label of the distribution axis context menu</li><li><a href="calculateGeometry.html" class="code" title="function calculateGeometry">calculateGeometry</a>	 calculates the shape dependent geometry parameters</li><li><a href="importMOD2MOD.html" class="code" title="function importMOD2MOD">importMOD2MOD</a>	 imports previously saved NUCLEUSmod data back into the GUI</li></ul>
+<li><a href="../../../nucleus/callbacks/contextmenus/onContextPlotsPSD.html" class="code" title="function onContextPlotsPSD(src,~)">onContextPlotsPSD</a>	 checks the label of the distribution axis context menu</li><li><a href="calculateGeometry.html" class="code" title="function calculateGeometry">calculateGeometry</a>	 calculates the shape dependent geometry parameters</li><li><a href="changeColorTheme.html" class="code" title="function changeColorTheme(fig_tag,th)">changeColorTheme</a>	 changes the color theme of the calling figure</li><li><a href="importMOD2MOD.html" class="code" title="function importMOD2MOD">importMOD2MOD</a>	 imports previously saved NUCLEUSmod data back into the GUI</li></ul>
 <!-- crossreference -->
 
 
@@ -106,77 +106,79 @@ This function is called by:
 0035 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'MOD'</span>);
 0036 gui = getappdata(fig,<span class="string">'gui'</span>);
 0037 data = getappdata(fig,<span class="string">'data'</span>);
-0038 
-0039 <span class="comment">% get the results</span>
-0040 results = data.results;
-0041 
-0042 <span class="comment">% clear the PSD axes</span>
-0043 ax = gui.axes_handles.geo;
-0044 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
-0045 
-0046 <span class="comment">% check if it is a single pore or a pore size distribution (PSD)</span>
-0047 <span class="comment">% the radius is plotted in [µm] hence the factor 1e6</span>
-0048 <span class="keyword">switch</span> data.geometry.ispsd    
-0049     <span class="keyword">case</span> 0        
-0050         stem(results.GEOM.radius,1,<span class="string">'ko-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0051         set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,data.geometry.range);
-0052         set(ax,<span class="string">'YLim'</span>,[0 1.1],<span class="string">'YTick'</span>,0:0.2:1);
-0053         
-0054     <span class="keyword">case</span> 1        
-0055         isfreqchecked = get(gui.cm_handles.geo_cm_viewfreq,<span class="string">'Checked'</span>);        
-0056         <span class="keyword">switch</span> isfreqchecked            
-0057             <span class="keyword">case</span> <span class="string">'on'</span>                
-0058                 plot(results.psddata.r,results.psddata.psd,<span class="string">'k-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0059                 xticks = log10(min(results.psddata.r)):1:log10(max(results.psddata.r));
-0060                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(results.psddata.r) max(results.psddata.r)],<span class="string">'XTick'</span>,10.^xticks);
-0061                 set(ax,<span class="string">'YLim'</span>,[0 max(results.psddata.psd)*1.1]);
-0062                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'frequency [-]'</span>);
-0063                 
-0064             <span class="keyword">case</span> <span class="string">'off'</span>                
-0065                 plot(results.psddata.r,cumsum(results.psddata.psd),<span class="string">'k-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0066                 xticks = log10(min(results.psddata.r)):1:log10(max(results.psddata.r));
-0067                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(results.psddata.r) max(results.psddata.r)],<span class="string">'XTick'</span>,10.^xticks);
-0068                 set(ax,<span class="string">'YLim'</span>,[0 1.1]);
-0069                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative [-]'</span>);
-0070                 
-0071             <span class="keyword">otherwise</span>                
-0072                 warndlg({<span class="string">'updatePlotsPSD:'</span>,<span class="string">'Something is utterly wrong.'</span>});
-0073         <span class="keyword">end</span>        
-0074 <span class="keyword">end</span>
-0075 
-0076 <span class="comment">% axis settings</span>
-0077 grid(ax,<span class="string">'on'</span>);
-0078 set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'equiv. pore size [m]'</span>);
-0079 
-0080 <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(gui.figh);
-0081 <a href="updatePlotsGeometryType.html" class="code" title="function updatePlotsGeometryType(ax)">updatePlotsGeometryType</a>(gui.axes_handles.type);
-0082 
-0083 <span class="keyword">end</span>
+0038 colors = gui.myui.colors;
+0039 
+0040 <span class="comment">% get the results</span>
+0041 results = data.results;
+0042 
+0043 <span class="comment">% clear the PSD axes</span>
+0044 ax = gui.axes_handles.geo;
+0045 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0046 hold(ax,<span class="string">'on'</span>)
+0047 
+0048 <span class="comment">% check if it is a single pore or a pore size distribution (PSD)</span>
+0049 <span class="comment">% the radius is plotted in [µm] hence the factor 1e6</span>
+0050 <span class="keyword">switch</span> data.geometry.ispsd    
+0051     <span class="keyword">case</span> 0        
+0052         stem(results.GEOM.radius,1,<span class="string">'o-'</span>,<span class="string">'Color'</span>,colors.axisL,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0053         set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,data.geometry.range);
+0054         set(ax,<span class="string">'YLim'</span>,[0 1.1],<span class="string">'YTick'</span>,0:0.2:1);
+0055         
+0056     <span class="keyword">case</span> 1        
+0057         isfreqchecked = get(gui.cm_handles.geo_cm_viewfreq,<span class="string">'Checked'</span>);        
+0058         <span class="keyword">switch</span> isfreqchecked            
+0059             <span class="keyword">case</span> <span class="string">'on'</span>                
+0060                 plot(results.psddata.r,results.psddata.psd,<span class="string">'-'</span>,<span class="string">'Color'</span>,colors.axisL,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0061                 xticks = log10(min(results.psddata.r)):1:log10(max(results.psddata.r));
+0062                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(results.psddata.r) max(results.psddata.r)],<span class="string">'XTick'</span>,10.^xticks);
+0063                 set(ax,<span class="string">'YLim'</span>,[0 max(results.psddata.psd)*1.1],<span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
+0064                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'frequency [-]'</span>);
+0065                 
+0066             <span class="keyword">case</span> <span class="string">'off'</span>                
+0067                 plot(results.psddata.r,cumsum(results.psddata.psd),<span class="string">'-'</span>,<span class="string">'Color'</span>,colors.axisL,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0068                 xticks = log10(min(results.psddata.r)):1:log10(max(results.psddata.r));
+0069                 set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(results.psddata.r) max(results.psddata.r)],<span class="string">'XTick'</span>,10.^xticks);
+0070                 set(ax,<span class="string">'YLim'</span>,[0 1.1],<span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
+0071                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative [-]'</span>);
+0072                 
+0073             <span class="keyword">otherwise</span>                
+0074                 warndlg({<span class="string">'updatePlotsPSD:'</span>,<span class="string">'Something is utterly wrong.'</span>});
+0075         <span class="keyword">end</span>        
+0076 <span class="keyword">end</span>
+0077 
+0078 <span class="comment">% axis settings</span>
+0079 grid(ax,<span class="string">'on'</span>);
+0080 set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'equiv. pore size [m]'</span>);
+0081 
+0082 <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(gui.figh);
+0083 <a href="updatePlotsGeometryType.html" class="code" title="function updatePlotsGeometryType(ax)">updatePlotsGeometryType</a>(gui.axes_handles.type);
 0084 
-0085 <span class="comment">%------------- END OF CODE --------------</span>
+0085 <span class="keyword">end</span>
 0086 
-0087 <span class="comment">%% License:</span>
-0088 <span class="comment">% MIT License</span>
-0089 <span class="comment">%</span>
-0090 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0087 <span class="comment">%------------- END OF CODE --------------</span>
+0088 
+0089 <span class="comment">%% License:</span>
+0090 <span class="comment">% MIT License</span>
 0091 <span class="comment">%</span>
-0092 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0093 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0094 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0095 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0096 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0097 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0098 <span class="comment">%</span>
-0099 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0100 <span class="comment">% copies or substantial portions of the Software.</span>
-0101 <span class="comment">%</span>
-0102 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0103 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0104 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0105 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0106 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0107 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0108 <span class="comment">% SOFTWARE.</span></pre></div>
+0092 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0093 <span class="comment">%</span>
+0094 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0095 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0096 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0097 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0098 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0099 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0100 <span class="comment">%</span>
+0101 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0102 <span class="comment">% copies or substantial portions of the Software.</span>
+0103 <span class="comment">%</span>
+0104 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0105 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0106 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0107 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0108 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0109 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0110 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

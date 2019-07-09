@@ -19,7 +19,7 @@ function runInversionBatch
 %       fitDataFree
 %       fitDataFree_fmin
 %       fitDataInvLaplace
-%       fitDataNNLS
+%       fitDataLSQ
 %       onPushRun
 %       onPushStop
 %       processNMRDataControl
@@ -107,7 +107,7 @@ if ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.optim;
+                    param.optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
@@ -119,7 +119,7 @@ if ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.optim;
+                    param.optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
@@ -136,12 +136,12 @@ if ~isempty(INVdata)
                     param.Lorder = data.invstd.Lorder;
                     param.lambda = data.invstd.lambda;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.optim;
+                    param.solver = data.info.solver;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     
-                    invstd = fitDataNNLS(data.results.nmrproc.t,...
+                    invstd = fitDataLSQ(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
                     
                 case 'ILA'

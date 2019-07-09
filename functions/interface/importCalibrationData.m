@@ -1,20 +1,22 @@
-function updatePlotsGeometryType(ax)
-%updatePlotsGeometryType plots the cross-sectional shape as a reference
+function importCalibrationData
+%importCalibrationdata imports previously saved calibration data for
+%porosity determination
 %
 % Syntax:
-%       updatePlotsGeometryType
+%       importCalibrationdata
 %
 % Inputs:
-%       ax - axes handle where to plot the geometry
+%       none
 %
 % Outputs:
 %       none
 %
 % Example:
-%       updatePlotsGeometryType
+%       importCalibrationdata
 %
 % Other m-files required:
-%       none
+%       displayStatusText
+%       NUCLEUSinv_updateInterface
 %
 % Subfunctions:
 %       none
@@ -22,7 +24,7 @@ function updatePlotsGeometryType(ax)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSmod
+% See also: NUCLEUSinv
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
@@ -30,38 +32,42 @@ function updatePlotsGeometryType(ax)
 %------------- BEGIN CODE --------------
 
 %% get GUI handle and data
-fig = findobj('Tag','MOD');
+fig = findobj('Tag','INV');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
-colors = gui.myui.colors;
 
-% clear the current axis
-cla(ax);
-hold(ax,'on');
-
-% check the geometry type and plot the cross-sectional shape
-if strcmp(data.geometry.type,'cyl') == 1 % cylindrical
-    r = data.geometry.modes(1,1);
-    phi = linspace(0,2*pi,360);
-    x = r.*cos(phi);
-    y = r.*sin(phi);
-    plot(x,y,'-','Color',colors.axisL,'LineWidth',2,'Parent',ax);
-else % right angular & % polygonal
-    if numel(data.results.psddata.psd) == 1
-        P = data.results.GEOM.Points;
-    else
-        P = squeeze(data.results.GEOM.Points(1,:,:));
-    end
-    patch('Vertices',P,'Faces',1:1:size(P,1),'FaceColor','none',...
-        'FaceAlpha',0,'EdgeColor',colors.axisL,'LineWidth',2,'Parent',ax);
+% get file name
+CALIBpath = -1;
+CALIBfile = -1;
+if isfield(data.import,'path')
+    [CALIBfile,CALIBpath] = uigetfile(fullfile(data.import.path,'*.mat'),...
+    'Choose Calibration file');
+else
+    [CALIBfile,CALIBpath] = uigetfile(fullfile(pwd,'*.mat'),...
+        'Choose Calibration file');
 end
 
-% axis settings
-axis(ax,'equal');
-axis(ax,'tight');
-set(ax,'XScale','lin','XLim',get(ax,'XLim').*[1.3 1.3],'XTick',[]);
-set(ax,'XTickLabel','','YTickLabel','','Color','none',...
-    'XColor','none','YColor','none');
+% only continue if user didn't cancel
+if sum([CALIBpath CALIBfile]) > 0
+    
+    indata = load(fullfile(CALIBpath,CALIBfile),'calib');
+    if isfield(indata,'calib')
+        % update the GUI data fields
+        data.calib = indata.calib;
+        data.param.calibV = data.calib.vol;
+        data.param.useporosity = 1;
+        
+        % update the GUI data
+        setappdata(fig,'data',data);
+        NUCLEUSinv_updateInterface;
+        
+        % show info message
+        displayStatusText(gui,'Calibration data successfully imported');
+    else
+        helpdlg({'function: importCalibrationdata',...
+            'No calibration data in this file.'},'No calibration data');
+    end    
+end
 
 end
 

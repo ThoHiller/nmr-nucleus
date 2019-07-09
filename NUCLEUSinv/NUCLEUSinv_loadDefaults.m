@@ -47,7 +47,9 @@ out.info.JointInv = 'off';
 out.info.InvInfo = 'on';
 out.info.ToolTips = 'off';
 % Optimization and Statistics toolbox availability is checked later 
-out.info.optim = 'off';
+% lsqnonneg is the default lsq-solver
+out.info.has_optim = 'off';
+out.info.solver = 'lsqnonneg';
 out.info.stat = 'off';
 
 %% process panel defaults

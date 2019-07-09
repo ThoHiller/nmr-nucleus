@@ -1,9 +1,11 @@
-function fitdata = fitDataNNLS(time,signal,parameter)
-%fitDataNNLS is a control routine that uses the 'Regularization Toolbox'
-%from P. Hansen and 'lsqlin' to fit NMR data multi-exponentially
+function fitdata = fitDataLSQ(time,signal,parameter)
+%fitDataLSQ is a control routine that fits NMR data multi-exponentially;
+%if the Optimization Toolbox is available the user can select LSQLIN,
+%otherwise the default built-in LSQNONNEG is used; the 'Regularization Toolbox'
+%from P. Hansen can be used for automatic regularization based on the SVD
 %
 % Syntax:
-%       fitDataNNLS(time,signal,parameter)
+%       fitDataLSQ(time,signal,parameter)
 %
 % Inputs:
 %       time - time vector
@@ -20,7 +22,7 @@ function fitdata = fitDataNNLS(time,signal,parameter)
 %                   noise    : noise level needed for 'discrep' discrepancy
 %                              principle
 %                   W        : error weighting matrix (optional)
-%                   optim    : switch for Optimization Toolbox
+%                   solver   : LSQ solver ('lsqlin' or 'lsqnonneg')
 %
 % Outputs:
 %       fitdata - struct that holds the inversion results:
@@ -43,7 +45,7 @@ function fitdata = fitDataNNLS(time,signal,parameter)
 %                   rn         : residual norm |A*x-b|_2
 %
 % Example:
-%       [fitdata] = fitDataNNLS(t,s,parameter)
+%       [fitdata] = fitDataLSQ(t,s,parameter)
 %
 % Other m-files required:
 %       Optimization Toolbox from Mathworks (optional)
@@ -98,7 +100,7 @@ T1T2me = logspace(tstart,tend,(tend-tstart)*N);
 % create the Kernel matrix for inversion
 K = createKernelMatrix(t,T1T2me,Tb,flag,T1IRfac);
 
-if strcmp(parameter.optim,'on')
+if strcmp(parameter.solver,'lsqlin')
     % initial T2 amplitudes
     f0 = zeros(size(T1T2me));
     f0_lb = f0;
@@ -130,15 +132,15 @@ end
 gg = g;
 gg(length(g)+1:length(g)+size(L,1),1) = 0;
 
-switch parameter.optim
-    case 'on'
-        options = optimset('Display',parameter.info,'TolFun',1e-12,...
-            'TolX',1e-12,'Jacobian','off',...
-            'LargeScale','on','MaxFunEvals',1000000,...
-            'MaxIter',200);
+switch parameter.solver
+    case 'lsqlin'
+        options = optimoptions('lsqlin');
+        options.Display = parameter.info;
+        options.OptimalityTolerance = 1e-18;
+        options.StepTolerance = 1e-18;
         [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
-            f0_lb,f0_ub,f0,options);
-    case 'off'
+            f0_lb,f0_ub,[],options);
+    case 'lsqnonneg'
         options = optimset('Display',parameter.info,'TolX',1e-12);
         [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
 end

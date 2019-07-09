@@ -12,7 +12,7 @@ function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_le
 %       g - signal
 %       lambda_in - regularization parameter
 %       flag - flag for regularization method:
-%              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep', 
+%              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',
 %       order - smoothness constraint: '0', '1' or '2'
 %       noise_level - noise level for 'discrep' method (discrepancy principle)
 %
@@ -43,7 +43,7 @@ function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_le
 
 %------------- BEGIN CODE --------------
 
-switch flag    
+switch flag
     case 'manual'
         Kreg = [K;lambda_in*L];
         lambda = lambda_in;
@@ -54,7 +54,7 @@ switch flag
             [lambda,~,~] = gcv(U,s,g,'tikh',0);
         else
             [U,s,~,~,~] = cgsvd(K,L);
-            [lambda,~,~] = gcv(U,s,g,'tikh',0);            
+            [lambda,~,~] = gcv(U,s,g,'tikh',0);
         end
         Kreg = [K;lambda*L];
         
@@ -80,14 +80,23 @@ switch flag
         
     case 'discrep'
         delta = sqrt(length(g))*noise_level;
-        if order == 0
-            [U,s,V] = csvd(K);
-            [~,lambda] = discrep(U,s,V,g,delta);
-        else
-            [U,s,X,~,~] = cgsvd(K,L);
-            [~,lambda] = discrep(U,s,X,g,delta);
+        try
+            if order == 0
+                [U,s,V] = csvd(K);
+                [~,lambda] = discrep(U,s,V,g,delta);
+            else
+                [U,s,X,~,~] = cgsvd(K,L);
+                [~,lambda] = discrep(U,s,X,g,delta);
+            end
+            Kreg = [K;lambda*L];
+        catch ME
+            % show error message in case discrep fails
+            errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
+                'Regul. Box: discrep.m failed!';'Using Lambda=1 as fall back.'};
+            errordlg(errmsg,'applyRegularization: Error!');
+            lambda = 1;
+            Kreg = [K;lambda*L];
         end
-        Kreg = [K;lambda*L];
 end
 
 return

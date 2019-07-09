@@ -38,8 +38,8 @@ h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.7';
-myui.date = '27.06.2019';
+myui.version = '0.1.8';
+myui.date = '08.07.2019';
 myui.author = 'Thomas Hiller';
 myui.email = 'thomas.hiller[at]leibniz-liag.de';
 myui.fontsize = 10;
@@ -76,7 +76,7 @@ gui.myui = myui;
 Mver = ver;
 for i = 1:size(Mver,2)
     if strcmp(Mver(i).Name,'Optimization Toolbox')
-        data.info.optim = 'on';
+        data.info.has_optim = 'on';
     end
     if strfind(Mver(i).Name,'Statistics')
         data.info.stat = 'on';

@@ -39,7 +39,7 @@ and using a SVD
        g - signal
        lambda_in - regularization parameter
        flag - flag for regularization method:
-              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep', 
+              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',
        order - smoothness constraint: '0', '1' or '2'
        noise_level - noise level for 'discrep' method (discrepancy principle)
 
@@ -75,7 +75,7 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>	 is a control routine that uses the 'Regularization Toolbox'</li></ul>
+<li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li><li><a href="fitDataNNLS.html" class="code" title="function fitdata = fitDataNNLS(time,signal,parameter)">fitDataNNLS</a>	 is a control routine that uses the 'Regularization Toolbox'</li></ul>
 <!-- crossreference -->
 
 
@@ -126,7 +126,7 @@ This function is called by:
 0043 
 0044 <span class="comment">%------------- BEGIN CODE --------------</span>
 0045 
-0046 <span class="keyword">switch</span> flag    
+0046 <span class="keyword">switch</span> flag
 0047     <span class="keyword">case</span> <span class="string">'manual'</span>
 0048         Kreg = [K;lambda_in*L];
 0049         lambda = lambda_in;
@@ -137,7 +137,7 @@ This function is called by:
 0054             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);
 0055         <span class="keyword">else</span>
 0056             [U,s,~,~,~] = cgsvd(K,L);
-0057             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);            
+0057             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);
 0058         <span class="keyword">end</span>
 0059         Kreg = [K;lambda*L];
 0060         
@@ -163,42 +163,51 @@ This function is called by:
 0080         
 0081     <span class="keyword">case</span> <span class="string">'discrep'</span>
 0082         delta = sqrt(length(g))*noise_level;
-0083         <span class="keyword">if</span> order == 0
-0084             [U,s,V] = csvd(K);
-0085             [~,lambda] = discrep(U,s,V,g,delta);
-0086         <span class="keyword">else</span>
-0087             [U,s,X,~,~] = cgsvd(K,L);
-0088             [~,lambda] = discrep(U,s,X,g,delta);
-0089         <span class="keyword">end</span>
-0090         Kreg = [K;lambda*L];
-0091 <span class="keyword">end</span>
-0092 
-0093 <span class="keyword">return</span>
-0094 
-0095 <span class="comment">%------------- END OF CODE --------------</span>
-0096 
-0097 <span class="comment">%% License:</span>
-0098 <span class="comment">% MIT License</span>
-0099 <span class="comment">%</span>
-0100 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0101 <span class="comment">%</span>
-0102 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0103 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0104 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0105 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0106 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0107 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0083         <span class="keyword">try</span>
+0084             <span class="keyword">if</span> order == 0
+0085                 [U,s,V] = csvd(K);
+0086                 [~,lambda] = discrep(U,s,V,g,delta);
+0087             <span class="keyword">else</span>
+0088                 [U,s,X,~,~] = cgsvd(K,L);
+0089                 [~,lambda] = discrep(U,s,X,g,delta);
+0090             <span class="keyword">end</span>
+0091             Kreg = [K;lambda*L];
+0092         <span class="keyword">catch</span> ME
+0093             <span class="comment">% show error message in case discrep fails</span>
+0094             errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0095                 <span class="string">'Regul. Box: discrep.m failed!'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
+0096             errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
+0097             lambda = 1;
+0098             Kreg = [K;lambda*L];
+0099         <span class="keyword">end</span>
+0100 <span class="keyword">end</span>
+0101 
+0102 <span class="keyword">return</span>
+0103 
+0104 <span class="comment">%------------- END OF CODE --------------</span>
+0105 
+0106 <span class="comment">%% License:</span>
+0107 <span class="comment">% MIT License</span>
 0108 <span class="comment">%</span>
-0109 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0110 <span class="comment">% copies or substantial portions of the Software.</span>
-0111 <span class="comment">%</span>
-0112 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0113 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0114 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0115 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0116 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0117 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0118 <span class="comment">% SOFTWARE.</span></pre></div>
+0109 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0110 <span class="comment">%</span>
+0111 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0112 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0113 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0114 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0115 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0116 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0117 <span class="comment">%</span>
+0118 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0119 <span class="comment">% copies or substantial portions of the Software.</span>
+0120 <span class="comment">%</span>
+0121 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0122 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0123 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0124 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0125 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0126 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0127 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

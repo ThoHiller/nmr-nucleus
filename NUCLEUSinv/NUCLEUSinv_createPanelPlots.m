@@ -43,11 +43,11 @@ gui.plots.CPSPanel = uix.BoxPanel('Parent',gui.center,...
 
 %% 1. panel - Processing - PROC and RAW data
 gui.plots.Signal.ProcTab = uix.VBox('Parent',gui.plots.SignalPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',5,'Padding',0);
 gui.plots.Signal.RawTab = uix.VBox('Parent',gui.plots.SignalPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',5,'Padding',0);
 gui.plots.Signal.AllTab = uix.VBox('Parent',gui.plots.SignalPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',5,'Padding',0);
 gui.plots.SignalPanel.TabTitles = {'PROC','RAW','ALL (joint)'};
 gui.plots.SignalPanel.TabWidth = 75;
 gui.plots.SignalPanel.TabEnables = {'on','on','off'};
@@ -86,7 +86,7 @@ set(gui.plots.Signal.RawTab,'Heights',[-4 -1]);
 % now the actual axes 1
 gui.axes_handles.raw = axes('Parent',gui.plots.Signal.Raw.box1,'Box','on');
 set(get(gui.axes_handles.raw,'XLabel'),'String','time [s]');
-set(get(gui.axes_handles.raw,'YLabel'),'String','amplitude [a.u.]');
+set(get(gui.axes_handles.raw,'YLabel'),'String','\Reeal');
 % the axes has a context menu
 gui.cm_handles.axes_raw = uicontextmenu(gui.figh);
 gui.cm_handles.axes_raw_xaxis = uimenu(gui.cm_handles.axes_raw,...
@@ -100,7 +100,7 @@ set(gui.axes_handles.raw,'UIContextMenu',gui.cm_handles.axes_raw);
 % now the actual axes 2
 gui.axes_handles.imag = axes('Parent',gui.plots.Signal.Raw.box2,'Box','on');
 set(get(gui.axes_handles.imag,'XLabel'),'String','');
-set(get(gui.axes_handles.imag,'YLabel'),'String','');
+set(get(gui.axes_handles.imag,'YLabel'),'String','\Immag');
 set(gui.axes_handles.imag,'XTickLabel','');
 set(gui.axes_handles.imag,'YTickLabel','');
 
@@ -130,11 +130,11 @@ set(gui.axes_handles.err_joint,'YTickLabel','');
 
 %% 2. panel - Distributions - RTD, PSD and PSDJ data
 gui.plots.Dist.RTDTab = uix.HBox('Parent',gui.plots.DistPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',0,'Padding',0);
 gui.plots.Dist.PSDTab = uix.HBox('Parent',gui.plots.DistPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',0,'Padding',0);
 gui.plots.Dist.PSDJTab = uix.HBox('Parent',gui.plots.DistPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',0,'Padding',0);
 gui.plots.DistPanel.TabTitles = {'RTD','PSD','PSD (joint)'};
 gui.plots.DistPanel.TabWidth = 75;
 gui.plots.DistPanel.TabEnables = {'on','on','off'};
@@ -192,7 +192,7 @@ set(gui.axes_handles.psdj,'UIContextMenu',gui.cm_handles.axes_psdj);
 
 %% 3. panel - CPS data
 gui.plots.CPSTab = uix.HBox('Parent',gui.plots.CPSPanel,...
-    'Spacing',3,'Padding',3);
+    'Spacing',0,'Padding',0);
 gui.plots.CPSPanel.Title = 'CPS (joint)';
 
 %% 3.1 the CPS axes
