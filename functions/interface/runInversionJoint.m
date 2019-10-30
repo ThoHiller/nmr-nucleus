@@ -80,7 +80,7 @@ if foundINV
     switch data.invjoint.invtype
         case {'fixed','shape'}
             switch invtype{1}
-                case {'ILA','NNLS'}
+                case {'LU','NNLS'}
                     InvtypeIsOK = true;
                 otherwise
                     % nothing to do

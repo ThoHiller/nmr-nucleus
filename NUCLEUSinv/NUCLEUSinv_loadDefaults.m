@@ -99,18 +99,18 @@ out.calib.name = '';
 
 %% standard inversion panel defaults
 % inversion methods to choose from
-% 'mono' | 'free' | 'NNLS' | 'ILA'
+% 'mono' | 'free' | 'NNLS' | 'LU'
 out.invstd.invtype = 'NNLS';
 % when inversion method is 'free' choose No. of free relaxation times
 out.invstd.freeDT = 2;
 % regularization options for multi-exponential fitting routines
-% 'NNLS' and 'ILA'
+% 'NNLS' and 'LU'
 out.invstd.regtype = 'manual';
 % smoothness constraint (order) for multi-exponential fitting routines
-% 'NNLS' and 'ILA'
+% 'NNLS' and 'LU'
 out.invstd.Lorder = 1;
 % regularization parameter for multi-exponential fitting routines
-% 'NNLS' and 'ILA'
+% 'NNLS' and 'LU'
 out.invstd.lambda = 1;
 % L-curve range (lambda) for multi-exponential fitting routine 'NNLS'
 out.invstd.lambdaR = [1e-3 1e2];

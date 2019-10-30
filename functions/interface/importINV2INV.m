@@ -18,7 +18,6 @@ function importINV2INV(src)
 %       NUCLEUSinv_updateInterface
 %       updatePlotsSignal
 %       updatePlotsDistribution
-%       updatePlotsIterChi
 %       updatePlotsLcurve
 %
 % Subfunctions:
@@ -59,9 +58,9 @@ end
 if sum(Sessionpath) > 0    
     % check if it is a valid session file
     tmp = load(fullfile(Sessionpath,Sessionfile),'savedata');
-    savedata = tmp.savedata;
-    if isfield(savedata,'data') && isfield(savedata,'id') && ...
-            isfield(savedata,'INVdata')
+    if isfield(tmp,'savedata') && isfield(tmp.savedata,'data') && ...
+            isfield(tmp.savedata,'id') && isfield(tmp.savedata,'INVdata')
+        savedata = tmp.savedata;
         
         % check import uimenu
         set(src,'Checked','on');
@@ -82,20 +81,65 @@ if sum(Sessionpath) > 0
         end
         enableGUIelements('NMR');
         
+        % adjust menu entry for comand line inversion info
+        switch savedata.data.info.InvInfo
+            case 'on'
+                onMenuExtraShow(gui.menu.extra_settings_invinfo_on);
+            case 'off'
+                onMenuExtraShow(gui.menu.extra_settings_invinfo_off);
+        end
+        % adjust menu entry for tool tips
+        switch savedata.data.info.ToolTips
+            case 'on'
+                onMenuExtraShow(gui.menu.extra_settings_tooltips_on);
+            case 'off'
+                onMenuExtraShow(gui.menu.extra_settings_tooltips_off);
+        end
+        
         % update GUI data from session mat-file
         data = savedata.data;
         INVdata = savedata.INVdata;
         
-        % update GUI data
-        setappdata(fig,'data',data);
-        setappdata(fig,'INVdata',INVdata);
+        % backward compatibility with older versions
+        % current GUI version
+        version = getVersionNoFromString(gui.myui.version);
+        % import GUI version
+        version_in = getVersionNoFromString(savedata.myui.version);
+        if version_in < version
+            if version_in < 19 % changes introduced with v.0.1.9
+                if strcmp(savedata.data.invstd.invtype,'ILA')
+                    data.invstd.invtype = 'LU';                    
+                end
+                for i = 1:numel(savedata.INVdata)
+                    if strcmp(savedata.INVdata{i}.invstd.invtype,'ILA')
+                        INVdata{i}.invstd.invtype = 'LU';
+                    end
+                end
+            end
+        end        
         
+        % check if the import path exists on this machine
+        isdir_import = dir(data.import.path);
+        % if not replace it with the path the session-file was loaded from
+        if isempty(isdir_import)
+            data.import.path = Sessionpath;
+        end
         % update the path info field with "path" ("file")
         if data.import.file > 0
             tmpstr = fullfile(data.import.path,data.import.file);
         else
             tmpstr = data.import.path;
         end
+        % update GUI data
+        setappdata(fig,'data',data);
+        setappdata(fig,'gui',gui);
+        setappdata(fig,'INVdata',INVdata);        
+        
+        % update the ini-file
+        gui.myui.inidata.importpath = data.import.path;
+        gui = makeINIfile(gui,'update');
+        setappdata(fig,'gui',gui);
+        
         if length(tmpstr)>50
             set(gui.text_handles.data_path,'String',['...',tmpstr(end-50:end)],...
                 'HorizontalAlignment','left');
@@ -134,15 +178,13 @@ if sum(Sessionpath) > 0
             if isfield(data,'results')
                 if isfield(data.results,'invstd')
                     updatePlotsDistribution;
+                    updateInfo(gui.plots.SignalPanel);
                 end
                 if isfield(data.results,'invjoint')
                     updatePlotsJointInversion;
                 end
                 if isfield(data.results,'lcurve')
                     updatePlotsLcurve;
-                end
-                if isfield(data.results,'iterchi2')
-                    updatePlotsIterChi;
                 end
             end
         end        

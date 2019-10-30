@@ -18,7 +18,7 @@ function runInversionBatch
 %       displayStatusText
 %       fitDataFree
 %       fitDataFree_fmin
-%       fitDataInvLaplace
+%       fitDataLUdecomp
 %       fitDataLSQ
 %       onPushRun
 %       onPushStop
@@ -144,7 +144,7 @@ if ~isempty(INVdata)
                     invstd = fitDataLSQ(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
                     
-                case 'ILA'
+                case 'LU'
                     param.T1T2 = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.Tb = data.invstd.Tbulk;
@@ -153,7 +153,7 @@ if ~isempty(INVdata)
                     param.lambda = data.invstd.lambda;
                     param.noise = data.results.nmrproc.noise;
                     
-                    invstd = fitDataInvLaplace(data.results.nmrproc.t,...
+                    invstd = fitDataLUdecomp(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
             end
             

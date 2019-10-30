@@ -220,7 +220,7 @@ switch fig_tag
                                 figure(f);
                                 por = INVdata{id}.invstd.porosity;
                                 tname = [sfilename(5:end),' (water content: ',...
-                                    sprintf('%2.1f',por*100),' vol. %)'];
+                                    sprintf('%2.1f',por*100),' [vol. %])'];
                                 set(get(ax(1),'Title'),'String',tname,'Interpreter','none');
                                 
                                 % get the cut-offs
@@ -236,7 +236,7 @@ switch fig_tag
                                 yy = get(ax(2),'YLim');
                                 lgdstr = cell(1,1);
                                 switch INVdata{id}.invstd.invtype
-                                    case {'ILA','NNLS'}
+                                    case {'LU','NNLS'}
                                         TLGM = INVdata{id}.results.invstd.Tlgm;
                                         T = INVdata{id}.results.invstd.T1T2me;
                                         F = INVdata{id}.results.invstd.T1T2f;
@@ -251,14 +251,10 @@ switch fig_tag
                                         CBWa = abs(sum(F(T<=CBW))/sum(F));
                                         BVIa = abs(sum(F(T>CBW & T<=BVI))/sum(F));
                                         BVMa = abs(sum(F(T>BVI))/sum(F));
-                                        % tname2 = ['CBW: ',sprintf('%2.1f',por*100*CBWa),...
-                                        % ' | BVI: ',sprintf('%2.1f',por*100*BVIa),...
-                                        % ' | BVM: ',sprintf('%2.1f',por*100*BVMa),...
-                                        % ' vol. % | TLGM: ',sprintf('%4.3f',TLGM),' [s]'];
                                         tname2 = ['CBW / BVI / BVM: ',sprintf('%2.1f',por*100*CBWa),...
                                             ' / ',sprintf('%2.1f',por*100*BVIa),...
                                             ' / ',sprintf('%2.1f',por*100*BVMa),...
-                                            ' vol. % | TLGM: ',sprintf('%5.4f',TLGM),' [s]'];
+                                            ' [vol. %] | TLGM: ',sprintf('%5.4f',TLGM),' [s]'];
                                         
                                     case {'mono','free'}
                                         F = INVdata{id}.results.invstd.E0(:);
@@ -275,7 +271,7 @@ switch fig_tag
                                         tname2 = ['CBW / BVI / BVM: ',sprintf('%2.1f',por*100*CBWa),...
                                             ' / ',sprintf('%2.1f',por*100*BVIa),...
                                             ' / ',sprintf('%2.1f',por*100*BVMa),...
-                                            ' vol. %'];
+                                            ' [vol. %]'];
                                         for i = 1:numel(T)
                                             lgdstr{i} = ['Tx',num2str(i)];
                                         end
@@ -428,7 +424,7 @@ switch INVdata{id}.invstd.invtype
                 header4 = {['T2 [',unit,']'],'amplitude [a.u.]'};
         end
         
-    case {'ILA','NNLS'}
+    case {'LU','NNLS'}
         tmp4 = [INVdata{id}.results.invstd.T1T2me(:)...
             INVdata{id}.results.invstd.T1T2f(:)];
         header4 = {['relaxation times [',unit,']'],'amplitudes [a.u.]'};
@@ -491,7 +487,7 @@ header3{3} = 'residual [-]';
 
 % relaxation times
 switch INVdata.invstd.invtype
-    case {'ILA','NNLS'}
+    case {'LU','NNLS'}
         por = INVdata.invstd.porosity;
         F = INVdata.results.invstd.T1T2f(:);
         F = 100*por.*F./sum(F);

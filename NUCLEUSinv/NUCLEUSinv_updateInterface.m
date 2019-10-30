@@ -69,7 +69,7 @@ switch data.info.ExpertMode
         %% update standard inversion panel
         % inversion method popup
         istring = {'Mono exp.','Several free exp. (2-5)',...
-            'Multi exp. (LSQ)','Multi exp. (InvLaplace)'};
+            'Multi exp. (LSQ)','Multi exp. (LU decomp.)'};
         set(gui.popup_handles.invstd_InvType,'String',istring);
         switch data.invstd.invtype
             case 'mono'
@@ -117,7 +117,7 @@ switch data.info.ExpertMode
                 
                 % additional inversion settings
                 set(gui.popup_handles.invstd_InvTypeOpt,'Enable','on',...
-                    'String',{'Manual','Iterative Chi2','Tikhonov (SVD)','TSVD (SVD)',...
+                    'String',{'Manual','Tikhonov (SVD)','TSVD (SVD)',...
                     'DSVD (SVD)','Discrep. (SVD)','L-curve'});
                 set(gui.text_handles.invstd_InvTypeOpt,...
                     'String','regularization options');
@@ -125,19 +125,17 @@ switch data.info.ExpertMode
                 % regularization options
                 switch data.invstd.regtype
                     case 'manual'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',1);
-                    case 'iterchi2'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',2);    
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',1);   
                     case 'gcv_tikh'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',3);
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',2);
                     case 'gcv_trunc'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',4);
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',3);
                     case 'gcv_damp'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',5);
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',4);
                     case 'discrep'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',6);
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',5);
                     case 'lcurve'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',7);
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',6);
                 end
                 
                 % lambda, smoothness constraint and RTD limits
@@ -151,7 +149,7 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
                     'String',num2str(data.invstd.Tbulk));
                 
-            case 'ILA'
+            case 'LU'
                 % inversion method popup
                 set(gui.popup_handles.invstd_InvType,'Value',4,'Enable','on');
                 
@@ -567,18 +565,16 @@ switch data.info.ExpertMode
                 
                 % additional inversion settings
                 set(gui.popup_handles.invstd_InvTypeOpt,'Enable','on',...
-                    'String',{'Manual','Iterative Chi2','L-curve'});
+                    'String',{'Manual','L-curve'});
                 set(gui.text_handles.invstd_InvTypeOpt,...
                     'String','regularization options');
                 
                 % regularization options
                 switch data.invstd.regtype
                     case 'manual'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',1);
-                    case 'iterchi2'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',2);    
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',1);    
                     case 'lcurve'
-                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',3);                    
+                        set(gui.popup_handles.invstd_InvTypeOpt,'Value',2);                    
                 end
                 
                 % lambda, smoothness constraint and RTD limits
@@ -708,7 +704,7 @@ switch invtype
         set(gui.edit_handles.invstd_time_max,'Enable','off');
         set(gui.edit_handles.invstd_Ntime,'Enable','off');
         
-    case {'ILA','NNLS'}        
+    case {'LU','NNLS'}        
         set(gui.edit_handles.invstd_time_min,'Enable','on','String',num2str(time(1)));
         set(gui.edit_handles.invstd_time_max,'Enable','on','String',num2str(time(2)));
         set(gui.edit_handles.invstd_Ntime,'Enable','on','String',num2str(Ntime));   
@@ -758,12 +754,6 @@ switch regtype
         set(gui.edit_handles.invstd_lambda_max,'Enable','on','String',num2str(lambdaR(2)));
         set(gui.edit_handles.invstd_NlambdaR,'Enable','on','String',num2str(NlambdaR));
         gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
-        
-    case 'iterchi2'        
-        set(gui.edit_handles.invstd_lambda_min,'Enable','on','String',num2str(lambdaR(1)));
-        set(gui.edit_handles.invstd_lambda_max,'Enable','on','String',num2str(lambdaR(2)));
-        set(gui.edit_handles.invstd_NlambdaR,'Enable','off','String',num2str(NlambdaR));
-        gui.plots.DistPanel.TabTitles = {'CHI2','RMS','PSD (joint)'};
         
     case {'gcv_tikh','gcv_trunc','gcv_damp','discrep'}        
         set(gui.edit_handles.invstd_lambda_min,'Enable','off','String',num2str(lambda));
@@ -830,7 +820,7 @@ switch invtype
         set(gui.radio_handles.invstd_Lorder1,'Enable','off');
         set(gui.radio_handles.invstd_Lorder2,'Enable','off');
         
-    case {'ILA','NNLS'}
+    case {'LU','NNLS'}
         set(gui.radio_handles.invstd_Lorder0,'Enable','on');
         set(gui.radio_handles.invstd_Lorder1,'Enable','on');
         set(gui.radio_handles.invstd_Lorder2,'Enable','on');
@@ -897,7 +887,7 @@ switch invtype
         set(gui.edit_handles.param_rho,'Enable','on','String',num2str(p.rho));
         set(gui.edit_handles.param_geom,'Enable','on','String',num2str(p.a));
         
-    case {'ILA','NNLS'}
+    case {'LU','NNLS'}
         set(gui.edit_handles.param_CBW,'Enable','on','String',num2str(p.CBWcutoff));
         set(gui.edit_handles.param_BVI,'Enable','on','String',num2str(p.BVIcutoff));
         set(gui.edit_handles.param_rho,'Enable','on','String',num2str(p.rho));

@@ -59,7 +59,7 @@ switch data.info.ExpertMode
                 data.invstd.lambda = 1;
                 
             case 4
-                data.invstd.invtype = 'ILA';
+                data.invstd.invtype = 'LU';
                 data.invstd.regtype = 'auto';
                 data.invstd.lambda = -1;
         end
@@ -80,9 +80,9 @@ switch data.info.ExpertMode
                 data.invstd.invtype = 'NNLS';
                 % set LIAG defaults
                 if isfield(data.import,'LIAG')
-                    data.invstd.regtype = 'iterchi2';
+                    data.invstd.regtype = 'lcurve';
                     data.invstd.lambda = 1;
-                    data.invstd.lambdaR = [1e-5 100];
+                    data.invstd.lambdaR = [1e-5 1];
                 else
                     data.invstd.regtype = 'manual';
                     data.invstd.lambda = 1;

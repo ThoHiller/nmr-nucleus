@@ -1,5 +1,5 @@
 function updatePlotsLcurve
-%updatePlotsIterChi plots the results of the L-curve calculation
+%updatePlotsLcurve plots the results of the L-curve calculation
 %in NUCLEUSinv
 %
 % Syntax:

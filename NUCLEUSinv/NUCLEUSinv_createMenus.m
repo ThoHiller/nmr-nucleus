@@ -37,7 +37,7 @@ gui.menu.file = uimenu(gui.figh,...
 % 1.1 Import
 gui.menu.file_import = uimenu(gui.menu.file,...
     'Label','Import');
-%
+% 1.1.0 Last import
 lastimport = gui.myui.inidata.lastimport;
 ind = strfind(lastimport,'_');
 tag = lastimport(1:ind-1);
@@ -133,6 +133,10 @@ gui.menu.file_import_nmrmod_gui = uimenu(gui.menu.file_import_nmrmod,....
 % 1.2 Export
 gui.menu.file_export = uimenu(gui.menu.file,...
     'Label','Export');
+% 1.2.0 Last export
+lastexport = gui.myui.inidata.lastexport;
+gui.menu.file_export_lastexport = uimenu(gui.menu.file_export,...
+    'Label',lastexport,'Callback',@onMenuExportData);
 % 1.2.1 Data
 gui.menu.file_export_data = uimenu(gui.menu.file_export,...
     'Label','Data');

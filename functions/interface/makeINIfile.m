@@ -46,6 +46,7 @@ switch method
         importpath = [gui.myui.inipath(1:ind+6) filesep 'example_data'];
         inidata.importpath = importpath;
         inidata.lastimport = 'Lab_RWTH ascii';
+        inidata.lastexport = 'NUCLEUSinv (session)';
         gui.myui.inidata = inidata;
         
     case 'update'
@@ -62,6 +63,7 @@ content{end+1,1} = ['colortheme=',inidata.colortheme];
 content{end+1,1} = ' ';
 content{end+1,1} = ['importpath=',inidata.importpath];
 content{end+1,1} = ['lastimport=',inidata.lastimport];
+content{end+1,1} = ['lastexport=',inidata.lastexport];
 
 %% write content to file
 for i = 1:size(content,1)

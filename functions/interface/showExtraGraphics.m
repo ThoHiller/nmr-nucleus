@@ -19,7 +19,7 @@ function showExtraGraphics(method)
 %
 % Subfunctions:
 %       none
-%
+%fitDataLUdecomp
 % MAT-files required:
 %       none
 %
@@ -201,7 +201,7 @@ if foundINV
             
         case 'rtd'
             switch data.invstd.invtype
-                case {'ILA','NNLS'}
+                case {'LU','NNLS'}
                     if strcmp(xlabelstr,'date')
                         mycol = jet(size(Tspec,1));
                         [time,ix] = sort(xval);

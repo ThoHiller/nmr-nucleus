@@ -64,7 +64,7 @@ switch fig_tag
                 helpdlg({'function: onMenuImport','Menu tag no known.'},...
                     'menu not known')
         end
-        % update the last import data within the ini-file
+        % update the "last import" value within the ini-file
         gui = getappdata(fig,'gui');
         gui.myui.inidata.lastimport = [menu_tag,'_',label];
         setappdata(fig,'gui',gui);

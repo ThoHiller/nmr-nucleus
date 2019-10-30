@@ -20,7 +20,7 @@ function runInversionStd
 %       displayStatusText
 %       fitDataFree
 %       fitDataFree_fmin
-%       fitDataInvLaplace
+%       fitDataLUdecomp
 %       fitDataLSQ
 %       getLambdaFromLCurve
 %       NUCLEUSinv_updateInterface
@@ -30,8 +30,7 @@ function runInversionStd
 %       removeInversionFields	
 %       showFitStatistics
 %       updateInfo
-%       updatePlotsDistribution	
-%       updatePlotsIterChi	
+%       updatePlotsDistribution
 %       updatePlotsLcurve	
 %       updatePlotsSignal	
 %       useSignalAsCalibration
@@ -177,130 +176,6 @@ if ~isempty(id) && ~isempty(INVdata)
                 data = removeInversionFields(data);
             end
             
-        case 'iterchi2' % iterative chi2 fitting
-            % clear inversion axes
-            clearAllAxes(gui.figh);
-            
-            % disable the RUN button to indicate a running inversion
-            set(gui.push_handles.invstd_run,'String','RUNNING ...',...
-                'Enable','inactive');  
-            
-            % no command line output during l-curve calculation
-            param.info = 'off';
-
-            % general inversion parameter
-            param.T1T2 = data.results.nmrproc.T1T2;
-            param.T1IRfac = data.results.nmrproc.T1IRfac;
-            param.Tb = data.invstd.Tbulk;
-            param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-            param.regMethod = 'manual';
-            param.Lorder = data.invstd.Lorder;
-            param.noise = data.results.nmrproc.noise;
-            param.TE = data.results.nmrraw.t(2)-data.results.nmrraw.t(1);
-            if isfield(data.results.nmrproc,'W')
-                param.W = data.results.nmrproc.W;
-            end
-            param.solver = data.info.solver;
-            
-            % status bar information
-            infostring = 'Chi2 iteration ... ';
-            displayStatusText(gui,infostring);
-            
-            % lambda range and initialization of output variables
-            lambda_range = [data.invstd.lambdaR(1) data.invstd.lambdaR(2)];
-            
-            % first round checking global bounds
-            % is it even possible to find a Chi2=1
-            chi2 = [0 0];
-            for i = 1:length(lambda_range)
-                param.lambda = lambda_range(i);
-                invdata = fitDataLSQ(data.results.nmrproc.t,data.results.nmrproc.s,param);
-                % output data
-                chi2(i) = invdata.chi2;
-            end
-            
-            if chi2(1) < 1 && chi2(2) >= 1
-                displayStatusText(gui,[infostring,' possible']);
-                % there is a chi2=1 possible, so let's try to find it
-                keeprunning = true;
-                lam = 10^mean(log10(lambda_range));
-                max_iter = 25;
-                iter = 0;
-                chitol = 1e-3;
-                lc.lambda = zeros(max_iter,1);
-                lc.chi2 = zeros(max_iter,1);
-                lc.RMS = zeros(max_iter,1);
-                while keeprunning
-                    iter = iter + 1;
-                    
-                    param.lambda = lam;
-                    invdata = fitDataLSQ(data.results.nmrproc.t,data.results.nmrproc.s,param);
-                    % output data
-                    c = invdata.chi2;
-                    
-                    lc.lambda(iter) = lam;
-                    lc.chi2(iter) = c;
-                    lc.RMS(iter) = invdata.rms;
-                    
-                    displayStatusText(gui,[infostring,' chi2=',sprintf('%5.3f',c),...
-                        ' | lambda=',sprintf('%5.4e',lam),...
-                        ' | iter: ',num2str(iter),'/',num2str(max_iter)]);
-                    
-                    if c-1 > chitol
-                        % new lambda
-                        lambda_range(2) = lam;
-                        lam = 10^mean(log10(lambda_range));
-                    elseif 1-c > chitol
-                        % new lambda
-                        lambda_range(1) = lam;
-                        lam = 10^mean(log10(lambda_range));
-                    else
-                        % found it
-                        keeprunning = false;
-                    end
-                    % stop if it takes too long
-                    if iter == max_iter
-                        keeprunning = false;
-                    end                    
-                end
-                
-                lc.lambda = lc.lambda(1:iter);
-                lc.chi2 = lc.chi2(1:iter);
-                lc.RMS = lc.RMS(1:iter);
-                lc.chitol = chitol;
-                
-                switch data.info.ExpertMode
-                    case 'on'
-                        data.results.iterchi2 = lc;
-                        % update GUI data
-                        setappdata(fig,'data',data);
-                        % update L-curve plots
-                        updatePlotsIterChi;
-                    case 'off'
-                        % save last inversion result
-                        data.results.invstd = invdata;
-                        % switch back to manual mode to directly use the
-                        % last result from the chi2 iteration
-                        data.invstd.regtype = 'manual';
-                        data.invstd.lambda = lam;
-                        % update GUI data
-                        setappdata(fig,'data',data);
-                end
-                
-                % status bar information
-                displayStatusText(gui,[infostring,' done']);
-            else
-                displayStatusText(gui,[infostring,' not possible. | Chi2 bounds: ',...
-                    sprintf('%8.6f',chi2(1)),' & ',sprintf('%8.6f',chi2(2))]);
-                % remove temporary data fields
-                data = removeInversionFields(data);
-                helpdlg({'Chi2 iteration not possible',...
-                    'The given lambda range does not cross the chi2=1 line.',...
-                    'You could increase the lambda range and test again.',...
-                    'Maybe the SNR is not good enough.',...
-                    'Use the L-curve instead.'},'not possible');
-            end
-            
         otherwise % normal inversion
             % time the whole inversion
             tic;
@@ -355,7 +230,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
                             
-                case 'ILA' % multi-exponential inversion
+                case 'LU' % multi-exponential inversion
                     % general parameter
                     param.T1T2 = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
@@ -368,9 +243,9 @@ if ~isempty(id) && ~isempty(INVdata)
                         param.W = data.results.nmrproc.W;
                     end
                     % status bar information
-                    infostring = 'Inversion using Inverse Laplace ... ';
+                    infostring = 'Inversion using LU decomposition ... ';
                     displayStatusText(gui,infostring);
-                    invstd = fitDataInvLaplace(data.results.nmrproc.t,...
+                    invstd = fitDataLUdecomp(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
                     
                 case 'NNLS' % multi-exponential inversion with manual regularization
@@ -402,7 +277,7 @@ if ~isempty(id) && ~isempty(INVdata)
             % normalize to 1
             if data.process.norm == 1
                 switch data.invstd.invtype
-                    case {'ILA','NNLS'}
+                    case {'LU','NNLS'}
                         % normalization with sum(f*dt) -> area~=1
                         % dt = log10(invstd.T1T2me(2))-log10(invstd.T1T2me(1));
                         % invstd.T1T2f = invstd.T1T2f/sum(invstd.T1T2f*dt);
@@ -425,8 +300,7 @@ if ~isempty(id) && ~isempty(INVdata)
     % the inversion result gets saved in "INVdata"
     if get(gui.push_handles.invstd_run,'UserData') == 1 && ...
             ( isfield(data.results,'invstd') || ...
-            isfield(data.results,'lcurve') || ...
-            isfield(data.results,'iterchi2') )
+            isfield(data.results,'lcurve') )
         INVdata{id} = [];
         INVdata{id} = data;
         INVdata{id} = rmfield(INVdata{id},'import');
@@ -447,8 +321,7 @@ if ~isempty(id) && ~isempty(INVdata)
         
         % ---
         % special treatment for LIAG processing
-        if isfield(data.import,'LIAG') && ~strcmp(data.invstd.regtype,'lcurve') ...
-                && ~strcmp(data.invstd.regtype,'iterchi2')
+        if isfield(data.import,'LIAG') && ~strcmp(data.invstd.regtype,'lcurve')
             if ~isempty(strfind(str1,' - calibration'))
                 % save Tbulk from the calibration sample
                 btn1 = 'Yes keep it';
@@ -485,7 +358,7 @@ if ~isempty(id) && ~isempty(INVdata)
     % update plots and INFO fields
     updatePlotsSignal;
     updatePlotsDistribution;
-    updateInfo(gui.plots.SignalPanel);    
+    updateInfo(gui.plots.SignalPanel);
     % set focus on results
     set(gui.plots.SignalPanel,'Selection',1);
     set(gui.plots.DistPanel,'Selection',1);

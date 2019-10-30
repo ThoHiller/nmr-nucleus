@@ -1,18 +1,17 @@
-function pos = calculateGuiOnMonitorPosition(aspect_ratio)
-%calculateGuiOnMonitorPosition gets GUI position from monitor size
-%and given aspect ratio
+function version = getVersionNoFromString(version_str)
+%getVersionNoFromString converts the version string to a numeric value
 %
 % Syntax:
-%       pos = calculateGuiOnMonitorPosition(aspect_ratio)
+%       version = getVersionNoFromString(version_str)
 %
 % Inputs:
-%       aspect_ratio - desired aspect ratio of the GUI
+%       version_str - version str
 %
 % Outputs:
-%       pos - position on screen
+%       version - version as number
 %
 % Example:
-%       pos = calculateGuiOnMonitorPosition(16/10)
+%       version = getVersionNoFromString('0.1.5')
 %
 % Other m-files required:
 %       none
@@ -30,51 +29,19 @@ function pos = calculateGuiOnMonitorPosition(aspect_ratio)
 
 %------------- BEGIN CODE --------------
 
-%% get the monitor layout
-scr = get(0,'MonitorPosition');
-if size(scr,1) > 1
-    ind = find(scr(:,1)==1 & scr(:,2)==1);
-    sw = scr(ind,3); % width
-    sh = scr(ind,4); % height
-else
-    sw = scr(3); % width
-    sh = scr(4); % height
-end
+% remove points
+version_str = strrep(version_str,'.','');
+% convert string to numeric value
+version = str2double(version_str);
 
-%% positioning of the GUI
-if numel(scr) > 4
-    % dual screen mode
-    % GUI on second screen
-    gh = 730; % reference height
-    gw = ceil(gh*aspect_ratio); % reference width (1152)
-    if any(scr(:,1)<0)
-        pos = [-sw+(sw-gw)/2 (sh-gh)/3 gw gh];
-    else
-        pos = [sw+(sw-gw)/2 (sh-gh)/3 gw gh];
-    end
-    % if any screen is smaller than 800
-    if any(scr(:,4)<800)
-        pos = [(sw-gw)/2 (sh-gh)/3 gw gh];
-    end
-else
-    % single screen mode    
-    if any(scr(:,4)<800)
-        gh = 600; % reference height for small screens
-    else
-        gh = 730; % reference height
-    end
-    gw = ceil(gh*aspect_ratio); % reference width (960)
-    pos = [(sw-gw)/2 (sh-gh)/2 gw gh];
 end
-
-return
 
 %------------- END OF CODE --------------
 
-% License:
+%% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2019 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

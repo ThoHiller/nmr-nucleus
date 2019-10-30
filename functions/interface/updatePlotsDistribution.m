@@ -102,7 +102,7 @@ if isfield(data.results,'invstd')
             % grid
             grid(ax,'on');
             
-        case {'ILA','NNLS'}
+        case {'LU','NNLS'}
             % scale distribution by porosity
             F = invstd.T1T2f;
             if sum(F)>0
@@ -215,7 +215,7 @@ if isfield(data.results,'invstd')
             % grid
             grid(ax,'on');
             
-        case {'ILA','NNLS'}
+        case {'LU','NNLS'}
             % very basic RTD to PSD conversion
             requiv = invstd.T1T2me.*rho.*a;
             Rlgm = invstd.Tlgm.*rho.*a;

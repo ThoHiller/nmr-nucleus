@@ -1,6 +1,6 @@
 function onPopupInvstdTypeOptional(src,~)
 %onPopupInvstdTypeOptional select regularization option for the standard
-%inversion only if the inversion method is "NNLS" or "ILA"; for the
+%inversion only if the inversion method is "NNLS" or "LU"; for the
 %standard inversion with a X free number of exponents the popup menu allows
 %to select the number of free exponents
 %
@@ -55,44 +55,28 @@ switch invtype
                 switch value % different regularization options/methods
                     case 1 % manual
                         data.invstd.regtype = 'manual';
-                        % if there is an optimal lambda from the L-curve or
-                        % iterchi2 than use this one
-                        if isfield(data,'results')
-                            if isfield(data.results,'iterchi2')
-                                data.invstd.lambda = data.results.iterchi2.lambda(end);
-                            elseif isfield(data.results,'lcurve')
+                        data.invstd.lambda = 1;
+                        % if there is an optimal lambda from the L-curve
+                        % use it
+                        if isfield(data,'results') && ...
+                                isfield(data.results,'lcurve')
                                 index = data.results.lcurve.index;
                                 data.invstd.lambda = data.results.lcurve.lambda(index);
-                            else
-                                data.invstd.lambda = 1;
-                            end
-                        else
-                            data.invstd.lambda = 1;
                         end
                         
-                    case 2 % iterative chi-square
-                        data.invstd.regtype = 'iterchi2';
-                        lambdaFAK = 1;
-                        if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
-                            lambdaFAK = 100;
-                        end
-                        data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-                        clearSingleAxis(gui.axes_handles.rtd);
-                        clearSingleAxis(gui.axes_handles.psd);
-                        
-                    case 3 % gcv_tikh
+                    case 2 % gcv_tikh
                         data.invstd.regtype = 'gcv_tikh';
                         data.invstd.lambda = 1;
                         
-                    case 4 % gcv_trunc
+                    case 3 % gcv_trunc
                         data.invstd.regtype = 'gcv_trunc';
                         data.invstd.lambda = 1;
                         
-                    case 5 % gcv_damp
+                    case 4 % gcv_damp
                         data.invstd.regtype = 'gcv_damp';
                         data.invstd.lambda = 1;
                         
-                    case 6 % discrep. principle
+                    case 5 % discrep. principle
                         if data.results.nmrproc.noise == 0
                             helpdlg('Discrepancy Principle does not work with noise = 0','Change Regularization Method');
                             data.invstd.regtype = 'manual';
@@ -102,7 +86,7 @@ switch invtype
                             data.invstd.lambda = 1;
                         end
                         
-                    case 7 % l-curve
+                    case 6 % l-curve
                         data.invstd.regtype  = 'lcurve';
                         lambdaFAK = 1;
                         if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
@@ -117,30 +101,15 @@ switch invtype
                 switch value % different regularization options/methods
                     case 1 % manual
                         data.invstd.regtype = 'manual';
-                        % if there is an optimal lambda from the L-curve or
-                        % iterchi2 than use this one
-                        if isfield(data,'results')
-                            if isfield(data.results,'iterchi2')
-                                data.invstd.lambda = data.results.iterchi2.lambda(end);
-                            elseif isfield(data.results,'lcurve')
+                        data.invstd.lambda = 1;
+                        % if there is an optimal lambda from the L-curve
+                        % use it
+                        if isfield(data,'results') && ...
+                                isfield(data.results,'lcurve')
                                 index = data.results.lcurve.index;
                                 data.invstd.lambda = data.results.lcurve.lambda(index);
-                            else
-                                data.invstd.lambda = 1;
-                            end
-                        else
-                            data.invstd.lambda = 1;
                         end                    
-                    case 2 % iterative chi-square
-                        data.invstd.regtype = 'iterchi2';
-                        lambdaFAK = 1;
-                        if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
-                            lambdaFAK = 100;
-                        end
-                        data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-                        clearSingleAxis(gui.axes_handles.rtd);
-                        clearSingleAxis(gui.axes_handles.psd);
-                    case 3 % l-curve
+                    case 2 % l-curve
                         data.invstd.regtype  = 'lcurve';
                         lambdaFAK = 1;
                         if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
@@ -152,7 +121,7 @@ switch invtype
                 end
         end
         
-    case 'ILA'
+    case 'LU'
         switch value % different regularization options/methods
             case 1 % manual
                 data.invstd.regtype  = 'manual';

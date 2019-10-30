@@ -57,7 +57,9 @@ for i = 1:size(inilines,1)
         elseif strcmpi(prop,'importpath')
             inidata.importpath = value;
         elseif strcmpi(prop,'lastimport')
-            inidata.lastimport = value;   
+            inidata.lastimport = value;
+        elseif strcmpi(prop,'lastexport')
+            inidata.lastexport = value;
         end
     end
 end

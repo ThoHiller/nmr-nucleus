@@ -86,9 +86,6 @@ if isfield(data.import,'NMR')
                 if isfield(data.results,'lcurve')
                     updatePlotsLcurve;
                 end
-                if isfield(data.results,'iterchi2')
-                    updatePlotsIterChi;
-                end
             end
         else
             % remove temporary data fields
@@ -175,8 +172,8 @@ if isfield(data.import,'NMR')
         end
         
         % set focus on data
-%         set(gui.plots.SignalPanel,'Selection',1);
-%         set(gui.plots.DistPanel,'Selection',1);
+        % set(gui.plots.SignalPanel,'Selection',1);
+        % set(gui.plots.DistPanel,'Selection',1);
         
         % reset all RUN buttons
         set(gui.push_handles.invstd_run,'String','<HTML><u>R</u>UN',...

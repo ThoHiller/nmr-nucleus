@@ -81,13 +81,18 @@ for i = 1:size(index,1)
 end
 index1(index1==0) = [];
 
+% get NUCLEUSinv figure handle
+fig = findobj('Tag','INV');
+isfig = false;
+if ~isempty(fig)
+    isfig = true;
+    gui = getappdata(fig,'gui');
+end
+
 % multiple measurements with only one parameter file
 if size(files,1) >= 2 && ~isempty(index1)
     % now we keep only the relevant ones
     files = files(index1);
-    
-    % command line output
-    disp([in.name,': importing NMR files ...']);
     
     nmrData = cell(1,size(files,1));
     for i = 1:size(files,1)
@@ -137,9 +142,12 @@ if size(files,1) >= 2 && ~isempty(index1)
             clear data
         end
         
-        % command line output
-        disp([in.name,': importing NMR files ',sprintf('%03d',i),...
-            ' / ',sprintf('%03d',size(files,1))]);
+        % statusbar output output
+        statstring = [in.name,': importing NMR files ',sprintf('%03d',i),...
+            ' / ',sprintf('%03d',size(files,1))];
+        if isfig
+            displayStatusText(gui,statstring);
+        end
     end
     
 else % single measurement

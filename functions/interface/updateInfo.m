@@ -159,7 +159,7 @@ if showit
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
                             
-                        case {'ILA','NNLS'}
+                        case {'LU','NNLS'}
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
@@ -320,7 +320,7 @@ if showit
                             end
                             info{end+1,1} = ' ';
                             
-                        case {'ILA','NNLS'}
+                        case {'LU','NNLS'}
                             % info is a cell array
                             str = [invtype,' ',data.invstd.regtype,' ',num2str(data.invstd.Lorder)];
                             info{end+1,1} = str;

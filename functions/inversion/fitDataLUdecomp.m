@@ -1,9 +1,9 @@
-function fitdata = fitDataInvLaplace(time,signal,parameter)
-%fitDataInvLaplace is a control routine that uses an Inverse Laplace
-%transform to fit NMR data multi-exponentially
+function fitdata = fitDataLUdecomp(time,signal,parameter)
+%fitDataLUdecomp is a control routine that uses a LU decomposition and the
+%Matlab "\"-operator to fit NMR data multi-exponentially
 %
 % Syntax:
-%       fitDataInvLaplace(time,signal,parameter)
+%       fitDataLUdecomp(time,signal,parameter)
 %
 % Inputs:
 %       time - time vector
@@ -39,7 +39,7 @@ function fitdata = fitDataInvLaplace(time,signal,parameter)
 %                   rn         : residual norm |A*x-b|_2
 %
 % Example:
-%       [fitdata] = fitDataInvLaplace(t,s,parameter)
+%       [fitdata] = fitDataLUdecomp(t,s,parameter)
 %
 % Other m-files required:
 %       createKernelMatrix

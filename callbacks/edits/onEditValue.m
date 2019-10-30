@@ -49,14 +49,11 @@ gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 
-%% the generic part thw works for both GUIS
+%% the generic part works for both GUIS
 % get the value of the field
 value = str2double(get(src,'String'));
 % get the user data of the field
 userdata = get(src,'UserData');
-
-% id of the chosen NMR signal
-id = get(gui.listbox_handles.signal,'Value');
 
 % check if the value is numeric
 % if not reset to defaults stored in user data
@@ -80,6 +77,9 @@ setappdata(fig,'data',data);
 % switch depending on what figure called
 switch fig_tag
     case 'INV'
+        % id of the chosen NMR signal
+        id = get(gui.listbox_handles.signal,'Value');
+        
         % switch depending on the parent panel
         switch out.panel
             case 'process'

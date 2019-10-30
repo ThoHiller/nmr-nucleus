@@ -60,6 +60,15 @@ switch fig_tag
             case 'LIAG CSV T2'
                 exportData(fig_tag,'LIAGcsvT2');    
         end
+        % update the "last export" value within the ini-file
+        gui = getappdata(fig,'gui');
+        gui.myui.inidata.lastexport = label;
+        setappdata(fig,'gui',gui);
+        gui = makeINIfile(gui,'update');
+        % and the menu entry itself
+        set(gui.menu.file_export_lastexport,'Label',label,...
+            'Callback',@onMenuExportData);
+        setappdata(fig,'gui',gui);
         
     case 'MOD'
         switch label

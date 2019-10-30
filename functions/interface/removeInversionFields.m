@@ -41,9 +41,6 @@ if isfield(data,'results')
     if isfield(data.results,'lcurve')
         data.results = rmfield(data.results,'lcurve');
     end
-    if isfield(data.results,'iterchi2')
-        data.results = rmfield(data.results,'iterchi2');
-    end
 end
 
 return

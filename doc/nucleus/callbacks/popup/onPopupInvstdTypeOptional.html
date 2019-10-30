@@ -27,7 +27,7 @@
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre class="comment">onPopupInvstdTypeOptional select regularization option for the standard
-inversion only if the inversion method is &quot;NNLS&quot; or &quot;ILA&quot;; for the
+inversion only if the inversion method is &quot;NNLS&quot; or &quot;LU&quot;; for the
 standard inversion with a X free number of exponents the popup menu allows
 to select the number of free exponents
 
@@ -73,7 +73,7 @@ This function is called by:
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function onPopupInvstdTypeOptional(src,~)</a>
 0002 <span class="comment">%onPopupInvstdTypeOptional select regularization option for the standard</span>
-0003 <span class="comment">%inversion only if the inversion method is &quot;NNLS&quot; or &quot;ILA&quot;; for the</span>
+0003 <span class="comment">%inversion only if the inversion method is &quot;NNLS&quot; or &quot;LU&quot;; for the</span>
 0004 <span class="comment">%standard inversion with a X free number of exponents the popup menu allows</span>
 0005 <span class="comment">%to select the number of free exponents</span>
 0006 <span class="comment">%</span>
@@ -128,146 +128,115 @@ This function is called by:
 0055                 <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
 0056                     <span class="keyword">case</span> 1 <span class="comment">% manual</span>
 0057                         data.invstd.regtype = <span class="string">'manual'</span>;
-0058                         <span class="comment">% if there is an optimal lambda from the L-curve or</span>
-0059                         <span class="comment">% iterchi2 than use this one</span>
-0060                         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
-0061                             <span class="keyword">if</span> isfield(data.results,<span class="string">'iterchi2'</span>)
-0062                                 data.invstd.lambda = data.results.iterchi2.lambda(end);
-0063                             <span class="keyword">elseif</span> isfield(data.results,<span class="string">'lcurve'</span>)
-0064                                 index = data.results.lcurve.index;
-0065                                 data.invstd.lambda = data.results.lcurve.lambda(index);
-0066                             <span class="keyword">else</span>
-0067                                 data.invstd.lambda = 1;
-0068                             <span class="keyword">end</span>
-0069                         <span class="keyword">else</span>
-0070                             data.invstd.lambda = 1;
-0071                         <span class="keyword">end</span>
-0072                         
-0073                     <span class="keyword">case</span> 2 <span class="comment">% iterative chi-square</span>
-0074                         data.invstd.regtype = <span class="string">'iterchi2'</span>;
-0075                         lambdaFAK = 1;
-0076                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
-0077                             lambdaFAK = 100;
-0078                         <span class="keyword">end</span>
-0079                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-0080                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
-0081                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
-0082                         
-0083                     <span class="keyword">case</span> 3 <span class="comment">% gcv_tikh</span>
-0084                         data.invstd.regtype = <span class="string">'gcv_tikh'</span>;
-0085                         data.invstd.lambda = 1;
-0086                         
-0087                     <span class="keyword">case</span> 4 <span class="comment">% gcv_trunc</span>
-0088                         data.invstd.regtype = <span class="string">'gcv_trunc'</span>;
-0089                         data.invstd.lambda = 1;
-0090                         
-0091                     <span class="keyword">case</span> 5 <span class="comment">% gcv_damp</span>
-0092                         data.invstd.regtype = <span class="string">'gcv_damp'</span>;
-0093                         data.invstd.lambda = 1;
-0094                         
-0095                     <span class="keyword">case</span> 6 <span class="comment">% discrep. principle</span>
-0096                         <span class="keyword">if</span> data.results.nmrproc.noise == 0
-0097                             helpdlg(<span class="string">'Discrepancy Principle does not work with noise = 0'</span>,<span class="string">'Change Regularization Method'</span>);
-0098                             data.invstd.regtype = <span class="string">'manual'</span>;
-0099                             data.invstd.lambda = 1;
-0100                         <span class="keyword">else</span>
-0101                             data.invstd.regtype = <span class="string">'discrep'</span>;
-0102                             data.invstd.lambda = 1;
-0103                         <span class="keyword">end</span>
-0104                         
-0105                     <span class="keyword">case</span> 7 <span class="comment">% l-curve</span>
-0106                         data.invstd.regtype  = <span class="string">'lcurve'</span>;
-0107                         lambdaFAK = 1;
-0108                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
-0109                             lambdaFAK = 100;
-0110                         <span class="keyword">end</span>
-0111                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-0112                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
-0113                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
-0114                 <span class="keyword">end</span>
-0115                 
-0116             <span class="keyword">case</span> <span class="string">'off'</span>
-0117                 <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
-0118                     <span class="keyword">case</span> 1 <span class="comment">% manual</span>
-0119                         data.invstd.regtype = <span class="string">'manual'</span>;
-0120                         <span class="comment">% if there is an optimal lambda from the L-curve or</span>
-0121                         <span class="comment">% iterchi2 than use this one</span>
-0122                         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
-0123                             <span class="keyword">if</span> isfield(data.results,<span class="string">'iterchi2'</span>)
-0124                                 data.invstd.lambda = data.results.iterchi2.lambda(end);
-0125                             <span class="keyword">elseif</span> isfield(data.results,<span class="string">'lcurve'</span>)
-0126                                 index = data.results.lcurve.index;
-0127                                 data.invstd.lambda = data.results.lcurve.lambda(index);
-0128                             <span class="keyword">else</span>
-0129                                 data.invstd.lambda = 1;
-0130                             <span class="keyword">end</span>
-0131                         <span class="keyword">else</span>
-0132                             data.invstd.lambda = 1;
-0133                         <span class="keyword">end</span>                    
-0134                     <span class="keyword">case</span> 2 <span class="comment">% iterative chi-square</span>
-0135                         data.invstd.regtype = <span class="string">'iterchi2'</span>;
-0136                         lambdaFAK = 1;
-0137                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
-0138                             lambdaFAK = 100;
-0139                         <span class="keyword">end</span>
-0140                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-0141                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
-0142                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
-0143                     <span class="keyword">case</span> 3 <span class="comment">% l-curve</span>
-0144                         data.invstd.regtype  = <span class="string">'lcurve'</span>;
-0145                         lambdaFAK = 1;
-0146                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
-0147                             lambdaFAK = 100;
-0148                         <span class="keyword">end</span>
-0149                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-0150                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
-0151                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
-0152                 <span class="keyword">end</span>
-0153         <span class="keyword">end</span>
-0154         
-0155     <span class="keyword">case</span> <span class="string">'ILA'</span>
-0156         <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
-0157             <span class="keyword">case</span> 1 <span class="comment">% manual</span>
-0158                 data.invstd.regtype  = <span class="string">'manual'</span>;
-0159                 data.invstd.lambda = 1;
-0160                 
-0161             <span class="keyword">case</span> 2 <span class="comment">% automatic</span>
-0162                 data.invstd.regtype  = <span class="string">'auto'</span>;
-0163                 data.invstd.lambda = -1;
-0164         <span class="keyword">end</span>
-0165 <span class="keyword">end</span>
-0166 
-0167 <span class="comment">% update GUI data</span>
-0168 setappdata(fig,<span class="string">'data'</span>,data);
-0169 <span class="comment">% update interface</span>
-0170 <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0171 
-0172 <span class="keyword">end</span>
-0173 
-0174 <span class="comment">%------------- END OF CODE --------------</span>
-0175 
-0176 <span class="comment">%% License:</span>
-0177 <span class="comment">% MIT License</span>
-0178 <span class="comment">%</span>
-0179 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0180 <span class="comment">%</span>
-0181 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0182 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0183 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0184 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0185 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0186 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0187 <span class="comment">%</span>
-0188 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0189 <span class="comment">% copies or substantial portions of the Software.</span>
-0190 <span class="comment">%</span>
-0191 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0192 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0193 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0194 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0195 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0196 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0197 <span class="comment">% SOFTWARE.</span></pre></div>
+0058                         data.invstd.lambda = 1;
+0059                         <span class="comment">% if there is an optimal lambda from the L-curve</span>
+0060                         <span class="comment">% use it</span>
+0061                         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>) &amp;&amp; <span class="keyword">...</span>
+0062                                 isfield(data.results,<span class="string">'lcurve'</span>)
+0063                                 index = data.results.lcurve.index;
+0064                                 data.invstd.lambda = data.results.lcurve.lambda(index);
+0065                         <span class="keyword">end</span>
+0066                         
+0067                     <span class="keyword">case</span> 2 <span class="comment">% gcv_tikh</span>
+0068                         data.invstd.regtype = <span class="string">'gcv_tikh'</span>;
+0069                         data.invstd.lambda = 1;
+0070                         
+0071                     <span class="keyword">case</span> 3 <span class="comment">% gcv_trunc</span>
+0072                         data.invstd.regtype = <span class="string">'gcv_trunc'</span>;
+0073                         data.invstd.lambda = 1;
+0074                         
+0075                     <span class="keyword">case</span> 4 <span class="comment">% gcv_damp</span>
+0076                         data.invstd.regtype = <span class="string">'gcv_damp'</span>;
+0077                         data.invstd.lambda = 1;
+0078                         
+0079                     <span class="keyword">case</span> 5 <span class="comment">% discrep. principle</span>
+0080                         <span class="keyword">if</span> data.results.nmrproc.noise == 0
+0081                             helpdlg(<span class="string">'Discrepancy Principle does not work with noise = 0'</span>,<span class="string">'Change Regularization Method'</span>);
+0082                             data.invstd.regtype = <span class="string">'manual'</span>;
+0083                             data.invstd.lambda = 1;
+0084                         <span class="keyword">else</span>
+0085                             data.invstd.regtype = <span class="string">'discrep'</span>;
+0086                             data.invstd.lambda = 1;
+0087                         <span class="keyword">end</span>
+0088                         
+0089                     <span class="keyword">case</span> 6 <span class="comment">% l-curve</span>
+0090                         data.invstd.regtype  = <span class="string">'lcurve'</span>;
+0091                         lambdaFAK = 1;
+0092                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
+0093                             lambdaFAK = 100;
+0094                         <span class="keyword">end</span>
+0095                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
+0096                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
+0097                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
+0098                 <span class="keyword">end</span>
+0099                 
+0100             <span class="keyword">case</span> <span class="string">'off'</span>
+0101                 <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
+0102                     <span class="keyword">case</span> 1 <span class="comment">% manual</span>
+0103                         data.invstd.regtype = <span class="string">'manual'</span>;
+0104                         data.invstd.lambda = 1;
+0105                         <span class="comment">% if there is an optimal lambda from the L-curve</span>
+0106                         <span class="comment">% use it</span>
+0107                         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>) &amp;&amp; <span class="keyword">...</span>
+0108                                 isfield(data.results,<span class="string">'lcurve'</span>)
+0109                                 index = data.results.lcurve.index;
+0110                                 data.invstd.lambda = data.results.lcurve.lambda(index);
+0111                         <span class="keyword">end</span>                    
+0112                     <span class="keyword">case</span> 2 <span class="comment">% l-curve</span>
+0113                         data.invstd.regtype  = <span class="string">'lcurve'</span>;
+0114                         lambdaFAK = 1;
+0115                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
+0116                             lambdaFAK = 100;
+0117                         <span class="keyword">end</span>
+0118                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
+0119                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
+0120                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
+0121                 <span class="keyword">end</span>
+0122         <span class="keyword">end</span>
+0123         
+0124     <span class="keyword">case</span> <span class="string">'LU'</span>
+0125         <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
+0126             <span class="keyword">case</span> 1 <span class="comment">% manual</span>
+0127                 data.invstd.regtype  = <span class="string">'manual'</span>;
+0128                 data.invstd.lambda = 1;
+0129                 
+0130             <span class="keyword">case</span> 2 <span class="comment">% automatic</span>
+0131                 data.invstd.regtype  = <span class="string">'auto'</span>;
+0132                 data.invstd.lambda = -1;
+0133         <span class="keyword">end</span>
+0134 <span class="keyword">end</span>
+0135 
+0136 <span class="comment">% update GUI data</span>
+0137 setappdata(fig,<span class="string">'data'</span>,data);
+0138 <span class="comment">% update interface</span>
+0139 <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0140 
+0141 <span class="keyword">end</span>
+0142 
+0143 <span class="comment">%------------- END OF CODE --------------</span>
+0144 
+0145 <span class="comment">%% License:</span>
+0146 <span class="comment">% MIT License</span>
+0147 <span class="comment">%</span>
+0148 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0149 <span class="comment">%</span>
+0150 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0151 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0152 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0153 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0154 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0155 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0156 <span class="comment">%</span>
+0157 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0158 <span class="comment">% copies or substantial portions of the Software.</span>
+0159 <span class="comment">%</span>
+0160 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0161 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0162 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0163 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0164 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0165 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0166 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

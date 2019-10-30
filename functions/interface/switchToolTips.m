@@ -30,7 +30,7 @@ function switchToolTips(gui,onoff) %#ok<INUSL>
 
 %------------- BEGIN CODE --------------
 
-%% list of handles that have tool tips
+%% list of handles that have switchable tool tips
 h = {'popup_handles','edit_handles','push_handles',...
     'listbox_handles','radio_handles'};
 
