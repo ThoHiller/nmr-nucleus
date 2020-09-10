@@ -32,84 +32,97 @@ function onMenuHelp(src,~)
 %% get GUI handle and data
 fig = ancestor(src,'figure','toplevel');
 fig_tag = get(fig,'Tag');
-data = getappdata(fig,'data');
 gui = getappdata(fig,'gui');
-myui = gui.myui;
 load('NUCLEUS_logo.mat','logo');
 
+% header info
 switch fig_tag
-    
     case 'INV'
+        header{1,1}  = 'NUCLEUSinv:';
+    case 'MOD'
+        header{1,1}  = 'NUCLEUSmod:';
+end
+header{end+1,1}  = ' ';
+header{end+1,1}  = ['author: ',gui.myui.author];
+header{end+1,1}  = ' ';
+header{end+1,1}  = ['version: ',gui.myui.version];
+header{end+1,1}  = ' ';
+header{end+1,1}  = ['date: ',gui.myui.date];
+header{end+1,1}  = ' ';
 
-        info{1,1}  = 'NUCLEUSinv:';
-        info{end+1,1}  = ' ';
-        info{end+1,1}  = ['author: ',myui.author];
-        info{end+1,1}  = ' ';
-        info{end+1,1}  = ['version: ',myui.version];
-        info{end+1,1}  = ' ';
-        info{end+1,1}  = ['date: ',myui.date];
-        info{end+1,1}  = ' ';
-        
-        switch data.info.has_optim
-            case 'on'
-                info{end+1,1}  = 'Optimization Toolbox: IS available.';
-                info{end+1,1}  = 'All inversion features can be used.';
-            case 'off'
-                info{end+1,1}  = 'Optimization Toolbox: IS NOT available.';
-                info{end+1,1}  = 'All multi-exponential fitting is done with ''lsqnonneg'' instead of ''lsqlin''.';
-                info{end+1,1}  = 'For the Joint Inversion only the ''fixed'' and ''shape'' inversion options are available (using ''fminsearchbnd'').';
-        end
-        info{end+1,1} = ' ';
-        switch data.info.stat
-            case 'on'
-                info{end+1,1}  = 'Statistics Toolbox: IS available.';
-                info{end+1,1}  = 'All statistics features can be used.';
-            case 'off'
-                info{end+1,1}  = 'Statistics Toolbox: IS NOT available.';
-                info{end+1,1}  = 'Confidence interval is calculated with basic ''getStudentInvCDF'' routine.';
-        end
-        info{end+1,1} = ' ';
-        info{end+1,1} = ['NUCLEUSinv is a Graphical User Interface for processing NMR Lab Data.',...
+switch fig_tag
+    case 'INV'
+        % info text
+        info{1,1} = ['NUCLEUSinv is a Graphical User Interface for processing NMR Lab Data.',...
             ' It allows standard NMR data inversion for relaxation time distributions (RTD).',...
             ' Additionally, it is possible to perform a joint inversion (together with CPS data) to directly infer a pore size distribution (PSD).'...
             ' Inversion results can be exported into different file formats and images for further processing or documentation purposes.'];
-        info{end+1,1} = ' ';
-        info{end+1,1} = 'Have Fun!';
-        
-        hh = msgbox(info,'About NUCLEUSinv:','custom',logo);
         
     case 'MOD'
-        
-        info{1,1}  = 'NUCLEUSmod:';
-        info{end+1,1}  = ' ';
-        info{end+1,1}  = ['author: ',myui.author];
-        info{end+1,1}  = ' ';
-        info{end+1,1}  = ['version: ',myui.version];
-        info{end+1,1}  = ' ';
-        info{end+1,1}  = ['date: ',myui.date];
-        info{end+1,1}  = ' ';
-        
-        info{end+1,1} = ['NUCLEUSmod is a Graphical User Interface for modeling NMR Lab Data. The',...
+        % info text
+        info{1,1} = ['NUCLEUSmod is a Graphical User Interface for modeling NMR Lab Data. The',...
             ' user can create pore size distributions (PSD) based on a capillary bundle model where the capillaries',...
             ' exhibit different cross-sectional shapes. Based on a chosen capillary pressure range, the pore model gets partially saturated'...
             ' and a capillary pressure saturation curve (CPS) is calculated. Finally, NMR signals are calculated for every CPS curve point.'];
-        info{end+1,1} = ' ';
-        info{end+1,1} = 'Have Fun!';
         
-        hh = msgbox(info,'About NUCLEUSmod:','custom',logo);
-
 end
+info{end+1,1} = ' ';
+info{end+1,1} = 'Have Fun!';
 
-% resize the info box
-ui = findobj(hh,'Type','UIControl');
-tt = findobj(hh,'Type','Text');
-extent0 = get(tt,'Extent'); % text extent in old font
-set([ui, tt],'FontSize',10);
-extent1 = get(tt,'Extent'); % text extent in new font
-delta = extent1 - extent0; % change in extent
-pos = get(hh,'Position'); % current position
-pos = pos + delta; % change size of box
-set(hh,'Position',pos); % set new position
+
+% get GUI position
+posf = get(fig,'Position');
+% default widht and height of About Figure
+ww = 560; hh = 420;
+xp = posf(1) + (posf(3)-ww)/2;
+yp = posf(2) + (posf(4)-hh)/2;
+% create Figure
+hf = figure('Name',['About ',header{1,1}],...
+    'NumberTitle','off','Tag','Help','ToolBar','none','MenuBar','none',...
+    'Resize','off','Position',[xp yp ww hh],'Visible','off');
+v1 = uix.VBox('Parent',hf,'Padding',10,'Spacing',10);
+
+% text area
+h1 = uix.VBox('Parent',v1);
+% button area
+h2 = uix.HBox('Parent',v1);
+set(v1,'Heights',[-1 30]);
+
+% text area
+h3 = uix.HBox('Parent',h1);
+% logo area
+h4 = uix.HBox('Parent',h1);
+set(h1,'Heights',[-1 -1]);
+
+% close button at the bottom
+uix.Empty('Parent',h2);
+p1 = uicontrol('Style','pushbutton','Parent',h2,'String','OK',...
+    'FontSize',10,'Callback','closereq()');
+uix.Empty('Parent',h2);
+set(h2,'Widths',[-1 50 -1])
+
+% header
+uix.Empty('Parent',h3);
+t1 = uicontrol('Style','Text','Parent',h3,'String',header,...
+    'FontSize',10,'HorizontalAlignment','left');
+% logo
+c1 = uicontainer('Parent',h3);
+ax1 = axes('Parent',c1);
+imshow(logo,'Parent',ax1);
+set(h3,'Widths',[50 -1 -1]);
+
+% info text
+uix.Empty('Parent',h4);
+t2 = uicontrol('Style','Text','Parent',h4,'String',info,...
+    'FontSize',10,'HorizontalAlignment','left');
+uix.Empty('Parent',h4);
+set(h4,'Widths',[20 -1 20])
+
+% text hack
+jh = findjobj(t1);
+jh.setVerticalAlignment(javax.swing.JLabel.CENTER)
+
+set(hf,'Visible','on');
 
 end
 

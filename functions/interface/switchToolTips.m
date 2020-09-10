@@ -1,4 +1,4 @@
-function switchToolTips(gui,onoff) %#ok<INUSL>
+function switchToolTips(gui,onoff)
 %switchToolTips switches GUI tool tips either "on" or "off"
 %
 % Syntax:
@@ -23,7 +23,7 @@ function switchToolTips(gui,onoff) %#ok<INUSL>
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSinv
+% See also: NUCLEUSinv, NUCLEUSmod
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
@@ -32,34 +32,38 @@ function switchToolTips(gui,onoff) %#ok<INUSL>
 
 %% list of handles that have switchable tool tips
 h = {'popup_handles','edit_handles','push_handles',...
-    'listbox_handles','radio_handles'};
+    'listbox_handles','radio_handles','table_handles'};
 
 %% process all handles
 switch lower(onoff)
     case 'on'
         for i = 1:numel(h)
-            eval(['fnames = fieldnames(gui.',h{i},');']);
-            for j = 1:numel(fnames)
-                eval(['ud = get(gui.',h{i},'.',fnames{j},...
-                    ',''UserData'');']);
-                if isfield(ud,'Tooltipstr')
-                    tstr = ud.Tooltipstr;
-                    eval(['set(gui.',h{i},'.',fnames{j},...
-                        ',''ToolTipString'',tstr);']);
+            if isfield(gui,h{i})
+                eval(['fnames = fieldnames(gui.',h{i},');']);
+                for j = 1:numel(fnames)
+                    eval(['ud = get(gui.',h{i},'.',fnames{j},...
+                        ',''UserData'');']);
+                    if isfield(ud,'Tooltipstr')
+                        tstr = ud.Tooltipstr;
+                        eval(['set(gui.',h{i},'.',fnames{j},...
+                            ',''ToolTipString'',tstr);']);
+                    end
                 end
             end
         end
         
     case 'off'
         for i = 1:numel(h)
-            eval(['fnames = fieldnames(gui.',h{i},');']);
-            for j = 1:numel(fnames)
-                eval(['ud = get(gui.',h{i},'.',fnames{j},...
-                    ',''UserData'');']);
-                if isfield(ud,'Tooltipstr')
-                    tstr = ud.Tooltipstr;
-                    eval(['set(gui.',h{i},'.',fnames{j},...
-                        ',''ToolTipString'','''');']);
+            if isfield(gui,h{i})
+                eval(['fnames = fieldnames(gui.',h{i},');']);
+                for j = 1:numel(fnames)
+                    eval(['ud = get(gui.',h{i},'.',fnames{j},...
+                        ',''UserData'');']);
+                    if isfield(ud,'Tooltipstr')
+                        tstr = ud.Tooltipstr;
+                        eval(['set(gui.',h{i},'.',fnames{j},...
+                            ',''ToolTipString'','''');']);
+                    end
                 end
             end
         end

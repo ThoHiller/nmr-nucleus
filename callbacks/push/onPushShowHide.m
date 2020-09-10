@@ -46,15 +46,13 @@ switch label
         set(panel,'Widths',[400 -1 260]);
         set(hbox,'Widths',[10 -1]);
         set(src,'String','>');
-        set(gui.menu.extra_settings_infofields_on,'Checked','on')
-        set(gui.menu.extra_settings_infofields_off,'Checked','off')
+        set(gui.menu.view_infofields,'Checked','on')
         
     case '>' % hide the INFO box
         set(panel,'Widths',[400 -1 10]);
         set(hbox,'Widths',[10 0]);
         set(src,'String','<');
-        set(gui.menu.extra_settings_infofields_on,'Checked','off')
-        set(gui.menu.extra_settings_infofields_off,'Checked','on')
+        set(gui.menu.view_infofields,'Checked','off')
 end
 
 end

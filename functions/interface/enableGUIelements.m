@@ -107,10 +107,12 @@ setappdata(fig,'gui',gui);
 
 switch data.info.ExpertMode
     case 'on'
-        onMenuExpert(gui.menu.extra_expert_on);
+        set(gui.menu.extra_expert,'Checked','off');
     case 'off'
-        onMenuExpert(gui.menu.extra_expert_off);
+        set(gui.menu.extra_expert,'Checked','on');
 end
+onMenuExpert(gui.menu.extra_expert);
+
 
 end
 

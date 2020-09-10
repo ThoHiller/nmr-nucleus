@@ -52,7 +52,7 @@ end
 switch fig_tag
     case 'INV'
         % check if joint inversion is activated
-        isjoint = strcmp(get(gui.menu.extra_joint_on,'Checked'),'on');
+        isjoint = strcmp(get(gui.menu.extra_joint,'Checked'),'on');
         
         % create dummy subplots on the export figure to extract the
         % standard positions

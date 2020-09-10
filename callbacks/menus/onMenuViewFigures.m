@@ -1,9 +1,9 @@
-function onPopupGeometryType(src,~)
-%onPopupGeometryType selects the geometry of the pores (cylindrical,
-%right angular or polygonal)
+function onMenuViewFigures(src,~)
+%onMenuViewFigures handles the extra menu entries to show additional
+%graphical output
 %
 % Syntax:
-%       onPopupGeometryType
+%       onMenuViewFigures
 %
 % Inputs:
 %       src - handle of the calling object
@@ -12,11 +12,10 @@ function onPopupGeometryType(src,~)
 %       none
 %
 % Example:
-%       onPopupGeometryType(src,~)
+%       onMenuViewFigures(src)
 %
 % Other m-files required:
-%       calculateGeometry
-%       removeCalculationFields
+%       showFitStatistics
 %
 % Subfunctions:
 %       none
@@ -24,47 +23,29 @@ function onPopupGeometryType(src,~)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSmod
+% See also: NUCLEUSinv
 % Author: Thomas Hiller
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
-%% get GUI handle and data
-fig = findobj('Tag','MOD');
-data = getappdata(fig,'data');
+%% label of the calling menu
+label = get(src,'Label');
 
-% get the value of the popup menu
-value = get(src,'Value');
-
-% change settings accordingly
-switch value    
-    case 1 % cylindrical pore        
-        data.geometry.type = 'cyl';
-        data.geometry.radius = data.geometry.modes(1,1);
-        
-    case 2 % right angular pore        
-        data.geometry.type = 'ang';
-        data.geometry.alpha = 90;
-        data.geometry.beta = 45;
-        data.geometry.gamma = 45;
-        
-    case 3 % polygonal pore        
-        data.geometry.type = 'poly';
-        data.geometry.beta = 60;
-        data.geometry.polyN = 3;        
+% chose the corresponding function
+switch label
+    case 'Parameter Info'
+        showParameterInfo;
+    case 'Fit statistics'
+        showFitStatistics;
+    case 'AMP-TLGM-SNR'
+        showExtraGraphics('amp');
+    case 'AMP vs TLGM'
+        showExtraGraphics('ampvst');
+    case 'RTD'    
+        showExtraGraphics('rtd');
 end
-
-% remove data fields because the geometry has changed
-data = removeCalculationFields(data,'cps');
-data = removeCalculationFields(data,'nmr');
-% update GUI data
-setappdata(fig,'data',data);
-% recalculate geometry
-calculateGeometry;
-% update status bar
-updateStatusInformation(fig);
 
 end
 

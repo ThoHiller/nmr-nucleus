@@ -774,13 +774,7 @@ switch regtype
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
                 gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
-                
-            case 'iterchi2'                
-                set(gui.edit_handles.invjoint_lambda_min,'Enable','off');
-                set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
-                set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
-                gui.plots.DistPanel.TabTitles = {'CHI2','RMS','PSD (joint)'};
-                
+
             otherwise                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','off');
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');

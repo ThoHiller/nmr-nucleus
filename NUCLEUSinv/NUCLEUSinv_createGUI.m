@@ -204,7 +204,9 @@ set(gui.main,'Visible','on');
 
 %% enable all menus
 set(gui.menu.file,'Enable','on');
+set(gui.menu.view,'Enable','on');
 set(gui.menu.extra,'Enable','on');
+set(gui.menu.color_theme,'Enable','on');
 set(gui.menu.help,'Enable','on');
 
 %% process tooltip preferences
@@ -215,7 +217,7 @@ gui.myui = myui;
 setappdata(h,'gui',gui);
 setappdata(h,'data',data);
 displayStatusText(gui,'NUCLEUSinv successfully started');
-updateStatusInformation;
+updateStatusInformation(h);
 updateToolTips;
 
 end

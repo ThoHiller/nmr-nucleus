@@ -200,27 +200,91 @@ gui.menu.file_restart = uimenu(gui.menu.file,...
 
 % 1.4 Quit
 gui.menu.file_quit = uimenu(gui.menu.file,...
-    'Label','Quit','Separator','on','Callback',@onMenuRestartQuit);
+    'Label','Quit','Callback',@onMenuRestartQuit);
 
-%% 2. Extras
+%% 2. View
+gui.menu.view = uimenu(gui.figh,...
+    'Label','View','Enable','off');
+
+% 2.1 tooltips (on/off)
+gui.menu.view_tooltips = uimenu(gui.menu.view,...
+    'Label','Tooltips','Checked','off','Callback',@onMenuView);
+switch gui.myui.inidata.tooltips
+    case 'on'
+        set(gui.menu.view_tooltips,'Checked','on');
+    case 'off'
+        set(gui.menu.view_tooltips,'Checked','off');
+end
+% 2.2 Figure Toolbar
+gui.menu.view_toolbar = uimenu(gui.menu.view,...
+    'Label','Figure Toolbar','Callback',@onMenuView);
+
+% 2.3 INFO fields in plot panels (on/off)
+gui.menu.view_infofields = uimenu(gui.menu.view,...
+    'Label','INFO fields','Separator','on','Callback',@onMenuView);
+
+% 2.4 inversion info on command line (on/off)
+gui.menu.view_invinfo = uimenu(gui.menu.view,...
+    'Label','CLI Inv. Info','Callback',@onMenuView);
+switch gui.myui.inidata.invinfo
+    case 'on'
+        set(gui.menu.view_invinfo,'Checked','on');
+    case 'off'
+        set(gui.menu.view_invinfo,'Checked','off');
+end
+
+% 2.5 figures
+gui.menu.extra_graphics = uimenu(gui.menu.view,...
+    'Label','Figures','Separator','on');
+% 2.5.1 parameter file info
+gui.menu.extra_graphics_parinfo = uimenu(gui.menu.extra_graphics,...
+    'Label','Parameter Info','Callback',@onMenuViewFigures);
+% 2.5.2 fit statistics
+gui.menu.extra_graphics_stats = uimenu(gui.menu.extra_graphics,...
+    'Label','Fit statistics','Callback',@onMenuViewFigures);
+switch gui.myui.inidata.expertmode
+    case 'on'
+        % 2.5.3 amplitude over time
+        gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
+            'Label','AMP-TLGM-SNR','Callback',@onMenuViewFigures);
+        % 2.5.4 amplitude vs tlgm
+        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
+            'Label','AMP vs TLGM','Callback',@onMenuViewFigures);
+        % 2.5.5 relaxation time distribution over time
+        gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
+            'Label','RTD','Callback',@onMenuViewFigures);
+    case 'off'
+        % 2.5.3 amplitude over time
+        gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
+            'Label','AMP-TLGM-SNR','Enable','off','Callback',@onMenuViewFigures);
+        % 2.5.4 amplitude vs tlgm
+        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
+            'Label','AMP vs TLGM','Enable','off','Callback',@onMenuViewFigures);
+        % 2.5.5 relaxation time distribution over time
+        gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
+            'Label','RTD','Enable','off','Callback',@onMenuViewFigures);
+end
+
+% 2.6 PhaseView
+gui.menu.extra_phaseview = uimenu(gui.menu.view,...
+    'Label','PhaseView GUI','Callback',@PhaseView);
+
+
+%% 3. Extras
 gui.menu.extra = uimenu(gui.figh,...
     'Label','Extra','Enable','off');
 
-% 2.1 expert mode (on/off)
+% 3.1 expert mode (on/off)
 gui.menu.extra_expert = uimenu(gui.menu.extra,...
-    'Label','Expert Mode');
-gui.menu.extra_expert_on = uimenu(gui.menu.extra_expert,...
-    'Label','On','Callback',@onMenuExpert);
-gui.menu.extra_expert_off = uimenu(gui.menu.extra_expert,...
-    'Label','Off','Callback',@onMenuExpert);
+    'Label','Expert Mode','Callback',@onMenuExpert);
 switch gui.myui.inidata.expertmode
     case 'on'
-        set(gui.menu.extra_expert_on,'Checked','on');
+        set(gui.menu.extra_expert,'Checked','on');
     case 'off'
-        set(gui.menu.extra_expert_off,'Checked','on');
+        set(gui.menu.extra_expert,'Checked','of');
 end
 
-% 2.2 optimization toolbox (on/off)
+% 3.2 optimization toolbox (on/off)
 switch gui.myui.inidata.expertmode
     case 'on'
         switch data.info.has_optim
@@ -240,135 +304,55 @@ gui.menu.extra_solver_lsqlin = uimenu(gui.menu.extra_solver,...
 gui.menu.extra_solver_lsqnonneg = uimenu(gui.menu.extra_solver,...
     'Label','LSQNONNEG (default)','Checked','on','Callback',@onMenuSolver);
 
-% 2.3 joint inversion (on/off)
+% 3.3 joint inversion (on/off)
+gui.menu.extra_joint = uimenu(gui.menu.extra,...
+    'Label','Joint Inversion','Checked','off','Separator','on',...
+    'Callback',@onMenuJointInversion);
 switch gui.myui.inidata.expertmode
     case 'on'
-        gui.menu.extra_joint = uimenu(gui.menu.extra,...
-            'Label','Joint Inversion','Enable','on');
+        set(gui.menu.extra_joint,'Enable','on');
     case 'off'
-        gui.menu.extra_joint = uimenu(gui.menu.extra,...
-            'Label','Joint Inversion','Enable','off');
-end
-gui.menu.extra_joint_on = uimenu(gui.menu.extra_joint,...
-    'Label','On','Callback',@onMenuJointInversion);
-gui.menu.extra_joint_off = uimenu(gui.menu.extra_joint,...
-    'Label','Off','Checked','on','Callback',@onMenuJointInversion);
-
-
-% 2.4 settings
-gui.menu.extra_settings = uimenu(gui.menu.extra,...
-    'Label','Settings');
-
-% 2.4.1 inversion info (on/off)
-gui.menu.extra_settings_invinfo = uimenu(gui.menu.extra_settings,...
-    'Label','Inversion Display');
-gui.menu.extra_settings_invinfo_on = uimenu(gui.menu.extra_settings_invinfo,...
-    'Label','On','Callback',@onMenuExtraShow);
-gui.menu.extra_settings_invinfo_off = uimenu(gui.menu.extra_settings_invinfo,...
-    'Label','Off','Callback',@onMenuExtraShow);
-switch gui.myui.inidata.invinfo
-    case 'on'
-        set(gui.menu.extra_settings_invinfo_on,'Checked','on');
-    case 'off'
-        set(gui.menu.extra_settings_invinfo_off,'Checked','on');
+        set(gui.menu.extra_joint,'Enable','off');
 end
 
-% 2.4.2 tooltips (on/off)
-gui.menu.extra_settings_tooltips = uimenu(gui.menu.extra_settings,...
-    'Label','Tooltips');
-gui.menu.extra_settings_tooltips_on = uimenu(gui.menu.extra_settings_tooltips,...
-    'Label','On','Callback',@onMenuExtraShow);
-gui.menu.extra_settings_tooltips_off = uimenu(gui.menu.extra_settings_tooltips,...
-    'Label','Off','Callback',@onMenuExtraShow);
-switch gui.myui.inidata.tooltips
-    case 'on'
-        set(gui.menu.extra_settings_tooltips_on,'Checked','on');
-    case 'off'
-        set(gui.menu.extra_settings_tooltips_off,'Checked','on');
-end
+% 3.4 set inversion bounds for surface relaxivity rho
+gui.menu.extra_joint_rhobounds = uimenu(gui.menu.extra,...
+    'Label','Surface relaxivity bounds','Enable','off',...
+    'Callback',@onMenuExtraRhoBounds);
 
-% 2.4.3 INFO fields in plot panels (on/off)
-gui.menu.extra_settings_infofields = uimenu(gui.menu.extra_settings,...
-    'Label','INFO fields');
-gui.menu.extra_settings_infofields_on = uimenu(gui.menu.extra_settings_infofields ,...
-    'Label','On','Callback',@onMenuExtraShow);
-gui.menu.extra_settings_infofields_off = uimenu(gui.menu.extra_settings_infofields,...
-    'Label','Off','Checked','on','Callback',@onMenuExtraShow);
 
-% 2.4.4 color theme
-gui.menu.extra_settings_theme = uimenu(gui.menu.extra_settings,...
-    'Label','Color Theme');
-% 2.4.4.1 default color theme
-gui.menu.extra_settings_theme_standard = uimenu(gui.menu.extra_settings_theme,...
+%% 4. Color theme
+gui.menu.color_theme = uimenu(gui.figh,...
+    'Label','Color Theme','Enable','off');
+
+% 4.1 default color theme
+gui.menu.color_theme_standard = uimenu(gui.menu.color_theme,...
     'Label','standard','Callback',@onMenuExtraColor);
-% 2.4.4.2 basic color theme
-gui.menu.extra_settings_theme_basic = uimenu(gui.menu.extra_settings_theme,...
+% 4.2 basic color theme
+gui.menu.color_theme_basic = uimenu(gui.menu.color_theme,...
     'Label','basic','Callback',@onMenuExtraColor);
-% 2.4.4.3 dark color theme
-gui.menu.extra_settings_theme_dark = uimenu(gui.menu.extra_settings_theme,...
+% 4.3 dark color theme
+gui.menu.color_theme_dark = uimenu(gui.menu.color_theme,...
     'Label','dark','Callback',@onMenuExtraColor);
-% 2.4.4.4 black color theme
-gui.menu.extra_settings_theme_black = uimenu(gui.menu.extra_settings_theme,...
+% 4.4 black color theme
+gui.menu.color_theme_black = uimenu(gui.menu.color_theme,...
     'Label','black','Callback',@onMenuExtraColor);
 switch gui.myui.inidata.colortheme
     case 'standard'
-        set(gui.menu.extra_settings_theme_standard,'Checked','on');
+        set(gui.menu.color_theme_standard,'Checked','on');
     case 'basic'
-        set(gui.menu.extra_settings_theme_basic,'Checked','on');
+        set(gui.menu.color_theme_basic,'Checked','on');
     case 'dark'
-        set(gui.menu.extra_settings_theme_dark,'Checked','on');
+        set(gui.menu.color_theme_dark,'Checked','on');
     case 'black'
-        set(gui.menu.extra_settings_theme_black,'Checked','on');
+        set(gui.menu.color_theme_black,'Checked','on');
 end
 
-% 2.4.5 joint inversion settings
-gui.menu.extra_settings_joint = uimenu(gui.menu.extra_settings,...
-    'Label','Joint Inversion','Enable','off','Separator','on');
-% 2.4.5.1 joint inversion settings
-gui.menu.extra_settings_joint_rhobounds = uimenu(gui.menu.extra_settings_joint,...
-    'Label','Surface relaxivity bounds','Callback',@onMenuExtraRhoBounds);
-
-% 2.5 figures
-gui.menu.extra_graphics = uimenu(gui.menu.extra,...
-    'Label','Figures');
-% 2.5.1 parameter file info
-gui.menu.extra_graphics_parinfo = uimenu(gui.menu.extra_graphics,...
-    'Label','Parameter Info','Callback',@onMenuExtraShow);
-% 2.5.2 fit statistics
-gui.menu.extra_graphics_stats = uimenu(gui.menu.extra_graphics,...
-    'Label','Fit statistics','Callback',@onMenuExtraGraphics);
-switch gui.myui.inidata.expertmode
-    case 'on'
-        % 2.5.3 amplitude over time
-        gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP-TLGM-SNR','Callback',@onMenuExtraGraphics);
-        % 2.5.4 amplitude vs tlgm
-        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP vs TLGM','Callback',@onMenuExtraGraphics);
-        % 2.5.5 relaxation time distribution over time
-        gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
-            'Label','RTD','Callback',@onMenuExtraGraphics);
-    case 'off'
-        % 2.5.3 amplitude over time
-        gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP-TLGM-SNR','Enable','off','Callback',@onMenuExtraGraphics);
-        % 2.5.4 amplitude vs tlgm
-        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP vs TLGM','Enable','off','Callback',@onMenuExtraGraphics);
-        % 2.5.5 relaxation time distribution over time
-        gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
-            'Label','RTD','Enable','off','Callback',@onMenuExtraGraphics);
-end
-
-% 2.6 PhaseView
-gui.menu.extra_phaseview = uimenu(gui.menu.extra,...
-    'Label','PhaseView','Callback',@PhaseView);
-
-%% 3. Help
+%% 5. Help
 gui.menu.help = uimenu(gui.figh,...
     'Label','Help','Enable','off');
 
-% 3.1 About
+% 5.1 About
 gui.menu.help_about = uimenu(gui.menu.help,...
     'Label','About','Callback',@onMenuHelp);
 

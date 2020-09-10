@@ -143,6 +143,7 @@ switch fig_tag
                     set(gui.panels.main,'Heights',heights);
                     set(panel,'Minimized',true)
                 end
+                onFigureSizeChange(fig);
             case {panel_4,panel_5,panel_6}
                 % all heights of the graphic panels
                 heights = get(gui.right,'Heights');
@@ -157,6 +158,7 @@ switch fig_tag
                     set(gui.right,'Heights',heights);
                     set(panel,'Minimized',true)
                 end
+                onFigureSizeChange(fig);
             otherwise
                 helpdlg({'function: minimizePanel',...
                     'Something is utterly wrong.'},'Info');

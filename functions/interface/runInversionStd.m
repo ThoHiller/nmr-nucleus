@@ -58,7 +58,7 @@ INVdata = getappdata(fig,'INVdata');
 id = get(gui.listbox_handles.signal,'Value');
 
 % check if joint inversion is activated
-isjoint = strcmp(get(gui.menu.extra_joint_on,'Checked'),'on');
+isjoint = strcmp(get(gui.menu.extra_joint,'Checked'),'on');
 
 if ~isempty(id) && ~isempty(INVdata)
     % remove temporary data fields

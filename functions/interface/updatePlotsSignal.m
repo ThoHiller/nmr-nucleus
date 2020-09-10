@@ -37,7 +37,7 @@ data = getappdata(fig,'data');
 col = gui.myui.colors;
 
 % check if joint inversion is activated
-isjoint = strcmp(get(gui.menu.extra_joint_on,'Checked'),'on');
+isjoint = strcmp(get(gui.menu.extra_joint,'Checked'),'on');
 
 % proceed if there is data
 if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
@@ -287,8 +287,7 @@ end
 % "ALL (joint)" panel - this is just a rough overview if no joint inversion
 % result is yet availabe
 if isjoint && ~isfield(data.results,'invjoint') && ...
-        ~strcmp(data.invstd.regtype,'lcurve') && ...
-        ~strcmp(data.invstd.regtype,'iterchi2')
+        ~strcmp(data.invstd.regtype,'lcurve')
     
     ax = gui.axes_handles.all;
     clearSingleAxis(ax);

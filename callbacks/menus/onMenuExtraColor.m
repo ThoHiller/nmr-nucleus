@@ -41,25 +41,25 @@ label = get(src,'Label');
 % mark the selected menu entry
 switch label
     case 'standard'
-        set(gui.menu.extra_settings_theme_standard,'Checked','on');
-        set(gui.menu.extra_settings_theme_basic,'Checked','off');
-        set(gui.menu.extra_settings_theme_dark,'Checked','off');
-        set(gui.menu.extra_settings_theme_black,'Checked','off');
+        set(gui.menu.color_theme_standard,'Checked','on');
+        set(gui.menu.color_theme_basic,'Checked','off');
+        set(gui.menu.color_theme_dark,'Checked','off');
+        set(gui.menu.color_theme_black,'Checked','off');
     case 'basic'
-        set(gui.menu.extra_settings_theme_standard,'Checked','off');
-        set(gui.menu.extra_settings_theme_basic,'Checked','on');
-        set(gui.menu.extra_settings_theme_dark,'Checked','off');
-        set(gui.menu.extra_settings_theme_black,'Checked','off');
+        set(gui.menu.color_theme_standard,'Checked','off');
+        set(gui.menu.color_theme_basic,'Checked','on');
+        set(gui.menu.color_theme_dark,'Checked','off');
+        set(gui.menu.color_theme_black,'Checked','off');
     case 'dark'
-        set(gui.menu.extra_settings_theme_standard,'Checked','off');
-        set(gui.menu.extra_settings_theme_basic,'Checked','off');
-        set(gui.menu.extra_settings_theme_dark,'Checked','on');
-        set(gui.menu.extra_settings_theme_black,'Checked','off');
+        set(gui.menu.color_theme_standard,'Checked','off');
+        set(gui.menu.color_theme_basic,'Checked','off');
+        set(gui.menu.color_theme_dark,'Checked','on');
+        set(gui.menu.color_theme_black,'Checked','off');
     case 'black'
-        set(gui.menu.extra_settings_theme_standard,'Checked','off');
-        set(gui.menu.extra_settings_theme_basic,'Checked','off');
-        set(gui.menu.extra_settings_theme_dark,'Checked','off');
-        set(gui.menu.extra_settings_theme_black,'Checked','on');
+        set(gui.menu.color_theme_standard,'Checked','off');
+        set(gui.menu.color_theme_basic,'Checked','off');
+        set(gui.menu.color_theme_dark,'Checked','off');
+        set(gui.menu.color_theme_black,'Checked','on');
 end
 
 % adjust the colors

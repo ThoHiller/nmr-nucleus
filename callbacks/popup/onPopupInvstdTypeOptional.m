@@ -101,7 +101,11 @@ switch invtype
                 switch value % different regularization options/methods
                     case 1 % manual
                         data.invstd.regtype = 'manual';
-                        data.invstd.lambda = 1;
+                        lambdaFAK = 1;
+                        if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
+                            lambdaFAK = 100;
+                        end
+                        data.invstd.lambda = 1/lambdaFAK;
                         % if there is an optimal lambda from the L-curve
                         % use it
                         if isfield(data,'results') && ...

@@ -55,6 +55,8 @@ data = removeCalculationFields(data,'nmr');
 setappdata(fig,'data',data);
 % recalculate geometry
 calculateGeometry;
+% update status bar
+updateStatusInformation(fig);
 
 end
 

@@ -43,7 +43,7 @@ data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 
 % on / off switch
-onoff = get(src,'Label');
+onoff = get(src,'Checked');
 % panel heights
 heights = gui.myui.heights;
 
@@ -69,7 +69,7 @@ end
 
 % deactivate or activate joint inversion
 switch onoff    
-    case 'Off'
+    case 'on' % it it's on, switch it off
         data.info.JointInv = 'off';
         
         % remove data
@@ -94,9 +94,8 @@ switch onoff
         clearSingleAxis(gui.axes_handles.cps);
         
         % menu entries
-        set(gui.menu.extra_joint_on,'Checked','off');
-        set(gui.menu.extra_joint_off,'Checked','on');
-        set(gui.menu.extra_settings_joint,'Enable','off');
+        set(gui.menu.extra_joint,'Checked','off');
+        set(gui.menu.extra_joint_rhobounds,'Enable','off');
         set(gui.menu.file_export_data_invjoint_mat,'Enable','off');        
         
         % settings panel
@@ -128,13 +127,12 @@ switch onoff
         % minimize CPS info field
         set(gui.panels.info.main,'Heights',[-1 -1 0]);                    
         
-    case 'On'
+    case 'off' % it it's off, switch it on
         data.info.JointInv = 'on';
         
         % menu entries
-        set(gui.menu.extra_joint_on,'Checked','on');
-        set(gui.menu.extra_joint_off,'Checked','off');
-        set(gui.menu.extra_settings_joint,'Enable','on');
+        set(gui.menu.extra_joint,'Checked','on');
+        set(gui.menu.extra_joint_rhobounds,'Enable','on');
         set(gui.menu.file_export_data_invjoint_mat,'Enable','on');
         
         % settings panel
@@ -185,7 +183,7 @@ end
 setappdata(fig,'data',data);
 setappdata(fig,'gui',gui);
 NUCLEUSinv_updateInterface;
-updateStatusInformation;
+updateStatusInformation(fig);
 onFigureSizeChange(fig);
 
 end

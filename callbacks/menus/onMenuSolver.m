@@ -61,7 +61,7 @@ setappdata(fig,'gui',gui);
 % update interface
 NUCLEUSinv_updateInterface;
 % update status information
-updateStatusInformation;
+updateStatusInformation(fig);
 updateToolTips;
 
 end

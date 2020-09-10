@@ -78,6 +78,9 @@ switch data.info.ExpertMode
                 
             case 3
                 data.invstd.invtype = 'NNLS';
+                % for multi-exponential inversion log-gating is default
+                data.process.gatetype = 'log';
+                
                 % set LIAG defaults
                 if isfield(data.import,'LIAG')
                     data.invstd.regtype = 'lcurve';
@@ -85,10 +88,13 @@ switch data.info.ExpertMode
                     data.invstd.lambdaR = [1e-5 1];
                 else
                     data.invstd.regtype = 'manual';
-                    data.invstd.lambda = 1;
-                end
-                % for multi-exponential inversion log-gating is used as default
-                data.process.gatetype = 'log';    
+                    data.invstd.lambda = 1e-2;
+                end                
+                % update GUI data
+                setappdata(fig,'data',data);
+                % because the gate type could have changed update data
+                onRadioGates(gui.radio_handles.process_gates_log);
+                data = getappdata(fig,'data');
         end
 end
 % update GUI data

@@ -44,15 +44,14 @@ data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 
 % on / off switch
-onoff = get(src,'Label');
+onoff = get(src,'Checked');
 
 % deactivate or activate expert mode
 switch onoff
-    case 'Off'
+    case 'on' % it it's on, switch it off
         data.info.ExpertMode = 'off';
         % menu entry
-        set(gui.menu.extra_expert_on,'Checked','off');
-        set(gui.menu.extra_expert_off,'Checked','on');
+        set(gui.menu.extra_expert,'Checked','off');
         % update GUI data
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
@@ -67,8 +66,9 @@ switch onoff
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
         
-        % deactivate joint inversion panels        
-        onMenuJointInversion(gui.menu.extra_joint_off);
+        % deactivate joint inversion panels
+        set(gui.menu.extra_joint,'Checked','on');
+        onMenuJointInversion(gui.menu.extra_joint);
         % get changed GUI data
         data = getappdata(fig,'data');
         INVdata = getappdata(fig,'INVdata');
@@ -83,11 +83,10 @@ switch onoff
         set(gui.menu.extra_graphics_amp2,'Enable','off');
         set(gui.menu.extra_graphics_rtd,'Enable','off');
         
-    case 'On'
+    case 'off' % it it's off, switch it on
         data.info.ExpertMode = 'on';
         % menu entry
-        set(gui.menu.extra_expert_on,'Checked','on');
-        set(gui.menu.extra_expert_off,'Checked','off');
+        set(gui.menu.extra_expert,'Checked','on');
         
         % activate solver menu if optimization toolbox is available
         switch data.info.has_optim
@@ -114,7 +113,7 @@ gui = makeINIfile(gui,'update');
 % update interface
 NUCLEUSinv_updateInterface;
 % update status information
-updateStatusInformation;
+updateStatusInformation(fig);
 updateToolTips;
 onFigureSizeChange(fig);
 

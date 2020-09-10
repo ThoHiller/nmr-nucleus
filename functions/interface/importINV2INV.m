@@ -68,33 +68,39 @@ if sum(Sessionpath) > 0
         % adjust menu entry for expert mode
         switch savedata.data.info.ExpertMode
             case 'on'
-                onMenuExpert(gui.menu.extra_expert_on);
+                set(gui.menu.extra_expert,'Checked','off');
             case 'off'
-                onMenuExpert(gui.menu.extra_expert_off);
+                set(gui.menu.extra_expert,'Checked','on');
         end
+        onMenuExpert(gui.menu.extra_expert);
+        
         % adjust menu entry for joint inversion
         switch savedata.data.info.JointInv
             case 'on'
-                onMenuJointInversion(gui.menu.extra_joint_on);
+                set(gui.menu.extra_joint,'Checked','off');
             case 'off'
-                onMenuJointInversion(gui.menu.extra_joint_off);
+                set(gui.menu.extra_joint,'Checked','on');
         end
+        onMenuJointInversion(gui.menu.extra_joint);
         enableGUIelements('NMR');
         
         % adjust menu entry for comand line inversion info
         switch savedata.data.info.InvInfo
             case 'on'
-                onMenuExtraShow(gui.menu.extra_settings_invinfo_on);
+                set(gui.menu.view_invinfo,'Checked','off');
             case 'off'
-                onMenuExtraShow(gui.menu.extra_settings_invinfo_off);
+                set(gui.menu.view_invinfo,'Checked','on');
         end
+        onMenuView(gui.menu.view_invinfo);
+        
         % adjust menu entry for tool tips
         switch savedata.data.info.ToolTips
             case 'on'
-                onMenuExtraShow(gui.menu.extra_settings_tooltips_on);
+                set(gui.menu.view_tooltips,'Checked','off');
             case 'off'
-                onMenuExtraShow(gui.menu.extra_settings_tooltips_off);
+                set(gui.menu.view_tooltips,'Checked','on');
         end
+        onMenuView(gui.menu.view_tooltips);
         
         % update GUI data from session mat-file
         data = savedata.data;

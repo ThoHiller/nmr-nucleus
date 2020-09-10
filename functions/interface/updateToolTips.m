@@ -127,7 +127,7 @@ setappdata(fig,'data',data);
 % if tool tips are activated they need to be updated on-the-fly
 switch data.info.ToolTips
     case 'on'
-        onMenuExtraShow(gui.menu.extra_settings_tooltips_on);
+        switchToolTips(gui,'on');
     otherwise
         % nothing to do
 end

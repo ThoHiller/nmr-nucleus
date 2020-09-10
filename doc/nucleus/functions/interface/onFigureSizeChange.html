@@ -29,7 +29,7 @@
 <div class="fragment"><pre class="comment">onFigureSizeChange fixes an ugly Matlab bug when resizing a box-panel
 which holds an axis and a legend. This problem occurs even though the
 axis is inside a uicontainer to group all axes elements. And it only
-occurs for box-panels. If the uicontainer, which holds axis and legend, 
+occurs for box-panels. If the uicontainer, which holds axis and legend,
 is inside a tab-panel this problem does not occur. They had one job ... m(
 
  Syntax:
@@ -65,7 +65,7 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv.html" class="code" title="function NUCLEUSinv">NUCLEUSinv</a>	 is a graphical user interface (GUI) to invert NMR relaxometry</li><li><a href="../../../nucleus/callbacks/menus/onMenuExpert.html" class="code" title="function onMenuExpert(src,~)">onMenuExpert</a>	 handles the call from the menu that activates / deactivates</li><li><a href="../../../nucleus/callbacks/menus/onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>	 handles the call from the menu that activates / deactivates</li><li><a href="minimizePanel.html" class="code" title="function minimizePanel(src,~)">minimizePanel</a>	 handles the minimization/maximization of all box-panels for</li></ul>
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv.html" class="code" title="function NUCLEUSinv">NUCLEUSinv</a>	 is a graphical user interface (GUI) to invert NMR relaxometry</li><li><a href="../../../nucleus/NUCLEUSmod/NUCLEUSmod.html" class="code" title="function NUCLEUSmod">NUCLEUSmod</a>	 is a graphical user interface (GUI) to forward model NMR</li><li><a href="../../../nucleus/callbacks/menus/onMenuExpert.html" class="code" title="function onMenuExpert(src,~)">onMenuExpert</a>	 handles the call from the menu that activates / deactivates</li><li><a href="../../../nucleus/callbacks/menus/onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>	 handles the call from the menu that activates / deactivates</li><li><a href="minimizePanel.html" class="code" title="function minimizePanel(src,~)">minimizePanel</a>	 handles the minimization/maximization of all box-panels for</li></ul>
 <!-- crossreference -->
 
 
@@ -107,70 +107,88 @@ This function is called by:
 0034 <span class="comment">%------------- BEGIN CODE --------------</span>
 0035 
 0036 <span class="comment">%% get GUI data</span>
-0037 gui = getappdata(fig,<span class="string">'gui'</span>);
-0038 
-0039 <span class="comment">% proceed if there is data</span>
-0040 <span class="keyword">if</span> ~isempty(gui)
-0041     <span class="keyword">if</span> isfield(gui,<span class="string">'panels'</span>)
-0042         heights = get(gui.panels.main,<span class="string">'Heights'</span>);
-0043         set(gui.left,<span class="string">'Heights'</span>,-1,<span class="string">'MinimumHeights'</span>,sum(heights(2:end))+250);
-0044         <span class="comment">% check if CPS settings panel is activated</span>
-0045         <span class="keyword">if</span> heights(end) &gt; 100
-0046             <span class="comment">% check if there is a vertical scrollbar</span>
-0047             hpos = get(gui.top,<span class="string">'InnerPosition'</span>);
-0048             <span class="keyword">if</span> get(gui.left,<span class="string">'MinimumHeights'</span>) &gt; hpos(4)
-0049                 <span class="comment">% if yes shift the table slightly to the right to avoid</span>
-0050                 <span class="comment">% horizontal resizing</span>
-0051                 set(gui.panels.invjoint.TabCPS,<span class="string">'Widths'</span>,[180 -1]);
-0052             <span class="keyword">else</span>
-0053                 <span class="comment">% if not use the default layout</span>
-0054                 set(gui.panels.invjoint.TabCPS,<span class="string">'Widths'</span>,[200 -1]);
-0055             <span class="keyword">end</span>
-0056         <span class="keyword">end</span>
-0057         <span class="comment">% check if process panel is activated</span>
-0058         <span class="keyword">if</span> heights(2) &gt; 100
-0059             <span class="comment">% check if there is a vertical scrollbar</span>
-0060             hpos = get(gui.top,<span class="string">'InnerPosition'</span>);
-0061             <span class="keyword">if</span> get(gui.left,<span class="string">'MinimumHeights'</span>) &gt; hpos(4)
-0062                 <span class="comment">% if yes shift the hbox2 slightly to the right</span>
-0063                 set(gui.panels.process.HBox2,<span class="string">'Widths'</span>,[180 -1 -1 -1.5 50]);
-0064             <span class="keyword">else</span>
-0065                 <span class="comment">% if not use the default layout</span>
-0066                 set(gui.panels.process.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1.5 50]);
-0067             <span class="keyword">end</span>
-0068         <span class="keyword">end</span>
-0069     <span class="keyword">end</span>
-0070 <span class="keyword">end</span>
-0071 
-0072 <span class="comment">% check that the GUI is not smaller than the minimum size</span>
-0073 set(fig, <span class="string">'position'</span>, max([0 0 610 358], fig.Position));
-0074 
-0075 <span class="keyword">end</span>
-0076 
-0077 <span class="comment">%------------- END OF CODE --------------</span>
-0078 
-0079 <span class="comment">%% License:</span>
-0080 <span class="comment">% MIT License</span>
-0081 <span class="comment">%</span>
-0082 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0083 <span class="comment">%</span>
-0084 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0085 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0086 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0087 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0088 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0089 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0090 <span class="comment">%</span>
-0091 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0092 <span class="comment">% copies or substantial portions of the Software.</span>
-0093 <span class="comment">%</span>
-0094 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0095 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0096 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0097 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0098 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0099 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0100 <span class="comment">% SOFTWARE.</span></pre></div>
+0037 fig_tag = get(fig,<span class="string">'Tag'</span>);
+0038 gui = getappdata(fig,<span class="string">'gui'</span>);
+0039 
+0040 <span class="keyword">switch</span> fig_tag
+0041     <span class="keyword">case</span> <span class="string">'INV'</span>
+0042         <span class="comment">% proceed if there is data</span>
+0043         <span class="keyword">if</span> ~isempty(gui)
+0044             <span class="keyword">if</span> isfield(gui,<span class="string">'panels'</span>)
+0045                 heights = get(gui.panels.main,<span class="string">'Heights'</span>);
+0046                 set(gui.left,<span class="string">'Heights'</span>,-1,<span class="string">'MinimumHeights'</span>,sum(heights(2:end))+250);
+0047                 <span class="comment">% check if CPS settings panel is activated</span>
+0048                 <span class="keyword">if</span> heights(end) &gt; 100
+0049                     <span class="comment">% check if there is a vertical scrollbar</span>
+0050                     hpos = get(gui.top,<span class="string">'InnerPosition'</span>);
+0051                     <span class="keyword">if</span> get(gui.left,<span class="string">'MinimumHeights'</span>) &gt; hpos(4)
+0052                         <span class="comment">% if yes shift the table slightly to the right to avoid</span>
+0053                         <span class="comment">% horizontal resizing</span>
+0054                         set(gui.panels.invjoint.TabCPS,<span class="string">'Widths'</span>,[180 -1]);
+0055                     <span class="keyword">else</span>
+0056                         <span class="comment">% if not use the default layout</span>
+0057                         set(gui.panels.invjoint.TabCPS,<span class="string">'Widths'</span>,[200 -1]);
+0058                     <span class="keyword">end</span>
+0059                 <span class="keyword">end</span>
+0060                 <span class="comment">% check if process panel is activated</span>
+0061                 <span class="keyword">if</span> heights(2) &gt; 100
+0062                     <span class="comment">% check if there is a vertical scrollbar</span>
+0063                     hpos = get(gui.top,<span class="string">'InnerPosition'</span>);
+0064                     <span class="keyword">if</span> get(gui.left,<span class="string">'MinimumHeights'</span>) &gt; hpos(4)
+0065                         <span class="comment">% if yes shift the hbox2 slightly to the right</span>
+0066                         set(gui.panels.process.HBox2,<span class="string">'Widths'</span>,[180 -1 -1 -1.5 50]);
+0067                     <span class="keyword">else</span>
+0068                         <span class="comment">% if not use the default layout</span>
+0069                         set(gui.panels.process.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1.5 50]);
+0070                     <span class="keyword">end</span>
+0071                 <span class="keyword">end</span>
+0072             <span class="keyword">end</span>
+0073         <span class="keyword">end</span>
+0074         
+0075         <span class="comment">% check that the GUI is not smaller than the minimum size</span>
+0076         set(fig,<span class="string">'position'</span>, max([0 0 610 358], fig.Position));
+0077         
+0078         
+0079     <span class="keyword">case</span> <span class="string">'MOD'</span>
+0080         <span class="comment">% proceed if there is data</span>
+0081         <span class="keyword">if</span> ~isempty(gui)
+0082             heights = get(gui.panels.main,<span class="string">'Heights'</span>);
+0083             <span class="keyword">if</span> heights(2) == -1
+0084                 set(gui.left,<span class="string">'Heights'</span>,-1,<span class="string">'MinimumHeights'</span>,sum(heights(1:end))+250);
+0085             <span class="keyword">else</span>
+0086                 set(gui.left,<span class="string">'Heights'</span>,-1,<span class="string">'MinimumHeights'</span>,sum(heights(1:end)));
+0087             <span class="keyword">end</span>
+0088         <span class="keyword">end</span>
+0089         <span class="comment">% check that the GUI is not smaller than the minimum size</span>
+0090         set(fig,<span class="string">'position'</span>, max([0 0 600 336], fig.Position));
+0091 <span class="keyword">end</span>
+0092 
+0093 <span class="keyword">end</span>
+0094 
+0095 <span class="comment">%------------- END OF CODE --------------</span>
+0096 
+0097 <span class="comment">%% License:</span>
+0098 <span class="comment">% MIT License</span>
+0099 <span class="comment">%</span>
+0100 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0101 <span class="comment">%</span>
+0102 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0103 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0104 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0105 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0106 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0107 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0110 <span class="comment">% copies or substantial portions of the Software.</span>
+0111 <span class="comment">%</span>
+0112 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0113 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0114 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0115 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0116 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0117 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0118 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

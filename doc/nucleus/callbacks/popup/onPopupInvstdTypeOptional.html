@@ -174,69 +174,73 @@ This function is called by:
 0101                 <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
 0102                     <span class="keyword">case</span> 1 <span class="comment">% manual</span>
 0103                         data.invstd.regtype = <span class="string">'manual'</span>;
-0104                         data.invstd.lambda = 1;
-0105                         <span class="comment">% if there is an optimal lambda from the L-curve</span>
-0106                         <span class="comment">% use it</span>
-0107                         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>) &amp;&amp; <span class="keyword">...</span>
-0108                                 isfield(data.results,<span class="string">'lcurve'</span>)
-0109                                 index = data.results.lcurve.index;
-0110                                 data.invstd.lambda = data.results.lcurve.lambda(index);
-0111                         <span class="keyword">end</span>                    
-0112                     <span class="keyword">case</span> 2 <span class="comment">% l-curve</span>
-0113                         data.invstd.regtype  = <span class="string">'lcurve'</span>;
-0114                         lambdaFAK = 1;
-0115                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
-0116                             lambdaFAK = 100;
-0117                         <span class="keyword">end</span>
-0118                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
-0119                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
-0120                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
-0121                 <span class="keyword">end</span>
-0122         <span class="keyword">end</span>
-0123         
-0124     <span class="keyword">case</span> <span class="string">'LU'</span>
-0125         <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
-0126             <span class="keyword">case</span> 1 <span class="comment">% manual</span>
-0127                 data.invstd.regtype  = <span class="string">'manual'</span>;
-0128                 data.invstd.lambda = 1;
-0129                 
-0130             <span class="keyword">case</span> 2 <span class="comment">% automatic</span>
-0131                 data.invstd.regtype  = <span class="string">'auto'</span>;
-0132                 data.invstd.lambda = -1;
-0133         <span class="keyword">end</span>
-0134 <span class="keyword">end</span>
-0135 
-0136 <span class="comment">% update GUI data</span>
-0137 setappdata(fig,<span class="string">'data'</span>,data);
-0138 <span class="comment">% update interface</span>
-0139 <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0140 
-0141 <span class="keyword">end</span>
-0142 
-0143 <span class="comment">%------------- END OF CODE --------------</span>
+0104                         lambdaFAK = 1;
+0105                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
+0106                             lambdaFAK = 100;
+0107                         <span class="keyword">end</span>
+0108                         data.invstd.lambda = 1/lambdaFAK;
+0109                         <span class="comment">% if there is an optimal lambda from the L-curve</span>
+0110                         <span class="comment">% use it</span>
+0111                         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>) &amp;&amp; <span class="keyword">...</span>
+0112                                 isfield(data.results,<span class="string">'lcurve'</span>)
+0113                                 index = data.results.lcurve.index;
+0114                                 data.invstd.lambda = data.results.lcurve.lambda(index);
+0115                         <span class="keyword">end</span>                    
+0116                     <span class="keyword">case</span> 2 <span class="comment">% l-curve</span>
+0117                         data.invstd.regtype  = <span class="string">'lcurve'</span>;
+0118                         lambdaFAK = 1;
+0119                         <span class="keyword">if</span> strcmp(data.process.gatetype,<span class="string">'log'</span>) || strcmp(data.process.gatetype,<span class="string">'lin'</span>)
+0120                             lambdaFAK = 100;
+0121                         <span class="keyword">end</span>
+0122                         data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
+0123                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.rtd);
+0124                         <a href="../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psd);
+0125                 <span class="keyword">end</span>
+0126         <span class="keyword">end</span>
+0127         
+0128     <span class="keyword">case</span> <span class="string">'LU'</span>
+0129         <span class="keyword">switch</span> value <span class="comment">% different regularization options/methods</span>
+0130             <span class="keyword">case</span> 1 <span class="comment">% manual</span>
+0131                 data.invstd.regtype  = <span class="string">'manual'</span>;
+0132                 data.invstd.lambda = 1;
+0133                 
+0134             <span class="keyword">case</span> 2 <span class="comment">% automatic</span>
+0135                 data.invstd.regtype  = <span class="string">'auto'</span>;
+0136                 data.invstd.lambda = -1;
+0137         <span class="keyword">end</span>
+0138 <span class="keyword">end</span>
+0139 
+0140 <span class="comment">% update GUI data</span>
+0141 setappdata(fig,<span class="string">'data'</span>,data);
+0142 <span class="comment">% update interface</span>
+0143 <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
 0144 
-0145 <span class="comment">%% License:</span>
-0146 <span class="comment">% MIT License</span>
-0147 <span class="comment">%</span>
-0148 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0149 <span class="comment">%</span>
-0150 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0151 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0152 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0153 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0154 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0155 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0156 <span class="comment">%</span>
-0157 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0158 <span class="comment">% copies or substantial portions of the Software.</span>
-0159 <span class="comment">%</span>
-0160 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0161 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0162 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0163 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0164 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0165 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0166 <span class="comment">% SOFTWARE.</span></pre></div>
+0145 <span class="keyword">end</span>
+0146 
+0147 <span class="comment">%------------- END OF CODE --------------</span>
+0148 
+0149 <span class="comment">%% License:</span>
+0150 <span class="comment">% MIT License</span>
+0151 <span class="comment">%</span>
+0152 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0153 <span class="comment">%</span>
+0154 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0155 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0156 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0157 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0158 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0159 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0160 <span class="comment">%</span>
+0161 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0162 <span class="comment">% copies or substantial portions of the Software.</span>
+0163 <span class="comment">%</span>
+0164 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0165 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0166 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0167 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0168 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0169 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0170 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

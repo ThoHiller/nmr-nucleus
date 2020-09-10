@@ -46,7 +46,17 @@ if ~isempty(gui)
         case 'CPS_INV'
             pos = get(gui.axes_handles.all,'Position');
         case 'CPS_MOD'
-            pos = get(gui.axes_handles.geo,'Position');
+            pos1 = get(gui.axes_handles.geo,'Position');
+            pos2 = get(gui.axes_handles.nmr,'Position');
+            if pos1(4)>pos2(4)
+                pos = pos1;
+            elseif pos1(4)==pos2(4)
+                pos = pos1;
+                pos(2) = 0.115;
+                pos(4) = 0.81;
+            else
+                pos = pos2;
+            end
     end
 
 % update the position of the problematic axis with the position of

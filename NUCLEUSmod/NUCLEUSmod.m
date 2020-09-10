@@ -41,8 +41,8 @@ h0  = findobj('Tag','MOD');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.9';
-myui.date = '30.10.2019';
+myui.version = '0.1.10';
+myui.date = '10.09.2020';
 myui.author = 'Thomas Hiller';
 myui.email = 'thomas.hiller[at]leibniz-liag.de';
 myui.fontsize = 10;
@@ -51,8 +51,9 @@ myui.fontsize = 10;
 defaults = NUCLEUSmod_loadDefaults;
 
 %% GUI initialization
-gui.figh = figure('Name',['NUCLEUSmod - Modeling Tool v',myui.version],...
-    'NumberTitle','off','Tag','MOD','ToolBar','none','MenuBar','none');
+gui.figh = figure('Name','NUCLEUSmod - Modeling Tool',...
+    'NumberTitle','off','Tag','MOD','ToolBar','none','MenuBar','none',...
+    'SizeChangedFcn',@onFigureSizeChange);
 
 pos = calculateGuiOnMonitorPosition(16/10);
 set(gui.figh,'Position',pos);

@@ -53,6 +53,8 @@ if wbon
     set(hwb,'Visible','on');
 end
 
+data.info.ToolTips = 'off';
+
 %% uimenus
 if wbon
     waitbar(1/steps,hwb,'loading GUI elements - menus');
@@ -61,33 +63,48 @@ gui = NUCLEUSmod_createMenus(gui);
 
 %% MAIN GUI "BOX"
 % make everything invisible during creation
-gui.main = uix.HBox('Parent',gui.figh,'Visible','off');
+gui.main = uix.VBox('Parent',gui.figh,'Visible','off');
 % gui.main = uix.HBox('Parent',gui.figh);
 
+% top part for settings and plots
+gui.top = uix.HBox('Parent',gui.main,'Spacing',0);
+% bottom part for the statusbar
+gui.bottom = uix.HBox('Parent',gui.main);
+% minimum heights of main elements
+set(gui.main,'Heights',[-1 20],'MinimumHeights',[250+2*22 20]);
+
 % all control panels are on the left inside a vertically scrollable panel
-gui.left = uix.ScrollingPanel('Parent',gui.main);
+gui.left = uix.ScrollingPanel('Parent',gui.top);
 % all graphics are on the right inside a vertical box
-gui.right = uix.VBox('Parent',gui.main,'Spacing',3);
+gui.right = uix.VBox('Parent',gui.top,'Spacing',3);
 % fix size of the settings side to 400 pixel
-set(gui.main,'Widths',[400 -1]);
+set(gui.top,'Widths',[400 -1]);
+set(gui.top,'MinimumWidths',[400 200]);
 
 %% A. settings column
 gui.panels.main = uix.VBox('Parent',gui.left);
-gui.panels.geometry.main = uix.BoxPanel('Parent',gui.panels.main,'Title','Geometry',...
-    'TitleColor',myui.colors.GEO,'ForegroundColor',myui.colors.BoxTitle,'MinimizeFcn',@minimizePanel);
-gui.panels.cps.main = uix.BoxPanel('Parent',gui.panels.main,'Title','Pressure / Saturation',...
-    'TitleColor',myui.colors.CPS,'ForegroundColor',myui.colors.BoxTitle,'MinimizeFcn',@minimizePanel);
-gui.panels.nmr.main = uix.BoxPanel('Parent',gui.panels.main,'Title','NMR',...
-    'TitleColor',myui.colors.NMR,'ForegroundColor',myui.colors.BoxTitle,'MinimizeFcn',@minimizePanel);
-gui.panels.status.main = uix.Panel('Parent',gui.panels.main);
-gui.textStatus = uicontrol('Style','Text','Parent',gui.panels.status.main,'String','',...
-    'HorizontalAlignment','left','FontSize',8);
+gui.panels.geometry.main = uix.BoxPanel('Parent',gui.panels.main,...
+    'Title','Geometry',...
+    'TitleColor',myui.colors.GEO,...
+    'ForegroundColor',myui.colors.BoxTitle,...
+    'MinimizeFcn',@minimizePanel);
+gui.panels.cps.main = uix.BoxPanel('Parent',gui.panels.main,...
+    'Title','Pressure / Saturation',...
+    'TitleColor',myui.colors.CPS,...
+    'ForegroundColor',myui.colors.BoxTitle,...
+    'MinimizeFcn',@minimizePanel);
+gui.panels.nmr.main = uix.BoxPanel('Parent',gui.panels.main,...
+    'Title','NMR',...
+    'TitleColor',myui.colors.NMR,...
+    'ForegroundColor',myui.colors.BoxTitle,...
+    'MinimizeFcn',@minimizePanel);
 
 % adjust the heights of all left-column-panels
-myui.heights = [22 22 22 20; 249 -1 139 20];
+myui.heights = [22 22 22; 249 -1 139];
 % panel header is always 22 high
-set(gui.panels.main,'Heights',myui.heights(2,:));
-set(gui.left,'Heights',-1,'MinimumHeights',700);
+set(gui.panels.main,'Heights',myui.heights(2,:),...
+    'MinimumHeights',[22 22 22]);
+set(gui.left,'Heights',-1,'MinimumHeights',249+250+139+20);
 
 % 1. geometry panel
 if wbon
@@ -119,6 +136,9 @@ if wbon
     delete(hwb);
 end
 
+%% C. status bar
+gui = NUCLEUSmod_createStatusbar(gui);
+
 %% finalize
 % make the main GUI visible again; "gui" needs to be saved because
 % otherwise "fixAxes" throws an error
@@ -130,6 +150,7 @@ gui.myui = myui;
 setappdata(h,'gui',gui);
 setappdata(h,'data',data);
 displayStatusText(gui,'NUCLEUSmod successfully started');
+updateStatusInformation(h);
 fixAxes(gui.plots.cps.box);
 
 end

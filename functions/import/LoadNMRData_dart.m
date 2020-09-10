@@ -11,6 +11,7 @@ function out = LoadNMRData_dart(in)
 %       in.path - data path
 %       in.name - file name
 %       in.fileformat - 'dart'
+%       in.version - '1' or '2' (a.t.m. '2' is hardcoded in 'driver'-file)
 %
 % Outputs:
 %       out - output structure
@@ -37,100 +38,177 @@ function out = LoadNMRData_dart(in)
 %------------- BEGIN CODE --------------
 
 %% start processing the files
-% load the Matlab mat-file 
+% load the Matlab mat-file
 data = load(fullfile(in.path,in.name));
 file = dir(fullfile(in.path,in.name));
 
-% init stuff
-parData = cell(1,1);
-tmp = cell(1,1);
-% check, if it is one or multiple depths
-if size(data.se_vector_wc,2) > 1
-    % command line output
-    disp([in.name,': importing NMR files ...']);
-
-    nmrData = cell(1,size(data.se_vector_wc,2));
-    for i = 1:size(data.se_vector_wc,2)
-        % calculate amplitudes from water contents with the frequency-specific
-        % multiplication factors
-        if data.extras.freq(i) <= 4.9e+05 && data.extras.freq(i) >= 4.7e+05 % frequency 1
-            se_vector_amp = data.se_vector_wc(:,i)./10.414;
-        elseif extras.freq(i) <= 4.4e+05 && data.extras.freq(i) >= 4.2e+05 % frequency 2
-            se_vector_amp = data.se_vector_wc(:,i)./8.429;
+switch in.version
+    
+    case 1
+        % init stuff
+        parData = cell(1,1);
+        tmp = cell(1,1);
+        % check, if it is one or multiple depths
+        if size(data.se_vector_wc,2) > 1
+            % command line output
+            disp([in.name,': importing NMR files ...']);
+            
+            nmrData = cell(1,size(data.se_vector_wc,2));
+            for i = 1:size(data.se_vector_wc,2)
+                % calculate amplitudes from water contents with the
+                % frequency-specific multiplication factors
+                if data.extras.freq(i) <= 4.9e+05 && data.extras.freq(i) >= 4.7e+05 % frequency 1
+                    se_vector_amp = data.se_vector_wc(:,i)./10.414;
+                elseif extras.freq(i) <= 4.4e+05 && data.extras.freq(i) >= 4.2e+05 % frequency 2
+                    se_vector_amp = data.se_vector_wc(:,i)./8.429;
+                end
+                
+                % get file statistics
+                nmrData{i}.datfile = file.name;
+                nmrData{i}.date = file.date;
+                nmrData{i}.datenum = file.datenum;
+                nmrData{i}.bytes = file.bytes;
+                
+                % save the NMR data
+                nmrData{i}.flag = 'T2';
+                nmrData{i}.T1IRfac = 1;
+                nmrData{i}.time = data.time;
+                nmrData{i}.signal = se_vector_amp;
+                nmrData{i}.raw.time = data.time;
+                nmrData{i}.raw.signal = se_vector_amp;
+                nmrData{i}.phase = data.extras.phase(i);
+                
+                % create parameter data
+                parData{i}.acq_params_Tr = data.acq_params.Tr;
+                parData{i}.depth = data.depth(i);
+                parData{i}.Qs = data.extras.Qs(i);
+                parData{i}.DCbus = data.extras.DC_bus(i);
+                parData{i}.freq = data.extras.freq(i);
+                
+                fields = fieldnames(parData{i});
+                for j = 1:size(fields,1)
+                    tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',...
+                        num2str(i),'}.',fields{j}]))];
+                end
+                d{1} = tmp;
+                parData{i}.all = d;
+                clear d tmp
+                
+                % command line output
+                disp([in.name,': importing NMR files ',sprintf('%03d',i),...
+                    ' / ',sprintf('%03d',size(data.se_vector_wc,2))]);
+            end
+            
+        else
+            % calculate amplitudes from water contents with the
+            % frequency-specific multiplication factors
+            if data.extras.freq <= 4.9e+05 && data.extras.freq >= 4.7e+05 % frequency 1
+                se_vector_amp = data.se_vector_wc./10.414;
+            elseif extras.freq <= 4.4e+05 && extras.freq >= 4.2e+05 % frequency 2
+                se_vector_amp = data.se_vector_wc./8.429;
+            end
+            
+            % get file statistics
+            nmrData{1}.datfile = file.name;
+            nmrData{1}.date = file.date;
+            nmrData{1}.datenum = file.datenum;
+            nmrData{1}.bytes = file.bytes;
+            
+            % save the NMR data
+            nmrData{1}.flag = 'T2';
+            nmrData{1}.T1IRfac = 1;
+            nmrData{1}.time = data.time;
+            nmrData{1}.signal = se_vector_amp;
+            nmrData{1}.raw.time = data.time;
+            nmrData{1}.raw.signal = se_vector_amp;
+            nmrData{1}.phase = data.extras.phase;
+            
+            % create parameter data
+            parData{1}.acq_params_Tr = data.acq_params.Tr;
+            parData{1}.depth = data.depth;
+            parData{1}.Qs = data.extras.Qs;
+            parData{1}.DCbus = data.extras.DC_bus;
+            parData{1}.freq = data.extras.freq;
+            
+            fields = fieldnames(parData{1});
+            for j = 1:size(fields,1)
+                tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',...
+                    num2str(1),'}.',fields{j}]))];
+            end
+            d{1} = tmp;
+            parData{1}.all = d;
         end
-    
-        % get file statistics
-        nmrData{i}.datfile = file.name;
-        nmrData{i}.date = file.date;
-        nmrData{i}.datenum = file.datenum;
-        nmrData{i}.bytes = file.bytes;
-    
-        % save the NMR data
-        nmrData{i}.flag = 'T2';
-        nmrData{i}.T1IRfac = 1;
-        nmrData{i}.time = data.time;
-        nmrData{i}.signal = se_vector_amp;        
-        nmrData{i}.raw.time = data.time;
-        nmrData{i}.raw.signal = se_vector_amp;
-        nmrData{i}.phase = data.extras.phase(i);
         
-        % create parameter data
-        parData{i}.acq_params_Tr = data.acq_params.Tr;
-        parData{i}.depth = data.depth(i);
-        parData{i}.Qs = data.extras.Qs(i);
-        parData{i}.DCbus = data.extras.DC_bus(i);
-        parData{i}.freq = data.extras.freq(i);        
-        
-        fields = fieldnames(parData{i});
-        for j = 1:size(fields,1)
-            tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',num2str(i),'}.',fields{j}]))];
-        end
-        d{1} = tmp;
-        parData{i}.all = d;        
-        clear d tmp
-        
-        % command line output
-        disp([in.name,': importing NMR files ',sprintf('%03d',i),...
-            ' / ',sprintf('%03d',size(data.se_vector_wc,2))]);
-    end
-    
-else
-    % calculate amplitudes from water contents with the frequency-specific
-    % multiplication factors
-    if data.extras.freq <= 4.9e+05 && data.extras.freq >= 4.7e+05 % frequency 1
-        se_vector_amp = data.se_vector_wc./10.414;
-    elseif extras.freq <= 4.4e+05 && extras.freq >= 4.2e+05 % frequency 2
-        se_vector_amp = data.se_vector_wc./8.429;
-    end
-    
-    % get file statistics
-    nmrData{1}.datfile = file.name;
-    nmrData{1}.date = file.date;
-    nmrData{1}.datenum = file.datenum;
-    nmrData{1}.bytes = file.bytes;
-    
-    % save the NMR data
-    nmrData{1}.flag = 'T2';
-    nmrData{1}.T1IRfac = 1;
-    nmrData{1}.time = data.time;
-    nmrData{1}.signal = se_vector_amp;    
-    nmrData{1}.raw.time = data.time;
-    nmrData{1}.raw.signal = se_vector_amp;
-    nmrData{1}.phase = data.extras.phase;
-    
-    % create parameter data
-    parData{1}.acq_params_Tr = data.acq_params.Tr;
-    parData{1}.depth = data.depth;
-    parData{1}.Qs = data.extras.Qs;
-    parData{1}.DCbus = data.extras.DC_bus;
-    parData{1}.freq = data.extras.freq;    
-   
-    fields = fieldnames(parData{1});
-    for j = 1:size(fields,1)
-        tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',num2str(1),'}.',fields{j}]))];
-    end
-    d{1} = tmp;
-    parData{1}.all = d;    
+    case 2
+        % init stuff
+        parData = cell(1,size(data.jpd.stack.se,1));
+        tmp = cell(1,1);
+        % check, if it is one or multiple depths
+        if size(data.jpd.stack.se,1) > 1
+            % command line output
+            disp([in.name,': importing NMR files ...']);
+            
+            nmrData = cell(1,size(data.jpd.stack.se,1));
+            for i = 1:size(data.jpd.stack.se,1) % loop over all depths                
+                % get file statistics
+                nmrData{i}.datfile = file.name;
+                nmrData{i}.date = datestr(data.jpd.acq_time(i));
+                nmrData{i}.datenum = data.jpd.acq_time(i);
+                nmrData{i}.bytes = file.bytes;
+                
+                % save the NMR data
+                nmrData{i}.flag = 'T2';
+                nmrData{i}.T1IRfac = 1;
+                nmrData{i}.time = data.jpd.stack.time(1,1:end)';
+                nmrData{i}.signal = data.jpd.stack.se(i,1:end)';       
+                nmrData{i}.raw.time = data.jpd.stack.time(1,1:end)';
+                nmrData{i}.raw.signal = data.jpd.stack.se(i,1:end)';
+                nmrData{i}.phase = 0;
+                
+                % create parameter data
+                parData{i}.acq_params_Tr = 4;
+                parData{i}.depth = data.jpd.depth_raw(i);
+                
+                fields = fieldnames(parData{i});
+                for j = 1:size(fields,1)
+                    tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',num2str(i),'}.',fields{j}]))];
+                end
+                d{1} = tmp;
+                parData{i}.all = d;
+                clear d tmp
+                
+                % command line output
+                disp([in.name,': importing NMR files ',sprintf('%03d',i),...
+                    ' / ',sprintf('%03d',size(data.jpd.stack.se,1))]);                
+            end
+            
+        else            
+            % get file statistics
+            nmrData{1}.datfile = file.name;
+            nmrData{1}.date = file.date;
+            nmrData{1}.datenum = file.datenum;
+            nmrData{1}.bytes = file.bytes;
+            
+            % save the NMR data
+            nmrData{1}.flag = 'T2';
+            nmrData{1}.T1IRfac = 1;
+            nmrData{1}.time = data.jpd.stack.time(1,1:end)';
+            nmrData{1}.signal = data.jpd.stack.se(1,1:end)';
+            nmrData{1}.raw.time = data.jpd.stack.time(1,1:end)';
+            nmrData{1}.raw.signal = data.jpd.stack.se(1,1:end)';
+            nmrData{1}.phase = 0;
+            
+            % create parameter data
+            parData{1}.acq_params_Tr = 4;
+            parData{1}.depth = data.jpd.depth_raw(1);
+            
+            fields = fieldnames(parData{1});
+            for j = 1:size(fields,1)
+                tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',num2str(1),'}.',fields{j}]))];
+            end
+            d{1} = tmp;
+            parData{1}.all = d;            
+        end        
 end
 
 % save data to output struct
@@ -144,7 +222,7 @@ end
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2020 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
