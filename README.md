@@ -101,13 +101,12 @@ In no particular order and without guarantee that it will ever happen :-) :
 	- For noise estimation: select manually a range of the NMR raw signal
 4. ...
 	
-
 - - -
 <a name="references"></a>
 ### Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2020, September 10). ThoHiller/nmr-nucleus: v0.1.10 (Version v0.1.10). Zenodo. [https://doi.org/10.5281/zenodo.4022195
+Thomas Hiller. (2020, September 10). ThoHiller/nmr-nucleus: v0.1.10 (Version v0.1.10). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 ### References
