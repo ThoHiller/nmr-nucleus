@@ -5,6 +5,7 @@
 modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**U**lar pore**S**
 
 [![release](https://img.shields.io/github/release/NMR-NUCLEUS/nmr-nucleus.svg)](https://github.com/NMR-NUCLEUS/nmr-nucleus/releases/latest)
+[![DOI](https://zenodo.org/badge/165993294.svg)](https://zenodo.org/badge/latestdoi/165993294)
 - - -
 
 ### Table of Contents
@@ -106,7 +107,7 @@ In no particular order and without guarantee that it will ever happen :-) :
 ### Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2020, May 17). ThoHiller/nmr-nucleus: v0.1.10 (Version v0.1.10). Zenodo. [https://doi.org/10.5281/zenodo.3829464]
+Thomas Hiller. (2020, September 10). ThoHiller/nmr-nucleus: v0.1.10 (Version v0.1.10). Zenodo. [https://doi.org/10.5281/zenodo.4022195
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 ### References
