@@ -35,10 +35,12 @@ gui = getappdata(fig,'gui');
 
 % uncheck all import menus
 set(gui.menu.file_import_lastimport,'Checked','off');
-set(gui.menu.file_import_lab_rwth_ascii,'Checked','off');
-set(gui.menu.file_import_lab_rwth_field,'Checked','off');
-set(gui.menu.file_import_lab_rwth_dart,'Checked','off');
+set(gui.menu.file_import_lab_gge_ascii,'Checked','off');
+set(gui.menu.file_import_lab_gge_field,'Checked','off');
+set(gui.menu.file_import_lab_gge_dart,'Checked','off');
 set(gui.menu.file_import_lab_corelab,'Checked','off');
+set(gui.menu.file_import_lab_ibac_pm5,'Checked','off');
+set(gui.menu.file_import_lab_ibac_pm25,'Checked','off');
 set(gui.menu.file_import_lab_mouse,'Checked','off');
 set(gui.menu.file_import_lab_liag_single,'Checked','off');
 set(gui.menu.file_import_lab_liag_project,'Checked','off');

@@ -67,7 +67,12 @@ end
 t = nmrraw.t;
 if isreal(nmrraw.s)
     s = nmrraw.s;
-    noise = 0;
+    % check if noise was calculated / estimated during import
+    if isfield(nmrraw,'noise')
+        noise = nmrraw.noise;
+    else
+        noise = 0;
+    end
 else
     s = real(nmrraw.s);
     % because the imag-part of the signal is rotated to "0", the noise is

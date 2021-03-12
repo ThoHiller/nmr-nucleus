@@ -49,7 +49,7 @@ def_heights = gui.myui.heights;
 
 % switch depending on figure tag
 switch fig_tag    
-    case 'INV'        
+    case 'INV'    
         panel_1 = 'Simple Processing';
         panel_2 = 'Petro Parameter';
         panel_3 = 'Standard Inversion';

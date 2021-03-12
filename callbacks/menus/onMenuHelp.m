@@ -43,7 +43,7 @@ switch fig_tag
         header{1,1}  = 'NUCLEUSmod:';
 end
 header{end+1,1}  = ' ';
-header{end+1,1}  = ['author: ',gui.myui.author];
+header{end+1,1}  = ['authors: ',gui.myui.author{1},', ',gui.myui.author{2}];
 header{end+1,1}  = ' ';
 header{end+1,1}  = ['version: ',gui.myui.version];
 header{end+1,1}  = ' ';

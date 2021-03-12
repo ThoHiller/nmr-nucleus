@@ -1,0 +1,405 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of LoadNMRData_ibac</title>
+  <meta name="keywords" content="LoadNMRData_ibac">
+  <meta name="description" content=" imports NMR data from the PM5 and PM25">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html import -->
+<h1>LoadNMRData_ibac
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> imports NMR data from the PM5 and PM25</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = LoadNMRData_ibac(in) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">LoadNMRData_ibac imports NMR data from the PM5 and PM25
+
+ Syntax:
+       out = LoadNMRData_ibac(in)
+
+ Inputs:
+       in - input structure
+       in.path - data path
+       in.name - file name
+       in.fileformat - 'pm5' or 'pm25'
+
+ Outputs:
+       out - output structure
+       out.parData - parameter file data
+       out.nmrData - NMR data
+
+ Example:
+       out = LoadNMRData_ibac(in)
+
+ Other m-files required:
+       rotateT2phase
+
+ Subfunctions:
+       LoadCPMGFile
+       LoadCPMGACQPFile
+       LoadDataFile
+       LoadInfFile
+       LoadParameterFile
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: Thomas Hiller
+ email: thomas.hiller[at]leibniz-liag.de
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>	 cleans parameter file lines when the properties have a</li><li><a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [data] = LoadCPMGFile(datapath,fname)</a></li><li><a href="#_sub2" class="code">function [data] = LoadCPMGACQPFile(datapath,fname)</a></li><li><a href="#_sub3" class="code">function [data] = LoadDataFile(datapath,fname)</a></li><li><a href="#_sub4" class="code">function [data] = LoadInfFile(datapath,fname)</a></li><li><a href="#_sub5" class="code">function [data] = LoadParameterFile(datapath,fname)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_ibac(in)</a>
+0002 <span class="comment">%LoadNMRData_ibac imports NMR data from the PM5 and PM25</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       out = LoadNMRData_ibac(in)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       in - input structure</span>
+0009 <span class="comment">%       in.path - data path</span>
+0010 <span class="comment">%       in.name - file name</span>
+0011 <span class="comment">%       in.fileformat - 'pm5' or 'pm25'</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Outputs:</span>
+0014 <span class="comment">%       out - output structure</span>
+0015 <span class="comment">%       out.parData - parameter file data</span>
+0016 <span class="comment">%       out.nmrData - NMR data</span>
+0017 <span class="comment">%</span>
+0018 <span class="comment">% Example:</span>
+0019 <span class="comment">%       out = LoadNMRData_ibac(in)</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Other m-files required:</span>
+0022 <span class="comment">%       rotateT2phase</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Subfunctions:</span>
+0025 <span class="comment">%       LoadCPMGFile</span>
+0026 <span class="comment">%       LoadCPMGACQPFile</span>
+0027 <span class="comment">%       LoadDataFile</span>
+0028 <span class="comment">%       LoadInfFile</span>
+0029 <span class="comment">%       LoadParameterFile</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% MAT-files required:</span>
+0032 <span class="comment">%       none</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% See also: NUCLEUSinv</span>
+0035 <span class="comment">% Author: Thomas Hiller</span>
+0036 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0037 <span class="comment">% License: MIT License (at end)</span>
+0038 
+0039 <span class="comment">%------------- BEGIN CODE --------------</span>
+0040 
+0041 <span class="comment">%% start processing the files</span>
+0042 
+0043 <span class="keyword">switch</span> in.fileformat
+0044     
+0045     <span class="keyword">case</span> <span class="string">'pm5'</span>
+0046         
+0047         <span class="comment">% load Parameter file</span>
+0048         [parData] = <a href="#_sub4" class="code" title="subfunction [data] = LoadInfFile(datapath,fname)">LoadInfFile</a>(in.path,in.name);        
+0049         parData.parfile = in.name;
+0050         
+0051         [~,fname,~] = fileparts(in.name);
+0052         <span class="comment">% try to read cpmgacqp file</span>
+0053         file1 = dir(fullfile(in.path,[fname,<span class="string">'.cpmgacqp'</span>]));
+0054         <span class="keyword">if</span> ~isempty(file1)
+0055             data = <a href="#_sub2" class="code" title="subfunction [data] = LoadCPMGACQPFile(datapath,fname)">LoadCPMGACQPFile</a>(in.path,file1.name);
+0056         <span class="keyword">else</span>
+0057             <span class="comment">% if it is not there try to read cpmg file</span>
+0058             file2 = dir(fullfile(in.path,[fname,<span class="string">'.cpmg'</span>]));
+0059             <span class="keyword">if</span> ~isempty(file2)
+0060                 data = <a href="#_sub1" class="code" title="subfunction [data] = LoadCPMGFile(datapath,fname)">LoadCPMGFile</a>(in.path,file2.name);
+0061             <span class="keyword">else</span>
+0062                 data = [];
+0063             <span class="keyword">end</span>
+0064         <span class="keyword">end</span>
+0065         
+0066         <span class="comment">% if data was imported continue</span>
+0067         <span class="keyword">if</span> ~isempty(data)
+0068             
+0069             depths = parData.initialdepth:parData.incrindepth:<span class="keyword">...</span>
+0070                 parData.initialdepth+parData.depths*parData.incrindepth-<span class="keyword">...</span>
+0071                 parData.incrindepth;
+0072             parData.finaldepth = depths(end);
+0073             
+0074             nmrData = cell(1,numel(depths));
+0075             <span class="keyword">for</span> i = 1:numel(depths)
+0076                 
+0077                 <span class="keyword">if</span> ~isempty(file1)
+0078                     file = file1;
+0079                 <span class="keyword">else</span>
+0080                     file = file2;
+0081                 <span class="keyword">end</span>
+0082                 
+0083                 <span class="comment">% get file statistics</span>
+0084                 nmrData{i}.datfile = file.name;
+0085                 nmrData{i}.date = file.date;
+0086                 nmrData{i}.datenum = file.datenum;
+0087                 nmrData{i}.bytes = file.bytes;
+0088                 
+0089                 <span class="comment">% save the NMR data</span>
+0090                 nmrData{i}.flag = data.flag;
+0091                 nmrData{i}.T1IRfac = 1;
+0092                 nmrData{i}.phase = data.phase;
+0093                 
+0094                 nmrData{i}.time = data.time(data.depth==depths(i));
+0095                 nmrData{i}.raw.time = data.time(data.depth==depths(i));
+0096                 
+0097                 <span class="keyword">if</span> ~isempty(file1)
+0098                     <span class="comment">% the time vector needs to be treated as well beacuse</span>
+0099                     <span class="comment">% there are several values per echo</span>
+0100                     <span class="comment">% get window length</span>
+0101                     wl = numel(nmrData{i}.time)/parData.T2echoes;
+0102                     nmrData{i}.time = nmrData{i}.time(1:wl:end);
+0103                     nmrData{i}.raw.time = nmrData{i}.time;
+0104                     <span class="comment">% get complex data from 'cpmgacqp' file</span>
+0105                     <span class="comment">% first the real part of the signal</span>
+0106                     tmp = real(data.signal(data.depth==depths(i)));
+0107                     <span class="comment">% get the moving average</span>
+0108                     sr = movmean(tmp,wl);
+0109                     <span class="comment">% cut out the correct windows</span>
+0110                     sr = sr(ceil(wl/2):wl:end);
+0111                     <span class="comment">% do the same for the imag part</span>
+0112                     tmp = imag(data.signal(data.depth==depths(i)));
+0113                     si = movmean(tmp,wl);
+0114                     si = si(ceil(wl/2):wl:end);
+0115                     <span class="comment">% save the complex signal</span>
+0116                     nmrData{i}.signal = complex(sr,si);
+0117                     <span class="comment">% rotate phase to minimize imag part</span>
+0118                     [nmrData{i}.signal,nmrData{i}.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(nmrData{i}.signal);
+0119                     nmrData{i}.raw.signal = nmrData{i}.signal;
+0120                 <span class="keyword">else</span>
+0121                     nmrData{i}.signal = data.signal(data.depth==depths(i));
+0122                     nmrData{i}.raw.signal = data.signal(data.depth==depths(i));
+0123                 <span class="keyword">end</span>
+0124             <span class="keyword">end</span>
+0125             <span class="comment">% save data to output struct</span>
+0126             out.parData = parData;
+0127             out.nmrData = nmrData;
+0128         <span class="keyword">end</span>
+0129         
+0130     <span class="keyword">case</span> <span class="string">'pm25'</span>
+0131         
+0132         <span class="comment">% load Parameter file</span>
+0133         file = dir(fullfile(in.path,<span class="string">'*.par'</span>));
+0134         <span class="keyword">if</span> ~isempty(file)
+0135             [parData] = <a href="#_sub5" class="code" title="subfunction [data] = LoadParameterFile(datapath,fname)">LoadParameterFile</a>(in.path,file.name);
+0136         <span class="keyword">end</span>
+0137         parData.parfile = file;
+0138         
+0139         <span class="comment">% read dat-file</span>
+0140         file = dir(fullfile(in.path,<span class="string">'*decays.dat'</span>));
+0141         <span class="keyword">if</span> ~isempty(file)
+0142             data = <a href="#_sub3" class="code" title="subfunction [data] = LoadDataFile(datapath,fname)">LoadDataFile</a>(in.path,file.name);
+0143         <span class="keyword">else</span>
+0144             data = [];
+0145         <span class="keyword">end</span>
+0146         
+0147         <span class="comment">% if data was imported continue</span>
+0148         <span class="keyword">if</span> ~isempty(data)
+0149             
+0150             depths = parData.initDepth:parData.stepSize:parData.finalDepth;
+0151             
+0152             parData.depths = numel(depths);
+0153             parData.initialdepth = parData.initDepth;
+0154             parData.finaldepth = depths(end);
+0155             
+0156             nmrData = cell(1,numel(depths));
+0157             <span class="keyword">for</span> i = 1:numel(depths)
+0158                 <span class="comment">% get file statistics</span>
+0159                 nmrData{i}.datfile = file.name;
+0160                 nmrData{i}.date = file.date;
+0161                 nmrData{i}.datenum = file.datenum;
+0162                 nmrData{i}.bytes = file.bytes;
+0163                 
+0164                 <span class="comment">% save the NMR data</span>
+0165                 nmrData{i}.flag = data.flag;
+0166                 nmrData{i}.T1IRfac = 1;
+0167                 nmrData{i}.phase = data.phase;
+0168                 
+0169                 nmrData{i}.time = data.time;
+0170                 nmrData{i}.raw.time = data.time;
+0171                 
+0172                 nmrData{i}.signal = data.signal(:,i);
+0173                 nmrData{i}.raw.signal = data.signal(:,1);
+0174             <span class="keyword">end</span>
+0175             <span class="comment">% save data to output struct</span>
+0176             out.parData = parData;
+0177             out.nmrData = nmrData;
+0178         <span class="keyword">end</span>
+0179 <span class="keyword">end</span>
+0180 
+0181 <span class="keyword">end</span>
+0182 
+0183 <span class="comment">%% load NMR data file</span>
+0184 <a name="_sub1" href="#_subfunctions" class="code">function [data] = LoadCPMGFile(datapath,fname)</a>
+0185 
+0186 d = load(fullfile(datapath,fname));
+0187 
+0188 <span class="keyword">if</span> size(d,2) == 5
+0189     data.flag = <span class="string">'T2'</span>;
+0190     data.depth = d(:,1);
+0191     data.time = d(:,4)./1e3; <span class="comment">% ms to s</span>
+0192     data.signal = d(:,5);
+0193     data.phase = 0;
+0194 <span class="keyword">else</span>
+0195     data.flag = <span class="string">'0'</span>;
+0196     data.time = 0;
+0197     data.signal = 0;
+0198     data.phase = 0;
+0199 <span class="keyword">end</span>
+0200 
+0201 <span class="keyword">end</span>
+0202 
+0203 <span class="comment">%% load NMR data file</span>
+0204 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadCPMGACQPFile(datapath,fname)</a>
+0205 
+0206 d = load(fullfile(datapath,fname));
+0207 
+0208 <span class="keyword">if</span> size(d,2) == 6
+0209     data.flag = <span class="string">'T2'</span>;
+0210     data.depth = d(:,1);
+0211     data.time = d(:,3)./1e3; <span class="comment">% ms to s</span>
+0212     data.time1 = d(:,4)./1e3; <span class="comment">% ms to s</span>
+0213     data.signal = complex(d(:,5),d(:,6));
+0214     data.phase = 0;
+0215 <span class="keyword">else</span>
+0216     data.flag = <span class="string">'0'</span>;
+0217     data.time = 0;
+0218     data.signal = 0;
+0219     data.phase = 0;
+0220 <span class="keyword">end</span>
+0221 
+0222 <span class="keyword">end</span>
+0223 
+0224 <span class="comment">%% load NMR data file</span>
+0225 <a name="_sub3" href="#_subfunctions" class="code">function [data] = LoadDataFile(datapath,fname)</a>
+0226 
+0227 d = load(fullfile(datapath,fname));
+0228 
+0229 data.flag = <span class="string">'T2'</span>;
+0230 data.time = d(:,1)./1e3; <span class="comment">% ms to s</span>
+0231 data.signal = d(:,2:end);
+0232 data.phase = 0;
+0233 
+0234 <span class="keyword">end</span>
+0235 
+0236 <span class="comment">%% load parameter file</span>
+0237 <a name="_sub4" href="#_subfunctions" class="code">function [data] = LoadInfFile(datapath,fname)</a>
+0238 
+0239 fid = fopen(fullfile(datapath,fname));
+0240 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0241 fclose(fid);
+0242 
+0243 d1 = cell(1,1);
+0244 <span class="keyword">for</span> i = 1:size(d{1},1)
+0245     str = char(d{1}(i));
+0246     
+0247     <span class="comment">% remove under scores</span>
+0248     str = strrep(str,<span class="string">'_'</span>,<span class="string">''</span>);
+0249     <span class="comment">% remove 'mü' string</span>
+0250     str = strrep(str,<span class="string">'mü'</span>,<span class="string">''</span>);
+0251     <span class="comment">% remove '&amp;' string</span>
+0252     str = strrep(str,<span class="string">'&amp;'</span>,<span class="string">''</span>);
+0253     <span class="comment">% find colon</span>
+0254     colon = strfind(str,<span class="string">':'</span>);
+0255     <span class="comment">% grep parameters</span>
+0256     <span class="keyword">if</span> ~isempty(colon)
+0257         prop = strtrim(str(1:colon(1)-1));
+0258         value = strtrim(str(colon(1)+1:end));
+0259         valchk = str2double(value);
+0260         
+0261         <span class="comment">% remove empty spaces in property</span>
+0262         prop = strrep(prop,<span class="string">' '</span>,<span class="string">''</span>);
+0263         
+0264         str1 = [prop,<span class="string">' = '</span>,value];
+0265         d1{i} = str1;
+0266         prop = strrep(prop,<span class="string">'-'</span>,<span class="string">''</span>);
+0267         <span class="keyword">if</span> isnan(valchk)
+0268             <span class="keyword">if</span> isempty(value)
+0269                 eval([<span class="string">'data.'</span>,prop,<span class="string">'='''';'</span>]);
+0270             <span class="keyword">else</span>
+0271                 eval([<span class="string">'data.'</span>,prop,<span class="string">'='''</span>,value,<span class="string">''';'</span>]);
+0272             <span class="keyword">end</span>
+0273         <span class="keyword">else</span>
+0274             eval([<span class="string">'data.'</span>,prop,<span class="string">'='</span>,value,<span class="string">';'</span>]);
+0275         <span class="keyword">end</span>
+0276     <span class="keyword">end</span>
+0277 <span class="keyword">end</span>
+0278 data.all{1} = d1';
+0279 
+0280 <span class="keyword">end</span>
+0281 
+0282 <span class="comment">%% load parameter file</span>
+0283 <a name="_sub5" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0284 
+0285 fid = fopen(fullfile(datapath,fname));
+0286 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0287 fclose(fid);
+0288 
+0289 d1 = cell(1,1);
+0290 <span class="keyword">for</span> i = 1:size(d{1},1)
+0291     str = char(d{1}(i));
+0292     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0293     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]);
+0294 <span class="keyword">end</span>
+0295 data.all = d;
+0296 
+0297 <span class="keyword">end</span>
+0298 
+0299 <span class="comment">%------------- END OF CODE --------------</span>
+0300 
+0301 <span class="comment">%% License:</span>
+0302 <span class="comment">% MIT License</span>
+0303 <span class="comment">%</span>
+0304 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
+0305 <span class="comment">%</span>
+0306 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0307 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0308 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0309 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0310 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0311 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0312 <span class="comment">%</span>
+0313 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0314 <span class="comment">% copies or substantial portions of the Software.</span>
+0315 <span class="comment">%</span>
+0316 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0317 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0318 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0319 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0320 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0321 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0322 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

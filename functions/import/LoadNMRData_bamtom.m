@@ -127,7 +127,8 @@ for i = 1:size(d{1},1)
     str = char(d{1}(i));
     if ~isempty(str) && ~strcmp(str(1),'#')
         str = fixParameterString(str);
-        if ~isempty(strfind(str,'coilName')) || ~isempty(strfind(str,'measurementType'))
+        if ~isempty(strfind(str,'coilName')) || ~isempty(strfind(str,'measurementType')) ...
+			|| ~isempty(strfind(str,'method'))
             streq = strfind(str,'=');
             newstr = [str(1:streq(1)),'''',strtrim(str(streq(1)+1:end)),''''];
             str = newstr;

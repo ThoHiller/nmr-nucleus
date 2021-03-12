@@ -83,40 +83,39 @@ switch fig_tag
         % switch depending on the parent panel
         switch out.panel
             case 'process'
+                % remove temporary data fields
+                data = removeInversionFields(data);
+                setappdata(fig,'data',data);
+                % process the current selected signal
+                id = get(gui.listbox_handles.signal,'Value');
                 switch out.field
-                    case {'start','Nechoes'}
-                        % remove temporary data fields
-                        data = removeInversionFields(data);
-                        setappdata(fig,'data',data);
-                        % process the current selected signal
-                        id = get(gui.listbox_handles.signal,'Value');
-                        processNMRDataControl(fig,id);
-                        updatePlotsSignal;
-                        updateInfo(src);
-                        % clear axes
-                        clearSingleAxis(gui.axes_handles.rtd);
-                        clearSingleAxis(gui.axes_handles.psd);
-                        % set focus on data
-                        set(gui.plots.SignalPanel,'Selection',1);
+                    case {'Nechoes'}
+                        if value == 0
+                            data.process.Nechoes = 1;
+                            set(src,'String',num2str(data.process.Nechoes));
+                            setappdata(fig,'data',data);
+                        end
                     case 'end'
-                        % remove temporary data fields
-                        data = removeInversionFields(data);
-                        setappdata(fig,'data',data);
                         % check if the first sample is really smaller than
                         % the last one; if not reset everything
                         first = str2double(get(gui.edit_handles.process_start,'String'));
                         last = value;
-                        id = get(gui.listbox_handles.signal,'Value');
                         maxL = length(data.import.NMR.data{id}.signal);
                         if last == 0 || last <= first || last > maxL
                             data.process.end = maxL;
                             set(src,'String',num2str(data.process.end));
                             setappdata(fig,'data',data);
                         end
-                        % process the current selected signal
-                        processNMRDataControl(fig,id);
-                        updatePlotsSignal;
                 end
+                % process the current selected signal
+                processNMRDataControl(fig,id);
+                updatePlotsSignal;
+                updateInfo(src);
+                % clear axes
+                clearSingleAxis(gui.axes_handles.rtd);
+                clearSingleAxis(gui.axes_handles.psd);
+                % set focus on data
+                set(gui.plots.SignalPanel,'Selection',1);
             case 'param'
                 switch out.field
                     case {'rho','a','CBWcutoff','BVIcutoff'}

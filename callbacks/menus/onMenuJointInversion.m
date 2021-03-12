@@ -90,14 +90,16 @@ switch onoff
         
         % clear axes
         clearSingleAxis(gui.axes_handles.all);
+        clearSingleAxis(gui.axes_handles.err_joint);
         clearSingleAxis(gui.axes_handles.psdj);
         clearSingleAxis(gui.axes_handles.cps);
         
         % menu entries
         set(gui.menu.extra_joint,'Checked','off');
         set(gui.menu.extra_joint_rhobounds,'Enable','off');
-        set(gui.menu.file_export_data_invjoint_mat,'Enable','off');        
-        
+        set(gui.menu.file_export_data_invjoint_mat,'Enable','off');
+        set(gui.menu.extra_conduct,'Enable','off');
+
         % settings panel
         set(gui.popup_handles.invjoint_InvType,'Enable','off');
         set(gui.popup_handles.invjoint_geometry_type,'Enable','off');
@@ -181,6 +183,7 @@ switch onoff
 end
 
 setappdata(fig,'data',data);
+setappdata(fig,'INVdata',INVdata);
 setappdata(fig,'gui',gui);
 NUCLEUSinv_updateInterface;
 updateStatusInformation(fig);

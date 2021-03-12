@@ -73,6 +73,8 @@ I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R201
 1. It is recommended to install the GUI Layout Toolbox directly into MATLAB<sup>TM</sup> via the mltbx-file (but it should also work via the old-school way of adding the toolbox folders to the MATLAB<sup>TM</sup> path)
 2. To use **NUCLEUS** you just need to place the `nucleus` folder from  the git repository on your hard drive and use the start scripts `startNUCLEUSinv` and `startNUCLEUSmod`, respectively (within these scripts all necessary **NUCLEUS** folders are added to the MATLAB<sup>TM</sup> path)
 
+**NOTE:** It is recommended to have only *one* version of **NUCLEUS** on your current  MATLAB<sup>TM</sup> path.
+
 - - -
 <a name="usage"></a>
 ### Usage
@@ -106,12 +108,13 @@ In no particular order and without guarantee that it will ever happen :-) :
 ### Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2020, September 10). ThoHiller/nmr-nucleus: v0.1.10 (Version v0.1.10). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
+Thomas Hiller. (2021, March 12). ThoHiller/nmr-nucleus: v0.1.11 (Version v0.1.11). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 ### References
 
-1. Hiller, T. and Klitzsch, N., "Joint inversion of nuclear magnetic resonance data from partially saturated rocks using a triangular pore model", GEOPHYSICS **83**(4), JM15-JM28, 2018, [DOI](https://doi.org/10.1190/geo2017-0697.1)
+1. Hiller, T. and Klitzsch, N., "Joint inversion of nuclear magnetic resonance data from partially saturated rocks using a triangular pore model", *GEOPHYSICS* **83**(4), JM15-JM28, 2018, [DOI](https://doi.org/10.1190/geo2017-0697.1)
+2. Costabel, S. and Hiller, T., "Soil hydraulic interpretation of nuclear magnetic resonance measurements based on circular and triangular capillary models", *Vadose Zone Journal*, 2021, e20104, [DOI](https://doi.org/10.1002/vzj2.20104)
 
 - - -
 <p style="text-align: center;"> MATLAB is a registered trademark of The Mathworks, Inc. </p>

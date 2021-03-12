@@ -55,11 +55,11 @@ try
     label = get(src,'Label');
     
     % set file format for later use
-    if strcmp(label,'RWTH ascii')
+    if strcmp(label,'GGE ascii')
         data.import.fileformat = 'rwth';
-    elseif strcmp(label,'RWTH field')
+    elseif strcmp(label,'GGE field')
         data.import.fileformat = 'field';
-    elseif strcmp(label,'Dart')
+    elseif strcmp(label,'GGE Dart')
         data.import.fileformat = 'dart';
     elseif strcmp(label,'CoreLab ascii')
         data.import.fileformat = 'corelab';
@@ -79,6 +79,10 @@ try
         data.import.fileformat = 'bgrmat';
     elseif strcmp(label,'BAM TOM')
         data.import.fileformat = 'bamtom';
+    elseif strcmp(label,'PM5')
+        data.import.fileformat = 'pm5';
+    elseif strcmp(label,'PM25')
+        data.import.fileformat = 'pm25';
     else
         helpdlg('Something is utterly wrong.','onMenuImport: Choose again.');
     end
@@ -106,7 +110,7 @@ try
             displayStatusText(gui,'Reading NMR Data ...');
             % call the corresponding subroutines
             switch label
-                case {'RWTH ascii','RWTH field','CoreLab ascii','BGR std',...
+                case {'GGE ascii','GGE field','CoreLab ascii','BGR std',...
                         'BAM TOM'}
                     [data,gui] = importDataGeneral(data,gui);
                 case 'Dart'
@@ -130,6 +134,9 @@ try
                 case 'BGR mat'
                     data.import.file = NMRfile;
                     [data,gui] = importDataBGRmat(data,gui);
+                case {'PM5','PM25'}
+                    data.import.file = NMRfile;
+                    [data,gui] = importDataIBAC(data,gui);
             end
             displayStatusText(gui,'Reading NMR Data ... done');
         else
@@ -224,8 +231,8 @@ NMRpath = -1;
 NMRfile = -1;
 % for almost all import cases we load a folder ... but not for all
 switch label
-    case {'RWTH ascii','RWTH field','CoreLab ascii','MOUSE','LIAG single',...
-            'BGR std','BGR org','BAM TOM'}
+    case {'GGE ascii','GGE field','CoreLab ascii','MOUSE','LIAG single',...
+            'BGR std','BGR org','BAM TOM','PM25'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             NMRpath = uigetdir(import.path,'Choose Data Path');
@@ -258,7 +265,7 @@ switch label
             [pathstr,~,~] = fileparts(here);
             NMRpath = uigetdir(pathstr,'Choose Project Path');
         end
-    case {'Dart','BGR mat','NMR mat'}
+    case {'GGE Dart','BGR mat','NMR mat'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             [NMRfile,NMRpath] = uigetfile(import.path,'Choose Data file');
@@ -268,6 +275,27 @@ switch label
             here = mfilename('fullpath');
             [pathstr,~,~] = fileparts(here);
             [NMRfile,NMRpath] = uigetfile(pathstr,'Choose Data file');
+        end
+    case 'PM5'
+        % if there is already a data folder present we start from here
+        if isfield(import,'path')
+            NMRpath = uigetdir(import.path,'Choose PM5 Data Path');
+        else
+            % otherwise we start at the current working dircetory
+            % 'NMRpath' holds the name of the choosen data path
+            here = mfilename('fullpath');
+            [pathstr,~,~] = fileparts(here);
+            NMRpath = uigetdir(pathstr,'Choose PM5 Data Path');
+        end
+        
+        % check if there are multiple inf-files available
+        % if yes -> choose one
+        inffiles = dir(fullfile(NMRpath,'*.inf'));
+        if numel(inffiles) > 1
+            [NMRfile,NMRpath] = uigetfile(fullfile(NMRpath,'*.inf'),...
+                'Choose INF file');
+        elseif numel(inffiles) == 1
+            NMRfile = inffiles.name;            
         end
 end
 
@@ -517,8 +545,14 @@ switch data.import.fileformat
                 % subtract the background signal
                 s = data.import.NMR.data{i}.signal;
                 s_bg = bg.signal;
-                s(1:numel(s_bg)) = complex( real(s(1:numel(s_bg)))-...
-                        real(s_bg),imag(s(1:numel(s_bg)))-imag(s_bg) );
+                % if the background signal is longer than the signal cut it
+                if numel(s_bg) > numel(s)
+                    tmp_s = s_bg(1:numel(s));
+                else % if not pad it with zeros
+                    tmp_s = zeros(size(s));
+                    tmp_s(1:numel(s_bg)) = s_bg;
+                end
+                s = complex(real(s)-real(tmp_s),imag(s)-imag(tmp_s));
                 % update original data set
                 data.import.NMR.data{i}.signal = s;                
             end
@@ -593,10 +627,16 @@ for j = 1:size(out.nmrData,2)
     shownames{c} = fnames(c).datafile;
     
     % the NMR data
-    % here we fix the time scale from [ms] to [s]
-    if max(out.nmrData{j}.time) > 100
-        out.nmrData{j}.time = out.nmrData{j}.time/1000;
-        out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+    % here we fix the time scale to [s] if neccessary
+    TE = out.parData.echoTime; % [탎]
+    if out.nmrData{j}.time(1)== TE/1e3
+        % change [ms] to [s]
+        out.nmrData{j}.time = out.nmrData{j}.time/1e3;
+        out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1e3;
+    elseif out.nmrData{j}.time(1)== TE
+        % change [탎] to [s] -> very unlikely
+        out.nmrData{j}.time = out.nmrData{j}.time/1e6;
+        out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1e6;
     end
     data.import.NMR.data{c} = out.nmrData{j};
     data.import.NMR.para{c} = out.parData;
@@ -822,8 +862,18 @@ if ~isempty(indx)
         shownames{i} = ffnames(i).datafile;
         
         % the NMR data
-        out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1000;
-        out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1000;
+        % here we fix the time scale to [s] if neccessary
+        TE = out{i}.parData.echoTime; % [탎]
+        if out{i}.nmrData{1}.time(1)== TE/1e3
+            % change [ms] to [s]
+            out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1e3;
+            out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1e3;
+        elseif out{i}.nmrData{1}.time(1)== TE
+            % change [탎] to [s] -> very unlikely
+            out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1e6;
+        out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1e6;
+        end
+        
         data.import.NMR.data{i} = out{i}.nmrData{1};
         data.import.NMR.para{i} = out{i}.parData;
         data.import.NMR.para{i}.SampleParameter = SampleParameter;
@@ -831,13 +881,26 @@ if ~isempty(indx)
         % subtract the background signal
         s = data.import.NMR.data{i}.signal;
         if i==1 && isfield(ref1,'s')
-            s(1:numel(ref1.s)) = complex( real(s(1:numel(ref1.s)))-...
-                real(ref1.s),imag(s(1:numel(ref1.s)))-imag(ref1.s) );
+            % if the background signal is longer than the signal cut it, if
+            % not extend it with zeros
+            if numel(ref1.s) > numel(s)
+                tmp_r = ref1.s(1:numel(s));
+            else
+                tmp_r = zeros(size(s));
+                tmp_r(1:numel(ref1.s)) = ref1.s;
+            end
+            s = complex(real(s)-real(tmp_r),imag(s)-imag(tmp_r));
         elseif i==2 && isfield(ref2,'s')
-            s(1:numel(ref2.s)) = complex( real(s(1:numel(ref2.s)))-...
-                real(ref2.s),imag(s(1:numel(ref2.s)))-imag(ref2.s) );
-        end
-        
+            % if the background signal is longer than the signal cut it, if
+            % not extend it with zeros
+            if numel(ref2.s) > numel(s)
+                tmp_r = ref2.s(1:numel(s));
+            else
+                tmp_r = zeros(size(s));
+                tmp_r(1:numel(ref2.s)) = ref2.s;
+            end
+            s = complex(real(s)-real(tmp_r),imag(s)-imag(tmp_r));
+        end        
         data.import.NMR.data{i}.signal = s;
         data.import.NMR.data{i}.raw.signal = s;
         
@@ -895,6 +958,63 @@ for j = 1:size(out.nmrData,2)
     end
     data.import.NMR.data{c} = out.nmrData{j};
     data.import.NMR.para{c} = out.parData;
+end
+
+% update the global data structure
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
+
+end
+
+%%
+function [data,gui] = importDataIBAC(data,gui)
+
+in.path = fullfile(data.import.path);
+in.name = data.import.file;
+in.fileformat = data.import.fileformat;
+out = LoadNMRData_driver(in);
+
+nslices = out.parData.depths;
+nfiles = size(out.nmrData,2);
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+c = 0;
+for j = 1:size(out.nmrData,2)
+    % the individual file names
+    c = c + 1;
+    fnames(c).parfile = out.parData.parfile;
+    fnames(c).datafile = out.nmrData{j}.datfile;
+    fnames(c).T2specfile = '';
+    
+    shownames{c} = [fnames(c).datafile];
+
+    data.import.NMR.data{c} = out.nmrData{j};
+    data.import.NMR.para{c} = out.parData;
+end
+
+% check if the number of depth levels is equal to the number of
+% measurements
+if nslices == nfiles
+    % create z-vector
+    p = out.parData;
+    zslice = linspace(p.initialdepth,p.finaldepth,p.depths)';
+    data.import.IBAC.use_z = true;
+    data.import.IBAC.zslice = zslice;
+    if numel(zslice) > 1
+        c = 0;
+        for i = 1:nfiles
+            c = c + 1;
+            tmp = shownames{i};
+            shownames{i} = [tmp,' z:',sprintf('%05d',zslice(c))];
+        end
+    end
+else
+    data.import.IBAC.use_z = false;
+    data.import.IBAC.zslice = 1:1:max([nfiles 1]);
 end
 
 % update the global data structure

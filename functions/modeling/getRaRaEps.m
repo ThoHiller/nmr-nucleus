@@ -1,21 +1,23 @@
-function onMenuViewFigures(src,~)
-%onMenuViewFigures handles the extra menu entries to show additional
-%graphical output
+function RaRaEps = getRaRaEps(gamma)
+%getRaRaEps calculates the flow resistance parameter acc. to Tuller&Or (2001)
+%epsilon (Tuller&Or, 2001) = beta (Ransohoff&Radke, 1988)
+%NOTE: the angle gamma should be in the interval 10° to 150° to give
+%reliable estimates
 %
 % Syntax:
-%       onMenuViewFigures
+%       RaRaEps = getRaRaEps(gamma)
 %
 % Inputs:
-%       src - handle of the calling object
+%       gamma - angle [deg]
 %
 % Outputs:
-%       none
+%       RaRaEps - flow resistance
 %
 % Example:
-%       onMenuViewFigures(src)
+%       RaRaEps = getRaRaEps(geom.angles(n))
 %
 % Other m-files required:
-%       showFitStatistics
+%       none
 %
 % Subfunctions:
 %       none
@@ -23,40 +25,30 @@ function onMenuViewFigures(src,~)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% See also:
+%   Ransohoff & Radke, 1988, JColIntSci, Vol. 121(2), 392-401
+% Author: Stepahn Costabel
+% email: stephan.costabel[at]bgr.de
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
-%% label of the calling menu
-label = get(src,'Label');
+% constants
+b = 2.124;
+c = -0.00415;
+d = 0.00783;
 
-% chose the corresponding function
-switch label
-    case 'Parameter Info'
-        showParameterInfo;
-    case 'Fit statistics'
-        showFitStatistics;
-    case 'AMP-TLGM-SNR'
-        showExtraGraphics('amp');
-    case 'AMP vs TLGM'
-        showExtraGraphics('ampvst');
-    case 'RTD'    
-        showExtraGraphics('rtd');
-    case 'ConductView GUI'
-        ConductView(src);
-end
+% flow resistance
+RaRaEps = exp((b+d*gamma)/(1+c*gamma));
 
-end
+return
 
 %------------- END OF CODE --------------
 
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2019 Stephan Costabel
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

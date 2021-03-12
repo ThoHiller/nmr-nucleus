@@ -89,6 +89,12 @@ clearSingleAxis(gui.axes_handles.nmr);
 displayStatusText(gui,'Calculating saturation ... done');
 % enable the RUN button again
 set(gui.push_handles.press_RUN,'String','RUN','Enable','on');
+% enable hydraulic conductivity GUI menu only for PSD data
+if data.geometry.ispsd
+    set(gui.menu.view_conduct,'Enable','on');
+else
+    set(gui.menu.view_conduct,'Enable','off');         
+end
 
 end
 

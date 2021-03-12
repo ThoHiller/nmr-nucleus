@@ -111,6 +111,13 @@ if isfield(data.results,'invstd')
             else
                 ylims = [-1 1];
             end
+            if data.invstd.porosity == 1
+                ylab1 = 'amplitudes [-]';
+                ylab2 = 'cumulative amplitudes [-]';
+            else
+                ylab1 = 'water content [vol. %]';
+                ylab2 = 'cumulative water content [vol. %]';
+            end
             % F = data.invstd.porosity.*F./trapz(T,F);
             
             switch data.info.RTDflag
@@ -125,7 +132,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
                     % y-label
-                    set(get(ax,'YLabel'),'String','water content [vol. %]');
+                    set(get(ax,'YLabel'),'String',ylab1);
                     
                 case 'cum'
                     plot(invstd.T1T2me,cumsum(F),'o-','Color',col.FIT,...
@@ -138,7 +145,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
                     % y-label
-                    set(get(ax,'YLabel'),'String','cumulative water content [vol. %]');                    
+                    set(get(ax,'YLabel'),'String',ylab2);                    
             end
             
             % x-limits
@@ -231,7 +238,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
                     % y-label
-                    set(get(ax,'YLabel'),'String','water content [vol. %]');
+                    set(get(ax,'YLabel'),'String',ylab1);
                     
                 case 'cum'
                     plot(requiv,cumsum(F),'o-','Color',col.FIT,...
@@ -243,7 +250,7 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
                     % y-label
-                    set(get(ax,'YLabel'),'String','cumulative water content [vol. %]');
+                    set(get(ax,'YLabel'),'String',ylab2);
             end
             
             % x-limits

@@ -199,197 +199,204 @@ This function is called by:
 0127     <span class="keyword">if</span> isfield(data.import,<span class="string">'BAM'</span>)
 0128         <span class="keyword">if</span> data.import.BAM.use_z
 0129             xval = data.import.BAM.zslice;
-0130             xlabelstr = <span class="string">'position [m]'</span>;
+0130             xlabelstr = <span class="string">'position'</span>;
 0131         <span class="keyword">else</span>
 0132             xlabelstr = <span class="string">'date'</span> ;
 0133         <span class="keyword">end</span>
-0134     <span class="keyword">else</span>
-0135         xlabelstr = <span class="string">'date'</span> ;
-0136     <span class="keyword">end</span>
-0137     
-0138     <span class="comment">% plot it</span>
-0139     <span class="keyword">switch</span> method
-0140         <span class="keyword">case</span> <span class="string">'amp'</span>
-0141             f = figure;
-0142             ax1 = subplot(311,<span class="string">'Parent'</span>,f);
-0143             ax2 = subplot(312,<span class="string">'Parent'</span>,f);
-0144             ax3 = subplot(313,<span class="string">'Parent'</span>,f);
-0145             
-0146             hold(ax1,<span class="string">'on'</span>);
-0147             <span class="keyword">switch</span> data.invstd.invtype
-0148                 <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
-0149                     errorbar(xval,E0,E0er,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax1);
-0150                 <span class="keyword">otherwise</span>
-0151                     plot(xval,E0,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax1);
-0152             <span class="keyword">end</span>
-0153             grid(ax1,<span class="string">'on'</span>);
-0154             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
-0155             
-0156             hold(ax2,<span class="string">'on'</span>);
-0157             <span class="keyword">switch</span> data.invstd.invtype
-0158                 <span class="keyword">case</span> <span class="string">'mono'</span>
-0159                     errorbar(xval,T,Ter,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
-0160                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
-0161                 <span class="keyword">case</span> <span class="string">'free'</span>
-0162                     <span class="keyword">for</span> i = 1:size(T,2)
-0163                         semilogy(xval,T(:,i),<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
-0164                     <span class="keyword">end</span>
-0165                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T_x ['</span>,timescale,<span class="string">']'</span>]);
-0166                     set(ax2,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
-0167                 <span class="keyword">otherwise</span>
-0168                     <span class="keyword">for</span> i = 1:size(T,2)
-0169                         semilogy(xval,T(:,i),<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
-0170                     <span class="keyword">end</span>
-0171                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'TLGM ['</span>,timescale,<span class="string">']'</span>]);
-0172             <span class="keyword">end</span>
-0173             grid(ax2,<span class="string">'on'</span>);
-0174             
-0175             hold(ax3,<span class="string">'on'</span>);
-0176             plot(xval,SNR,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax3);
-0177             grid on;
-0178             xlabel(xlabelstr);
-0179             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'signal-to-noise ratio'</span>);
-0180             
-0181             linkaxes([ax1 ax2 ax3], <span class="string">'x'</span>);
-0182             
-0183             <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
-0184                 isfile = which(<span class="string">'dynamicDateTicks'</span>);
-0185                 <span class="keyword">if</span> ~isempty(isfile)
-0186                     dynamicDateTicks([ax1 ax2 ax3],<span class="string">'link'</span>,<span class="string">'dd.mm. HH:MM'</span>);
-0187                 <span class="keyword">else</span>
-0188                     datetick(ax1,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0189                     datetick(ax2,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0190                     datetick(ax3,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0191                 <span class="keyword">end</span>
-0192             <span class="keyword">end</span>
-0193             
-0194         <span class="keyword">case</span> <span class="string">'ampvst'</span>
-0195             f = figure;
-0196             ax1 = axes(<span class="string">'Parent'</span>,f);
-0197             
-0198             plot(E0,T,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax1),
-0199             set(get(ax1,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
-0200             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
-0201             
-0202         <span class="keyword">case</span> <span class="string">'rtd'</span>
-0203             <span class="keyword">switch</span> data.invstd.invtype
-0204                 <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
-0205                     <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
-0206                         mycol = jet(size(Tspec,1));
-0207                         [time,ix] = sort(xval);
-0208                         Tspec = Tspec(ix,:);
-0209                         f  = figure;
-0210                         ax = axes(<span class="string">'Parent'</span>,f);
-0211                         hold(ax,<span class="string">'on'</span>)
-0212                         <span class="keyword">for</span> i = 1:size(Tspec,1)
-0213                             plot3(time(i)*ones(size(Tt)),Tt,Tspec(i,:),<span class="keyword">...</span>
-0214                                 <span class="string">'Color'</span>,mycol(i,:),<span class="string">'Parent'</span>,ax);
-0215                         <span class="keyword">end</span>
-0216                         grid on; box on;
-0217                         xlabel(<span class="string">'date'</span>);
-0218                         ylabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
-0219                         zlabel(<span class="string">'amplitude [-]'</span>);
-0220                         
-0221                         set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
-0222                         isfile = which(<span class="string">'dynamicDateTicks'</span>);
-0223                         <span class="keyword">if</span> ~isempty(isfile)
-0224                             dynamicDateTicks(ax,<span class="string">'dd.mm. HH:MM'</span>);
-0225                         <span class="keyword">else</span>
-0226                             datetick(ax,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0227                         <span class="keyword">end</span>
-0228                         view([90 0]);
-0229                     <span class="keyword">else</span>
-0230                         dx = xval(2)-xval(1);
-0231                         [xx,yy] = meshgrid(Tt',[xval; xval(end)+dx]);
-0232                         f  = figure;
-0233                         ax = axes(<span class="string">'Parent'</span>,f);
-0234                         hold(ax,<span class="string">'on'</span>)
-0235                         
-0236                         <span class="comment">% remove the backgound file</span>
-0237                         Tspec(isnan(Tspec)) = [];
-0238                         xi = numel(Tspec)/numel(Tt);
-0239                         Tspec = reshape(Tspec,[xi numel(Tt)]);
-0240                         
-0241                         surf(xx,yy,zeros(size(xx)),Tspec./max(Tspec(:)),<span class="string">'Parent'</span>,ax);
-0242                         shading(ax,<span class="string">'flat'</span>);
-0243                         xticks = log10(min(Tt)):1:log10(max(Tt));
-0244                         set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^xticks(1) 10^xticks(end)],<span class="keyword">...</span>
-0245                             <span class="string">'XTick'</span>,10.^xticks,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'Box'</span>,<span class="string">'on'</span>);                        
-0246                         set(ax,<span class="string">'YLim'</span>,[min(yy(:)) max(yy(:))],<span class="string">'YDir'</span>,<span class="string">'normal'</span>)
-0247                         cmap = jet; cmap = flipud(cmap);
-0248                         colormap(ax,cmap);
-0249                         xlabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
-0250                         ylabel(<span class="string">'position [m]'</span>);
-0251                         cb = colorbar;
-0252                         set(get(cb,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'norm. amplitude'</span>);
-0253                         
-0254                         <span class="comment">% context menu to flip y-axis direction</span>
-0255                         axes_cm = uicontextmenu(f);
-0256                         gui.cm_handles.axes_proc_xaxis = uimenu(axes_cm,<span class="keyword">...</span>
-0257                             <span class="string">'Label'</span>,<span class="string">'flip y-axis'</span>,<span class="string">'Tag'</span>,<span class="string">'flip'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0258                             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction onContextFlip(src,~)">onContextFlip</a>);
-0259                         set(ax,<span class="string">'UIContextMenu'</span>,axes_cm);
+0134     <span class="keyword">elseif</span> isfield(data.import,<span class="string">'IBAC'</span>)
+0135         <span class="keyword">if</span> data.import.IBAC.use_z
+0136             xval = data.import.IBAC.zslice;
+0137             xlabelstr = <span class="string">'position'</span>;
+0138         <span class="keyword">else</span>
+0139             xlabelstr = <span class="string">'date'</span> ;
+0140         <span class="keyword">end</span>
+0141     <span class="keyword">else</span>
+0142         xlabelstr = <span class="string">'date'</span> ;
+0143     <span class="keyword">end</span>
+0144     
+0145     <span class="comment">% plot it</span>
+0146     <span class="keyword">switch</span> method
+0147         <span class="keyword">case</span> <span class="string">'amp'</span>
+0148             f = figure;
+0149             ax1 = subplot(311,<span class="string">'Parent'</span>,f);
+0150             ax2 = subplot(312,<span class="string">'Parent'</span>,f);
+0151             ax3 = subplot(313,<span class="string">'Parent'</span>,f);
+0152             
+0153             hold(ax1,<span class="string">'on'</span>);
+0154             <span class="keyword">switch</span> data.invstd.invtype
+0155                 <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
+0156                     errorbar(xval,E0,E0er,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax1);
+0157                 <span class="keyword">otherwise</span>
+0158                     plot(xval,E0,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax1);
+0159             <span class="keyword">end</span>
+0160             grid(ax1,<span class="string">'on'</span>);
+0161             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
+0162             
+0163             hold(ax2,<span class="string">'on'</span>);
+0164             <span class="keyword">switch</span> data.invstd.invtype
+0165                 <span class="keyword">case</span> <span class="string">'mono'</span>
+0166                     errorbar(xval,T,Ter,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
+0167                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
+0168                 <span class="keyword">case</span> <span class="string">'free'</span>
+0169                     <span class="keyword">for</span> i = 1:size(T,2)
+0170                         semilogy(xval,T(:,i),<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
+0171                     <span class="keyword">end</span>
+0172                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T_x ['</span>,timescale,<span class="string">']'</span>]);
+0173                     set(ax2,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0174                 <span class="keyword">otherwise</span>
+0175                     <span class="keyword">for</span> i = 1:size(T,2)
+0176                         semilogy(xval,T(:,i),<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
+0177                     <span class="keyword">end</span>
+0178                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'TLGM ['</span>,timescale,<span class="string">']'</span>]);
+0179             <span class="keyword">end</span>
+0180             grid(ax2,<span class="string">'on'</span>);
+0181             
+0182             hold(ax3,<span class="string">'on'</span>);
+0183             plot(xval,SNR,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax3);
+0184             grid on;
+0185             xlabel(xlabelstr);
+0186             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'signal-to-noise ratio'</span>);
+0187             
+0188             linkaxes([ax1 ax2 ax3], <span class="string">'x'</span>);
+0189             
+0190             <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
+0191                 isfile = which(<span class="string">'dynamicDateTicks'</span>);
+0192                 <span class="keyword">if</span> ~isempty(isfile)
+0193                     dynamicDateTicks([ax1 ax2 ax3],<span class="string">'link'</span>,<span class="string">'dd.mm. HH:MM'</span>);
+0194                 <span class="keyword">else</span>
+0195                     datetick(ax1,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0196                     datetick(ax2,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0197                     datetick(ax3,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0198                 <span class="keyword">end</span>
+0199             <span class="keyword">end</span>
+0200             
+0201         <span class="keyword">case</span> <span class="string">'ampvst'</span>
+0202             f = figure;
+0203             ax1 = axes(<span class="string">'Parent'</span>,f);
+0204             
+0205             plot(E0,T,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax1),
+0206             set(get(ax1,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
+0207             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
+0208             
+0209         <span class="keyword">case</span> <span class="string">'rtd'</span>
+0210             <span class="keyword">switch</span> data.invstd.invtype
+0211                 <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
+0212                     <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
+0213                         mycol = jet(size(Tspec,1));
+0214                         [time,ix] = sort(xval);
+0215                         Tspec = Tspec(ix,:);
+0216                         f  = figure;
+0217                         ax = axes(<span class="string">'Parent'</span>,f);
+0218                         hold(ax,<span class="string">'on'</span>)
+0219                         <span class="keyword">for</span> i = 1:size(Tspec,1)
+0220                             plot3(time(i)*ones(size(Tt)),Tt,Tspec(i,:),<span class="keyword">...</span>
+0221                                 <span class="string">'Color'</span>,mycol(i,:),<span class="string">'Parent'</span>,ax);
+0222                         <span class="keyword">end</span>
+0223                         grid on; box on;
+0224                         xlabel(<span class="string">'date'</span>);
+0225                         ylabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
+0226                         zlabel(<span class="string">'amplitude [-]'</span>);
+0227                         
+0228                         set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0229                         isfile = which(<span class="string">'dynamicDateTicks'</span>);
+0230                         <span class="keyword">if</span> ~isempty(isfile)
+0231                             dynamicDateTicks(ax,<span class="string">'dd.mm. HH:MM'</span>);
+0232                         <span class="keyword">else</span>
+0233                             datetick(ax,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0234                         <span class="keyword">end</span>
+0235                         view([90 0]);
+0236                     <span class="keyword">else</span>
+0237                         dx = xval(2)-xval(1);
+0238                         [xx,yy] = meshgrid(Tt',[xval-dx/2; xval(end)+dx/2]);
+0239                         f  = figure;
+0240                         ax = axes(<span class="string">'Parent'</span>,f);
+0241                         hold(ax,<span class="string">'on'</span>)
+0242                         
+0243                         <span class="comment">% remove the backgound file</span>
+0244                         Tspec(isnan(Tspec)) = [];
+0245                         xi = numel(Tspec)/numel(Tt);
+0246                         Tspec = reshape(Tspec,[xi numel(Tt)]);
+0247                         
+0248                         surf(xx,yy,zeros(size(xx)),Tspec./max(Tspec(:)),<span class="string">'Parent'</span>,ax);
+0249                         shading(ax,<span class="string">'flat'</span>);
+0250                         xticks = log10(min(Tt)):1:log10(max(Tt));
+0251                         set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^xticks(1) 10^xticks(end)],<span class="keyword">...</span>
+0252                             <span class="string">'XTick'</span>,10.^xticks,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'Box'</span>,<span class="string">'on'</span>);                        
+0253                         set(ax,<span class="string">'YLim'</span>,[min(yy(:)) max(yy(:))],<span class="string">'YDir'</span>,<span class="string">'normal'</span>)
+0254                         cmap = jet; cmap = flipud(cmap);
+0255                         colormap(ax,cmap);
+0256                         xlabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
+0257                         ylabel(<span class="string">'position [µm]'</span>);
+0258                         cb = colorbar;
+0259                         set(get(cb,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'norm. amplitude'</span>);
 0260                         
-0261                     <span class="keyword">end</span>
-0262                 <span class="keyword">otherwise</span>
-0263                     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
-0264                         <span class="string">'Cannot plot RTDs because the inversion was not multi exponential'</span>},<span class="keyword">...</span>
-0265                         <span class="string">'Invert NMR data first.'</span>);
-0266             <span class="keyword">end</span>
-0267     <span class="keyword">end</span>
-0268     
-0269     <span class="keyword">catch</span> ME
-0270         <span class="comment">% show error message in case import fails</span>
-0271         errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
-0272             <span class="string">'Cannot show figure.'</span>};
-0273         errordlg(errmsg,<span class="string">'showExtraGraphics: Error!'</span>);
+0261                         <span class="comment">% context menu to flip y-axis direction</span>
+0262                         axes_cm = uicontextmenu(f);
+0263                         gui.cm_handles.axes_proc_xaxis = uimenu(axes_cm,<span class="keyword">...</span>
+0264                             <span class="string">'Label'</span>,<span class="string">'flip y-axis'</span>,<span class="string">'Tag'</span>,<span class="string">'flip'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0265                             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction onContextFlip(src,~)">onContextFlip</a>);
+0266                         set(ax,<span class="string">'UIContextMenu'</span>,axes_cm);
+0267                         
+0268                     <span class="keyword">end</span>
+0269                 <span class="keyword">otherwise</span>
+0270                     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
+0271                         <span class="string">'Cannot plot RTDs because the inversion was not multi exponential'</span>},<span class="keyword">...</span>
+0272                         <span class="string">'Invert NMR data first.'</span>);
+0273             <span class="keyword">end</span>
 0274     <span class="keyword">end</span>
-0275 <span class="keyword">else</span>
-0276     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
-0277         <span class="string">'Cannot continue because there need to be at least two NMR measurements.'</span>},<span class="keyword">...</span>
-0278         <span class="string">'Not enough data to show'</span>);
-0279 <span class="keyword">end</span>
-0280 
-0281 <span class="keyword">end</span>
-0282 
-0283 <a name="_sub1" href="#_subfunctions" class="code">function onContextFlip(src,~)</a>
-0284 f = ancestor(src,<span class="string">'Figure'</span>,<span class="string">'toplevel'</span>);
-0285 ax = findobj(f,<span class="string">'Type'</span>,<span class="string">'Axes'</span>);
-0286 
-0287 direction = get(ax,<span class="string">'Ydir'</span>);
-0288 <span class="keyword">switch</span> direction
-0289     <span class="keyword">case</span> <span class="string">'normal'</span>
-0290         set(ax,<span class="string">'Ydir'</span>,<span class="string">'reverse'</span>)
-0291     <span class="keyword">case</span> <span class="string">'reverse'</span>
-0292         set(ax,<span class="string">'Ydir'</span>,<span class="string">'normal'</span>)
-0293 <span class="keyword">end</span>
-0294 
-0295 <span class="keyword">end</span>
-0296 
-0297 <span class="comment">%------------- END OF CODE --------------</span>
-0298 
-0299 <span class="comment">%% License:</span>
-0300 <span class="comment">% MIT License</span>
-0301 <span class="comment">%</span>
-0302 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0303 <span class="comment">%</span>
-0304 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0305 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0306 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0307 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0308 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0309 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0275     
+0276     <span class="keyword">catch</span> ME
+0277         <span class="comment">% show error message in case import fails</span>
+0278         errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0279             <span class="string">'Cannot show figure.'</span>};
+0280         errordlg(errmsg,<span class="string">'showExtraGraphics: Error!'</span>);
+0281     <span class="keyword">end</span>
+0282 <span class="keyword">else</span>
+0283     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
+0284         <span class="string">'Cannot continue because there need to be at least two NMR measurements.'</span>},<span class="keyword">...</span>
+0285         <span class="string">'Not enough data to show'</span>);
+0286 <span class="keyword">end</span>
+0287 
+0288 <span class="keyword">end</span>
+0289 
+0290 <a name="_sub1" href="#_subfunctions" class="code">function onContextFlip(src,~)</a>
+0291 f = ancestor(src,<span class="string">'Figure'</span>,<span class="string">'toplevel'</span>);
+0292 ax = findobj(f,<span class="string">'Type'</span>,<span class="string">'Axes'</span>);
+0293 
+0294 direction = get(ax,<span class="string">'Ydir'</span>);
+0295 <span class="keyword">switch</span> direction
+0296     <span class="keyword">case</span> <span class="string">'normal'</span>
+0297         set(ax,<span class="string">'Ydir'</span>,<span class="string">'reverse'</span>)
+0298     <span class="keyword">case</span> <span class="string">'reverse'</span>
+0299         set(ax,<span class="string">'Ydir'</span>,<span class="string">'normal'</span>)
+0300 <span class="keyword">end</span>
+0301 
+0302 <span class="keyword">end</span>
+0303 
+0304 <span class="comment">%------------- END OF CODE --------------</span>
+0305 
+0306 <span class="comment">%% License:</span>
+0307 <span class="comment">% MIT License</span>
+0308 <span class="comment">%</span>
+0309 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0310 <span class="comment">%</span>
-0311 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0312 <span class="comment">% copies or substantial portions of the Software.</span>
-0313 <span class="comment">%</span>
-0314 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0315 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0316 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0317 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0318 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0319 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0320 <span class="comment">% SOFTWARE.</span></pre></div>
+0311 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0312 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0313 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0314 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0315 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0316 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0317 <span class="comment">%</span>
+0318 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0319 <span class="comment">% copies or substantial portions of the Software.</span>
+0320 <span class="comment">%</span>
+0321 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0322 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0323 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0324 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0325 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0326 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0327 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

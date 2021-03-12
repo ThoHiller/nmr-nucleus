@@ -38,7 +38,7 @@ and 'poly'.
        pressure - pressure values in [Pa]
        inpsd - structure containing fields:
            r   : x-values of the PSD
-           psd : amplitudes of the PSD%           
+           psd : amplitudes of the PSD%
            NOTE: if psd = 1 and r is a scalar value then a single pore
                  is assumed
        constants - physical constants (output from 'getConstants')
@@ -54,13 +54,17 @@ and 'poly'.
            Pa(i,d) : NMR active perimeter
            Pc(i,d) : critical capillary pressure
            R0(i,d) : critical radius for (only 'ang' and 'poly')
+           K(i,d)  : hydraulic conductivity
 
  Example:
        out = getSaturationFromPressure(geom,P,constants)
 
  Other m-files required:
        getCriticalPressure
+       getConduct
        getCornerSaturation
+       getGeometryParameter
+       getSaturationFromPressure
 
  Subfunctions:
        none
@@ -69,7 +73,7 @@ and 'poly'.
        none
 
  See also:
- Author: Thomas Hiller
+ Author: Thomas Hiller, Stephan Costabel
  email: thomas.hiller[at]leibniz-liag.de
  License: MIT License (at end)</pre></div>
 
@@ -77,7 +81,7 @@ and 'poly'.
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="getSaturationFromPressure.html" class="code" title="function out = getSaturationFromPressure(geom,P,constants)">getSaturationFromPressure</a>	 calculates the full or partial saturation state</li></ul>
+<li><a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>	 calculates hydraulic conductivity for water-filled</li><li><a href="getCornerSaturation.html" class="code" title="function [Acorner, Pcorner] = getCornerSaturation(radius,angles)">getCornerSaturation</a>	 calculates the area and active perimeter for all water</li><li><a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>	 calculates geometric parameters for the three possible</li><li><a href="getRaRaEps.html" class="code" title="function RaRaEps = getRaRaEps(gamma)">getRaRaEps</a>	 calculates the flow resistance parameter acc. to Tuller&Or (2001)</li><li><a href="getSaturationFromPressure.html" class="code" title="function out = getSaturationFromPressure(geom,P,constants)">getSaturationFromPressure</a>	 calculates the full or partial saturation state</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/functions/interface/caluclatePressureSaturation.html" class="code" title="function caluclatePressureSaturation">caluclatePressureSaturation</a>	 calculates the geometry dependent pressure</li><li><a href="../../../nucleus/functions/interface/runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvfixed.html" class="code" title="function [F,varargout] = fcn_JointInvfixed(X,iparam)">fcn_JointInvfixed</a>	 performs the "fixed" joint inversion using the RTD of</li><li><a href="../../../nucleus/functions/inversion/fcn_JointInvshape.html" class="code" title="function [F,varargout] = fcn_JointInvshape(X,iparam)">fcn_JointInvshape</a>	 performs the "shape" joint inversion using the RTD of</li></ul>
@@ -115,165 +119,284 @@ This function is called by:
 0027 <span class="comment">%           Pa(i,d) : NMR active perimeter</span>
 0028 <span class="comment">%           Pc(i,d) : critical capillary pressure</span>
 0029 <span class="comment">%           R0(i,d) : critical radius for (only 'ang' and 'poly')</span>
-0030 <span class="comment">%</span>
-0031 <span class="comment">% Example:</span>
-0032 <span class="comment">%       out = getSaturationFromPressure(geom,P,constants)</span>
-0033 <span class="comment">%</span>
-0034 <span class="comment">% Other m-files required:</span>
-0035 <span class="comment">%       getCriticalPressure</span>
-0036 <span class="comment">%       getCornerSaturation</span>
-0037 <span class="comment">%</span>
-0038 <span class="comment">% Subfunctions:</span>
-0039 <span class="comment">%       none</span>
-0040 <span class="comment">%</span>
-0041 <span class="comment">% MAT-files required:</span>
-0042 <span class="comment">%       none</span>
-0043 <span class="comment">%</span>
-0044 <span class="comment">% See also:</span>
-0045 <span class="comment">% Author: Thomas Hiller</span>
-0046 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
-0047 <span class="comment">% License: MIT License (at end)</span>
-0048 
-0049 <span class="comment">%------------- BEGIN CODE --------------</span>
-0050 
-0051 radius = GEOM.radius';
-0052 tmp_geom.type = GEOM.type;
-0053 
-0054 <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'ang'</span>) || strcmp(GEOM.type,<span class="string">'poly'</span>)
-0055     tmp_geom.angles = GEOM.angles;
-0056     tmp_geom.ShapeFac = GEOM.ShapeFac;
-0057     tmp_geom.AngulFac = GEOM.AngulFac;
-0058 <span class="keyword">end</span>
-0059 
-0060 <span class="comment">% some informative wait-bar ;-)</span>
-0061 <span class="keyword">if</span> wbopts.show
-0062     hwb = waitbar(0,<span class="string">'processing ...'</span>,<span class="string">'Name'</span>,<span class="string">'Calculate Saturation'</span>,<span class="string">'Visible'</span>,<span class="string">'off'</span>);
-0063     steps = numel(pressure);
-0064     fig = findobj(<span class="string">'Tag'</span>,wbopts.tag);
-0065     <span class="keyword">if</span> ~isempty(fig)
-0066         posf = get(fig,<span class="string">'Position'</span>);
-0067         set(hwb,<span class="string">'Units'</span>,<span class="string">'Pixel'</span>)
-0068         posw = get(hwb,<span class="string">'Position'</span>);
-0069         set(hwb,<span class="string">'Position'</span>,[posf(1)+posf(3)/2-posw(3)/2 posf(2)+posf(4)/2-posw(4)/2 posw(3:4)]);
-0070     <span class="keyword">end</span>
-0071     set(hwb,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
-0072 <span class="keyword">end</span>
-0073 
-0074 <span class="comment">% looping over all pressures and radii</span>
-0075 <span class="comment">% looping through backwards has the advantage that output-variables like</span>
-0076 <span class="comment">% e.g. Aad already have the correct dimensions, because at high pressures</span>
-0077 <span class="comment">% the pores are likely to be partially saturated</span>
-0078 <span class="keyword">for</span> p = numel(pressure):-1:1
-0079     <span class="keyword">for</span> r = numel(radius):-1:1        
-0080         <span class="comment">% local geometry variable</span>
-0081         tmp_geom.radius = GEOM.radius(r);
-0082         tmp_geom.A0     = GEOM.A0(r);
-0083         tmp_geom.P0     = GEOM.P0(r);
-0084         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'ang'</span>)
-0085             tmp_geom.sides = GEOM.sides(r,:);
-0086         <span class="keyword">elseif</span> strcmp(GEOM.type,<span class="string">'poly'</span>)
-0087             tmp_geom.side = GEOM.side(r,:);
-0088         <span class="keyword">end</span>
-0089         
-0090         <span class="comment">% get the saturation state depending on shape and pressure</span>
-0091         Sat_state = <a href="getSaturationFromPressure.html" class="code" title="function out = getSaturationFromPressure(geom,P,constants)">getSaturationFromPressure</a>(tmp_geom,pressure(p),constants);
-0092         
-0093         <span class="comment">% gather the data for the current radius</span>
-0094         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'cyl'</span>)
-0095             SatData_tmp.isfullsati(r,1) = Sat_state.isfullsati;
-0096             SatData_tmp.Pci(r) = Sat_state.Pci;
-0097             SatData_tmp.WCi(r) = Sat_state.WCi;
-0098             SatData_tmp.Si(r) = Sat_state.Si;
-0099             SatData_tmp.Aai(r) = Sat_state.Aai;
-0100             SatData_tmp.Pai(r) = Sat_state.Pai;
-0101             
-0102             SatData_tmp.isfullsatd(r,1) = Sat_state.isfullsatd;
-0103             SatData_tmp.Pcd(r) = Sat_state.Pcd;
-0104             SatData_tmp.WCd(r) = Sat_state.WCd;
-0105             SatData_tmp.Sd(r) = Sat_state.Sd;
-0106             SatData_tmp.Aad(r) = Sat_state.Aad;
-0107             SatData_tmp.Pad(r) = Sat_state.Pad;
-0108             
-0109         <span class="keyword">elseif</span> strcmp(GEOM.type,<span class="string">'ang'</span>) || strcmp(GEOM.type,<span class="string">'poly'</span>)
-0110             SatData_tmp.isfullsati(r) = Sat_state.isfullsati;
-0111             SatData_tmp.Pci(r) = Sat_state.Pci;
-0112             SatData_tmp.R0i(r) = Sat_state.R0i;
-0113             SatData_tmp.WCi(r) = Sat_state.WCi;
-0114             SatData_tmp.Si(r) = Sat_state.Si;
-0115             SatData_tmp.Aai(r,:) = Sat_state.Aai;
-0116             SatData_tmp.Pai(r,:) = Sat_state.Pai;
-0117             
-0118             SatData_tmp.isfullsatd(r) = Sat_state.isfullsatd;
-0119             SatData_tmp.Pcd(r) = Sat_state.Pcd;
-0120             SatData_tmp.R0d(r) = Sat_state.R0d;
-0121             SatData_tmp.WCd(r) = Sat_state.WCd;
-0122             SatData_tmp.Sd(r) = Sat_state.Sd;
-0123             SatData_tmp.Aad(r,:) = Sat_state.Aad;
-0124             SatData_tmp.Pad(r,:) = Sat_state.Pad;
-0125         <span class="keyword">end</span>
-0126     <span class="keyword">end</span>
-0127     
-0128     <span class="comment">% gather the data for the current pressure</span>
-0129     SAT.isfullsati(p,:) = SatData_tmp.isfullsati;
-0130     SAT.WCi(p,:) = SatData_tmp.WCi;
-0131     SAT.Si(p,:) = SatData_tmp.Si;
-0132     SAT.Sifull(p,:) = SatData_tmp.Si .* inpsd.psd;
-0133     SAT.Aai(p,:,:) = SatData_tmp.Aai;
-0134     SAT.Pai(p,:,:) = SatData_tmp.Pai;
+0030 <span class="comment">%           K(i,d)  : hydraulic conductivity</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">% Example:</span>
+0033 <span class="comment">%       out = getSaturationFromPressure(geom,P,constants)</span>
+0034 <span class="comment">%</span>
+0035 <span class="comment">% Other m-files required:</span>
+0036 <span class="comment">%       getCriticalPressure</span>
+0037 <span class="comment">%       getConduct</span>
+0038 <span class="comment">%       getCornerSaturation</span>
+0039 <span class="comment">%       getGeometryParameter</span>
+0040 <span class="comment">%       getSaturationFromPressure</span>
+0041 <span class="comment">%</span>
+0042 <span class="comment">% Subfunctions:</span>
+0043 <span class="comment">%       none</span>
+0044 <span class="comment">%</span>
+0045 <span class="comment">% MAT-files required:</span>
+0046 <span class="comment">%       none</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">% See also:</span>
+0049 <span class="comment">% Author: Thomas Hiller, Stephan Costabel</span>
+0050 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0051 <span class="comment">% License: MIT License (at end)</span>
+0052 
+0053 <span class="comment">%------------- BEGIN CODE --------------</span>
+0054 
+0055 radius = GEOM.radius';
+0056 tmp_geom.type = GEOM.type;
+0057 
+0058 <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'ang'</span>) || strcmp(GEOM.type,<span class="string">'poly'</span>)
+0059     tmp_geom.angles = GEOM.angles;
+0060     tmp_geom.ShapeFac = GEOM.ShapeFac;
+0061     tmp_geom.AngulFac = GEOM.AngulFac;
+0062 <span class="keyword">end</span>
+0063 
+0064 <span class="comment">% some informative wait-bar ;-)</span>
+0065 <span class="keyword">if</span> wbopts.show
+0066     hwb = waitbar(0,<span class="string">'processing ...'</span>,<span class="string">'Name'</span>,<span class="string">'Calculate Saturation'</span>,<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0067     steps = numel(pressure);
+0068     fig = findobj(<span class="string">'Tag'</span>,wbopts.tag);
+0069     <span class="keyword">if</span> ~isempty(fig)
+0070         posf = get(fig,<span class="string">'Position'</span>);
+0071         set(hwb,<span class="string">'Units'</span>,<span class="string">'Pixel'</span>)
+0072         posw = get(hwb,<span class="string">'Position'</span>);
+0073         set(hwb,<span class="string">'Position'</span>,[posf(1)+posf(3)/2-posw(3)/2 posf(2)+posf(4)/2-posw(4)/2 posw(3:4)]);
+0074     <span class="keyword">end</span>
+0075     set(hwb,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0076 <span class="keyword">end</span>
+0077 
+0078 <span class="comment">% looping over all pressures and radii</span>
+0079 <span class="comment">% looping through backwards has the advantage that output-variables like</span>
+0080 <span class="comment">% e.g. Aad already have the correct dimensions, because at high pressures</span>
+0081 <span class="comment">% the pores are likely to be partially saturated</span>
+0082 <span class="keyword">for</span> p = numel(pressure):-1:1
+0083     <span class="keyword">for</span> r = numel(radius):-1:1
+0084         <span class="comment">% local geometry variable</span>
+0085         tmp_geom.radius = GEOM.radius(r);
+0086         tmp_geom.A0     = GEOM.A0(r);
+0087         tmp_geom.P0     = GEOM.P0(r);
+0088         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'ang'</span>)
+0089             tmp_geom.sides = GEOM.sides(r,:);
+0090         <span class="keyword">elseif</span> strcmp(GEOM.type,<span class="string">'poly'</span>)
+0091             tmp_geom.side = GEOM.side(r,:);
+0092         <span class="keyword">end</span>
+0093         
+0094         <span class="comment">% get the saturation state depending on shape and pressure</span>
+0095         Sat_state = <a href="getSaturationFromPressure.html" class="code" title="function out = getSaturationFromPressure(geom,P,constants)">getSaturationFromPressure</a>(tmp_geom,pressure(p),constants);
+0096         
+0097         <span class="comment">% gather the data for the current radius</span>
+0098         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'cyl'</span>)
+0099             SatData_tmp.isfullsati(r,1) = Sat_state.isfullsati;
+0100             SatData_tmp.Pci(r) = Sat_state.Pci;
+0101             SatData_tmp.WCi(r) = Sat_state.WCi;
+0102             SatData_tmp.Si(r) = Sat_state.Si;
+0103             SatData_tmp.Aai(r) = Sat_state.Aai;
+0104             SatData_tmp.Pai(r) = Sat_state.Pai;
+0105             SatData_tmp.Ki(r) = Sat_state.Ki;
+0106             
+0107             SatData_tmp.isfullsatd(r,1) = Sat_state.isfullsatd;
+0108             SatData_tmp.Pcd(r) = Sat_state.Pcd;
+0109             SatData_tmp.WCd(r) = Sat_state.WCd;
+0110             SatData_tmp.Sd(r) = Sat_state.Sd;
+0111             SatData_tmp.Aad(r) = Sat_state.Aad;
+0112             SatData_tmp.Pad(r) = Sat_state.Pad;
+0113             SatData_tmp.Kd(r) = Sat_state.Kd;
+0114             
+0115         <span class="keyword">elseif</span> strcmp(GEOM.type,<span class="string">'ang'</span>) || strcmp(GEOM.type,<span class="string">'poly'</span>)
+0116             SatData_tmp.isfullsati(r) = Sat_state.isfullsati;
+0117             SatData_tmp.Pci(r) = Sat_state.Pci;
+0118             SatData_tmp.R0i(r) = Sat_state.R0i;
+0119             SatData_tmp.WCi(r) = Sat_state.WCi;
+0120             SatData_tmp.Si(r) = Sat_state.Si;
+0121             SatData_tmp.Aai(r,:) = Sat_state.Aai;
+0122             SatData_tmp.Pai(r,:) = Sat_state.Pai;
+0123             SatData_tmp.Ki(r) = Sat_state.Ki;
+0124             
+0125             SatData_tmp.isfullsatd(r) = Sat_state.isfullsatd;
+0126             SatData_tmp.Pcd(r) = Sat_state.Pcd;
+0127             SatData_tmp.R0d(r) = Sat_state.R0d;
+0128             SatData_tmp.WCd(r) = Sat_state.WCd;
+0129             SatData_tmp.Sd(r) = Sat_state.Sd;
+0130             SatData_tmp.Aad(r,:) = Sat_state.Aad;
+0131             SatData_tmp.Pad(r,:) = Sat_state.Pad;
+0132             SatData_tmp.Kd(r) = Sat_state.Kd;
+0133         <span class="keyword">end</span>
+0134     <span class="keyword">end</span>
 0135     
-0136     SAT.isfullsatd(p,:) = SatData_tmp.isfullsatd;
-0137     SAT.WCd(p,:) = SatData_tmp.WCd;
-0138     SAT.Sd(p,:) = SatData_tmp.Sd;
-0139     SAT.Sdfull(p,:) = SatData_tmp.Sd .* inpsd.psd;
-0140     SAT.Aad(p,:,:) = SatData_tmp.Aad;
-0141     SAT.Pad(p,:,:) = SatData_tmp.Pad;
-0142     
-0143     <span class="keyword">if</span> wbopts.show
-0144         waitbar((steps-p) / steps,hwb,[<span class="string">'processing ...'</span>,num2str(steps-p),<span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
-0145     <span class="keyword">end</span>
-0146 <span class="keyword">end</span>
-0147 <span class="keyword">if</span> wbopts.show
-0148     delete(hwb);
-0149 <span class="keyword">end</span>
-0150 
-0151 <span class="comment">%% finalize global output saturation data</span>
-0152 SAT.A0  = GEOM.A0;
-0153 SAT.Aai = squeeze(SAT.Aai);
-0154 SAT.Pai = squeeze(SAT.Pai);
-0155 SAT.Aad = squeeze(SAT.Aad);
-0156 SAT.Pad = squeeze(SAT.Pad);
-0157 <span class="keyword">if</span> numel(radius) &gt; 1
-0158     SAT.Sifull = sum(SAT.Sifull,2);
-0159     SAT.Sdfull = sum(SAT.Sdfull,2);
-0160 <span class="keyword">end</span>
-0161 SAT.pressure = pressure(:);
-0162 
-0163 <span class="keyword">return</span>
-0164 
-0165 <span class="comment">%------------- END OF CODE --------------</span>
-0166 
-0167 <span class="comment">%% License:</span>
-0168 <span class="comment">% MIT License</span>
-0169 <span class="comment">%</span>
-0170 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0171 <span class="comment">%</span>
-0172 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0173 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0174 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0175 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0176 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0177 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0178 <span class="comment">%</span>
-0179 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0180 <span class="comment">% copies or substantial portions of the Software.</span>
-0181 <span class="comment">%</span>
-0182 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0183 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0184 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0185 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0186 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0187 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0188 <span class="comment">% SOFTWARE.</span></pre></div>
+0136     <span class="comment">% gather the data for the current pressure</span>
+0137     SAT.isfullsati(p,:) = SatData_tmp.isfullsati;
+0138     SAT.WCi(p,:) = SatData_tmp.WCi;
+0139     SAT.Si(p,:) = SatData_tmp.Si;
+0140     SAT.Sifull(p,:) = SatData_tmp.Si .* inpsd.psd;
+0141     SAT.Aai(p,:,:) = SatData_tmp.Aai;
+0142     SAT.Pai(p,:,:) = SatData_tmp.Pai;
+0143     
+0144     SAT.isfullsatd(p,:) = SatData_tmp.isfullsatd;
+0145     SAT.WCd(p,:) = SatData_tmp.WCd;
+0146     SAT.Sd(p,:) = SatData_tmp.Sd;
+0147     SAT.Sdfull(p,:) = SatData_tmp.Sd .* inpsd.psd;
+0148     SAT.Aad(p,:,:) = SatData_tmp.Aad;
+0149     SAT.Pad(p,:,:) = SatData_tmp.Pad;
+0150     
+0151     <span class="comment">% --- START: hydraulic conductivity AddOn ---</span>
+0152     
+0153     <span class="comment">% we consider two different approaches for K upscaling, ...</span>
+0154     
+0155     <span class="comment">%% FIRST</span>
+0156     <span class="comment">% (physically correct and simplest implementation):</span>
+0157     <span class="comment">% gather individual K values for each full duct and sum them.</span>
+0158     <span class="comment">% In doing so, consider their individual proportions in the psd:</span>
+0159     SAT.Kifull(p,:) = SatData_tmp.Ki .* SAT.Sifull(p,:);
+0160     SAT.Kdfull(p,:) = SatData_tmp.Kd .* SAT.Sdfull(p,:);
+0161     <span class="comment">% Note: the actual summarization is done below along with Sifull and</span>
+0162     <span class="comment">% Sdfull (Line 273 ff)</span>
+0163     <span class="comment">% ---</span>
+0164     
+0165     <span class="comment">%% SECOND</span>
+0166     <span class="comment">% (because the fit to real data is often better, at least for S=1!):</span>
+0167     <span class="comment">% estimate the mean log (= effective) pore size for all full ducts</span>
+0168     <span class="comment">% at each pressure step and calculate the corresponding K = f(r_eff) PLUS</span>
+0169     <span class="comment">% in case of angular pore shape take residual K values of meniscus</span>
+0170     <span class="comment">% water into account:</span>
+0171     tmp_geom.type = GEOM.type;
+0172     <span class="comment">% if shape is ang or poly, we need the angles and number of corners</span>
+0173     <span class="keyword">if</span> ~strcmp(GEOM.type,<span class="string">'cyl'</span>)
+0174         tmp_geom.angles = GEOM.angles;
+0175         <span class="keyword">if</span> strcmp(GEOM.type,<span class="string">'poly'</span>)
+0176             tmp_geom.polyN = GEOM.polyN;
+0177         <span class="keyword">end</span>
+0178     <span class="keyword">end</span>
+0179     
+0180     <span class="comment">% find all full ducts (imbibition path)</span>
+0181     dummyi = find(SAT.Si(p,:) &lt; 1,1,<span class="string">'first'</span>);
+0182     <span class="comment">% calculate mean log of full duct range to get effective equivalent radius</span>
+0183     ri_eff = 10.^(sum(SAT.Sifull(p,1:dummyi-1)/sum(SAT.Sifull(p,1:dummyi-1)) <span class="keyword">...</span>
+0184         .* log10(radius(1:dummyi-1))));
+0185     <span class="comment">% save effective radius in temporal geom structure</span>
+0186     tmp_geomi = tmp_geom;
+0187     tmp_geomi.radius = ri_eff;
+0188     
+0189     <span class="comment">% find all full ducts (drainage path)</span>
+0190     dummyd = find(SAT.Sd(p,:) &lt; 1,1,<span class="string">'first'</span>);
+0191     <span class="comment">% calculate mean log of full duct range to get effective equivalent radius</span>
+0192     rd_eff = 10.^(sum(SAT.Sdfull(p,1:dummyd-1)/sum(SAT.Sdfull(p,1:dummyd-1))<span class="keyword">...</span>
+0193         .* log10(radius(1:dummyd-1))));
+0194     <span class="comment">% save effective radius in temporal geom structure</span>
+0195     tmp_geomd = tmp_geom;
+0196     tmp_geomd.radius = rd_eff;
+0197     
+0198     <span class="comment">% calculate the K from effective radius for recent pressure step</span>
+0199     Ki_ducts = <a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>(<a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(tmp_geomi),constants) *<span class="keyword">...</span>
+0200         sum(SAT.Sifull(p,1:dummyi-1));
+0201     Kd_ducts = <a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>(<a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(tmp_geomd),constants) *<span class="keyword">...</span>
+0202         sum(SAT.Sdfull(p,1:dummyd-1));
+0203     
+0204     <span class="comment">% calculate K for residual meniscus water in case of having 'ang' or</span>
+0205     <span class="comment">% 'poly' shape</span>
+0206     <span class="keyword">if</span> ~strcmp(GEOM.type,<span class="string">'cyl'</span>)
+0207         <span class="comment">% get water-filled area in cross-section first</span>
+0208         r_AM = (constants.sigfac * constants.sigma * cosd(constants.theta))<span class="keyword">...</span>
+0209             / pressure(p);
+0210         [Aa,~] = <a href="getCornerSaturation.html" class="code" title="function [Acorner, Pcorner] = getCornerSaturation(radius,angles)">getCornerSaturation</a>(r_AM,tmp_geom.angles);
+0211         <span class="comment">% lumped physical constants</span>
+0212         C = constants.density * constants.gravity / constants.dynvisc;
+0213         K_corners = zeros(size(tmp_geom.angles));
+0214         <span class="comment">% Note that the K response from a specific corner of a</span>
+0215         <span class="comment">% desaturated angular pore is independent from pore size!</span>
+0216         <span class="comment">% Thus, main loop is over the corners:</span>
+0217         <span class="keyword">for</span> n = 1:numel(tmp_geom.angles)
+0218             <span class="comment">% individual K values for meniscus in each corner</span>
+0219             K_corners(n) = C * (r_AM^2/<a href="getRaRaEps.html" class="code" title="function RaRaEps = getRaRaEps(gamma)">getRaRaEps</a>(tmp_geom.angles(n)));
+0220             <span class="comment">% weight the individual K values using the proportion of</span>
+0221             <span class="comment">% residual water in meniscus (with respect to bulk pore area)</span>
+0222             <span class="comment">% Loop over pore size is not really necessary, but easier to</span>
+0223             <span class="comment">% understand the process...</span>
+0224             <span class="keyword">for</span> r = dummyi : numel(radius)
+0225                 tmp_Ki_corners(r) = K_corners(n) * Aa(n) / GEOM.A0(r);
+0226             <span class="keyword">end</span>
+0227             <span class="keyword">for</span> r = dummyd : numel(radius)
+0228                 tmp_Kd_corners(r) = K_corners(n) * Aa(n) / GEOM.A0(r);
+0229             <span class="keyword">end</span>
+0230             <span class="comment">% summarize all K values from n-th corner for entire PSD (and</span>
+0231             <span class="comment">% weight them using their proportion in PSD!)</span>
+0232             Ki_corners(n) = sum(tmp_Ki_corners(dummyi:end) .* SAT.Sifull(p,dummyi:end));
+0233             Kd_corners(n) = sum(tmp_Kd_corners(dummyd:end) .* SAT.Sdfull(p,dummyd:end));
+0234             
+0235             <span class="comment">% these two lines do the same job like the two loops above and</span>
+0236             <span class="comment">% are faster, but its too difficult to explain why ;-) ...</span>
+0237             <span class="comment">% Ki_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sifull(p,dummyi:end) ./ GEOM.A0(dummyi:end)');</span>
+0238             <span class="comment">% Kd_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sdfull(p,dummyd:end) ./ GEOM.A0(dummyd:end)');</span>
+0239         <span class="keyword">end</span>
+0240     <span class="keyword">else</span>
+0241         <span class="comment">% no corners in cylindrical pores</span>
+0242         Ki_corners = 0;
+0243         Kd_corners = 0;
+0244     <span class="keyword">end</span>
+0245     
+0246     <span class="comment">% save individual contribution of ducts and corners</span>
+0247     SAT.Ki_ducts(p) = Ki_ducts;
+0248     SAT.Ki_corners(p) = sum(Ki_corners);
+0249     SAT.Kd_ducts(p) = Kd_ducts;
+0250     SAT.Kd_corners(p) = sum(Kd_corners);
+0251     
+0252     <span class="comment">% now bring ducts and corners together</span>
+0253     Ki_eff = Ki_ducts + sum(Ki_corners);
+0254     Kd_eff = Kd_ducts + sum(Kd_corners);
+0255     
+0256     SAT.ri_eff(p) = ri_eff;
+0257     SAT.Ki_eff(p) = Ki_eff;
+0258     SAT.rd_eff(p) = rd_eff;
+0259     SAT.Kd_eff(p) = Kd_eff;
+0260     <span class="comment">% --- END: hydraulic conductivity AddOn ---</span>
+0261     
+0262     <span class="comment">%%</span>
+0263     <span class="keyword">if</span> wbopts.show
+0264         waitbar((steps-p) / steps,hwb,[<span class="string">'processing ...'</span>,num2str(steps-p),<span class="keyword">...</span>
+0265             <span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
+0266     <span class="keyword">end</span>
+0267 <span class="keyword">end</span>
+0268 <span class="keyword">if</span> wbopts.show
+0269     delete(hwb);
+0270 <span class="keyword">end</span>
+0271 
+0272 <span class="comment">%% finalize global output saturation data</span>
+0273 SAT.A0  = GEOM.A0;
+0274 <span class="keyword">if</span> numel(radius) &gt; 1
+0275     SAT.Sifull = sum(SAT.Sifull,2);
+0276     SAT.Sdfull = sum(SAT.Sdfull,2);
+0277     SAT.Kifull = sum(SAT.Kifull,2);
+0278     SAT.Kdfull = sum(SAT.Kdfull,2);
+0279 <span class="keyword">end</span>
+0280 SAT.pressure = pressure(:);
+0281 
+0282 <span class="keyword">return</span>
+0283 
+0284 <span class="comment">%------------- END OF CODE --------------</span>
+0285 
+0286 <span class="comment">%% License:</span>
+0287 <span class="comment">% MIT License</span>
+0288 <span class="comment">%</span>
+0289 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0290 <span class="comment">%</span>
+0291 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0292 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0293 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0294 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0295 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0296 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0297 <span class="comment">%</span>
+0298 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0299 <span class="comment">% copies or substantial portions of the Software.</span>
+0300 <span class="comment">%</span>
+0301 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0302 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0303 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0304 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0305 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0306 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0307 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

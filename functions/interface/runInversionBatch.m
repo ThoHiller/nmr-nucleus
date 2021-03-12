@@ -81,7 +81,7 @@ if ~isempty(INVdata)
         set(hwb,'Visible','on');
     end
     
-    % proceed all signals
+    % proccess all signals
     for id = 1:size(INVdata,1)
         % only if the User didn't cancel
         if get(gui.push_handles.invstd_run,'UserData') == 1 % STOP was not pressed

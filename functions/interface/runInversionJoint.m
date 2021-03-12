@@ -573,9 +573,9 @@ if foundINV
                 ppsddata.r = iGEOM.radius';
                 ppsddata.psd = data.results.invjoint.iF'./sum(data.results.invjoint.iF);
                 if min(p) == 0
-                    p_tmp = logspace(floor(log10(min(p(p>0)))-2),ceil(log10(max(p)))+2,150);
+                    p_tmp = logspace(floor(log10(min(p(p>0)))-2),ceil(log10(max(p)))+2,200);
                 else
-                    p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,150);
+                    p_tmp = logspace(floor(log10(min(p)/2)),ceil(log10(max(p)))+2,200);
                 end
                 % waitbar option
                 wbopts.show = true;
@@ -761,6 +761,8 @@ if foundINV
             % open INFO field
             set(gui.push_handles.info,'String','<');
             onPushShowHide(gui.push_handles.info);
+            % activate the ConductView GUI
+            set(gui.menu.extra_conduct,'Enable','on');
         end     
     else        
         if ~InvtypeIsOK

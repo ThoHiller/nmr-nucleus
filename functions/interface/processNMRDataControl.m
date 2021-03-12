@@ -44,6 +44,11 @@ if strcmp(nmrdata.flag,'T2')
     nmrraw.phase = nmrdata.phase;
 end
 
+% check if noise was calculated / estimated during import
+% this value is used here
+if isfield(nmrdata,'noise')
+    nmrraw.noise = nmrdata.noise;
+end
 
 % gather all processing parameter
 nmrproc.T1T2 = nmrdata.flag;

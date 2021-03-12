@@ -38,6 +38,7 @@ function onMenuImport(src,~)
 %% get GUI handle and data
 fig = ancestor(src,'figure','toplevel');
 fig_tag = get(fig,'Tag');
+gui = getappdata(fig,'gui');
 
 label = get(src,'Label');
 menu_tag = get(src,'Tag');
@@ -53,7 +54,7 @@ switch fig_tag
             case 'NUCLEUSinv'
                 importINV2INV(src);
             case 'NUCLEUSmod'
-                importMOD2INV(src);
+                importMOD2INV(src);                
             case 'Excel'
                 importEXCELdata(src);
             case 'Ascii'
@@ -61,11 +62,19 @@ switch fig_tag
             case 'Lab'
                 importNMRdata(src);
             otherwise
-                helpdlg({'function: onMenuImport','Menu tag no known.'},...
+                helpdlg({'function: onMenuImport','Menu tag not known.'},...
                     'menu not known')
         end
-        % update the "last import" value within the ini-file
-        gui = getappdata(fig,'gui');
+        
+        % activate the PhaseView GUI in case real data is imported
+        switch menu_tag
+            case {'NUCLEUSinv','NUCLEUSmod'}
+                set(gui.menu.extra_phaseview,'Enable','off');
+            otherwise
+                set(gui.menu.extra_phaseview,'Enable','on');
+        end
+        
+        % update the "last import" value within the ini-file        
         gui.myui.inidata.lastimport = [menu_tag,'_',label];
         setappdata(fig,'gui',gui);
         gui = makeINIfile(gui,'update');

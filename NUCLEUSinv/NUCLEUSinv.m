@@ -38,9 +38,9 @@ h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.10';
-myui.date = '10.09.2020';
-myui.author = 'Thomas Hiller';
+myui.version = '0.1.11';
+myui.date = '12.03.2021';
+myui.author = {'Thomas Hiller','Stephan Costabel'};
 myui.email = 'thomas.hiller[at]leibniz-liag.de';
 myui.fontsize = 10;
 myui.inifile = 'NUCLEUSinv.ini';

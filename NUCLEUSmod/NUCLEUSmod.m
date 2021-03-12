@@ -41,9 +41,9 @@ h0  = findobj('Tag','MOD');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.10';
-myui.date = '10.09.2020';
-myui.author = 'Thomas Hiller';
+myui.version = '0.1.11';
+myui.date = '12.03.2021';
+myui.author = {'Thomas Hiller','Stephan Costabel'};
 myui.email = 'thomas.hiller[at]leibniz-liag.de';
 myui.fontsize = 10;
 
@@ -76,7 +76,6 @@ NUCLEUSmod_createGUI(gui.figh,1);
 
 %% Calculate Initial Geometry
 calculateGeometry;
-
 end
 
 %------------- END OF CODE --------------

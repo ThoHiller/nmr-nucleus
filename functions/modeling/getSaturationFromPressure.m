@@ -12,7 +12,7 @@ function out = getSaturationFromPressure(geom,P,constants)
 %       constants - physical constants (output from 'getConstants')
 %
 % Outputs:
-%       out - output sruct with fields:
+%       out - output structure with fields:
 %           isfullsat(i,d) : full saturation marker (i and d refer to
 %                            imbibition and drainage)
 %           WC(i,d) : water content
@@ -21,12 +21,14 @@ function out = getSaturationFromPressure(geom,P,constants)
 %           Pa(i,d) : NMR active perimeter
 %           Pc(i,d) : critical capillary pressure
 %           R0(i,d) : critical radius for (only 'ang' and 'poly')
+%           K(i,d)  : hydraulic conductivity
 %
 % Example:
 %       out = getSaturationFromPressure(geom,P,constants)
 %
 % Other m-files required:
 %       getCriticalPressure
+%       getConduct
 %       getCornerSaturation
 %
 % Subfunctions:
@@ -36,7 +38,7 @@ function out = getSaturationFromPressure(geom,P,constants)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
+% Author: Thomas Hiller, Stephan Costabel
 % email: thomas.hiller[at]leibniz-liag.de
 % License: MIT License (at end)
 
@@ -50,11 +52,14 @@ WCi = 0;
 Si = 0;
 Aai = 0;
 Pai = 0;
+Ki = 0;
+
 isfullsatd = 0;
 WCd = 0;
 Sd = 0;
 Aad = 0;
 Pad = 0;
+Kd = 0;
 
 %% switch depending on shape
 switch geom.type
@@ -69,6 +74,7 @@ switch geom.type
             Si = 1;
             Aai = geom.A0;
             Pai = geom.P0;
+            Ki = getConduct(geom,constants);
         end
         
         if P <= Pcd
@@ -78,6 +84,7 @@ switch geom.type
             Sd = 1;
             Aad = geom.A0;
             Pad = geom.P0;
+            Kd = getConduct(geom,constants);
         end
         
         out.Pci = Pci;
@@ -86,6 +93,7 @@ switch geom.type
         out.Si = Si;
         out.Aai = Aai;
         out.Pai = Pai;
+        out.Ki = Ki;
         
         out.Pcd = Pcd;
         out.isfullsatd = isfullsatd;
@@ -93,6 +101,7 @@ switch geom.type
         out.Sd = Sd;
         out.Aad = Aad;
         out.Pad = Pad;
+        out.Kd = Kd;
         
     case {'ang','poly'}
         % get the critical pressures and radii
@@ -116,12 +125,14 @@ switch geom.type
             % calculating the amplitudes of the corners
             Aai = geom.A0.*ones(size(geom.angles));
             Pai = geom.P0.*ones(size(geom.angles));
+            Ki = getConduct(geom,constants);
         else
             % pore is partially saturated
             % from Tuller et. al 1999 (eq. B2)
             WCi = geom.AngulFac * r_AM^2;
             Si = WCi / geom.A0;
             [Aai,Pai] = getCornerSaturation(r_AM,geom.angles);
+            Ki = getConduct(geom,constants,r_AM,Aai);
         end
         
         % in the case of drainage
@@ -139,12 +150,14 @@ switch geom.type
             % calculating the amplitudes of the corners
             Aad = geom.A0.*ones(size(geom.angles));
             Pad = geom.P0.*ones(size(geom.angles));
+            Kd = getConduct(geom,constants);
         else
             % pore is partially saturated
             % from Tuller et. al 1999 (eq. B2)
             WCd = geom.AngulFac * r_AM^2;
             Sd = WCd / geom.A0;
             [Aad,Pad] = getCornerSaturation(r_AM,geom.angles);
+            Kd = getConduct(geom,constants,r_AM,Aad);  
         end
         
         out.Pci = Pci;
@@ -154,6 +167,7 @@ switch geom.type
         out.Si = Si;
         out.Aai = Aai;
         out.Pai = Pai;
+        out.Ki = Ki;
         
         out.Pcd = Pcd;
         out.R0d = R0d;
@@ -162,6 +176,7 @@ switch geom.type
         out.Sd = Sd;
         out.Aad = Aad;
         out.Pad = Pad;
+        out.Kd = Kd;
 end
 
 return

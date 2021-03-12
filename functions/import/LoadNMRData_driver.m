@@ -23,6 +23,7 @@ function out = LoadNMRData_driver(in)
 %       LoadNMRData_field
 %       LoadNMRData_dart
 %       LoadNMRData_corelab
+%       LoadNMRData_ibac
 %       LoadNMRData_mouse
 %       LoadNMRData_liag
 %       LoadNMRData_bgr
@@ -66,6 +67,25 @@ switch in.fileformat
         out = LoadNMRData_mouse(in);
     case 'rwth'
         out = LoadNMRData_rwth(in);
+    case 'pm5'
+        out = LoadNMRData_ibac(in);
+    case 'pm25'
+        out = LoadNMRData_ibac(in);
+end
+
+% if an imported T2 signal has no imaginary part, the noise is estimated
+% from an exponential fit
+for i = 1:numel(out.nmrData)
+    if strcmp(out.nmrData{i}.flag,'T2') && isreal(out.nmrData{i}.signal)
+        disp('NUCLUESinv import: Estimating noise from exponential fit ...');
+        param.T1IRfac = out.nmrData{i}.T1IRfac;
+        param.noise = 0;
+        param.optim = 'off';
+        invstd = fitDataFree(out.nmrData{i}.time,out.nmrData{i}.signal,...
+            'T2',param,5);
+        out.nmrData{i}.noise = invstd.rms;
+        disp('NUCLUESinv import: done.')
+    end
 end
 
 return

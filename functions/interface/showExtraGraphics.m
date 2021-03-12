@@ -127,7 +127,14 @@ if foundINV
     if isfield(data.import,'BAM')
         if data.import.BAM.use_z
             xval = data.import.BAM.zslice;
-            xlabelstr = 'position [m]';
+            xlabelstr = 'position';
+        else
+            xlabelstr = 'date' ;
+        end
+    elseif isfield(data.import,'IBAC')
+        if data.import.IBAC.use_z
+            xval = data.import.IBAC.zslice;
+            xlabelstr = 'position';
         else
             xlabelstr = 'date' ;
         end
@@ -228,7 +235,7 @@ if foundINV
                         view([90 0]);
                     else
                         dx = xval(2)-xval(1);
-                        [xx,yy] = meshgrid(Tt',[xval; xval(end)+dx]);
+                        [xx,yy] = meshgrid(Tt',[xval-dx/2; xval(end)+dx/2]);
                         f  = figure;
                         ax = axes('Parent',f);
                         hold(ax,'on')
@@ -247,7 +254,7 @@ if foundINV
                         cmap = jet; cmap = flipud(cmap);
                         colormap(ax,cmap);
                         xlabel(['relaxation time [',timescale,']']);
-                        ylabel('position [m]');
+                        ylabel('position [µm]');
                         cb = colorbar;
                         set(get(cb,'YLabel'),'String','norm. amplitude');
                         

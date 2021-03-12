@@ -47,12 +47,14 @@ gui.menu.file_import_lastimport = uimenu(gui.menu.file_import,...
 % 1.1.1 Lab
 gui.menu.file_import_lab = uimenu(gui.menu.file_import,...
     'Label','Lab');
+
 % 1.1.1.1 BAM
 gui.menu.file_import_lab_bam = uimenu(gui.menu.file_import_lab,...
     'Label','BAM');
 % 1.1.1.1.1 BAM TOM
 gui.menu.file_import_lab_bam_tom = uimenu(gui.menu.file_import_lab_bam,...
     'Label','BAM TOM','Tag','Lab','Callback',@onMenuImport);
+
 % 1.1.1.2 BGR
 gui.menu.file_import_lab_bgr = uimenu(gui.menu.file_import_lab,...
     'Label','BGR');
@@ -65,33 +67,52 @@ gui.menu.file_import_lab_bgr_org = uimenu(gui.menu.file_import_lab_bgr,...
 % 1.1.1.2.3 BGR mat
 gui.menu.file_import_lab_bgr_mat = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','BGR mat','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.3 CoreLab ascii
-gui.menu.file_import_lab_corelab = uimenu(gui.menu.file_import_lab,...
-    'Label','CoreLab ascii','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.4 LIAG
+
+% 1.1.1.3 LIAG
 gui.menu.file_import_lab_liag = uimenu(gui.menu.file_import_lab,...
     'Label','LIAG');
-% 1.1.1.4.1 LIAG
+% 1.1.1.3.1 LIAG
 gui.menu.file_import_lab_liag_single = uimenu(gui.menu.file_import_lab_liag,...
     'Label','LIAG single','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.4.2 LIAG
+% 1.1.1.3.2 LIAG
 gui.menu.file_import_lab_liag_project = uimenu(gui.menu.file_import_lab_liag,...
     'Label','LIAG from project','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.5 MOUSE
-gui.menu.file_import_lab_mouse = uimenu(gui.menu.file_import_lab,...
-    'Label','MOUSE','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.6 RWTH
+
+% 1.1.1.4 RWTH
 gui.menu.file_import_lab_rwth = uimenu(gui.menu.file_import_lab,...
     'Label','RWTH');
-% 1.1.1.6.1 RWTH ascii
-gui.menu.file_import_lab_rwth_ascii = uimenu(gui.menu.file_import_lab_rwth,...
-    'Label','RWTH ascii','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.6.2 RWTH field
-gui.menu.file_import_lab_rwth_field = uimenu(gui.menu.file_import_lab_rwth,...
-    'Label','RWTH field','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.6.3 Dart
-gui.menu.file_import_lab_rwth_dart = uimenu(gui.menu.file_import_lab_rwth,...
-    'Label','Dart','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.4.1 IBAC
+gui.menu.file_import_lab_ibac = uimenu(gui.menu.file_import_lab_rwth,...
+    'Label','IBAC');
+% 1.1.1.4.1.1 IBAC
+gui.menu.file_import_lab_ibac_pm5 = uimenu(gui.menu.file_import_lab_ibac,...
+    'Label','PM5','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.4.1.2 IBAC
+gui.menu.file_import_lab_ibac_pm25 = uimenu(gui.menu.file_import_lab_ibac,...
+    'Label','PM25','Tag','Lab','Callback',@onMenuImport);
+
+% 1.1.1.4.2 GGE
+gui.menu.file_import_lab_gge = uimenu(gui.menu.file_import_lab_rwth,...
+    'Label','GGE');
+% 1.1.1.4.2.1 GGE ascii
+gui.menu.file_import_lab_gge_ascii = uimenu(gui.menu.file_import_lab_gge,...
+    'Label','GGE ascii','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.4.2.2 GGE field
+gui.menu.file_import_lab_gge_field = uimenu(gui.menu.file_import_lab_gge,...
+    'Label','GGE field','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.4.2.3 GGE Dart
+gui.menu.file_import_lab_gge_dart = uimenu(gui.menu.file_import_lab_gge,...
+    'Label','GGE Dart','Tag','Lab','Callback',@onMenuImport);
+
+% 1.1.1.5 OTHER
+gui.menu.file_import_lab_other = uimenu(gui.menu.file_import_lab,...
+    'Label','OTHER');
+% 1.1.1.5.1 CoreLab ascii
+gui.menu.file_import_lab_corelab = uimenu(gui.menu.file_import_lab_other,...
+    'Label','CoreLab ascii','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.5.2 MOUSE
+gui.menu.file_import_lab_mouse = uimenu(gui.menu.file_import_lab_other,...
+    'Label','MOUSE','Tag','Lab','Callback',@onMenuImport);
 
 % 1.1.2 Ascii
 gui.menu.file_import_ascii = uimenu(gui.menu.file_import,...
@@ -262,13 +283,15 @@ switch gui.myui.inidata.expertmode
             'Label','AMP vs TLGM','Enable','off','Callback',@onMenuViewFigures);
         % 2.5.5 relaxation time distribution over time
         gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
-            'Label','RTD','Enable','off','Callback',@onMenuViewFigures);
+            'Label','RTD','Enable','off','Callback',@onMenuViewFigures);   
 end
 
 % 2.6 PhaseView
 gui.menu.extra_phaseview = uimenu(gui.menu.view,...
-    'Label','PhaseView GUI','Callback',@PhaseView);
-
+    'Label','PhaseView GUI','Enable','off','Callback',@PhaseView);
+% 2.7 ConductVIEW -> hydraulic conductivity
+gui.menu.extra_conduct = uimenu(gui.menu.view,...
+    'Label','ConductView GUI','Enable','off','Callback',@onMenuViewFigures);
 
 %% 3. Extras
 gui.menu.extra = uimenu(gui.figh,...

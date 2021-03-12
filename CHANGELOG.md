@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.11] - 2021-03-12
+
+### Added
+- New *ConductView* figure in **NUCLEUSinv** and **NUCLEUSmod** that shows the hydraulic conductivity and permeability
+- New import routines to **NUCLEUSinv** for *IBAC* institute
+- New parameter file values in **NUCLEUSinv** for the *BAM TOM* import 
+
+### Changed
+- Changed the behavior of the *number of echoes per gate* field. Zero is no longer allowed and will be automatically set to 1
+- Rearrangement of some menues regarding the *ConductView* implementation
+- Restructured the import menu of **NUCLEUSinv** so that the *GGE* and *IBAC* institute are now in *RWTH*
+- The y-axis label of the RTD and PSD plots in **NUCLEUSinv** now only shows *water content [vol %]* if the porosity is not 1. This is much more intuitive
+
+### Fixed
+- Fixed two import bugs for *LIAG single/project* data in **NUCLEUSinv** (time scale conversion and background signal treatment)
+- Fixed output data when using the *LU* inversion in **NUCLEUSinv** (before the wrong kernel matrix was stored)
+- Fixed an internal data managment bug when activating/deactivating the joint inversion options
+- Fixed an issue regarding the use of only a single signal for the joint inversion and the inversion-geometry exhibits corners
+
 ## [0.1.10] - 2020-09-10
 
 ### Added
@@ -135,6 +154,7 @@
 
 Initial Version
 
+[0.1.11]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.10...v.0.1.11
 [0.1.10]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.9...v.0.1.10
 [0.1.9]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.8...v.0.1.9
 [0.1.8]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.7...v.0.1.8

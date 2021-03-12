@@ -1,21 +1,21 @@
-function onMenuViewFigures(src,~)
-%onMenuViewFigures handles the extra menu entries to show additional
-%graphical output
+function An = getAreaFactor(n)
+%getAreaFactor calculates the area factor An for polygon according to
+%An = n/4*cot(pi/4);
 %
 % Syntax:
-%       onMenuViewFigures
+%       getAreaFactor(n)
 %
 % Inputs:
-%       src - handle of the calling object
+%       n - number of corners
 %
 % Outputs:
-%       none
+%       An - area factor
 %
 % Example:
-%       onMenuViewFigures(src)
+%       An = getAreaFactor(n)
 %
 % Other m-files required:
-%       showFitStatistics
+%       none
 %
 % Subfunctions:
 %       none
@@ -23,40 +23,26 @@ function onMenuViewFigures(src,~)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% See also:
+%   Tuller & Or, 2001, WRR, Vol. 37(5), 1257-1276
+% Author: Stepahn Costabel
+% email: stephan.costabel[at]bgr.de
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
-%% label of the calling menu
-label = get(src,'Label');
+% effectively this is simply the area of a regular polygon
+% of side length a=1
+An = n/4*cot(pi/n);
 
-% chose the corresponding function
-switch label
-    case 'Parameter Info'
-        showParameterInfo;
-    case 'Fit statistics'
-        showFitStatistics;
-    case 'AMP-TLGM-SNR'
-        showExtraGraphics('amp');
-    case 'AMP vs TLGM'
-        showExtraGraphics('ampvst');
-    case 'RTD'    
-        showExtraGraphics('rtd');
-    case 'ConductView GUI'
-        ConductView(src);
-end
-
-end
+return
 
 %------------- END OF CODE --------------
 
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2019 Stephan Costabel
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
