@@ -31,8 +31,8 @@ function onMenuExpert(src,~)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -48,7 +48,7 @@ onoff = get(src,'Checked');
 
 % deactivate or activate expert mode
 switch onoff
-    case 'on' % it it's on, switch it off
+    case 'on' % if it's on, switch it off
         data.info.ExpertMode = 'off';
         % menu entry
         set(gui.menu.extra_expert,'Checked','off');

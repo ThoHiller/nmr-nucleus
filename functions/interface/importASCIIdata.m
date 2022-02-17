@@ -26,8 +26,8 @@ function importASCIIdata(src)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -129,11 +129,19 @@ if sum(ASCIIpath) > 0
                 data.import.NMR.data{c}.phase = tmp_phase;
             else
                 data.import.NMR.data{c}.signal = tmp_data(:,2);
+                data.import.NMR.data{c}.phase = 0;
+                
+                param.T1IRfac = 1;
+                param.noise = 0;
+                param.optim = 'off';
+                invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                    'T2',param,5);
+                data.import.NMR.data{c}.noise = invstd.rms;
             end
             data.import.NMR.data{c}.T1IRfac = 1;
             data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
             data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-            
+
             % dummy parameter data
             data.import.NMR.para{c} = 0;
         end        

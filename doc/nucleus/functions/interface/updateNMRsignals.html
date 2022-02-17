@@ -43,6 +43,7 @@ signals by porosity (if any)
 
  Other m-files required:
        addNoiseToSignal
+       updatePlotsNMR
 
  Subfunctions:
        none
@@ -51,18 +52,18 @@ signals by porosity (if any)
        none
 
  See also: NUCLEUSmod
- Author: Thomas Hiller
- email: thomas.hiller[at]leibniz-liag.de
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
  License: MIT License (at end)</pre></div>
 
 <!-- crossreference -->
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>	 adds noise with mean 'mu' and standard deviation 'sigma' to</li></ul>
+<li><a href="updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>	 plots the forward modeled NMR data in NUCLEUSmod</li><li><a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>	 adds noise with mean 'mu' and standard deviation 'sigma' to</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>	 updates all edit field values, checks for wrong inputs and</li><li><a href="calculateNMR.html" class="code" title="function calculateNMR">calculateNMR</a>	 calculates the NMR signals for the full and partially saturated</li></ul>
+<li><a href="../../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>	 updates all edit field values, checks for wrong inputs and</li><li><a href="../../../nucleus/callbacks/popup/onPopupNMRNoiseType.html" class="code" title="function onPopupNMRNoiseType(src,~)">onPopupNMRNoiseType</a>	 selects the noise type to be aplied to the forward</li><li><a href="calculateNMR.html" class="code" title="function calculateNMR">calculateNMR</a>	 calculates the NMR signals for the full and partially saturated</li></ul>
 <!-- crossreference -->
 
 
@@ -86,80 +87,108 @@ This function is called by:
 0016 <span class="comment">%</span>
 0017 <span class="comment">% Other m-files required:</span>
 0018 <span class="comment">%       addNoiseToSignal</span>
-0019 <span class="comment">%</span>
-0020 <span class="comment">% Subfunctions:</span>
-0021 <span class="comment">%       none</span>
-0022 <span class="comment">%</span>
-0023 <span class="comment">% MAT-files required:</span>
-0024 <span class="comment">%       none</span>
-0025 <span class="comment">%</span>
-0026 <span class="comment">% See also: NUCLEUSmod</span>
-0027 <span class="comment">% Author: Thomas Hiller</span>
-0028 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
-0029 <span class="comment">% License: MIT License (at end)</span>
-0030 
-0031 <span class="comment">%------------- BEGIN CODE --------------</span>
-0032 
-0033 <span class="comment">%% get GUI handle and data</span>
-0034 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'MOD'</span>);
-0035 data = getappdata(fig,<span class="string">'data'</span>);
-0036 
-0037 <span class="comment">%% only proceed if the noise is larger than 0</span>
-0038 <span class="keyword">if</span> data.nmr.noise &gt; 0
-0039     <span class="comment">% scale noise by porosity</span>
-0040     noise = data.nmr.noise/data.nmr.porosity;
-0041     <span class="comment">% add noise to NMR signals</span>
-0042     [data.results.NMR.EiT1,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EiT1,0,noise);
-0043     [data.results.NMR.EdT1,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EdT1,0,noise);
-0044     [data.results.NMR.EiT2,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EiT2,0,noise);
-0045     [data.results.NMR.EdT2,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EdT2,0,noise);
-0046 <span class="keyword">else</span>
-0047     <span class="comment">% reset the NMR signals with the raw data (without noise)</span>
-0048     data.results.NMR.EiT1 = data.results.NMR.raw.EiT1;
-0049     data.results.NMR.EdT1 = data.results.NMR.raw.EdT1;
-0050     data.results.NMR.EiT2 = data.results.NMR.raw.EiT2;
-0051     data.results.NMR.EdT2 = data.results.NMR.raw.EdT2;
-0052 <span class="keyword">end</span>
-0053 
-0054 <span class="comment">% scale NMR signals by porosity</span>
-0055 data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.EiT1;
-0056 data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.EdT1;
-0057 data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.EiT2;
-0058 data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.EdT2;
-0059 
-0060 <span class="comment">% save the noise value</span>
-0061 data.results.NMR.noise = data.nmr.noise;
-0062 <span class="comment">% save the porosity value</span>
-0063 data.results.NMR.porosity = data.nmr.porosity;
-0064 <span class="comment">% update the GUI data</span>
-0065 setappdata(fig,<span class="string">'data'</span>,data);
-0066 
-0067 <span class="keyword">end</span>
-0068 
-0069 <span class="comment">%------------- END OF CODE --------------</span>
-0070 
-0071 <span class="comment">%% License:</span>
-0072 <span class="comment">% MIT License</span>
-0073 <span class="comment">%</span>
-0074 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0075 <span class="comment">%</span>
-0076 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0077 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0078 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0079 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0080 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0081 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0082 <span class="comment">%</span>
-0083 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0084 <span class="comment">% copies or substantial portions of the Software.</span>
-0085 <span class="comment">%</span>
-0086 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0087 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0088 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0089 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0090 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0091 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0092 <span class="comment">% SOFTWARE.</span></pre></div>
+0019 <span class="comment">%       updatePlotsNMR</span>
+0020 <span class="comment">%</span>
+0021 <span class="comment">% Subfunctions:</span>
+0022 <span class="comment">%       none</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% MAT-files required:</span>
+0025 <span class="comment">%       none</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% See also: NUCLEUSmod</span>
+0028 <span class="comment">% Author: see AUTHORS.md</span>
+0029 <span class="comment">% email: see AUTHORS.md</span>
+0030 <span class="comment">% License: MIT License (at end)</span>
+0031 
+0032 <span class="comment">%------------- BEGIN CODE --------------</span>
+0033 
+0034 <span class="comment">%% get GUI handle and data</span>
+0035 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'MOD'</span>);
+0036 data = getappdata(fig,<span class="string">'data'</span>);
+0037 
+0038 <span class="comment">%% first check what is the noise type</span>
+0039 
+0040 <span class="keyword">switch</span> data.nmr.noisetype
+0041     <span class="keyword">case</span> <span class="string">'level'</span>
+0042         noise = data.nmr.noise;
+0043     <span class="keyword">case</span> <span class="string">'SNR'</span>
+0044         SNR = data.nmr.noise;
+0045         noise = 1./SNR;
+0046 <span class="keyword">end</span>
+0047 
+0048 <span class="comment">%% only proceed if the noise is larger than 0</span>
+0049 <span class="keyword">if</span> noise &gt; 0
+0050     <span class="keyword">switch</span> data.nmr.noisetype
+0051         <span class="keyword">case</span> <span class="string">'level'</span>
+0052             <span class="comment">% scale noise by porosity</span>
+0053             noise = noise/data.nmr.porosity;
+0054             <span class="comment">% add noise to NMR signals</span>
+0055             [data.results.NMR.EiT1,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EiT1,0,noise);
+0056             [data.results.NMR.EdT1,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EdT1,0,noise);
+0057             [data.results.NMR.EiT2,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EiT2,0,noise);
+0058             [data.results.NMR.EdT2,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EdT2,0,noise);
+0059             noiseM = noise*ones(size(data.results.NMR.EiT1,2),4);
+0060         <span class="keyword">case</span> <span class="string">'SNR'</span>
+0061             SNR = data.nmr.noise;
+0062             noiseM(:,1) = data.results.NMR.EiT1(:,end)./SNR;
+0063             [data.results.NMR.EiT1,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EiT1,0,noiseM(:,1));
+0064             noiseM(:,2) = data.results.NMR.EdT1(:,end)./SNR;
+0065             [data.results.NMR.EdT1,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EdT1,0,noiseM(:,2));
+0066             noiseM(:,3) = data.results.NMR.EiT2(:,1)./SNR;
+0067             [data.results.NMR.EiT2,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EiT2,0,noiseM(:,3));
+0068             noiseM(:,4) = data.results.NMR.EdT2(:,1)./SNR;
+0069             [data.results.NMR.EdT2,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(data.results.NMR.raw.EdT2,0,noiseM(:,4));            
+0070     <span class="keyword">end</span>
+0071 <span class="keyword">else</span>
+0072     <span class="comment">% reset the NMR signals with the raw data (without noise)</span>
+0073     data.results.NMR.EiT1 = data.results.NMR.raw.EiT1;
+0074     data.results.NMR.EdT1 = data.results.NMR.raw.EdT1;
+0075     data.results.NMR.EiT2 = data.results.NMR.raw.EiT2;
+0076     data.results.NMR.EdT2 = data.results.NMR.raw.EdT2;
+0077     noiseM = zeros(size(data.results.NMR.EiT1,2),4);
+0078 <span class="keyword">end</span>
+0079 
+0080 <span class="comment">% scale NMR signals by porosity</span>
+0081 data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.EiT1;
+0082 data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.EdT1;
+0083 data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.EiT2;
+0084 data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.EdT2;
+0085 
+0086 <span class="comment">% save the noise matrix values</span>
+0087 data.results.NMR.noise = noiseM;
+0088 <span class="comment">% save the porosity value</span>
+0089 data.results.NMR.porosity = data.nmr.porosity;
+0090 <span class="comment">% update the GUI data</span>
+0091 setappdata(fig,<span class="string">'data'</span>,data);
+0092 <span class="comment">% update the NMR plot window</span>
+0093 <a href="updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
+0094 
+0095 <span class="keyword">end</span>
+0096 
+0097 <span class="comment">%------------- END OF CODE --------------</span>
+0098 
+0099 <span class="comment">%% License:</span>
+0100 <span class="comment">% MIT License</span>
+0101 <span class="comment">%</span>
+0102 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0103 <span class="comment">%</span>
+0104 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0105 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0106 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0107 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0108 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0109 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0110 <span class="comment">%</span>
+0111 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0112 <span class="comment">% copies or substantial portions of the Software.</span>
+0113 <span class="comment">%</span>
+0114 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0115 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0116 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0117 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0118 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0119 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0120 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

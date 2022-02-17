@@ -1,4 +1,4 @@
-function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)
+function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)
 %createKernelMatrix creates a Kernel matrix from signal time vector "t"
 %and relaxation time vector "T"
 %
@@ -9,6 +9,7 @@ function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)
 %       t - signal time vector
 %       T - relaxation times vector
 %       Tbulk - bulk relaxation time
+%       Tdiff - diffusion relaxation time
 %       Tflag - 'T1' or 'T2'
 %       T1IRfac - 1 or 2 (Sat. or Inv. Recovery)
 %
@@ -16,7 +17,7 @@ function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)
 %       K - Kernel matrix size(length(t),length(T))
 %
 % Example:
-%       K = createKernelMatrix(t,T,2,'T1')
+%       K = createKernelMatrix(t,T,2,3,'T1',1)
 %
 % Other m-files required:
 %       none
@@ -28,8 +29,8 @@ function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -42,9 +43,9 @@ Tr = repmat(T,[numel(t),1]);
 %% calculate K
 switch Tflag    
     case 'T1'
-        K = 1-T1IRfac.*(exp(-tr./Tr).*exp(-tr./Tbulk));
+        K = 1-T1IRfac.*(exp(-tr./Tr).*exp(-tr./Tbulk).*exp(-tr./Tdiff));
     case 'T2'              
-        K = exp(-tr./Tr).*exp(-tr./Tbulk);
+        K = exp(-tr./Tr).*exp(-tr./Tbulk).*exp(-tr./Tdiff);
 end
 
 return

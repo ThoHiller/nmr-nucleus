@@ -24,8 +24,8 @@ function [gui] = NUCLEUSmod_createStatusbar(gui)
 %
 % See also: NUCLEUSmod
 
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 
 %------------- BEGIN CODE --------------
 

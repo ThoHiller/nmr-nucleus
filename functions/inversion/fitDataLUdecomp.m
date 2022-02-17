@@ -12,6 +12,7 @@ function fitdata = fitDataLUdecomp(time,signal,parameter)
 %                   T1T2    : flag between 'T1' or 'T2' inversion
 %                   T1IRfac : either '1' or '2' depending on T1 method
 %                   Tb      : bulk relaxation time
+%                   Td      : diffusion relaxation time
 %                   Tint    : relaxation times [log10(tmin) log10(tmax) Ndec]
 %                   Lorder  : smoothness constraint (derivative matrix)
 %                   lambda  : regularization parameter (if -1 automatic
@@ -54,8 +55,8 @@ function fitdata = fitDataLUdecomp(time,signal,parameter)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % NOTE: I harvested this routine partly from the Internet but forgot where
 % I found the routines ... so there is no warranty at all
 
@@ -77,6 +78,7 @@ g = signal./maxS;
 flag = parameter.T1T2;       % T1/T2 switch
 T1IRfac = parameter.T1IRfac; % T1 Sat/Inv Recovery factor
 Tb = parameter.Tb;           % bulk relaxation time
+Td = parameter.Td;           % diffusion relaxation time
 tstart = parameter.Tint(1);  % log10 value
 tend = parameter.Tint(2);    % log10 value
 N = parameter.Tint(3);       % N per decade
@@ -88,7 +90,7 @@ noise = parameter.noise;     % noise
 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
 
 % create the Kernel matrix
-K = createKernelMatrix(t,T1T2me,Tb,flag,T1IRfac);
+K = createKernelMatrix(t,T1T2me,Tb,Td,flag,T1IRfac);
 
 % calculate reg matrix H
 m  = length(T1T2me);
@@ -165,10 +167,10 @@ rn = norm(out.residual,2);
 % get "initial" value E0
 if strcmp(flag,'T1')
     t2 = 10*time(end);
-    K2 = createKernelMatrix(t2,T1T2me,Tb,flag,T1IRfac);
+    K2 = createKernelMatrix(t2,T1T2me,Tb,Td,flag,T1IRfac);
 elseif strcmp(flag,'T2')
     t2 = 0;
-    K2 = createKernelMatrix(t2,T1T2me,Tb,flag,T1IRfac);
+    K2 = createKernelMatrix(t2,T1T2me,Tb,Td,flag,T1IRfac);
 end
 E0 = K2*f;
 

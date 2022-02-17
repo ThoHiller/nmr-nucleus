@@ -23,8 +23,8 @@ function updatePlotsDistribution
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -78,7 +78,8 @@ if isfield(data.results,'invstd')
             
         case 'free'
             mymark = {'o-','+-','s-','d-','x-'};
-            mycols = [22 140 75;22 87 140;140 22 87;140 75 22;64 64 64]./255;
+            mycols = [0.8941 0.1020 0.1098;0.3020 0.6863 0.2902;
+                0.2157 0.4941 0.7216;0.5961 0.3059 0.6392;0.6510 0.3373 0.1569];
             switch nmrproc.T1T2
                 case 'T1'
                     T = invstd.T1;
@@ -102,7 +103,7 @@ if isfield(data.results,'invstd')
             % grid
             grid(ax,'on');
             
-        case {'LU','NNLS'}
+        case {'LU'}
             % scale distribution by porosity
             F = invstd.T1T2f;
             if sum(F)>0
@@ -145,7 +146,211 @@ if isfield(data.results,'invstd')
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
                     % y-label
-                    set(get(ax,'YLabel'),'String',ylab2);                    
+                    set(get(ax,'YLabel'),'String',ylab2);
+            end
+            
+            % x-limits
+            ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
+            set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+            % x-label
+            set(get(ax,'XLabel'),'String',xlstring);
+            % grid
+            grid(ax,'on');
+            
+        case {'NNLS'}
+            % scale distribution by porosity
+            F = invstd.T1T2f;
+            if sum(F)>0
+                % apply same scaling to the uncertainty patch
+                if isfield(data.results.invstd,'uncert')
+                    f_min = data.results.invstd.uncert.interp_f_min;
+                    f_max = data.results.invstd.uncert.interp_f_max;
+                    f_min = (data.invstd.porosity*100).*f_min./sum(F);
+                    f_max = (data.invstd.porosity*100).*f_max./sum(F);
+                end                
+                F = (data.invstd.porosity*100).*F./sum(F);
+                
+                ylims = [0 max(F)*1.05];
+            else
+                ylims = [-1 1];
+            end
+            if data.invstd.porosity == 1
+                ylab1 = 'amplitudes [-]';
+                ylab2 = 'cumulative amplitudes [-]';
+            else
+                ylab1 = 'water content [vol. %]';
+                ylab2 = 'cumulative water content [vol. %]';
+            end
+            % F = data.invstd.porosity.*F./trapz(T,F);
+            
+            switch data.info.RTDflag
+                case 'freq'
+                    if isfield(data.results.invstd,'uncert')
+                        % plot uncertainty
+                        for i = 1:size(invstd.uncert.interp_f,1)
+                         plot(invstd.T1T2me,(data.invstd.porosity*100).*invstd.uncert.interp_f(i,:)./sum(invstd.T1T2f),...
+                         '-','Color',[0.5 0.5 0.5],'LineWidth',1,'Parent',ax);
+                         end
+%                         verts = [invstd.T1T2me f_min'; flipud(invstd.T1T2me) flipud(f_max')];
+%                         faces = 1:1:size(verts,1);
+%                         patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+%                             'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                        % adjust y-limits
+                        ylims(2) = max([ylims(2) max(f_max)*1.05]);
+                    end
+                    
+                    plot(invstd.T1T2me,F,'-','Color',col.FIT,...
+                        'LineWidth',2,'Parent',ax);
+                    % find approx. TLGM amplitude
+                    amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
+                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    
+                    % y-limits
+                    set(ax,'YScale','lin','YLim',ylims);
+                    % y-label
+                    set(get(ax,'YLabel'),'String',ylab1);
+                    
+                case 'cum'
+                    if isfield(data.results.invstd,'uncert')
+                        verts = [invstd.T1T2me cumsum(F)-f_min'; flipud(invstd.T1T2me) flipud(cumsum(F)+f_max')];
+                        faces = 1:1:size(verts,1);
+                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                    end
+                    plot(invstd.T1T2me,cumsum(F),'-','Color',col.FIT,...
+                        'LineWidth',2,'Parent',ax);
+                    % find approx. TLGM amplitude
+                    amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
+                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    
+                    % y-limits
+                    set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
+                    % y-label
+                    set(get(ax,'YLabel'),'String',ylab2);
+            end
+            
+            % x-limits
+            ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
+            set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+            % x-label
+            set(get(ax,'XLabel'),'String',xlstring);
+            % grid
+            grid(ax,'on');    
+            
+        case {'MUMO'}
+            % single distributions for different T, sigma and amplitude
+            dist = zeros(length(invstd.x)/3,numel(invstd.T1T2me));
+            for i = 1:length(invstd.x)/3
+                mu = invstd.T(i);
+                sigma = invstd.S(i);
+                amp = invstd.E(i);
+                
+                tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(invstd.T1T2me) - log(mu))/ sqrt(2)/sigma).^2);
+                
+                % scale to amplitude
+                dist(i,:) = (tmp/sum(tmp)) * amp;
+            end
+            
+            % scale distribution by porosity
+            F = invstd.T1T2f;
+            if sum(F)>0
+                for i = 1:length(invstd.x)/3
+                    dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F);
+                end
+                % apply same scaling to the uncertainty patch
+                if isfield(data.results.invstd,'uncert')
+                    f_min = data.results.invstd.uncert.interp_f_min;
+                    f_max = data.results.invstd.uncert.interp_f_max;
+                    f_min = (data.invstd.porosity*100).*f_min./sum(F);
+                    f_max = (data.invstd.porosity*100).*f_max./sum(F);
+                end
+                F = (data.invstd.porosity*100).*F./sum(F);
+                
+                ylims = [0 max(F)*1.05];
+            else
+                ylims = [-1 1];
+            end
+            if data.invstd.porosity == 1
+                ylab1 = 'amplitudes [-]';
+                ylab2 = 'cumulative amplitudes [-]';
+            else
+                ylab1 = 'water content [vol. %]';
+                ylab2 = 'cumulative water content [vol. %]';
+            end
+            % F = data.invstd.porosity.*F./trapz(T,F);
+            
+            mycols = [0.2157 0.4941 0.7216;0.3020 0.6863 0.2902;
+                0.5961 0.3059 0.6392;0.6510 0.3373 0.1569;0.8941 0.1020 0.1098];
+            
+            switch data.info.RTDflag
+                case 'freq'
+                    if isfield(data.results.invstd,'uncert')
+                        % plot uncertainty
+                        % lines
+                        % for i = 1:size(invstd.TDIST,1)
+                        %  plot(invstd.T1T2me,(data.invstd.porosity*100).*invstd.TDIST(i,:)./sum(invstd.T1T2f),...
+                        %  '-','Color',[0.5 0.5 0.5],'LineWidth',1,'Parent',ax);
+                        %  end
+                        % patch
+%                         TDIST = invstd.TDIST;
+%                         for i = 1:size(invstd.TDIST,1)
+%                             TDIST(i,:) = (data.invstd.porosity*100).*invstd.TDIST(i,:)./sum(invstd.T1T2f);
+%                         end
+%                         TDISTmin = min(TDIST);
+%                         TDISTmax = max(TDIST);
+%                         verts = [nmrproc.t(nmrproc.t>0) s_min; flipud(nmrproc.t(nmrproc.t>0)) flipud(s_max)];
+%                         faces = 1:1:size(verts,1);
+%                 
+                        verts = [invstd.T1T2me f_min'; flipud(invstd.T1T2me) flipud(f_max')];
+                        faces = 1:1:size(verts,1);
+                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                        % adjust y-limits
+                        ylims(2) = max([ylims(2) max(f_max)*1.05]);
+                    end
+                    
+                    % plot total RTD
+                    plot(invstd.T1T2me,F,'-','Color',col.FIT,...
+                        'LineWidth',2,'Parent',ax);
+                    % plot individual RTDs
+                    for i = 1:length(invstd.x)/3
+                        plot(invstd.T1T2me,dist(i,:),'--','Color',mycols(i,:),...
+                            'LineWidth',2,'Parent',ax);
+                    end
+                    % find approx. TLGM amplitude
+                    amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
+                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    
+                    % y-limits
+                    set(ax,'YScale','lin','YLim',ylims);
+                    % y-label
+                    set(get(ax,'YLabel'),'String',ylab1);
+                    
+                case 'cum'
+                    if isfield(data.results.invstd,'uncert')
+                        verts = [invstd.T1T2me cumsum(F)-f_min'; flipud(invstd.T1T2me) flipud(cumsum(F)+f_max')];
+                        faces = 1:1:size(verts,1);
+                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                    end
+                    plot(invstd.T1T2me,cumsum(F),'-','Color',col.FIT,...
+                        'LineWidth',2,'Parent',ax);
+                    for i = 1:length(invstd.x)/3
+                        plot(invstd.T1T2me,cumsum(dist(i,:)),'--','Color',mycols(i,:),...
+                            'LineWidth',2,'Parent',ax);
+                    end
+                    % find approx. TLGM amplitude
+                    amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
+                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    
+                    % y-limits
+                    set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
+                    % y-label
+                    set(get(ax,'YLabel'),'String',ylab2);
             end
             
             % x-limits
@@ -198,7 +403,8 @@ if isfield(data.results,'invstd')
             
         case 'free'
             mymark = {'o-','+-','s-','d-','x-'};
-            mycols = [22 140 75;22 87 140;140 22 87;140 75 22;64 64 64]./255;
+            mycols = [0.8941 0.1020 0.1098;0.3020 0.6863 0.2902;
+                0.2157 0.4941 0.7216;0.5961 0.3059 0.6392;0.6510 0.3373 0.1569];
             switch nmrproc.T1T2
                 case 'T1'
                     T = invstd.T1;
@@ -233,7 +439,7 @@ if isfield(data.results,'invstd')
                         'LineWidth',2,'Parent',ax);
                     % find approx. RLGM amplitude
                     amp = findApproxTlgmAmplitude(requiv,F,Rlgm);
-                    stem(Rlgm,amp,'x-','Color',[0.3 0.3 0.3],'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
@@ -245,7 +451,67 @@ if isfield(data.results,'invstd')
                         'LineWidth',2,'Parent',ax);
                     % find approx. RLGM amplitude
                     amp = findApproxTlgmAmplitude(requiv,cumsum(F),Rlgm);
-                    stem(Rlgm,amp,'x-','Color',[0.3 0.3 0.3],'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    
+                    % y-limits
+                    set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
+                    % y-label
+                    set(get(ax,'YLabel'),'String',ylab2);
+            end
+            
+            % x-limits
+            ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
+            %         set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+            set(ax,'XScale','log','XLim',[min(requiv) max(requiv)],'XTick',10.^ticks);
+            % x-label
+            set(get(ax,'XLabel'),'String',xlstring);
+            % grid
+            grid(ax,'on');
+            
+        case {'MUMO'}
+            % very basic RTD to PSD conversion
+            requiv = invstd.T1T2me.*rho.*a;
+            Rlgm = invstd.Tlgm.*rho.*a;
+            
+            switch data.info.PSDflag
+                case 'freq'
+                    if isfield(data.results.invstd,'uncert')
+                        verts = [requiv f_min'; flipud(requiv) flipud(f_max')];
+                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                        % adjust y-limits
+                        ylims(2) = max([ylims(2) max(f_max)*1.05]);
+                    end
+                    plot(requiv,F,'-','Color',col.FIT,...
+                        'LineWidth',2,'Parent',ax);
+                    for i = 1:length(invstd.x)/3
+                        plot(requiv,dist(i,:),'--','Color',mycols(i,:),...
+                            'LineWidth',2,'Parent',ax);
+                    end                    
+                    % find approx. RLGM amplitude
+                    amp = findApproxTlgmAmplitude(requiv,F,Rlgm);
+                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    
+                    % y-limits
+                    set(ax,'YScale','lin','YLim',ylims);
+                    % y-label
+                    set(get(ax,'YLabel'),'String',ylab1);
+                    
+                case 'cum'
+                    if isfield(data.results.invstd,'uncert')
+                        verts = [requiv cumsum(F)-f_min'; flipud(requiv) flipud(cumsum(F)+f_max')];
+                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                    end
+                    plot(requiv,cumsum(F),'-','Color',col.FIT,...
+                        'LineWidth',2,'Parent',ax);
+                    for i = 1:length(invstd.x)/3
+                        plot(requiv,cumsum(dist(i,:)),'--','Color',mycols(i,:),...
+                            'LineWidth',2,'Parent',ax);
+                    end                    
+                    % find approx. RLGM amplitude
+                    amp = findApproxTlgmAmplitude(requiv,cumsum(F),Rlgm);
+                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);

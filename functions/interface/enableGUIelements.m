@@ -24,8 +24,8 @@ function enableGUIelements(importtype)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -54,7 +54,7 @@ switch importtype
         % process panel
         data.process.end = 0;
         switch data.import.fileformat
-            case {'field','dart'}
+            case {'dart','field','helios'}
                 data.process.gatetype = 'raw';
             otherwise
                 data.process.gatetype = 'log';

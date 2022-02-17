@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of LoadNMRData_helios</title>
+  <meta name="keywords" content="LoadNMRData_helios">
+  <meta name="description" content=" loads BGR NMR data from a typical folder structure">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html import -->
+<h1>LoadNMRData_helios
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> loads BGR NMR data from a typical folder structure</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = LoadNMRData_helios(in) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">LoadNMRData_helios loads BGR NMR data from a typical folder structure 
+produced by the Helios NMR Scanner 
+
+ Syntax:
+       out = LoadNMRData_helios(in)
+
+ Inputs:
+       in - input structure
+       in.path - data path
+       in.T1T2 - T1 / T2 flag
+       in.fileformat - 'helios'
+
+ Outputs:
+       out - output structure
+       out.parData - parameter file data
+       out.nmrData - NMR data
+
+ Example:
+       out = LoadNMRData_helios(in)
+
+ Other m-files required:
+       fixParameterString
+
+ Subfunctions:
+       LoadDataFile
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_helios(in)</a>
+0002 <span class="comment">%LoadNMRData_helios loads BGR NMR data from a typical folder structure</span>
+0003 <span class="comment">%produced by the Helios NMR Scanner</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       out = LoadNMRData_helios(in)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       in - input structure</span>
+0010 <span class="comment">%       in.path - data path</span>
+0011 <span class="comment">%       in.T1T2 - T1 / T2 flag</span>
+0012 <span class="comment">%       in.fileformat - 'helios'</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Outputs:</span>
+0015 <span class="comment">%       out - output structure</span>
+0016 <span class="comment">%       out.parData - parameter file data</span>
+0017 <span class="comment">%       out.nmrData - NMR data</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Example:</span>
+0020 <span class="comment">%       out = LoadNMRData_helios(in)</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Other m-files required:</span>
+0023 <span class="comment">%       fixParameterString</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Subfunctions:</span>
+0026 <span class="comment">%       LoadDataFile</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% MAT-files required:</span>
+0029 <span class="comment">%       none</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% See also: NUCLEUSinv</span>
+0032 <span class="comment">% Author: see AUTHORS.md</span>
+0033 <span class="comment">% email: see AUTHORS.md</span>
+0034 <span class="comment">% License: MIT License (at end)</span>
+0035 
+0036 <span class="comment">%------------- BEGIN CODE --------------</span>
+0037 
+0038 <span class="comment">%% start processing the files</span>
+0039 
+0040 <span class="comment">% read the data file</span>
+0041 datafile = dir(fullfile(in.path,in.name));
+0042 [data,parData] = <a href="#_sub1" class="code" title="subfunction [data,pardata] = LoadDataFile(datapath,fname,flag)">LoadDataFile</a>(in.path,in.name,in.T1T2);
+0043 
+0044 <span class="comment">% get file statistics</span>
+0045 nmrData.datfile = datafile.name;
+0046 nmrData.date = datafile.date;
+0047 nmrData.datenum = datafile.datenum;
+0048 nmrData.bytes = datafile.bytes;
+0049 
+0050 <span class="comment">% save the NMR data</span>
+0051 nmrData.flag = data.flag;
+0052 nmrData.T1IRfac = 1;
+0053 nmrData.time = data.time;
+0054 nmrData.signal = data.signal;
+0055 nmrData.raw = data.raw;
+0056 <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
+0057     nmrData.phase = data.phase;
+0058 <span class="keyword">end</span>
+0059 
+0060 <span class="comment">% save data to output struct</span>
+0061 out.parData = parData;
+0062 out.nmrData = nmrData;
+0063 
+0064 <span class="keyword">end</span>
+0065 
+0066 <span class="comment">%% load NMR data file</span>
+0067 <a name="_sub1" href="#_subfunctions" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a>
+0068 
+0069 A = importdata(fullfile(datapath,fname),<span class="string">'\t'</span>);
+0070 t_echo = A(1,2);
+0071 n_echo = A(1,3);
+0072 
+0073 time = t_echo:t_echo:t_echo*n_echo;
+0074 time = time(:);
+0075 re = -A(2,1:length(time));
+0076 im = -A(3,1:length(time));
+0077 re = re(:);
+0078 im = im(:);
+0079 
+0080 data.flag = flag;
+0081 data.time = time;
+0082 data.signal = complex(re,im);
+0083 [data.signal,data.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(data.signal);
+0084 
+0085 data.raw.time = data.time;
+0086 data.raw.signal = data.signal;
+0087 
+0088 pardata.t_echo = t_echo; 
+0089 pardata.n_echo = n_echo; 
+0090 
+0091 <span class="keyword">end</span>
+0092 <span class="comment">%------------- END OF CODE --------------</span>
+0093 
+0094 <span class="comment">%% License:</span>
+0095 <span class="comment">% MIT License</span>
+0096 <span class="comment">%</span>
+0097 <span class="comment">% Copyright (c) 2021 Stephan Costabel</span>
+0098 <span class="comment">%</span>
+0099 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0100 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0101 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0102 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0103 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0104 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0105 <span class="comment">%</span>
+0106 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0107 <span class="comment">% copies or substantial portions of the Software.</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0110 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0111 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0112 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0113 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0114 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0115 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

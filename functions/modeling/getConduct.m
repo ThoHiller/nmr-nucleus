@@ -32,8 +32,8 @@ function K = getConduct(geom,constants,varargin)
 % See also:
 %   Tuller & Or, 2001, WRR, Vol. 37(5), 1257-1276
 %   Patzek & Silin, 2001, JColIntSci, Vol. 236(2), 295-304
-% Author: Stepahn Costabel
-% email: stephan.costabel[at]bgr.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

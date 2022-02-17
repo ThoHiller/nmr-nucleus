@@ -22,7 +22,7 @@ modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**
 <a name="about"></a>
 ### About
 
-**NUCLEUS** is a set of MATLAB<sup>TM</sup> tools, that allow forward and inverse modeling of nuclear magnetic resonance (NMR) relaxometry data. The main front-ends to these tools are two graphical user interfaces, **NUCLEUSmod** and **NUCLEUSinv** for forward and inverse modeling, respectively. For simple NMR relaxometry data inversion, the **NUCLEUSinv** GUI may be a little *feature-rich*. But one of the ideas, when starting to develop this code, was to help students understand the basic concepts of NMR relaxometry data inversion.
+**NUCLEUS** is a set of MATLAB<sup>TM</sup> tools, that allow forward and inverse modeling of nuclear magnetic resonance (NMR) relaxometry data (T<sub>1</sub> and T<sub>2</sub> relaxation). The main front-ends to these tools are two graphical user interfaces, **NUCLEUSmod** and **NUCLEUSinv** for forward and inverse modeling, respectively. For simple NMR relaxometry data inversion, the **NUCLEUSinv** GUI may be a little *feature-rich*. But one of the ideas, when starting to develop this code, was to help students understand the basic concepts of NMR relaxometry data inversion.
 
 ###### NUCLEUSmod basic features:
 
@@ -62,7 +62,7 @@ If you do not have the Optimization or Statistics toolboxes then not all feature
 
 #### Operating System
 
-I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2014b and newer. Always with the latest version of the GUI Layout Toolbox (current version is v2.3.4)
+I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2014b and newer. Always with the latest version of the GUI Layout Toolbox (current version is v2.3.5)
 
 **NOTE:** So far I did not test anything on Linux or a Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
 
@@ -108,13 +108,15 @@ In no particular order and without guarantee that it will ever happen :-) :
 ### Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2021, March 12). ThoHiller/nmr-nucleus: v0.1.11 (Version v0.1.11). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
+Thomas Hiller. (2021, March 12). ThoHiller/nmr-nucleus: v0.1.12 (Version v0.1.12). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
+
 ### References
 
-1. Hiller, T. and Klitzsch, N., "Joint inversion of nuclear magnetic resonance data from partially saturated rocks using a triangular pore model", *GEOPHYSICS* **83**(4), JM15-JM28, 2018, [DOI](https://doi.org/10.1190/geo2017-0697.1)
-2. Costabel, S. and Hiller, T., "Soil hydraulic interpretation of nuclear magnetic resonance measurements based on circular and triangular capillary models", *Vadose Zone Journal*, 2021, e20104, [DOI](https://doi.org/10.1002/vzj2.20104)
+1. Hiller, T., Costabel, S., Radic, T., Dlugosch, R. and Müller-Petke, M. "Feasibility study on prepolarized surface nuclear magnetic resonance for soil moisture measurements", *Vadose Zone Journal*, **20**(5), 2021, e20138, [DOI](https://doi.org/10.1002/vzj2.20138)
+2. Costabel, S. and Hiller, T., "Soil hydraulic interpretation of nuclear magnetic resonance measurements based on circular and triangular capillary models", *Vadose Zone Journal*, **20**(2), 2021, e20104, [DOI](https://doi.org/10.1002/vzj2.20104)
+3. Hiller, T. and Klitzsch, N., "Joint inversion of nuclear magnetic resonance data from partially saturated rocks using a triangular pore model", *GEOPHYSICS*, **83**(4), JM15-JM28, 2018, [DOI](https://doi.org/10.1190/geo2017-0697.1)
 
 - - -
 <p style="text-align: center;"> MATLAB is a registered trademark of The Mathworks, Inc. </p>

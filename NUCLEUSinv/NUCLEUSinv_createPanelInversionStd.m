@@ -26,8 +26,8 @@ function [gui,myui] = NUCLEUSinv_createPanelInversionStd(data,gui,myui)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -62,10 +62,10 @@ gui.text_handles.invstd_InvType = uicontrol('Parent',gui.panels.invstd.HBox1,...
 switch data.info.ExpertMode
     case 'on'
         tstr = ' ';
-        istring = {'Mono exp.','Several free exp. (2-5)','Multi exp. (LSQ)','Multi exp. (LU decomp.)'};
+        istring = {'Mono exp.','N free exp. (2-5)','Multi exp. (LSQ)','Multi exp. (LU decomp.)','Multi modal'};
     case 'off'
         tstr = ' ';
-        istring = {'Mono exp.','Several free exp. (2-5)','Multi exp. (LSQ)'};
+        istring = {'Mono exp.','N free exp. (2-5)','Multi exp. (LSQ)'};
 end
 gui.popup_handles.invstd_InvType = uicontrol('Parent',gui.panels.invstd.HBox1,...
     'Style','popup','String',istring,'FontSize',myui.fontsize,'Enable','off','Value',3,...

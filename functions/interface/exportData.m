@@ -29,8 +29,8 @@ function exportData(fig_tag,format)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -149,7 +149,7 @@ switch fig_tag
                                 idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,'results');
                                 
                                 % save to file
-                                save(fullfile(spath,sfile),'idata');
+                                save(fullfile(spath,sfile),'idata','-v7.3');
                                 
                                 % display info text
                                 displayStatusText(gui,...
@@ -183,7 +183,7 @@ switch fig_tag
                                 idata.NUCLEUSinv_GUI = rmfield(idata.NUCLEUSinv_GUI,'results');
                                 
                                 % save to file
-                                save(fullfile(spath,sfile),'idata');
+                                save(fullfile(spath,sfile),'idata','-v7.3');
                                 
                                 % display info text
                                 displayStatusText(gui,...
@@ -330,7 +330,7 @@ switch fig_tag
                     if ~isequal(FileName,0) || ~isequal(PathName,0)
                         clear data
                         data = out; %#ok<NASGU>
-                        save(fullfile(PathName,FileName),'data');
+                        save(fullfile(PathName,FileName),'data','-v7.3');
                         displayStatusText(gui,'Saving to MAT-file ... done.');
                     else
                         displayStatusText(gui,'Saving to MAT-file ... canceled.');
@@ -424,7 +424,7 @@ switch INVdata{id}.invstd.invtype
                 header4 = {['T2 [',unit,']'],'amplitude [a.u.]'};
         end
         
-    case {'LU','NNLS'}
+    case {'LU','NNLS','MUMO'}
         tmp4 = [INVdata{id}.results.invstd.T1T2me(:)...
             INVdata{id}.results.invstd.T1T2f(:)];
         header4 = {['relaxation times [',unit,']'],'amplitudes [a.u.]'};

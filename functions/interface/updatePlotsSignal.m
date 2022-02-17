@@ -24,8 +24,8 @@ function updatePlotsSignal
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -121,8 +121,10 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axI);
         imag_mean = mean(imag(nmrraw.s));
         imag_std = std(imag(nmrraw.s));
-        yticks = linspace(min(imag(nmrraw.s)),max(imag(nmrraw.s)),3);
-        set(axI,'XTickLabel','','YTick',yticks,'YTickLabelMode','auto');
+%         yticks = linspace(min(imag(nmrraw.s)),max(imag(nmrraw.s)),3);
+        yticks = [imag_mean-imag_std*2 0 imag_mean+imag_std*2];
+        ylim = [imag_mean-imag_std*3 imag_mean+imag_std*3];
+        set(axI,'XTickLabel','','YLim',ylim,'YTick',yticks,'YTickLabelMode','auto');
         switch loglinx
             case 'x-axis -> lin' % log axes
                 set(axI,'XScale','log','XLim',xlims);
@@ -144,16 +146,47 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     hold(axE,'on');
     
     % data
-    plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
-    if isfield(data.results,'invstd')
-        plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,'Parent',ax);
-        if nmrproc.noise > 0
-            plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',col.IM,...
-                'LineWidth',1,'Parent',axE);            
-        else
-            plot(nmrproc.t,invstd.residual,'Color',col.IM,...
-                'LineWidth',1,'Parent',axE);
-        end
+    switch data.invstd.invtype
+        case {'MUMO','NNLS'}
+            if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
+                % uncertainty patch created from min max of uncertainty
+                % data
+                s_min = data.results.invstd.uncert.interp_s_min;
+                s_max = data.results.invstd.uncert.interp_s_max;
+                t = data.results.invstd.uncert.interp_t;
+                verts = [t(t>0) s_min(t>0); flipud(t(t>0)) flipud(s_max(t>0))];
+                faces = 1:1:size(verts,1);
+                patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                    'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+            end
+            
+            if isfield(data.results,'invstd')
+                plot(nmrproc.t,nmrproc.s,'-','Color',col.RE,'LineWidth',1,'Parent',ax);
+                plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,'Parent',ax);
+                if nmrproc.noise > 0
+                    plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',col.IM,...
+                        'LineWidth',1,'Parent',axE);
+                else
+                    plot(nmrproc.t,invstd.residual,'Color',col.IM,...
+                        'LineWidth',1,'Parent',axE);
+                end
+            else
+                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
+            end
+        otherwise            
+            if isfield(data.results,'invstd')
+                plot(nmrproc.t,nmrproc.s,'-','Color',col.RE,'LineWidth',1,'Parent',ax);
+                plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,'Parent',ax);
+                if nmrproc.noise > 0
+                    plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',col.IM,...
+                        'LineWidth',1,'Parent',axE);
+                else
+                    plot(nmrproc.t,invstd.residual,'Color',col.IM,...
+                        'LineWidth',1,'Parent',axE);
+                end
+            else
+                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
+            end
     end
     
     % limits & ticks
@@ -199,10 +232,10 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
             switch logliny
                 case 'y-axis -> lin' % log axes
                     ticks = floor(log10(ymin))-1 :1: ceil(log10(ymax));
-                    set(ax,'YScale','log','YLim',[10^(ticks(1)) ymax*1.05],...
+                    set(ax,'YScale','log','YLim',[10^(ticks(1)) ymax*1.1],...
                         'YTick',10.^ticks);
                 case 'y-axis -> log' % lin axes
-                    set(ax,'YScale','lin','YLim',[ymin ymax*1.05],...
+                    set(ax,'YScale','lin','YLim',[ymin ymax*1.1],...
                         'YTickMode','auto');
             end
     end
@@ -221,7 +254,15 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     
     % legend
     if isfield(data.results,'invstd')
-        lgdstr = {'signal','fit'};
+        if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
+            lgdstr = {'uncert','signal','fit'};
+        else
+            lgdstr = {'signal','fit'};
+        end
+%         switch data.invstd.invtype
+%             case {'MUMO','NNLS'}
+%             otherwise
+%         end
         switch nmrproc.T1T2
             case 'T1'
                 lgh = legend(ax,lgdstr,'Location','NorthWest',...

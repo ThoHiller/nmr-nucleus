@@ -23,8 +23,8 @@ function out = NUCLEUSinv_loadDefaults
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -127,8 +127,17 @@ out.invstd.Ntime = 30;
 out.invstd.noise = 0;
 % water bulk relaxation time [s]
 out.invstd.Tbulk = 1e6;
+% diffusion relaxation time [s]
+out.invstd.Tdiff = 1e6;
 % porosity value between 0 and 1 [-]
 out.invstd.porosity = 1;
+
+out.invstd.useUncert = 1;
+out.invstd.uncertMethod = 'thresh';
+out.invstd.uncertThresh = 0.05;
+out.invstd.uncertChi2 = 0.005;
+out.invstd.uncertN = 100;
+out.invstd.uncertMax = 1e4;
 
 %% joint inversion panel defaults
 % joint inversion methods to choose 'free' | 'fixed' | 'shape'

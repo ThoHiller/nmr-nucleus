@@ -32,8 +32,8 @@ function NUCLEUSinv_updateInterface
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -69,7 +69,7 @@ switch data.info.ExpertMode
         %% update standard inversion panel
         % inversion method popup
         istring = {'Mono exp.','Several free exp. (2-5)',...
-            'Multi exp. (LSQ)','Multi exp. (LU decomp.)'};
+            'Multi exp. (LSQ)','Multi exp. (LU decomp.)','Multi modal'};
         set(gui.popup_handles.invstd_InvType,'String',istring);
         switch data.invstd.invtype
             case 'mono'
@@ -87,9 +87,11 @@ switch data.info.ExpertMode
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','off',...
+                    'String',num2str(data.invstd.Tdiff));
                 
             case 'free'
                 % inversion method popup
@@ -107,9 +109,11 @@ switch data.info.ExpertMode
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','off',...
+                    'String',num2str(data.invstd.Tdiff));
                 
             case 'NNLS'
                 % inversion method popup
@@ -145,9 +149,11 @@ switch data.info.ExpertMode
                 gui = updateInvstdTime(gui,data.invstd.invtype,data.invstd.time,...
                     data.invstd.Ntime);
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','on',...
+                    'String',num2str(data.invstd.Tdiff));
                 
             case 'LU'
                 % inversion method popup
@@ -175,9 +181,39 @@ switch data.info.ExpertMode
                 gui = updateInvstdTime(gui,data.invstd.invtype,data.invstd.time,...
                     data.invstd.Ntime);
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','on',...
+                    'String',num2str(data.invstd.Tdiff));
+                
+            case 'MUMO'
+                % inversion method popup
+                set(gui.popup_handles.invstd_InvType,'Value',5,'Enable','on');
+                
+                % additional inversion settings
+                set(gui.popup_handles.invstd_InvTypeOpt,'Enable','on',...
+                    'Value',data.invstd.freeDT,...
+                    'String',{'1','2','3','4','5'});
+                set(gui.text_handles.invstd_InvTypeOpt,...
+                    'String','No. of modes');
+                
+%                 % lambda, smoothness constraint and RTD limits
+%                 gui = updateLambda(gui,data.invstd.regtype,data.invstd.lambda,...
+%                     data.invstd.lambdaR,data.invstd.NlambdaR);
+%                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
+                gui = updateInvstdTime(gui,data.invstd.invtype,data.invstd.time,...
+                    data.invstd.Ntime);
+                
+                % lambda, smoothness constraint and RTD limits
+                gui = updateLambda(gui,data.invstd.regtype,0,0,0);
+                gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
+                
+                % Tbulk & Tdiff
+                set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
+                    'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','on',...
+                    'String',num2str(data.invstd.Tdiff));
         end
         
         % updates CBW, BVI, rho and a
@@ -535,9 +571,11 @@ switch data.info.ExpertMode
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','off',...
+                    'String',num2str(data.invstd.Tdiff));
                 
             case 'free'
                 % inversion method popup
@@ -555,9 +593,11 @@ switch data.info.ExpertMode
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','off',...
+                    'String',num2str(data.invstd.Tdiff));
                 
             case 'NNLS'
                 % inversion method popup
@@ -592,9 +632,11 @@ switch data.info.ExpertMode
                 set(gui.edit_handles.invstd_Ntime,'Enable','off',...
                     'String',num2str(data.invstd.Ntime));
                 
-                % Tbulk
+                % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
                     'String',num2str(data.invstd.Tbulk));
+                set(gui.edit_handles.invstd_Tdiff,'Enable','on',...
+                    'String',num2str(data.invstd.Tdiff));
         end
         
         %% update petro parameter panel
@@ -681,16 +723,16 @@ switch timescale
         set(gui.radio_handles.process_timescale_ms,'Enable','on','Value',0);
         set(gui.text_handles.invstd_RTDtimes,'String','RTD - min [s] | max [s] | # / dec',...
             'FontSize',10);
-        set(gui.text_handles.petro_Tbulk,'String',...
-            ['Tbulk [s]   |   ',char(hex2dec('03C1')),' [µm/s]   |   geom']);
+        set(gui.text_handles.petro_Tbulk,'String','Tbulk [s]   |   Tdiff [s]');
+        set(gui.text_handles.petro_rho,'String',[char(hex2dec('03C1')),' [µm/s]   |   geom  ']);
         
     case 'ms'        
         set(gui.radio_handles.process_timescale_s,'Enable','on','Value',0);
         set(gui.radio_handles.process_timescale_ms,'Enable','on','Value',1);
         set(gui.text_handles.invstd_RTDtimes,'String','RTD - min [ms] | max [ms] | # / dec',...
             'FontSize',9);
-        set(gui.text_handles.petro_Tbulk,'String',...
-            ['Tbulk [ms]   |   ',char(hex2dec('03C1')),' [µm/s]   |   geom']);        
+        set(gui.text_handles.petro_Tbulk,'String','Tbulk [ms]   |   Tdiff [ms]');
+        set(gui.text_handles.petro_rho,'String',[char(hex2dec('03C1')),' [µm/s]   |   geom  ']);
 end
 
 end
@@ -704,7 +746,7 @@ switch invtype
         set(gui.edit_handles.invstd_time_max,'Enable','off');
         set(gui.edit_handles.invstd_Ntime,'Enable','off');
         
-    case {'LU','NNLS'}        
+    case {'LU','NNLS','MUMO'}        
         set(gui.edit_handles.invstd_time_min,'Enable','on','String',num2str(time(1)));
         set(gui.edit_handles.invstd_time_max,'Enable','on','String',num2str(time(2)));
         set(gui.edit_handles.invstd_Ntime,'Enable','on','String',num2str(Ntime));   
@@ -809,7 +851,7 @@ end
 function gui = updateLorder(gui,invtype,Lorder)
 
 switch invtype
-    case {'mono','free'}
+    case {'mono','free','MUMO'}
         set(gui.radio_handles.invstd_Lorder0,'Enable','off');
         set(gui.radio_handles.invstd_Lorder1,'Enable','off');
         set(gui.radio_handles.invstd_Lorder2,'Enable','off');
@@ -881,7 +923,7 @@ switch invtype
         set(gui.edit_handles.param_rho,'Enable','on','String',num2str(p.rho));
         set(gui.edit_handles.param_geom,'Enable','on','String',num2str(p.a));
         
-    case {'LU','NNLS'}
+    case {'LU','NNLS','MUMO'}
         set(gui.edit_handles.param_CBW,'Enable','on','String',num2str(p.CBWcutoff));
         set(gui.edit_handles.param_BVI,'Enable','on','String',num2str(p.BVIcutoff));
         set(gui.edit_handles.param_rho,'Enable','on','String',num2str(p.rho));

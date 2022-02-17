@@ -24,8 +24,8 @@ function [gui] = NUCLEUSinv_createStatusbar(gui)
 %
 % See also: NUCLEUSinv
 
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 
 %------------- BEGIN CODE --------------
 

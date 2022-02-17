@@ -31,8 +31,8 @@ function CI = getConfInterval(resnorm,J,alpha)
 %
 % See also: "Parameter Estimation and Inverse Problems", 2nd Ed.
 %           by Aster et. al p.32 ff
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

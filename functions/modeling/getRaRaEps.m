@@ -27,8 +27,8 @@ function RaRaEps = getRaRaEps(gamma)
 %
 % See also:
 %   Ransohoff & Radke, 1988, JColIntSci, Vol. 121(2), 392-401
-% Author: Stepahn Costabel
-% email: stephan.costabel[at]bgr.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

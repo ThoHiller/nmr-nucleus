@@ -26,8 +26,8 @@ function importMOD2MOD
 %       none
 %
 % See also: NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -51,6 +51,9 @@ if sum([NMpath NMfile]) > 0
     data.geometry = guidata.NMRMOD_GUI.geometry;
     data.pressure = guidata.NMRMOD_GUI.pressure;
     data.nmr = guidata.NMRMOD_GUI.nmr;
+    if ~isfield(guidata.NMRMOD_GUI.nmr,'Td')
+        data.nmr.Td = 1e6;
+    end
     data.results.constants = guidata.constants;
     data.results.GEOM = guidata.GEOM;
     data.results.NMR = guidata.NMR;

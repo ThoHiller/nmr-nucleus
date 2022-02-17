@@ -44,8 +44,8 @@ function runInversionJoint
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -276,6 +276,7 @@ if foundINV
                                     iparam.W = W;
                                 end
                                 iparam.Tb = data.invstd.Tbulk;
+                                iparam.Td = data.invstd.Tdiff;
                                 iparam.T1T2 = T1T2flag;
                                 iparam.T1IRfac = T1IRfac;
                                 iparam.L = L;
@@ -370,8 +371,8 @@ if foundINV
                     case 'manual'
                         % disable the RUN button to indicate a running inversion
                         set(gui.push_handles.invjoint_run,'String','RUNNING ...',...
-                            'Enable','inactive');  
-            
+                            'Enable','inactive');
+
                         % inversion parameter
                         iparam.t = t;
                         iparam.g = g;
@@ -379,6 +380,7 @@ if foundINV
                             iparam.W = W;
                         end
                         iparam.Tb = data.invstd.Tbulk;
+                        iparam.Td = data.invstd.Tdiff;
                         iparam.T1T2 = T1T2flag;
                         iparam.T1IRfac = T1IRfac;
                         iparam.L = L;
@@ -405,6 +407,7 @@ if foundINV
                             'Algorithm','levenberg-marquardt',...
                             'MaxIter',1000);
                         [X,~,~,exitflag] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
+                        
                         % status bar information
                         displayStatusText(gui,[infostring,'done']);
                         % get the final fit
@@ -496,6 +499,7 @@ if foundINV
                 end
                 iparam.indt = indt;
                 iparam.Tb = data.invstd.Tbulk;
+                iparam.Td = data.invstd.Tdiff;
                 iparam.T1T2 = T1T2flag;
                 iparam.T1IRfac = T1IRfac;
                 iparam.SatImbDrain = SatImbDrain;
@@ -604,6 +608,7 @@ if foundINV
                 end
                 iparam.indt = indt;
                 iparam.Tb = data.invstd.Tbulk;
+                iparam.Td = data.invstd.Tdiff;
                 iparam.T1T2 = T1T2flag;
                 iparam.T1IRfac = T1IRfac;
                 iparam.SatImbDrain = SatImbDrain;

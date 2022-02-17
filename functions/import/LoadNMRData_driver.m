@@ -27,8 +27,9 @@ function out = LoadNMRData_driver(in)
 %       LoadNMRData_mouse
 %       LoadNMRData_liag
 %       LoadNMRData_bgr
-%       LoadNMRData_bgr2
+%       LoadNMRData_mousecpmg
 %       LoadNMRData_bgrmat
+%       LoadNMRData_helios
 %       LoadNMRData_bamtom
 %
 % Subfunctions:
@@ -38,8 +39,8 @@ function out = LoadNMRData_driver(in)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -50,10 +51,14 @@ switch in.fileformat
         out = LoadNMRData_bamtom(in);
     case 'bgr'
         out = LoadNMRData_bgr(in);
-    case 'bgr2'
-        out = LoadNMRData_bgr2(in);
+    case 'MouseCPMG'
+        out = LoadNMRData_mousecpmg(in);
     case 'bgrmat'
         out = LoadNMRData_bgrmat(in);
+    case {'MouseLiftSingle','MouseLiftAll'}
+        out = LoadNMRData_mouselift(in);
+    case 'helios'
+        out = LoadNMRData_helios(in);
     case 'corelab'
         out = LoadNMRData_corelab(in);
     case 'dart'
@@ -75,16 +80,18 @@ end
 
 % if an imported T2 signal has no imaginary part, the noise is estimated
 % from an exponential fit
-for i = 1:numel(out.nmrData)
-    if strcmp(out.nmrData{i}.flag,'T2') && isreal(out.nmrData{i}.signal)
-        disp('NUCLUESinv import: Estimating noise from exponential fit ...');
-        param.T1IRfac = out.nmrData{i}.T1IRfac;
-        param.noise = 0;
-        param.optim = 'off';
-        invstd = fitDataFree(out.nmrData{i}.time,out.nmrData{i}.signal,...
-            'T2',param,5);
-        out.nmrData{i}.noise = invstd.rms;
-        disp('NUCLUESinv import: done.')
+if ~strcmp(in.fileformat,'helios')
+    for i = 1:numel(out.nmrData)
+        if isreal(out.nmrData{i}.signal)    
+            disp('NUCLUESinv import: Estimating noise from exponential fit ...');
+            param.T1IRfac = out.nmrData{i}.T1IRfac;
+            param.noise = 0;
+            param.optim = 'off';
+            invstd = fitDataFree(out.nmrData{i}.time,out.nmrData{i}.signal,...
+                out.nmrData{i}.flag,param,5);
+            out.nmrData{i}.noise = invstd.rms;
+            disp('NUCLUESinv import: done.')
+        end
     end
 end
 

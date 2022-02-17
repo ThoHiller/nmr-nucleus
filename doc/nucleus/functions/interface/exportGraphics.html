@@ -51,15 +51,15 @@
        none
 
  See also: NUCLEUSinv, NUCLEUSmod
- Author: Thomas Hiller
- email: thomas.hiller[at]leibniz-liag.de
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
  License: MIT License (at end)</pre></div>
 
 <!-- crossreference -->
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 clears all axes of a given figure</li></ul>
+<li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 shows status information either in the GUI or on the</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/callbacks/menus/onMenuExportGraphics.html" class="code" title="function onMenuExportGraphics(src,~)">onMenuExportGraphics</a>	 handles the graphics export menu and calls the export</li><li><a href="exportData.html" class="code" title="function exportData(fig_tag,format)">exportData</a>	 exports data from both GUIs into various formats</li></ul>
@@ -94,8 +94,8 @@ This function is called by:
 0024 <span class="comment">%       none</span>
 0025 <span class="comment">%</span>
 0026 <span class="comment">% See also: NUCLEUSinv, NUCLEUSmod</span>
-0027 <span class="comment">% Author: Thomas Hiller</span>
-0028 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0027 <span class="comment">% Author: see AUTHORS.md</span>
+0028 <span class="comment">% email: see AUTHORS.md</span>
 0029 <span class="comment">% License: MIT License (at end)</span>
 0030 
 0031 <span class="comment">%------------- BEGIN CODE --------------</span>
@@ -373,61 +373,71 @@ This function is called by:
 0303         
 0304         <span class="keyword">switch</span> fig_tag
 0305             <span class="keyword">case</span> <span class="string">'INV'</span>
-0306                 [FileName,PathName,~] = uiputfile({putext,put1},<span class="keyword">...</span>
-0307                     [<span class="string">'NUCLEUSinv: Save '</span>,statstr,<span class="string">' Graphics'</span>],<span class="keyword">...</span>
-0308                     fullfile(pwd,<span class="string">'NUCLEUSinv_inversion'</span>));
-0309             <span class="keyword">case</span> <span class="string">'MOD'</span>
-0310                 [FileName,PathName,~] = uiputfile({putext,put1},<span class="keyword">...</span>
-0311                     [<span class="string">'NUCLEUSmod: Save '</span>,statstr,<span class="string">' Graphics'</span>],<span class="keyword">...</span>
-0312                     fullfile(pwd,<span class="string">'NUCLEUSmod_forward'</span>));
-0313         <span class="keyword">end</span>
-0314         <span class="keyword">if</span> ~isequal(FileName,0) || ~isequal(PathName,0)
-0315             print(expfig,fullfile(PathName,FileName),<span class="string">'-r300'</span>,driver);
-0316             close(expfig);
-0317             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[<span class="string">'Saving '</span>,statstr,<span class="string">'-file ... done.'</span>]);
-0318         <span class="keyword">else</span>
-0319             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[<span class="string">'Saving '</span>,statstr,<span class="string">'-file ... canceled.'</span>]);
-0320             figure(expfig);
-0321         <span class="keyword">end</span>
-0322     <span class="keyword">otherwise</span>
-0323         <span class="comment">% nothing to do ... fig-files are not saved automatically</span>
-0324 <span class="keyword">end</span>
-0325 
-0326 <span class="keyword">if</span> nargout &gt; 0
-0327     varargout{1} = expfig;
-0328     <span class="keyword">if</span> isjoint
-0329         varargout{2} = [ax1 ax2 ax3];
-0330     <span class="keyword">else</span>
-0331         varargout{2} = [ax1 ax2];
-0332     <span class="keyword">end</span>
-0333 <span class="keyword">end</span>
-0334 
-0335 <span class="keyword">end</span>
-0336 
-0337 <span class="comment">%------------- END OF CODE --------------</span>
-0338 
-0339 <span class="comment">%% License:</span>
-0340 <span class="comment">% MIT License</span>
-0341 <span class="comment">%</span>
-0342 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0343 <span class="comment">%</span>
-0344 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0345 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0346 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0347 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0348 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0349 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0350 <span class="comment">%</span>
-0351 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0352 <span class="comment">% copies or substantial portions of the Software.</span>
+0306                 <span class="comment">% which NMR signal</span>
+0307                 id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0308                 <span class="comment">% get the new file name</span>
+0309                 sfilename = data.import.NMR.filesShort{id};
+0310                 ind1 = strfind(sfilename,<span class="string">'.'</span>);
+0311                 <span class="keyword">if</span> isempty(ind1)
+0312                     sfilename = [sfilename,<span class="string">'_INV'</span>];
+0313                 <span class="keyword">else</span>
+0314                     sfilename = [sfilename(1:ind1-1),<span class="string">'_INV'</span>];
+0315                 <span class="keyword">end</span>
+0316                 [FileName,PathName,~] = uiputfile({putext,put1},<span class="keyword">...</span>
+0317                     [<span class="string">'NUCLEUSinv: Save '</span>,statstr,<span class="string">' Graphics'</span>],<span class="keyword">...</span>
+0318                     fullfile(data.import.path,sfilename));
+0319             <span class="keyword">case</span> <span class="string">'MOD'</span>
+0320                 [FileName,PathName,~] = uiputfile({putext,put1},<span class="keyword">...</span>
+0321                     [<span class="string">'NUCLEUSmod: Save '</span>,statstr,<span class="string">' Graphics'</span>],<span class="keyword">...</span>
+0322                     fullfile(pwd,<span class="string">'NUCLEUSmod_forward'</span>));
+0323         <span class="keyword">end</span>
+0324         <span class="keyword">if</span> ~isequal(FileName,0) || ~isequal(PathName,0)
+0325             print(expfig,fullfile(PathName,FileName),<span class="string">'-r300'</span>,driver);
+0326             close(expfig);
+0327             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[<span class="string">'Saving '</span>,statstr,<span class="string">'-file ... done.'</span>]);
+0328         <span class="keyword">else</span>
+0329             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[<span class="string">'Saving '</span>,statstr,<span class="string">'-file ... canceled.'</span>]);
+0330             figure(expfig);
+0331         <span class="keyword">end</span>
+0332     <span class="keyword">otherwise</span>
+0333         <span class="comment">% nothing to do ... fig-files are not saved automatically</span>
+0334 <span class="keyword">end</span>
+0335 
+0336 <span class="keyword">if</span> nargout &gt; 0
+0337     varargout{1} = expfig;
+0338     <span class="keyword">if</span> isjoint
+0339         varargout{2} = [ax1 ax2 ax3];
+0340     <span class="keyword">else</span>
+0341         varargout{2} = [ax1 ax2];
+0342     <span class="keyword">end</span>
+0343 <span class="keyword">end</span>
+0344 
+0345 <span class="keyword">end</span>
+0346 
+0347 <span class="comment">%------------- END OF CODE --------------</span>
+0348 
+0349 <span class="comment">%% License:</span>
+0350 <span class="comment">% MIT License</span>
+0351 <span class="comment">%</span>
+0352 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0353 <span class="comment">%</span>
-0354 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0355 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0356 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0357 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0358 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0359 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0360 <span class="comment">% SOFTWARE.</span></pre></div>
+0354 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0355 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0356 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0357 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0358 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0359 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0360 <span class="comment">%</span>
+0361 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0362 <span class="comment">% copies or substantial portions of the Software.</span>
+0363 <span class="comment">%</span>
+0364 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0365 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0366 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0367 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0368 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0369 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0370 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

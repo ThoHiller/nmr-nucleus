@@ -22,8 +22,8 @@ function NUCLEUSmod_updateInterface
 %       none
 %
 % See also: NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -125,6 +125,14 @@ else
 end
 
 %% update NMR panel
+% noise type
+switch data.nmr.noisetype
+    case 'level' % noise level
+        set(gui.popup_handles.noisetype,'Value',1);
+    case 'SNR' % signal-to-noise ratio (SNR)
+        set(gui.popup_handles.noisetype,'Value',2);
+end
+
 % all edit fields
 set(gui.edit_handles.Tbulk,'String',num2str(data.nmr.Tbulk));
 set(gui.edit_handles.rho,'String',num2str(data.nmr.rho));

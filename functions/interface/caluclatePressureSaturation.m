@@ -29,8 +29,8 @@ function caluclatePressureSaturation
 %       none
 %
 % See also: NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -87,8 +87,11 @@ updatePlotsCPS;
 %% reset NMR plots
 clearSingleAxis(gui.axes_handles.nmr);
 displayStatusText(gui,'Calculating saturation ... done');
-% enable the RUN button again
+% enable the pressure RUN button again
 set(gui.push_handles.press_RUN,'String','RUN','Enable','on');
+% reset the NMR RUN button
+set(gui.push_handles.nmr_RUN,'String','RUN','Enable','on',...
+    'BackgroundColor','g','Callback',@onPushRun);
 % enable hydraulic conductivity GUI menu only for PSD data
 if data.geometry.ispsd
     set(gui.menu.view_conduct,'Enable','on');

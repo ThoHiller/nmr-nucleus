@@ -21,8 +21,8 @@ function out = NUCLEUSmod_loadDefaults
 %       none
 %
 % See also: NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -73,10 +73,14 @@ out.pressure.rangeN = 50;
 out.nmr.TE = 1000;
 % number of echoes
 out.nmr.echosN = 1001;
-% noise level [%]
+% noise creation type 'level' or 'SNR'
+out.nmr.noisetype = 'level';
+% noise level [0:1] or SNR [-]
 out.nmr.noise = 0;
 % water bulk relaxation time [s]
 out.nmr.Tbulk = 2;
+% diffusion relaxation time [s]
+out.nmr.Tdiff = 1e6;
 % surface relaxivity [µm/s]
 out.nmr.rho = 10;
 % porosity value between 0 and 1 [-]

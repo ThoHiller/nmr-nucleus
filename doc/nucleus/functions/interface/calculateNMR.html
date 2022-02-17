@@ -55,15 +55,15 @@ pores
        none
 
  See also: NUCLEUSmod
- Author: Thomas Hiller
- email: thomas.hiller[at]leibniz-liag.de
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
  License: MIT License (at end)</pre></div>
 
 <!-- crossreference -->
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 clears all axes of a given figure</li><li><a href="updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>	 adds noise to the forward NMR signals and scales the</li><li><a href="updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>	 plots the forward modeled NMR data in NUCLEUSmod</li><li><a href="../../../nucleus/functions/modeling/getNMRSignal.html" class="code" title="function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)">getNMRSignal</a>	 calculates the NMR signal of a fully or partially saturated</li><li><a href="../../../nucleus/functions/modeling/getNMRTimeVector.html" class="code" title="function t = getNMRTimeVector(TE,TEunit,varargin)">getNMRTimeVector</a>	 Creates a NMR time vector depending on the given echo</li></ul>
+<li><a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 shows status information either in the GUI or on the</li><li><a href="updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>	 adds noise to the forward NMR signals and scales the</li><li><a href="updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>	 plots the forward modeled NMR data in NUCLEUSmod</li><li><a href="../../../nucleus/functions/modeling/getNMRSignal.html" class="code" title="function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)">getNMRSignal</a>	 calculates the NMR signal of a fully or partially saturated</li><li><a href="../../../nucleus/functions/modeling/getNMRTimeVector.html" class="code" title="function t = getNMRTimeVector(TE,TEunit,varargin)">getNMRTimeVector</a>	 Creates a NMR time vector depending on the given echo</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>	 handles the callbacks to all RUN push buttons in both GUIs and</li></ul>
@@ -102,8 +102,8 @@ This function is called by:
 0028 <span class="comment">%       none</span>
 0029 <span class="comment">%</span>
 0030 <span class="comment">% See also: NUCLEUSmod</span>
-0031 <span class="comment">% Author: Thomas Hiller</span>
-0032 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0031 <span class="comment">% Author: see AUTHORS.md</span>
+0032 <span class="comment">% email: see AUTHORS.md</span>
 0033 <span class="comment">% License: MIT License (at end)</span>
 0034 
 0035 <span class="comment">%------------- BEGIN CODE --------------</span>
@@ -119,62 +119,63 @@ This function is called by:
 0045     <span class="comment">% generate a time vector from the echo time 'TE' and number of echoes 'echosN'</span>
 0046     nmr.t = <a href="../../../nucleus/functions/modeling/getNMRTimeVector.html" class="code" title="function t = getNMRTimeVector(TE,TEunit,varargin)">getNMRTimeVector</a>(data.nmr.TE,<span class="string">'µs'</span>,<span class="string">'N'</span>,data.nmr.echosN);
 0047     nmr.Tb = data.nmr.Tbulk;
-0048     nmr.rho = data.nmr.rho/1e6; <span class="comment">% µm/s to m/s</span>
-0049     
-0050     <span class="comment">% wait-bar option</span>
-0051     wbopts.show = true;
-0052     wbopts.tag = <span class="string">'MOD'</span>;
-0053     
-0054     <span class="comment">% disable the RUN button to indicate a running calculation</span>
-0055     set(gui.push_handles.nmr_RUN,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="string">'Enable'</span>,<span class="string">'inactive'</span>); 
-0056     
-0057     <span class="comment">% calculate the NMR signals for ALL pressure / saturation steps</span>
-0058     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Calculating NMR signals ... '</span>);
-0059     NMR = <a href="../../../nucleus/functions/modeling/getNMRSignal.html" class="code" title="function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)">getNMRSignal</a>(nmr,data.geometry.type,data.results.SAT,data.results.psddata,wbopts);
-0060     <span class="comment">% always keep a copy of the raw data (without noise)</span>
-0061     NMR.raw = NMR;
-0062     
-0063     <span class="comment">% update the global GUI data</span>
-0064     data.results.NMR = NMR;
-0065     setappdata(fig,<span class="string">'data'</span>,data);
-0066     
-0067     <span class="comment">% add noise to the NMR signals</span>
-0068     <a href="updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>;
-0069     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Calculating NMR signals ... done'</span>);
-0070     <a href="updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
-0071     <span class="comment">% enable the RUN button again</span>
-0072     set(gui.push_handles.nmr_RUN,<span class="string">'String'</span>,<span class="string">'RUN'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0073     
-0074 <span class="keyword">else</span>
-0075     helpdlg({<span class="string">'calculateNMR:'</span>,<span class="string">'Create CPS data first.'</span>});
-0076 <span class="keyword">end</span>
-0077 
-0078 <span class="keyword">end</span>
-0079 
-0080 <span class="comment">%------------- END OF CODE --------------</span>
-0081 
-0082 <span class="comment">%% License:</span>
-0083 <span class="comment">% MIT License</span>
-0084 <span class="comment">%</span>
-0085 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0086 <span class="comment">%</span>
-0087 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0088 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0089 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0090 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0091 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0092 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0093 <span class="comment">%</span>
-0094 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0095 <span class="comment">% copies or substantial portions of the Software.</span>
-0096 <span class="comment">%</span>
-0097 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0098 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0099 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0100 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0101 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0102 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0103 <span class="comment">% SOFTWARE.</span></pre></div>
+0048     nmr.Td = data.nmr.Tdiff;
+0049     nmr.rho = data.nmr.rho/1e6; <span class="comment">% µm/s to m/s</span>
+0050     
+0051     <span class="comment">% wait-bar option</span>
+0052     wbopts.show = true;
+0053     wbopts.tag = <span class="string">'MOD'</span>;
+0054     
+0055     <span class="comment">% disable the RUN button to indicate a running calculation</span>
+0056     set(gui.push_handles.nmr_RUN,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="string">'Enable'</span>,<span class="string">'inactive'</span>); 
+0057     
+0058     <span class="comment">% calculate the NMR signals for ALL pressure / saturation steps</span>
+0059     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Calculating NMR signals ... '</span>);
+0060     NMR = <a href="../../../nucleus/functions/modeling/getNMRSignal.html" class="code" title="function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)">getNMRSignal</a>(nmr,data.geometry.type,data.results.SAT,data.results.psddata,wbopts);
+0061     <span class="comment">% always keep a copy of the raw data (without noise)</span>
+0062     NMR.raw = NMR;
+0063     
+0064     <span class="comment">% update the global GUI data</span>
+0065     data.results.NMR = NMR;
+0066     setappdata(fig,<span class="string">'data'</span>,data);
+0067     
+0068     <span class="comment">% add noise to the NMR signals</span>
+0069     <a href="updateNMRsignals.html" class="code" title="function updateNMRsignals">updateNMRsignals</a>;
+0070     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Calculating NMR signals ... done'</span>);
+0071     <a href="updatePlotsNMR.html" class="code" title="function updatePlotsNMR">updatePlotsNMR</a>;
+0072     <span class="comment">% enable the RUN button again</span>
+0073     set(gui.push_handles.nmr_RUN,<span class="string">'String'</span>,<span class="string">'RUN'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0074     
+0075 <span class="keyword">else</span>
+0076     helpdlg({<span class="string">'calculateNMR:'</span>,<span class="string">'Create CPS data first.'</span>});
+0077 <span class="keyword">end</span>
+0078 
+0079 <span class="keyword">end</span>
+0080 
+0081 <span class="comment">%------------- END OF CODE --------------</span>
+0082 
+0083 <span class="comment">%% License:</span>
+0084 <span class="comment">% MIT License</span>
+0085 <span class="comment">%</span>
+0086 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0087 <span class="comment">%</span>
+0088 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0089 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0090 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0091 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0092 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0093 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0094 <span class="comment">%</span>
+0095 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0096 <span class="comment">% copies or substantial portions of the Software.</span>
+0097 <span class="comment">%</span>
+0098 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0099 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0100 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0101 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0102 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0103 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0104 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

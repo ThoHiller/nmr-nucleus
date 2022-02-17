@@ -26,8 +26,8 @@ function importMOD2INV(src)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -173,8 +173,10 @@ if isfield(data.import,'NMRMOD')
         switch T1T2
             case 'T1'
                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EdT1(dL(i),:)';
+                data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(dL(i),2);
             case 'T2'
                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EdT2(dL(i),:)';
+                data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(dL(i),4);
         end
         data.import.NMR.data{c}.phase = 0;
         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
@@ -182,6 +184,11 @@ if isfield(data.import,'NMRMOD')
         
         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
+        if isfield(data.import.NMRMOD.nmr,'Td')
+            data.import.NMR.para{c}.Tdiff = data.import.NMRMOD.nmr.Td;
+        else
+            data.import.NMR.para{c}.Tdiff = 1e6;
+        end
         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
         data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
         
@@ -213,8 +220,10 @@ if isfield(data.import,'NMRMOD')
         switch T1T2
             case 'T1'
                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT1(iL(i),:)';
+                data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(iL(i),1);
             case 'T2'
                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT2(iL(i),:)';
+                data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(iL(i),3);
         end
         data.import.NMR.data{c}.phase = 0;
         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
@@ -222,6 +231,11 @@ if isfield(data.import,'NMRMOD')
         
         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
+        if isfield(data.import.NMRMOD.nmr,'Td')
+            data.import.NMR.para{c}.Tdiff = data.import.NMRMOD.nmr.Td;
+        else
+            data.import.NMR.para{c}.Tdiff = 1e6;
+        end
         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
         data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
         

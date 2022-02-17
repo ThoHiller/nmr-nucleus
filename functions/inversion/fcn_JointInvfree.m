@@ -11,6 +11,7 @@ function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
 %                t : augmented time vector
 %                g : augmented signal vector
 %                Tb : bulk relaxation time
+%                Td : diffusion relaxation time
 %                T1T2 : 'T1' / 'T2' flag
 %                T1IRfac : either '1' or '2' depending on T1 method
 %                L : smoothness constraint
@@ -38,8 +39,8 @@ function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -48,6 +49,7 @@ function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
 t = iparam.t;
 g = iparam.g;
 Tb = iparam.Tb;
+Td = iparam.Td;
 T1T2 = iparam.T1T2;
 T1IRfac = iparam.T1IRfac;
 L = iparam.L;
@@ -73,11 +75,11 @@ switch igeom.type
         switch T1T2
             case 'T1'
                 for i=1:length(SV)
-                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb));
+                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
                 end
             case 'T2'
                 for i=1:length(SV)
-                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
                 end
         end
         K = Kf;
@@ -97,23 +99,23 @@ switch igeom.type
         switch T1T2
             case 'T1'
                 for i=1:length(SV)
-                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb));
+                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
                 end
                 % Kernel matrix for partial saturation
                 Kc = zeros(length(t),length(SV));
                 for i=1:size(SVC,1)
                     Kc = Kc + ( squeeze(Amp(i,:,:)) .*...
-                        ( 1-T1IRfac.*exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb)) ));
+                        ( 1-T1IRfac.*exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) ));
                 end
             case 'T2'
                 for i=1:length(SV)
-                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
                 end
                 % Kernel matrix for partial saturation
                 Kc = zeros(length(t),length(SV));
                 for i=1:size(SVC,1)
                     Kc = Kc + ( squeeze(Amp(i,:,:)) .*...
-                        exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb)) );
+                        exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
                 end
         end
         % full saturation matrix
@@ -161,19 +163,20 @@ if nargout > 1
                 case 'cyl'
                     DD = zeros(length(t),length(SV));
                     for i=1:length(SV)
-                        DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+                        DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
                     end
                     
                 case {'ang','poly'}
                     % Kernel matrix for full saturation
                     DD = zeros(length(t),length(SV));
                     for i=1:length(SV)
-                        DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb));
+                        DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
                     end
                     % Kernel matrix for partial saturation
                     D = zeros(length(t),length(SV));
                     for i=1:size(SVC,1)
-                        D = D + ( squeeze(Amp(i,:,:)).* exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb)) );
+                        D = D + ( squeeze(Amp(i,:,:)).*...
+                            exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
                     end
                     DD(IPS~=1) = D(IPS~=1);
             end

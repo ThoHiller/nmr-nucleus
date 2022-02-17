@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.12] - latest
+
+### Added
+- New *SNR*-option in **NUCLEUSmod** to set the noise of the forward modelled NMR data either by noise level or signal-to-noise ratio (SNR)
+- New *Multi modal* fitting option in **NUCLEUSinv** (only in Expert mode) with built-in uncertainty estimation for the final RTD
+- New import routines to **NUCLEUSinv** for *BGR* devices (*Mouse* and *Helios*)
+- Difussion relaxation time *T<sub>diff</sub>*  is now considered in **NUCLEUSmod** (*NMR* panel) and **NUCLEUSinv** (*Petro Parameter* panel)
+- Added an `AUTHORS.md` file to the repository.
+
+### Changed
+- Changed the default export path and file name for graphics files in **NUCLEUSinv** to the current import path and data file
+- Changed the visualization of the imaginary part of the raw data (if available)
+- Minor internal changes
+
+### Fixed
+- Fixed an issue regarding the import of T<sub>1</sub> data without noise (noise is now estimated on-the-fly via a fit with five free exponents)
+
 ## [0.1.11] - 2021-03-12
 
 ### Added
@@ -75,13 +92,13 @@
 ## [0.1.6] - 2019-06-24
 
 ### Added
-- Added a new *PhaseView*  subGUI to view and change the phase between real and imaginary part of a T2 signal. **NUCLEUSinv**
+- Added a new *PhaseView*  subGUI to view and change the phase between real and imaginary part of a T<sub>2</sub> signal. **NUCLEUSinv**
 - Added a new import filter for the BAM NMR tomograph. **NUCLEUSinv**
-- Added an export feature that allows to save T2 raw data into a csv-file (e.g. LIAG format); during save it is possible to overwrite the imaginary part with zeros. **NUCLEUSinv**
+- Added an export feature that allows to save T<sub>2</sub> raw data into a csv-file (e.g. LIAG format); during save it is possible to overwrite the imaginary part with zeros. **NUCLEUSinv**
 
 ### Changed
 
-- If a T2 signal is imported it is automatically rotated to minimize its imaginary part (the fit incorporates real and imag. part of the signal). **NUCLEUSinv**
+- If a T<sub>2</sub> signal is imported it is automatically rotated to minimize its imaginary part (the fit incorporates real and imag. part of the signal). **NUCLEUSinv**
 - The *FitStatistics* window layout is now in line with the *PhaseView* layout for consistency reasons. **NUCLEUSinv**
 
 ### Fixed
@@ -115,7 +132,7 @@
 - Due to the new error weights there is no default gating method anymore for the *free exp. inversion*. **NUCLEUSinv**
 
 ### Fixed
-- T1 inversion recovery factor (1 or 2 depending on inversion or saturation recovery) was missing in *free exp. inversion* and *free joint inversion* (in Jacobian calculation for angular pores). **NUCLEUSinv**
+- T<sub>1</sub> inversion recovery factor (1 or 2 depending on inversion or saturation recovery) was missing in *free exp. inversion* and *free joint inversion* (in Jacobian calculation for angular pores). **NUCLEUSinv**
 
 ## [0.1.3] - 2019-02-22
 
@@ -154,6 +171,7 @@
 
 Initial Version
 
+[0.1.12]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.11...v.0.1.12
 [0.1.11]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.10...v.0.1.11
 [0.1.10]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.9...v.0.1.10
 [0.1.9]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.8...v.0.1.9

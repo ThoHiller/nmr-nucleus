@@ -25,8 +25,8 @@ function An = getAreaFactor(n)
 %
 % See also:
 %   Tuller & Or, 2001, WRR, Vol. 37(5), 1257-1276
-% Author: Stepahn Costabel
-% email: stephan.costabel[at]bgr.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

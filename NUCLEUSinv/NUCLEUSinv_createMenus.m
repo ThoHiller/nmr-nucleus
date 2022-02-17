@@ -24,8 +24,8 @@ function gui = NUCLEUSinv_createMenus(data,gui)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -61,12 +61,23 @@ gui.menu.file_import_lab_bgr = uimenu(gui.menu.file_import_lab,...
 % 1.1.1.2.1 BGR std
 gui.menu.file_import_lab_bgr_std = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','BGR std','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.2 BGR org
-gui.menu.file_import_lab_bgr_org = uimenu(gui.menu.file_import_lab_bgr,...
-    'Label','BGR org','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.3 BGR mat
+% 1.1.1.2.2 BGR mat
 gui.menu.file_import_lab_bgr_mat = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','BGR mat','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.2.3 Mouse CPMG data, single data subfolders from CPMG
+gui.menu.file_import_lab_bgr_mouse_cpmg = uimenu(gui.menu.file_import_lab_bgr,...
+    'Label','MouseCPMG','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.2.4 Mouse plus Lift, single data subfolder from t1test,...
+% ...cpmgfastautotest, or (old Prospa Versions) cpmgfastauto
+gui.menu.file_import_lab_bgr_mouse_liftsingle = uimenu(gui.menu.file_import_lab_bgr,...
+    'Label','MouseLiftSingle','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.2.5 Mouse plus Lift, all data subfolders from t1test,...
+% cpmgfastautotest, or (old Prospa Versions) cpmgfastauto
+gui.menu.file_import_lab_bgr_mouse_liftall = uimenu(gui.menu.file_import_lab_bgr,...
+    'Label','MouseLiftAll','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.2.6 Helios
+gui.menu.file_import_lab_bgr_helios = uimenu(gui.menu.file_import_lab_bgr,...
+    'Label','Helios','Tag','Lab','Callback',@onMenuImport);
 
 % 1.1.1.3 LIAG
 gui.menu.file_import_lab_liag = uimenu(gui.menu.file_import_lab,...

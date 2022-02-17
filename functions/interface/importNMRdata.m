@@ -30,6 +30,7 @@ function importNMRdata(src)
 %       importDataLIAG
 %       importDataLIAGproject
 %       importDataMouse
+%       importDataHelios 
 %       loadGUIParameters
 %       loadGUIrawdata
 %
@@ -37,8 +38,8 @@ function importNMRdata(src)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -73,10 +74,16 @@ try
         data.import.fileformat = 'liag';
     elseif strcmp(label,'BGR std')
         data.import.fileformat = 'bgr';
-    elseif strcmp(label,'BGR org')
-        data.import.fileformat = 'bgr2';
+    elseif strcmp(label,'MouseCPMG')
+        data.import.fileformat = 'MouseCPMG';
     elseif strcmp(label,'BGR mat')
         data.import.fileformat = 'bgrmat';
+    elseif strcmp(label,'MouseLiftSingle')
+        data.import.fileformat = 'MouseLiftSingle';
+    elseif strcmp(label,'MouseLiftAll')
+        data.import.fileformat = 'MouseLiftAll';
+    elseif strcmp(label,'Helios')
+        data.import.fileformat = 'helios';
     elseif strcmp(label,'BAM TOM')
         data.import.fileformat = 'bamtom';
     elseif strcmp(label,'PM5')
@@ -102,7 +109,7 @@ try
         % check for mat-file with GUI rawdata and import data
         isfile = dir(fullfile(NMRpath,'NUCLEUSinv_raw.mat'));
         
-        % if there is nor raw-file import from folder/file
+        % if there is no raw-file import from folder/file
         if isempty(isfile)
             % import data
             data.import.path = NMRpath;
@@ -129,11 +136,18 @@ try
                     tmp_h(5) = gui.myui.heights(1,3);
                     set(gui.panels.main,'Heights',tmp_h);
                     set(gui.panels.petro.main,'Minimized',false);
-                case 'BGR org'
-                    [data,gui] = importDataBGR(data,gui);
                 case 'BGR mat'
                     data.import.file = NMRfile;
                     [data,gui] = importDataBGRmat(data,gui);
+                case 'MouseCPMG'
+                    [data,gui] = importDataMouseCPMG(data,gui);
+                case 'MouseLiftSingle'
+                    [data,gui] = importDataBGRliftSingle(data,gui);
+                case 'MouseLiftAll'
+                    [data,gui] = importDataBGRliftAll(data,gui);
+                case 'Helios'
+                    data.import.file = NMRfile;
+                    [data,gui] = importDataHelios(data,gui);
                 case {'PM5','PM25'}
                     data.import.file = NMRfile;
                     [data,gui] = importDataIBAC(data,gui);
@@ -232,7 +246,7 @@ NMRfile = -1;
 % for almost all import cases we load a folder ... but not for all
 switch label
     case {'GGE ascii','GGE field','CoreLab ascii','MOUSE','LIAG single',...
-            'BGR std','BGR org','BAM TOM','PM25'}
+            'BGR std','MouseCPMG','MouseLiftSingle','MouseLiftAll','Helios','BAM TOM','PM25'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             NMRpath = uigetdir(import.path,'Choose Data Path');
@@ -302,14 +316,10 @@ end
 end
 
 %%
-function [data,gui] = importDataBGR(data,gui)
+function [data,gui] = importDataMouseCPMG(data,gui)
 
-% first check the subpaths
-% there should be 'cpmgfastauto' and 't1test'
-t1path = dir(fullfile(data.import.path,'t1test'));
-t1path = t1path(~ismember({t1path.name},{'.','..'}));
-t2path = dir(fullfile(data.import.path,'cpmgfastauto'));
-t2path = t2path(~ismember({t2path.name},{'.','..'}));
+csv_t2path = dir(fullfile(data.import.path,'CPMG'));
+csv_t2path = csv_t2path(~ismember({csv_t2path.name},{'.','..'}));
 
 fnames = struct;
 % shownames is just a dummy to hold all data file names that
@@ -317,48 +327,21 @@ fnames = struct;
 shownames = cell(1,1);
 
 c = 0;
-if ~isempty(t1path)
-    for i = 1:size(t1path,1)
-        in.T1T2 = 'T1';
-        in.path = fullfile(data.import.path,'t1test',t1path(i).name);
-        in.fileformat = data.import.fileformat;
-        out = LoadNMRData_driver(in);
-        
-        for j = 1:size(out.nmrData,2)
-            % the individual file names
-            c = c + 1;
-            fnames(c).parfile = 'acq.par';
-            fnames(c).datafile = out.nmrData{j}.datfile;
-            
-            shownames{c} = ['T1_',t1path(i).name,'_',fnames(c).datafile];
-            
-            % the NMR data
-            % here we fix the time scale from [ms] to [s]
-            if max(out.nmrData{j}.time) > 100
-                out.nmrData{j}.time = out.nmrData{j}.time/1000;
-                out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-            end
-            data.import.NMR.data{c} = out.nmrData{j};
-            data.import.NMR.para{c} = out.parData;
-        end
-    end
-end
-
-if ~isempty(t2path)
-    for i = 1:size(t2path,1)
+if ~isempty(csv_t2path)
+    for i = 1:size(csv_t2path,1)
         in.T1T2 = 'T2';
-        in.path = fullfile(data.import.path,'cpmgfastauto',t2path(i).name);
+        in.path = fullfile(data.import.path,'CPMG',csv_t2path(i).name);
         in.fileformat = data.import.fileformat;
         out = LoadNMRData_driver(in);
         
         for j = 1:size(out.nmrData,2)
             % the individual file names
             c = c + 1;
-            fnames(c).parfile = 'acq.par';
+            fnames(c).parfile = 'acqu.par';
             fnames(c).datafile = out.nmrData{j}.datfile;
             fnames(c).T2specfile = '';
             
-            shownames{c} = ['T2_',t2path(i).name,'_',fnames(c).datafile];
+            shownames{c} = ['T2_',csv_t2path(i).name,'_',fnames(c).datafile];
             
             % the NMR data
             % here we fix the time scale from [ms] to [s]
@@ -372,7 +355,7 @@ if ~isempty(t2path)
     end
 end
 
-if isempty(t1path) && isempty(t2path)
+if isempty(csv_t2path)
     helpdlg('No data folders in the given directory.','onMenuImport: No data.');
 else
     % update the global data structure
@@ -432,6 +415,174 @@ if isfield(out,'pressData')
     data.pressure.unitfac = 1e-3;
     data.pressure.table = table;
 end
+
+end
+
+%%
+function [data,gui] = importDataBGRliftSingle(data,gui)
+
+% first check whether T1 or T2 was measured...
+% by analyzing the name of data folder
+indiz = find(data.import.path == filesep);
+checkT1T2 = data.import.path(indiz(end-1)+1:indiz(end)-1);
+if strcmp(checkT1T2,'t1test')
+    in.T1T2 = 'T1';
+elseif strcmp(checkT1T2,'cpmgfastautotest')
+    in.T1T2 = 'T2'; 
+elseif strcmp(checkT1T2,'cpmgfastauto')
+    in.T1T2 = 'T2'; 
+else
+    disp('Please chose an original Prospa folder for Mouse Lift data!');
+end
+
+% % there should be folders with integer values in their names 
+% t1t2path = data.import.path;
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+c = 0;
+if ~isempty(data.import.path)
+%    for i = 1:size(t1t2path,1)
+        in.path = data.import.path;
+        in.fileformat = data.import.fileformat;
+        out = LoadNMRData_driver(in);
+        
+        for j = 1:size(out.nmrData,2)
+            % the individual file names
+            c = c + 1;
+            fnames(c).parfile = 'acq.par';
+            fnames(c).datafile = out.nmrData{j}.datfile;
+            
+            shownames{c} = [in.T1T2,'_',fnames(c).datafile];
+            
+            % the NMR data
+            % here we fix the time scale from [ms] to [s]
+            if max(out.nmrData{j}.time) > 100
+                out.nmrData{j}.time = out.nmrData{j}.time/1000;
+                out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+            end
+            data.import.NMR.data{c} = out.nmrData{j};
+            data.import.NMR.para{c} = out.parData;
+        end
+else
+    helpdlg('No data folders in the given directory.','onMenuImport: No data.');
+end
+
+
+    % update the global data structure
+    data.import.NMR.files = fnames;
+    data.import.NMR.filesShort = shownames;
+
+end
+%%
+function [data,gui] = importDataBGRliftAll(data,gui)
+
+% first check whether T1 or T2 was measured
+indiz = find(data.import.path == filesep);
+checkT1T2 = data.import.path(indiz(end)+1:end);
+if strcmp(checkT1T2,'t1test')
+    in.T1T2 = 'T1';
+elseif strcmp(checkT1T2,'cpmgfastautotest')
+    in.T1T2 = 'T2'; 
+elseif strcmp(checkT1T2,'cpmgfastauto')
+    in.T1T2 = 'T2'; 
+else
+    helpdlg('No original data folder','onMenuImport: No data.');
+end
+
+% there should be folders with integer values in their names 
+t1t2path = dir(data.import.path);
+t1t2path = t1t2path(~ismember({t1t2path.name},{'.','..'}));
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+c = 0;
+if ~isempty(t1t2path)
+    for i = 1:size(t1t2path,1)
+        in.path = fullfile(data.import.path,t1t2path(i).name);
+        in.fileformat = data.import.fileformat;
+        out = LoadNMRData_driver(in);
+        
+        for j = 1:size(out.nmrData,2)
+            % the individual file names
+            c = c + 1;
+            fnames(c).parfile = 'acq.par';
+            fnames(c).datafile = out.nmrData{j}.datfile;
+            
+            shownames{c} = [in.T1T2,'_',t1t2path(i).name,'_',fnames(c).datafile];
+            
+            % the NMR data
+            % here we fix the time scale from [ms] to [s]
+            if max(out.nmrData{j}.time) > 100
+                out.nmrData{j}.time = out.nmrData{j}.time/1000;
+                out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+            end
+            data.import.NMR.data{c} = out.nmrData{j};
+            data.import.NMR.para{c} = out.parData;
+        end
+    end
+else
+    helpdlg('No data folders in the given directory.','onMenuImport: No data.');
+end
+    % update the global data structure
+    data.import.NMR.files = fnames;
+    data.import.NMR.filesShort = shownames;
+
+end
+
+%%
+function [data,gui] = importDataHelios(data,gui)
+
+% first check the subpaths
+% there should be some folders with names ...
+% ... similar to the data filenames inside them
+datpath = dir(data.import.path);
+datpath = datpath(~ismember({datpath.name},{'.','..'}));
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+c = 0;
+if ~isempty(datpath)
+    for i = 1:size(datpath,1)
+        % does datpath.name points to a folder?
+        if datpath(i).isdir    
+            % check if datpath.name includes regular Helios data files
+            content = dir([data.import.path,filesep,datpath(i).name]);
+            content = content(~ismember({content.name},{'.','..'}));
+            for j = 1:size(content,1)
+                if strcmp(content(j).name,[datpath(i).name,'_1.hrd'])
+                    in.T1T2 = 'T2';
+                    in.name = content(j).name;
+                    in.path = fullfile(data.import.path,filesep,datpath(i).name);
+                    in.fileformat = data.import.fileformat;
+                    out = LoadNMRData_driver(in);
+                    
+                    % the individual file names
+                    c = c + 1;
+                    fnames(c).parfile = '';
+                    fnames(c).datafile = out.nmrData.datfile;
+                    fnames(c).T2specfile = '';
+                    shownames{c} = ['T2_',datpath(i).name];
+            
+                    data.import.NMR.data{c} = out.nmrData;
+                    data.import.NMR.para{c} = out.parData;
+                end
+            end
+        end
+    end
+end
+
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
 
 end
 

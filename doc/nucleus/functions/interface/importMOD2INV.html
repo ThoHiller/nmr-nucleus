@@ -53,8 +53,8 @@ NUCLEUSmod data file
        none
 
  See also: NUCLEUSinv
- Author: Thomas Hiller
- email: thomas.hiller[at]leibniz-liag.de
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
  License: MIT License (at end)</pre></div>
 
 <!-- crossreference -->
@@ -98,8 +98,8 @@ This function is called by:
 0026 <span class="comment">%       none</span>
 0027 <span class="comment">%</span>
 0028 <span class="comment">% See also: NUCLEUSinv</span>
-0029 <span class="comment">% Author: Thomas Hiller</span>
-0030 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
+0029 <span class="comment">% Author: see AUTHORS.md</span>
+0030 <span class="comment">% email: see AUTHORS.md</span>
 0031 <span class="comment">% License: MIT License (at end)</span>
 0032 
 0033 <span class="comment">%------------- BEGIN CODE --------------</span>
@@ -245,122 +245,136 @@ This function is called by:
 0173         <span class="keyword">switch</span> T1T2
 0174             <span class="keyword">case</span> <span class="string">'T1'</span>
 0175                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EdT1(dL(i),:)';
-0176             <span class="keyword">case</span> <span class="string">'T2'</span>
-0177                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EdT2(dL(i),:)';
-0178         <span class="keyword">end</span>
-0179         data.import.NMR.data{c}.phase = 0;
-0180         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
-0181         data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-0182         
-0183         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
-0184         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
-0185         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
-0186         data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
-0187         
-0188         table{c,1} = true;
-0189         table{c,2} = data.import.NMRMOD.p(dL(i));
-0190         table{c,3} = data.import.NMRMOD.Sd(dL(i));
-0191         table{c,4} = <span class="string">'D'</span>;
-0192     <span class="keyword">end</span>
-0193     
-0194     <span class="comment">% now we import imbibition NMR data</span>
-0195     <span class="keyword">for</span> i = 1:numel(iL)
-0196         <span class="comment">% the individual file names</span>
-0197         c = c + 1;
-0198         fnames(c).parfile = <span class="string">''</span>;
-0199         fnames(c).datafile = data.import.file;
-0200         fnames(c).T2specfile = <span class="string">''</span>;
-0201         
-0202         shownames{c} = [<span class="string">'NUCLEUSmod_'</span>,T1T2,<span class="string">'_imb_'</span>,num2str(i)];
-0203         
-0204         <span class="comment">% the 'header' data</span>
-0205         data.import.NMR.data{c}.datfile = fileID.name;
-0206         data.import.NMR.data{c}.date = fileID.date;
-0207         data.import.NMR.data{c}.datenum = fileID.datenum;
-0208         data.import.NMR.data{c}.bytes = fileID.bytes;
-0209         <span class="comment">% the NMR data</span>
-0210         data.import.NMR.data{c}.flag = T1T2;
-0211         data.import.NMR.data{c}.T1IRfac = T1IRfac;
-0212         data.import.NMR.data{c}.time = data.import.NMRMOD.nmr.t(:);
-0213         <span class="keyword">switch</span> T1T2
-0214             <span class="keyword">case</span> <span class="string">'T1'</span>
-0215                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT1(iL(i),:)';
-0216             <span class="keyword">case</span> <span class="string">'T2'</span>
-0217                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT2(iL(i),:)';
-0218         <span class="keyword">end</span>
-0219         data.import.NMR.data{c}.phase = 0;
-0220         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
-0221         data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-0222         
-0223         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
-0224         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
-0225         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
-0226         data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
-0227         
-0228         table{c,1} = true;
-0229         table{c,2} = data.import.NMRMOD.p(iL(i));
-0230         table{c,3} = data.import.NMRMOD.Si(iL(i));
-0231         table{c,4} = <span class="string">'I'</span>;
-0232     <span class="keyword">end</span>
-0233     
-0234     data.import.NMR.files = fnames;
-0235     data.import.NMR.filesShort = shownames;
-0236     
-0237     <span class="comment">% import pressure / saturation data</span>
-0238     data.pressure.unit = data.import.NMRMOD.gui_pressure.unit;
-0239     data.pressure.unitfac = data.import.NMRMOD.gui_pressure.unitfac;
-0240     data.pressure.table = table;
-0241     
-0242     <span class="comment">% update the list of file names</span>
-0243     set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
-0244     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0245     
-0246     <span class="comment">% create a global INVdata struct for every file in the list</span>
-0247     <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
-0248         setappdata(fig,<span class="string">'INVdata'</span>,[]);
-0249     <span class="keyword">end</span>
-0250     INVdata = cell(length(data.import.NMR.filesShort),1);
-0251     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0252     
-0253     <span class="comment">%  clear all axes</span>
-0254     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
+0176                 data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(dL(i),2);
+0177             <span class="keyword">case</span> <span class="string">'T2'</span>
+0178                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EdT2(dL(i),:)';
+0179                 data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(dL(i),4);
+0180         <span class="keyword">end</span>
+0181         data.import.NMR.data{c}.phase = 0;
+0182         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
+0183         data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
+0184         
+0185         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
+0186         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
+0187         <span class="keyword">if</span> isfield(data.import.NMRMOD.nmr,<span class="string">'Td'</span>)
+0188             data.import.NMR.para{c}.Tdiff = data.import.NMRMOD.nmr.Td;
+0189         <span class="keyword">else</span>
+0190             data.import.NMR.para{c}.Tdiff = 1e6;
+0191         <span class="keyword">end</span>
+0192         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
+0193         data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
+0194         
+0195         table{c,1} = true;
+0196         table{c,2} = data.import.NMRMOD.p(dL(i));
+0197         table{c,3} = data.import.NMRMOD.Sd(dL(i));
+0198         table{c,4} = <span class="string">'D'</span>;
+0199     <span class="keyword">end</span>
+0200     
+0201     <span class="comment">% now we import imbibition NMR data</span>
+0202     <span class="keyword">for</span> i = 1:numel(iL)
+0203         <span class="comment">% the individual file names</span>
+0204         c = c + 1;
+0205         fnames(c).parfile = <span class="string">''</span>;
+0206         fnames(c).datafile = data.import.file;
+0207         fnames(c).T2specfile = <span class="string">''</span>;
+0208         
+0209         shownames{c} = [<span class="string">'NUCLEUSmod_'</span>,T1T2,<span class="string">'_imb_'</span>,num2str(i)];
+0210         
+0211         <span class="comment">% the 'header' data</span>
+0212         data.import.NMR.data{c}.datfile = fileID.name;
+0213         data.import.NMR.data{c}.date = fileID.date;
+0214         data.import.NMR.data{c}.datenum = fileID.datenum;
+0215         data.import.NMR.data{c}.bytes = fileID.bytes;
+0216         <span class="comment">% the NMR data</span>
+0217         data.import.NMR.data{c}.flag = T1T2;
+0218         data.import.NMR.data{c}.T1IRfac = T1IRfac;
+0219         data.import.NMR.data{c}.time = data.import.NMRMOD.nmr.t(:);
+0220         <span class="keyword">switch</span> T1T2
+0221             <span class="keyword">case</span> <span class="string">'T1'</span>
+0222                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT1(iL(i),:)';
+0223                 data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(iL(i),1);
+0224             <span class="keyword">case</span> <span class="string">'T2'</span>
+0225                 data.import.NMR.data{c}.signal = data.import.NMRMOD.nmr.EiT2(iL(i),:)';
+0226                 data.import.NMR.data{c}.noise = data.import.NMRMOD.nmr.noise(iL(i),3);
+0227         <span class="keyword">end</span>
+0228         data.import.NMR.data{c}.phase = 0;
+0229         data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
+0230         data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
+0231         
+0232         data.import.NMR.para{c}.geom = data.import.NMRMOD.geom.type;
+0233         data.import.NMR.para{c}.Tbulk = data.import.NMRMOD.nmr.Tb;
+0234         <span class="keyword">if</span> isfield(data.import.NMRMOD.nmr,<span class="string">'Td'</span>)
+0235             data.import.NMR.para{c}.Tdiff = data.import.NMRMOD.nmr.Td;
+0236         <span class="keyword">else</span>
+0237             data.import.NMR.para{c}.Tdiff = 1e6;
+0238         <span class="keyword">end</span>
+0239         data.import.NMR.para{c}.rho = data.import.NMRMOD.nmr.rho;
+0240         data.import.NMR.para{c}.porosity = data.import.NMRMOD.nmr.porosity;
+0241         
+0242         table{c,1} = true;
+0243         table{c,2} = data.import.NMRMOD.p(iL(i));
+0244         table{c,3} = data.import.NMRMOD.Si(iL(i));
+0245         table{c,4} = <span class="string">'I'</span>;
+0246     <span class="keyword">end</span>
+0247     
+0248     data.import.NMR.files = fnames;
+0249     data.import.NMR.filesShort = shownames;
+0250     
+0251     <span class="comment">% import pressure / saturation data</span>
+0252     data.pressure.unit = data.import.NMRMOD.gui_pressure.unit;
+0253     data.pressure.unitfac = data.import.NMRMOD.gui_pressure.unitfac;
+0254     data.pressure.table = table;
 0255     
-0256     <span class="comment">% enable GUI data and interface</span>
-0257     setappdata(fig,<span class="string">'data'</span>,data);
-0258     setappdata(fig,<span class="string">'gui'</span>,gui);
-0259     <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'MOD'</span>);
-0260     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0261 <span class="keyword">else</span>
-0262     helpdlg({<span class="string">'importNUCLEUSmod:'</span>,<span class="keyword">...</span>
-0263         <span class="string">'NUCLEUSmod data import unsuccessful.'</span>},<span class="string">'import error'</span>);
-0264 <span class="keyword">end</span>
-0265 
-0266 <span class="keyword">end</span>
-0267 
-0268 <span class="comment">%------------- END OF CODE --------------</span>
-0269 
-0270 <span class="comment">%% License:</span>
-0271 <span class="comment">% MIT License</span>
-0272 <span class="comment">%</span>
-0273 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0274 <span class="comment">%</span>
-0275 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0276 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0277 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0278 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0279 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0280 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0281 <span class="comment">%</span>
-0282 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0283 <span class="comment">% copies or substantial portions of the Software.</span>
-0284 <span class="comment">%</span>
-0285 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0286 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0287 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0288 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0289 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0290 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0291 <span class="comment">% SOFTWARE.</span></pre></div>
+0256     <span class="comment">% update the list of file names</span>
+0257     set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
+0258     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0259     
+0260     <span class="comment">% create a global INVdata struct for every file in the list</span>
+0261     <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
+0262         setappdata(fig,<span class="string">'INVdata'</span>,[]);
+0263     <span class="keyword">end</span>
+0264     INVdata = cell(length(data.import.NMR.filesShort),1);
+0265     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0266     
+0267     <span class="comment">%  clear all axes</span>
+0268     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
+0269     
+0270     <span class="comment">% enable GUI data and interface</span>
+0271     setappdata(fig,<span class="string">'data'</span>,data);
+0272     setappdata(fig,<span class="string">'gui'</span>,gui);
+0273     <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'MOD'</span>);
+0274     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0275 <span class="keyword">else</span>
+0276     helpdlg({<span class="string">'importNUCLEUSmod:'</span>,<span class="keyword">...</span>
+0277         <span class="string">'NUCLEUSmod data import unsuccessful.'</span>},<span class="string">'import error'</span>);
+0278 <span class="keyword">end</span>
+0279 
+0280 <span class="keyword">end</span>
+0281 
+0282 <span class="comment">%------------- END OF CODE --------------</span>
+0283 
+0284 <span class="comment">%% License:</span>
+0285 <span class="comment">% MIT License</span>
+0286 <span class="comment">%</span>
+0287 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0288 <span class="comment">%</span>
+0289 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0290 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0291 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0292 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0293 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0294 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0295 <span class="comment">%</span>
+0296 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0297 <span class="comment">% copies or substantial portions of the Software.</span>
+0298 <span class="comment">%</span>
+0299 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0300 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0301 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0302 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0303 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0304 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0305 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -30,8 +30,8 @@ function exportINV(format,varargin)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -63,7 +63,7 @@ switch format
             savedata.filesShort = data.import.NMR.filesShort;
             
             % save to default file at local data path
-            save(fullfile(data.import.path,'NUCLEUSinv_raw.mat'),'savedata');
+            save(fullfile(data.import.path,'NUCLEUSinv_raw.mat'),'savedata','-v7.3');
             clear savedata;
             
             % display info text
@@ -90,7 +90,7 @@ switch format
             
             
             if dosilent
-                save(fullfile(sfile),'savedata');
+                save(fullfile(sfile),'savedata','-v7.3');
                 clear savedata;
             else
                 % session file name
@@ -109,7 +109,7 @@ switch format
                 
                 % if user didn't cancel save session
                 if sum([sfile spath]) > 0
-                    save(fullfile(spath,sfile),'savedata');
+                    save(fullfile(spath,sfile),'savedata','-v7.3');
                     clear savedata;
                     
                     % display info text

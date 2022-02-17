@@ -14,6 +14,7 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %                   T1T2     : flag between 'T1' or 'T2' inversion
 %                   T1IRfac  : either '1' or '2' depending on T1 method
 %                   Tb       : bulk relaxation time
+%                   Td       : diffusion relaxation time
 %                   Tint     : relaxation times [log10(tmin) log10(tmax) Ndec]
 %                   regMethod: 'manual', 'gcv_tikh', 'gcv_trunc',
 %                              'gcv_damp', 'discrep'
@@ -23,6 +24,8 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %                              principle
 %                   W        : error weighting matrix (optional)
 %                   solver   : LSQ solver ('lsqlin' or 'lsqnonneg')
+%                   bounds   : predefined lower and upper bounds and start
+%                              model (optional and only for 'lsqlin')
 %
 % Outputs:
 %       fitdata - struct that holds the inversion results:
@@ -30,7 +33,7 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %                   fit_s      : signal vector for plotting
 %                   T1T2me     : relaxation time values
 %                   T1T2f      : relaxation time spectrum
-%                   Tlgm       : T logmean
+%                   Tlgm       : T log-mean
 %                   E0         : initial amplitude at t=0 (T2) or t=inf (T1)
 %                   resnorm    : residual norm
 %                   residual   : vector of residuals
@@ -64,8 +67,8 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -86,6 +89,7 @@ g = signal./maxS;
 flag = parameter.T1T2;           % T1/T2 switch
 T1IRfac = parameter.T1IRfac;     % T1 Sat/Inv Recovery factor
 Tb = parameter.Tb;               % bulk relaxation time
+Td = parameter.Td;               % diffusion relaxation time
 tstart = parameter.Tint(1);      % log10 value
 tend = parameter.Tint(2);        % log10 value
 N = parameter.Tint(3);           % N per decade
@@ -98,13 +102,23 @@ noise = parameter.noise;         % noise
 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
 
 % create the Kernel matrix for inversion
-K = createKernelMatrix(t,T1T2me,Tb,flag,T1IRfac);
+K = createKernelMatrix(t,T1T2me,Tb,Td,flag,T1IRfac);
 
 if strcmp(parameter.solver,'lsqlin')
-    % initial T2 amplitudes
-    f0 = zeros(size(T1T2me));
-    f0_lb = f0;
-    f0_ub = 1.5*max(g)*ones(size(T1T2me));
+    if isfield(parameter,'bounds')
+        f0 = parameter.bounds.f0;
+        f0_lb = parameter.bounds.lb;
+        f0_ub = parameter.bounds.ub;
+    else
+        % initial T2 amplitudes
+        f0 = zeros(size(T1T2me));
+        f0_lb = f0;
+        f0_ub = 1.5*max(g)*ones(size(T1T2me));
+        % T2 measurements: cut everything < first considered echo to zero
+        f0_ub(T1T2me < time(1)/5) = 0;
+        % T1 measurements: cut everything > 5*time of last point in SR-curve
+        % f0_ub(T1T2me > time(end)) = 0;
+    end
 end
 
 % derivative matrix
@@ -138,14 +152,19 @@ switch parameter.solver
         options.Display = parameter.info;
         options.OptimalityTolerance = 1e-18;
         options.StepTolerance = 1e-18;
-        [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
-            f0_lb,f0_ub,[],options);
+        if isfield(parameter,'bounds')
+            [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
+                f0_lb,f0_ub,f0,options);
+        else
+            [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
+                f0_lb,f0_ub,[],options);
+        end
     case 'lsqnonneg'
         options = optimset('Display',parameter.info,'TolX',1e-12);
         [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
 end
 
-% rescale f so that the sum(f)= unscaled E0
+% rescale f so that the sum(f) = unscaled E0
 f = (f.*maxS);
 
 % the 'inverted' signal
@@ -177,13 +196,11 @@ rn = norm(out.residual,2);
 
 % get "initial" value E0
 if strcmp(flag,'T1')
-    t2 = 10*time(end);
-    K2 = createKernelMatrix(t2,T1T2me,Tb,flag,T1IRfac);
+    K0 = createKernelMatrix(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
 elseif strcmp(flag,'T2')
-    t2 = 0;
-    K2 = createKernelMatrix(t2,T1T2me,Tb,flag,T1IRfac);
+    K0 = createKernelMatrix(0,T1T2me,Tb,Td,flag,T1IRfac);
 end
-E0 = K2*f;
+E0 = K0*f;
 
 % output struct
 fitdata.fit_t = time(:);
@@ -192,6 +209,7 @@ fitdata.T1T2me = T1T2me(:);
 fitdata.T1T2f = f(:);
 fitdata.Tlgm = getTLogMean(T1T2me,f);
 fitdata.E0 = E0;
+fitdata.ciE0 = NaN;
 fitdata.resnorm = out.resnorm;
 fitdata.residual = out.residual;
 fitdata.chi2 = out.chi2;

@@ -25,8 +25,8 @@ function onPopupInvstdType(src,~)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -62,6 +62,11 @@ switch data.info.ExpertMode
                 data.invstd.invtype = 'LU';
                 data.invstd.regtype = 'auto';
                 data.invstd.lambda = -1;
+                
+            case 5
+                data.invstd.invtype = 'MUMO';
+                data.invstd.regtype = 'none';
+                data.invstd.lambda = 1;    
         end
                 
     case 'off'
@@ -89,12 +94,17 @@ switch data.info.ExpertMode
                 else
                     data.invstd.regtype = 'manual';
                     data.invstd.lambda = 1e-2;
-                end                
+                end
                 % update GUI data
                 setappdata(fig,'data',data);
                 % because the gate type could have changed update data
                 onRadioGates(gui.radio_handles.process_gates_log);
                 data = getappdata(fig,'data');
+                
+            case 4
+                data.invstd.invtype = 'MUMO';
+                data.invstd.regtype = 'none';
+                data.invstd.lambda = 1;
         end
 end
 % update GUI data

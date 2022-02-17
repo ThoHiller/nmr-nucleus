@@ -32,8 +32,8 @@ function onListboxData(src,~)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -98,7 +98,7 @@ if isfield(data.import,'NMR')
                     data.process.start = 1;
                 case 'T2'
                     switch data.import.fileformat
-                        case {'dart','field','mouse','NMRMOD','excel'}
+                        case {'dart','excel','field','helios','mouse','NMRMOD'}
                             data.process.gatetype = 'raw';
                             data.process.start = 1;
                         otherwise
@@ -147,7 +147,8 @@ if isfield(data.import,'NMR')
             end
             if isfield(data.import,'NMRMOD')
                 data.param.rho = data.import.NMR.para{id}.rho*1e6;
-                data.invstd.Tbulk = data.import.NMR.para{id}.Tbulk;                
+                data.invstd.Tbulk = data.import.NMR.para{id}.Tbulk;
+                data.invstd.Tdiff = data.import.NMR.para{id}.Tdiff;
                 data.invstd.porosity = data.import.NMR.para{id}.porosity;
             end
             % ---

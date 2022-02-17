@@ -23,8 +23,8 @@ function updateInfo(src,~) %#ok<INUSD>
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -65,11 +65,11 @@ if showit
                     case 'T2'
                         switch data.process.gatetype
                             case 'raw'
-                                info{end+1,1} = ['<HTML><BODY>Echos &nbsp= ',...
+                                info{end+1,1} = ['<HTML><BODY>Echos&nbsp= ',...
                                     sprintf('%d',length(nmrproc.t)),...
                                     ' (',data.process.gatetype,')','</BODY></HTML>'];
                             otherwise
-                                info{end+1,1} = ['<HTML><BODY>Gates &nbsp= ',...
+                                info{end+1,1} = ['<HTML><BODY>Gates&nbsp= ',...
                                     sprintf('%d',length(nmrproc.t)),...
                                     ' (',data.process.gatetype,')','</BODY></HTML>'];
                         end
@@ -78,12 +78,12 @@ if showit
                 switch data.process.norm
                     case 0
                         if max(nmrproc.s) < 1e-3
-                            info{end+1,1} = ['<HTML><BODY>A_max &nbsp= ',...
-                                sprintf('%5.4e',max(nmrproc.s)),...
+                            info{end+1,1} = ['<HTML><BODY>A_max&nbsp= ',...
+                                sprintf('%5.3e',max(nmrproc.s)),...
                                 '</BODY></HTML>'];
                         else
-                            info{end+1,1} = ['<HTML><BODY>A_max &nbsp= ',...
-                                sprintf('%5.4f',max(nmrproc.s)),...
+                            info{end+1,1} = ['<HTML><BODY>A_max&nbsp= ',...
+                                sprintf('%5.3f',max(nmrproc.s)),...
                                 '</BODY></HTML>'];
                         end
                     case 1
@@ -93,12 +93,12 @@ if showit
                                 '</BODY></HTML>'];
                         else
                             info{end+1,1} = ['<HTML><BODY>Normfac = ',...
-                                sprintf('%5.4f',max(data.process.normfac)),...
+                                sprintf('%5.3f',max(data.process.normfac)),...
                                 '</BODY></HTML>'];
                         end
                         
                 end
-                info{end+1,1} = ['<HTML><BODY>noise &nbsp= ',sprintf('%4.3e',nmrproc.noise),'</BODY></HTML>'];
+                info{end+1,1} = ['<HTML><BODY>noise&nbsp= ',sprintf('%4.2e',nmrproc.noise),'</BODY></HTML>'];
                 info{end+1,1} = ' ';
                 
                 % possible inversion results/statistics
@@ -112,12 +112,12 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.3e',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%4.3e',ciE0),')','</BODY></HTML>'];
+                                        sprintf('%4.2e',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%4.2e',ciE0),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.3e',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%4.3e',ciE0),')','</BODY></HTML>'];
+                                        sprintf('%4.2e',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%4.2e',ciE0),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
@@ -126,9 +126,10 @@ if showit
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.3e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
-                            if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+%                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+                            if nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
                             
@@ -138,12 +139,12 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.3e',sum(E0)),...
-                                        ' &#8723 (',sprintf('%4.3e',ciE0s),')','</BODY></HTML>'];
+                                        sprintf('%4.2e',sum(E0)),...
+                                        ' &#8723 (',sprintf('%4.2e',ciE0s),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.3e',sum(E0)),...
-                                        ' &#8723 (',sprintf('%4.3e',ciE0s),')','</BODY></HTML>'];
+                                        sprintf('%4.2e',sum(E0)),...
+                                        ' &#8723 (',sprintf('%4.2e',ciE0s),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
@@ -152,10 +153,11 @@ if showit
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.3e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
-                            if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+%                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+                            if nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
                             
@@ -163,10 +165,10 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.3e',sum(invstd.E0)),'</BODY></HTML>'];
+                                        sprintf('%4.2e',sum(invstd.E0)),'</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.3e',sum(invstd.E0)),'</BODY></HTML>'];
+                                        sprintf('%4.2e',sum(invstd.E0)),'</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
@@ -175,14 +177,42 @@ if showit
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.3e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
-                            if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+                            %                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+                            if nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
                             
                             info{end+1,1} = ['<HTML><BODY>&lambda = ',sprintf('%6.5f',invstd.lambda_out),'</BODY></HTML>'];
+                            info{end+1,1} = ' ';
+                        case {'MUMO'}
+                            switch nmrproc.T1T2
+                                case 'T1'
+                                    info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
+                                        sprintf('%4.2e',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%4.2e',invstd.ciE0),')','</BODY></HTML>'];
+                                case 'T2'
+                                    info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
+                                        sprintf('%4.2e',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%4.2e',invstd.ciE0),')','</BODY></HTML>'];
+                            end
+                            info{end+1,1} = ' ';
+                            
+                            if isfield(invstd,'chi2')
+                                if ~isnan(invstd.chi2)
+                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%4.2f',invstd.chi2)];
+                                    info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
+                                end
+                            end
+                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
+                            
+                            % if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+                            if nmrproc.noise ~= 0
+                                info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
+                            end
                             info{end+1,1} = ' ';
                     end
                 end
@@ -232,9 +262,11 @@ if showit
                         sprintf('%5.2f',rad2deg(a)),...
                         '°</BODY></HTML>'];                    
                 end
-                info{end+1,1} = ['<HTML><BODY>phase fit&nbsp= ',...
+                if isfield(data.results.nmrraw,'phase')
+                    info{end+1,1} = ['<HTML><BODY>phase fit&nbsp= ',...
                         sprintf('%5.2f',rad2deg(data.results.nmrraw.phase)),...
                         '°</BODY></HTML>'];
+                end
                 info{end+1,1} = ' ';
             end
             
@@ -317,8 +349,8 @@ if showit
                                     ' &#8723 (',sprintf('%5.4f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
                                 info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.4f',E0(i)),...
                                     ' &#8723 (',sprintf('%5.4f',ciE0(i)),')','</BODY></HTML>'];
+                                info{end+1,1} = ' ';
                             end
-                            info{end+1,1} = ' ';
                             
                         case {'LU','NNLS'}
                             % info is a cell array
@@ -352,6 +384,57 @@ if showit
                                 ') = ',sprintf('%5.2f',por*BVI*100),' [vol. %]'];
                             info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [vol. %]'];
                             
+                        case {'MUMO'}
+                            
+                            % info is a cell array
+                            str = [invtype,' ',num2str(data.invstd.freeDT)];
+                            info{end+1,1} = str;
+                            info{end+1,1} = ' ';
+                            
+                            % TLGM
+                            info{end+1,1} = ['<HTML><BODY>TLGM</sub> = ',sprintf('%5.4f',invstd.Tlgm),'</BODY></HTML>'];
+                            info{end+1,1} = ' ';
+                            
+                            % clay-bound water CBW < tcut ms
+                            % irreducible water / capillary water BVI ccut - tcut ms
+                            % movable water BVM > tcut ms
+                            switch data.process.timescale
+                                case 's'
+                                    ccut = data.param.CBWcutoff/1000;
+                                    tcut = data.param.BVIcutoff/1000;
+                                case 'ms'
+                                    ccut = data.param.CBWcutoff;
+                                    tcut = data.param.BVIcutoff;
+                            end
+                            por = data.invstd.porosity;
+                            CBW = abs(sum(invstd.T1T2f(invstd.T1T2me<=ccut))/sum(invstd.T1T2f));
+                            BVI = abs(sum(invstd.T1T2f(invstd.T1T2me>ccut & invstd.T1T2me<=tcut))/sum(invstd.T1T2f));
+                            BVM = abs(sum(invstd.T1T2f(invstd.T1T2me>tcut))/sum(invstd.T1T2f));
+                            info{end+1,1} = ['CBW(',sprintf('%2d',data.param.CBWcutoff),...
+                                ') = ',sprintf('%5.2f',por*CBW*100),' [vol. %]'];
+                            
+                            info{end+1,1} = ['BVI(',sprintf('%2d',data.param.BVIcutoff),...
+                                ') = ',sprintf('%5.2f',por*BVI*100),' [vol. %]'];
+                            info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [vol. %]'];
+                            info{end+1,1} = ' ';
+                            
+                            % values for T, sigma and amplitude
+                            T = invstd.T; ciT = invstd.ci(1:3:end);
+                            S = invstd.S; ciS = invstd.ci(2:3:end);
+                            E = invstd.E; ciE = invstd.ci(3:3:end);
+                            % transform ciT because it is in log scale
+                            tmpT = log(T)-ciT';
+                            ciT = T - exp(tmpT);
+                            
+                            for i = 1:length(T)
+                                info{end+1,1} = ['<HTML><BODY>T(',num2str(i),') = ',sprintf('%5.4f',T(i)),...
+                                    ' &#8723 (',sprintf('%5.4f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
+                                info{end+1,1} = ['<HTML><BODY>S(',num2str(i),') = ',sprintf('%5.4f',S(i)),...
+                                    ' &#8723 (',sprintf('%5.4f',ciS(i)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.4f',E(i)),...
+                                    ' &#8723 (',sprintf('%5.4f',ciE(i)),')','</BODY></HTML>'];
+                                info{end+1,1} = ' ';
+                            end
                     end
                 end
             end

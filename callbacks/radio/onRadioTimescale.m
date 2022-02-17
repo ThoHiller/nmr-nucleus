@@ -26,8 +26,8 @@ function onRadioTimescale(src,~)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -55,6 +55,7 @@ if ~isempty(id)
                 data.process.timefac = 1;
                 data.invstd.time = data.invstd.time ./ 1000;
                 data.invstd.Tbulk = data.invstd.Tbulk ./ 1000;
+                data.invstd.Tdiff = data.invstd.Tdiff ./ 1000;
             end
             
         case 'ms'
@@ -63,6 +64,7 @@ if ~isempty(id)
                 data.process.timefac = 1000;
                 data.invstd.time = data.invstd.time .* 1000;
                 data.invstd.Tbulk = data.invstd.Tbulk .* 1000;
+                data.invstd.Tdiff = data.invstd.Tdiff .* 1000;
             end
     end
 

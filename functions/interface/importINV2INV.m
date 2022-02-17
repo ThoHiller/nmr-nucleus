@@ -27,8 +27,8 @@ function importINV2INV(src)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -55,7 +55,10 @@ else
 end
 
 % only continue if user didn't cancel
-if sum(Sessionpath) > 0    
+if sum(Sessionpath) > 0
+    % display info text
+    displayStatusText(gui,'Importing GUI session from mat-file ...');
+    
     % check if it is a valid session file
     tmp = load(fullfile(Sessionpath,Sessionfile),'savedata');
     if isfield(tmp,'savedata') && isfield(tmp.savedata,'data') && ...
@@ -65,6 +68,98 @@ if sum(Sessionpath) > 0
         % check import uimenu
         set(src,'Checked','on');
         
+        % backward compatibility with older versions
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... backward compatibility.');
+        % current GUI version
+        version = getVersionNoFromString(gui.myui.version);
+        % import GUI version
+        version_in = getVersionNoFromString(savedata.myui.version);
+        if version_in < version
+            if version_in < 19 % changes introduced with v.0.1.9
+                % rename 'ILA' to 'LU' in savedata
+                if strcmp(savedata.data.invstd.invtype,'ILA')
+                    savedata.data.invstd.invtype = 'LU';                    
+                end
+                for i = 1:numel(savedata.INVdata)
+                    if isstruct(savedata.INVdata{i}) && ...
+                            strcmp(savedata.INVdata{i}.invstd.invtype,'ILA')
+                        savedata.INVdata{i}.invstd.invtype = 'LU';
+                    end
+                end
+            end
+            if version_in < 112 % changes introduced with v.0.1.12
+                % add 'Tdiff' field to savedata
+                savedata.data.invstd.Tdiff = data.invstd.Tdiff;
+                for i = 1:numel(savedata.INVdata)
+                    if isstruct(savedata.INVdata{i})
+                        savedata.INVdata{i}.invstd.Tdiff = data.invstd.Tdiff;
+                    end
+                end
+            end
+        end
+        
+        % update GUI data from session mat-file
+        data = savedata.data;
+        INVdata = savedata.INVdata;
+        
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... update GUI data.');
+        % check if the import path exists on this machine
+        isdir_import = dir(data.import.path);
+        % if not replace it with the path the session-file was loaded from
+        if isempty(isdir_import)
+            data.import.path = Sessionpath;
+        end
+        % update the path info field with "path" ("file")
+        if data.import.file > 0
+            tmpstr = fullfile(data.import.path,data.import.file);
+        else
+            tmpstr = data.import.path;
+        end
+        % update GUI data
+        setappdata(fig,'data',data);
+        setappdata(fig,'gui',gui);
+        setappdata(fig,'INVdata',INVdata);        
+        
+        % update the ini-file
+        gui.myui.inidata.importpath = data.import.path;
+        gui = makeINIfile(gui,'update');
+        setappdata(fig,'gui',gui);
+        
+        if length(tmpstr)>50
+            set(gui.text_handles.data_path,'String',['...',tmpstr(end-50:end)],...
+                'HorizontalAlignment','left');
+        else
+            set(gui.text_handles.data_path,'String',tmpstr,...
+                'HorizontalAlignment','left');
+        end
+        set(gui.text_handles.data_path,'TooltipString',tmpstr);
+        
+        % update the list of file names
+        set(gui.listbox_handles.signal,'String',data.import.NMR.filesShort);
+        set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);
+        
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... update GUI interface.');
+        % update GUI interface
+        NUCLEUSinv_updateInterface;
+        
+        % color the file names where there is an inversion set
+        for id = 1:size(INVdata,1)
+            if isstruct(INVdata{id})
+                strL = get(gui.listbox_handles.signal,'String');
+                str1 = strL{id};
+                str2 = ['<HTML><BODY bgcolor="rgb(',...
+                    sprintf('%d,%d,%d',gui.myui.colors.listINV.*255),')">',...
+                    str1,'</BODY></HTML>'];
+                strL{id} = str2;
+                set(gui.listbox_handles.signal,'String',strL);
+            end
+        end
+        
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... update GUI menus.');
         % adjust menu entry for expert mode
         switch savedata.data.info.ExpertMode
             case 'on'
@@ -102,104 +197,23 @@ if sum(Sessionpath) > 0
         end
         onMenuView(gui.menu.view_tooltips);
         
-        % update GUI data from session mat-file
-        data = savedata.data;
-        INVdata = savedata.INVdata;
-        
-        % backward compatibility with older versions
-        % current GUI version
-        version = getVersionNoFromString(gui.myui.version);
-        % import GUI version
-        version_in = getVersionNoFromString(savedata.myui.version);
-        if version_in < version
-            if version_in < 19 % changes introduced with v.0.1.9
-                if strcmp(savedata.data.invstd.invtype,'ILA')
-                    data.invstd.invtype = 'LU';                    
-                end
-                for i = 1:numel(savedata.INVdata)
-                    if strcmp(savedata.INVdata{i}.invstd.invtype,'ILA')
-                        INVdata{i}.invstd.invtype = 'LU';
-                    end
-                end
-            end
-        end        
-        
-        % check if the import path exists on this machine
-        isdir_import = dir(data.import.path);
-        % if not replace it with the path the session-file was loaded from
-        if isempty(isdir_import)
-            data.import.path = Sessionpath;
-        end
-        % update the path info field with "path" ("file")
-        if data.import.file > 0
-            tmpstr = fullfile(data.import.path,data.import.file);
-        else
-            tmpstr = data.import.path;
-        end
-        % update GUI data
-        setappdata(fig,'data',data);
-        setappdata(fig,'gui',gui);
-        setappdata(fig,'INVdata',INVdata);        
-        
-        % update the ini-file
-        gui.myui.inidata.importpath = data.import.path;
-        gui = makeINIfile(gui,'update');
-        setappdata(fig,'gui',gui);
-        
-        if length(tmpstr)>50
-            set(gui.text_handles.data_path,'String',['...',tmpstr(end-50:end)],...
-                'HorizontalAlignment','left');
-        else
-            set(gui.text_handles.data_path,'String',tmpstr,...
-                'HorizontalAlignment','left');
-        end
-        set(gui.text_handles.data_path,'TooltipString',tmpstr);
-        
-        % update the list of file names
-        set(gui.listbox_handles.signal,'String',data.import.NMR.filesShort);
-        set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);
-        
-        % update GUI interface
-        NUCLEUSinv_updateInterface;
-        
-        % color the file names where there is an inversion set
-        for id = 1:size(INVdata,1)
-            if isstruct(INVdata{id})
-                strL = get(gui.listbox_handles.signal,'String');
-                str1 = strL{id};
-                str2 = ['<HTML><BODY bgcolor="rgb(',...
-                    sprintf('%d,%d,%d',gui.myui.colors.listINV.*255),')">',...
-                    str1,'</BODY></HTML>'];
-                strL{id} = str2;
-                set(gui.listbox_handles.signal,'String',strL);
-            end
-        end
-
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... show last file.');
         % set focus on last file used in previous session
         set(gui.listbox_handles.signal,'Value',savedata.id);
+        % and simulate click to update all relevant GUI elements
+        onListboxData(gui.listbox_handles.signal);
         
-        % show corresponding file data
-        updatePlotsSignal;
-        if isstruct(INVdata{savedata.id})            
-            if isfield(data,'results')
-                if isfield(data.results,'invstd')
-                    updatePlotsDistribution;
-                    updateInfo(gui.plots.SignalPanel);
-                end
-                if isfield(data.results,'invjoint')
-                    updatePlotsJointInversion;
-                end
-                if isfield(data.results,'lcurve')
-                    updatePlotsLcurve;
-                end
-            end
-        end        
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... done.');        
     else
+        % display info text
+        displayStatusText(gui,'Importing GUI session from mat-file ... cancelled.');
+        
         helpdlg({'importINV2INV:';...
             'This seems to be not a valid NUCLEUSinv session file'},...
             'No session data found');
     end
-
 end
 
 %------------- END OF CODE --------------

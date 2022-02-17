@@ -28,8 +28,8 @@ function J = getFitFreeJacobian(x,t,flag,IR)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

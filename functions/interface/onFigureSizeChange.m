@@ -27,8 +27,8 @@ function onFigureSizeChange(fig,~)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -40,34 +40,32 @@ gui = getappdata(fig,'gui');
 switch fig_tag
     case 'INV'
         % proceed if there is data
-        if ~isempty(gui)
-            if isfield(gui,'panels')
-                heights = get(gui.panels.main,'Heights');
-                set(gui.left,'Heights',-1,'MinimumHeights',sum(heights(2:end))+250);
-                % check if CPS settings panel is activated
-                if heights(end) > 100
-                    % check if there is a vertical scrollbar
-                    hpos = get(gui.top,'InnerPosition');
-                    if get(gui.left,'MinimumHeights') > hpos(4)
-                        % if yes shift the table slightly to the right to avoid
-                        % horizontal resizing
-                        set(gui.panels.invjoint.TabCPS,'Widths',[180 -1]);
-                    else
-                        % if not use the default layout
-                        set(gui.panels.invjoint.TabCPS,'Widths',[200 -1]);
-                    end
+        if ~isempty(gui) && isfield(gui,'panels')
+            heights = get(gui.panels.main,'Heights');
+            set(gui.left,'Heights',-1,'MinimumHeights',sum(heights(2:end))+250);
+            % check if CPS settings panel is activated
+            if heights(end) > 100
+                % check if there is a vertical scrollbar
+                hpos = get(gui.top,'InnerPosition');
+                if get(gui.left,'MinimumHeights') > hpos(4)
+                    % if yes shift the table slightly to the right to avoid
+                    % horizontal resizing
+                    set(gui.panels.invjoint.TabCPS,'Widths',[180 -1]);
+                else
+                    % if not use the default layout
+                    set(gui.panels.invjoint.TabCPS,'Widths',[200 -1]);
                 end
-                % check if process panel is activated
-                if heights(2) > 100
-                    % check if there is a vertical scrollbar
-                    hpos = get(gui.top,'InnerPosition');
-                    if get(gui.left,'MinimumHeights') > hpos(4)
-                        % if yes shift the hbox2 slightly to the right
-                        set(gui.panels.process.HBox2,'Widths',[180 -1 -1 -1.5 50]);
-                    else
-                        % if not use the default layout
-                        set(gui.panels.process.HBox2,'Widths',[200 -1 -1 -1.5 50]);
-                    end
+            end
+            % check if process panel is activated
+            if heights(2) > 100
+                % check if there is a vertical scrollbar
+                hpos = get(gui.top,'InnerPosition');
+                if get(gui.left,'MinimumHeights') > hpos(4)
+                    % if yes shift the hbox2 slightly to the right
+                    set(gui.panels.process.HBox2,'Widths',[180 -1 -1 -1.5 50]);
+                else
+                    % if not use the default layout
+                    set(gui.panels.process.HBox2,'Widths',[200 -1 -1 -1.5 50]);
                 end
             end
         end
@@ -78,7 +76,7 @@ switch fig_tag
         
     case 'MOD'
         % proceed if there is data
-        if ~isempty(gui)
+        if ~isempty(gui) && isfield(gui,'panels')
             heights = get(gui.panels.main,'Heights');
             if heights(2) == -1
                 set(gui.left,'Heights',-1,'MinimumHeights',sum(heights(1:end))+250);

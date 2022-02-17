@@ -23,8 +23,8 @@ function uncheckImportMenus
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -45,8 +45,11 @@ set(gui.menu.file_import_lab_mouse,'Checked','off');
 set(gui.menu.file_import_lab_liag_single,'Checked','off');
 set(gui.menu.file_import_lab_liag_project,'Checked','off');
 set(gui.menu.file_import_lab_bgr_std,'Checked','off');
-set(gui.menu.file_import_lab_bgr_org,'Checked','off');
 set(gui.menu.file_import_lab_bgr_mat,'Checked','off');
+set(gui.menu.file_import_lab_bgr_mouse_cpmg,'Checked','off');
+set(gui.menu.file_import_lab_bgr_mouse_liftsingle,'Checked','off');
+set(gui.menu.file_import_lab_bgr_mouse_liftall,'Checked','off');
+set(gui.menu.file_import_lab_bgr_helios,'Checked','off');
 set(gui.menu.file_import_lab_bam_tom,'Checked','off');
 set(gui.menu.file_import_lab_ascii_T1,'Checked','off');
 set(gui.menu.file_import_lab_ascii_T2,'Checked','off');

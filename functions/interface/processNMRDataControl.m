@@ -25,8 +25,8 @@ function processNMRDataControl(fig,id)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -64,24 +64,6 @@ nmrproc.Nechoes = data.process.Nechoes;
 data.results.nmrraw = nmrraw;
 data.results.nmrproc = nmrproc;
 data.process.normfac = nmrproc.normfac;
-
-% some special treatment of NUCLEUSmod data
-if isfield(data.import,'NMRMOD')
-    noise = data.import.NMRMOD.nmr.noise;
-    data.results.nmrproc.noise = noise;
-    if noise ~=0 && ~strcmp(nmrproc.gatetype,'raw')
-        e = noise ./ sqrt(nmrproc.N);
-        W = diag(e) * eye(size(e,1));
-        data.results.nmrproc.e = e;
-        data.results.nmrproc.W = W;
-    else
-        e = noise*ones(size(nmrproc.s));
-        data.results.nmrproc.e = e;
-        if isfield(data.results.nmrproc,'W')
-            data.results.nmrproc = rmfield(data.results.nmrproc,'W');
-        end
-    end
-end
 
 % update GUI data
 setappdata(fig,'data',data);

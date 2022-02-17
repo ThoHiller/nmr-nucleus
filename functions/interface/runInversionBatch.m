@@ -32,8 +32,8 @@ function runInversionBatch
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -127,10 +127,24 @@ if ~isempty(INVdata)
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
                     
+                case 'LU'
+                    param.T1T2 = data.results.nmrproc.T1T2;
+                    param.T1IRfac = data.results.nmrproc.T1IRfac;
+                    param.Tb = data.invstd.Tbulk;
+                    param.Td = data.invstd.Tdiff;
+                    param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+                    param.Lorder = data.invstd.Lorder;
+                    param.lambda = data.invstd.lambda;
+                    param.noise = data.results.nmrproc.noise;
+                    
+                    invstd = fitDataLUdecomp(data.results.nmrproc.t,...
+                        data.results.nmrproc.s,param);
+                    
                 case 'NNLS'
                     param.T1T2 = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.Tb = data.invstd.Tbulk;
+                    param.Td = data.invstd.Tdiff;
                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
                     param.regMethod = data.invstd.regtype;
                     param.Lorder = data.invstd.Lorder;
@@ -144,17 +158,45 @@ if ~isempty(INVdata)
                     invstd = fitDataLSQ(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
                     
-                case 'LU'
+                case 'MUMO' % N free distribution inversion
                     param.T1T2 = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.Tb = data.invstd.Tbulk;
+                    param.Td = data.invstd.Tdiff;
                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-                    param.Lorder = data.invstd.Lorder;
-                    param.lambda = data.invstd.lambda;
+                    param.regMethod = data.invstd.regtype;
                     param.noise = data.results.nmrproc.noise;
+                    param.solver = data.info.solver;
+                    param.optim = data.info.has_optim;
+                    if isfield(data.results.nmrproc,'W')
+                        param.W = data.results.nmrproc.W;
+                    end
                     
-                    invstd = fitDataLUdecomp(data.results.nmrproc.t,...
-                        data.results.nmrproc.s,param);
+                    % status bar information
+                    switch data.info.solver
+                        case 'lsqlin'
+                            infostring = 'Inversion using ''Optimization Toolbox'' ... ';
+                        case 'lsqnonneg'
+                            infostring = 'Inversion using ''fminsearchbnd'' ... ';
+                    end
+                    displayStatusText(gui,infostring);
+                    invstd = fitDataMultiModal(data.results.nmrproc.t,...
+                        data.results.nmrproc.s,param,data.invstd.freeDT);
+                    
+                    % estimate uncertainty
+                    if data.invstd.useUncert
+                        % original fit parameter
+                        iparam = param;
+                        % uncertainty parameter
+                        uparam.time = data.results.nmrproc.t;
+                        uparam.signal = data.results.nmrproc.s;
+                        uparam.uncertMethod = data.invstd.uncertMethod;
+                        uparam.uncertThresh = data.invstd.uncertThresh;
+                        uparam.uncertChi2 = data.invstd.uncertChi2;
+                        uparam.uncertN = data.invstd.uncertN;
+                        uparam.uncertMax = data.invstd.uncertMax;
+                        invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
+                    end
             end
             
             % save inversion results

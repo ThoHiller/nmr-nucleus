@@ -37,8 +37,8 @@ function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_le
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

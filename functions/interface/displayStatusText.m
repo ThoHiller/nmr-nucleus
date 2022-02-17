@@ -1,5 +1,6 @@
 function displayStatusText(gui,string)
-%displayStatusText clears all axes of a given figure
+%displayStatusText shows status information either in the GUI or on the
+%commandline
 %
 % Syntax:
 %       displayStatusText(gui,string)
@@ -24,15 +25,19 @@ function displayStatusText(gui,string)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
 %% display status / info text
-set(gui.textStatus,'String',string);
-pause(0.001);
+if isstruct(gui)
+    set(gui.textStatus,'String',string);
+    pause(0.001);
+else
+    disp(string);
+end
 
 end
 

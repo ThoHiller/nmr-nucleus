@@ -16,6 +16,7 @@ function updateNMRsignals
 %
 % Other m-files required:
 %       addNoiseToSignal
+%       updatePlotsNMR
 %
 % Subfunctions:
 %       none
@@ -24,8 +25,8 @@ function updateNMRsignals
 %       none
 %
 % See also: NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -34,21 +35,46 @@ function updateNMRsignals
 fig = findobj('Tag','MOD');
 data = getappdata(fig,'data');
 
+%% first check what is the noise type
+
+switch data.nmr.noisetype
+    case 'level'
+        noise = data.nmr.noise;
+    case 'SNR'
+        SNR = data.nmr.noise;
+        noise = 1./SNR;
+end
+
 %% only proceed if the noise is larger than 0
-if data.nmr.noise > 0
-    % scale noise by porosity
-    noise = data.nmr.noise/data.nmr.porosity;
-    % add noise to NMR signals
-    [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.raw.EiT1,0,noise);
-    [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.raw.EdT1,0,noise);
-    [data.results.NMR.EiT2,~] = addNoiseToSignal(data.results.NMR.raw.EiT2,0,noise);
-    [data.results.NMR.EdT2,~] = addNoiseToSignal(data.results.NMR.raw.EdT2,0,noise);
+if noise > 0
+    switch data.nmr.noisetype
+        case 'level'
+            % scale noise by porosity
+            noise = noise/data.nmr.porosity;
+            % add noise to NMR signals
+            [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.raw.EiT1,0,noise);
+            [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.raw.EdT1,0,noise);
+            [data.results.NMR.EiT2,~] = addNoiseToSignal(data.results.NMR.raw.EiT2,0,noise);
+            [data.results.NMR.EdT2,~] = addNoiseToSignal(data.results.NMR.raw.EdT2,0,noise);
+            noiseM = noise*ones(size(data.results.NMR.EiT1,2),4);
+        case 'SNR'
+            SNR = data.nmr.noise;
+            noiseM(:,1) = data.results.NMR.EiT1(:,end)./SNR;
+            [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.raw.EiT1,0,noiseM(:,1));
+            noiseM(:,2) = data.results.NMR.EdT1(:,end)./SNR;
+            [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.raw.EdT1,0,noiseM(:,2));
+            noiseM(:,3) = data.results.NMR.EiT2(:,1)./SNR;
+            [data.results.NMR.EiT2,~] = addNoiseToSignal(data.results.NMR.raw.EiT2,0,noiseM(:,3));
+            noiseM(:,4) = data.results.NMR.EdT2(:,1)./SNR;
+            [data.results.NMR.EdT2,~] = addNoiseToSignal(data.results.NMR.raw.EdT2,0,noiseM(:,4));            
+    end
 else
     % reset the NMR signals with the raw data (without noise)
     data.results.NMR.EiT1 = data.results.NMR.raw.EiT1;
     data.results.NMR.EdT1 = data.results.NMR.raw.EdT1;
     data.results.NMR.EiT2 = data.results.NMR.raw.EiT2;
     data.results.NMR.EdT2 = data.results.NMR.raw.EdT2;
+    noiseM = zeros(size(data.results.NMR.EiT1,2),4);
 end
 
 % scale NMR signals by porosity
@@ -57,12 +83,14 @@ data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.EdT1;
 data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.EiT2;
 data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.EdT2;
 
-% save the noise value
-data.results.NMR.noise = data.nmr.noise;
+% save the noise matrix values
+data.results.NMR.noise = noiseM;
 % save the porosity value
 data.results.NMR.porosity = data.nmr.porosity;
 % update the GUI data
 setappdata(fig,'data',data);
+% update the NMR plot window
+updatePlotsNMR;
 
 end
 

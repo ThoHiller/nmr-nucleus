@@ -28,8 +28,8 @@ function calculateNMR
 %       none
 %
 % See also: NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -45,6 +45,7 @@ if isfield(data.results,'SAT')
     % generate a time vector from the echo time 'TE' and number of echoes 'echosN'
     nmr.t = getNMRTimeVector(data.nmr.TE,'µs','N',data.nmr.echosN);
     nmr.Tb = data.nmr.Tbulk;
+    nmr.Td = data.nmr.Tdiff;
     nmr.rho = data.nmr.rho/1e6; % µm/s to m/s
     
     % wait-bar option

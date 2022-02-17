@@ -26,8 +26,8 @@ function onContextAxisLogLin(src,~)
 %       none
 %
 % See also: NUCLEUSmod, NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------

@@ -27,8 +27,8 @@ function onPopupInvstdTypeOptional(src,~)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -135,6 +135,10 @@ switch invtype
                 data.invstd.regtype  = 'auto';
                 data.invstd.lambda = -1;
         end
+        
+    case 'MUMO'
+        % # free distributions = value (1 to 4)
+        data.invstd.freeDT = value;
 end
 
 % update GUI data

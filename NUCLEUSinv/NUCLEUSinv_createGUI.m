@@ -36,8 +36,8 @@ function NUCLEUSinv_createGUI(h,wbon)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -118,7 +118,7 @@ gui.panels.invjoint.main = uix.BoxPanel('Parent',gui.panels.main,...
     'TitleColor',myui.colors.BoxCPS,'ForegroundColor',myui.colors.BoxTitle);
 
 % adjust the heights of all left-column-panels
-myui.heights = [250 22 22 22 22; -1 109 137 190 299];
+myui.heights = [250 22 22 22 22; -1 109 165 190 299];
 % panel header is always 22 high
 set(gui.panels.main,'Heights',myui.heights(2,:),...
     'MinimumHeights',[250 22 22 22 22]);
@@ -199,7 +199,7 @@ set(gui.bottom,'MinimumWidths',610);
 % otherwise "fixAxes" throws an error (in NUCLEUSmod); strangely here it
 % also works without it, but I put it for consistency reasons
 setappdata(h,'gui',gui);
-% changeColorTheme('INV',myui.colors.theme);
+changeColorTheme('INV',myui.colors.theme);
 set(gui.main,'Visible','on');
 
 %% enable all menus

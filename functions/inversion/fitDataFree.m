@@ -54,8 +54,8 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -85,8 +85,9 @@ end
 % start values for E and T
 x0 = zeros(1,2*nExp);
 for i = 1:nExp
-    x0(2*i-1) = max(signal)/nExp;
-    x0(2*i) = i*max(t)/4;
+    x0(2*i-1) = i*max(signal)/nExp;
+    x0(2*i) = i*max(t)/nExp;
+%     x0(2*i) = exp(i*max(log(t))/nExp);
 end
 
 switch parameter.optim
@@ -112,10 +113,10 @@ switch parameter.optim
                 
                 iparam.t = t;
                 iparam.s = s;
-                [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
-                    x0,zeros(size(x0)),[],options);
-                % [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
-                %     x0,t,s,zeros(size(x0)),[],options);
+%                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
+%                     x0,zeros(size(x0)),[],options);
+                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
+                    x0,t,s,zeros(size(x0)),[],options);
         end
     case 'off'
         % solver options

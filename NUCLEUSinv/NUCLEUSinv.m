@@ -27,8 +27,8 @@ function NUCLEUSinv
 %       none
 %
 % See also NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -38,10 +38,10 @@ h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.1.11';
-myui.date = '12.03.2021';
-myui.author = {'Thomas Hiller','Stephan Costabel'};
-myui.email = 'thomas.hiller[at]leibniz-liag.de';
+myui.version = '0.1.12';
+myui.date = '17.02.2022';
+myui.author = {'Stephan Costabel','Thomas Hiller'};
+myui.email = 'thomas.hiller[at]bgr.de';
 myui.fontsize = 10;
 myui.inifile = 'NUCLEUSinv.ini';
 

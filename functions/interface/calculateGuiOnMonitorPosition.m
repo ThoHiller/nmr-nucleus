@@ -24,8 +24,8 @@ function pos = calculateGuiOnMonitorPosition(aspect_ratio)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -33,6 +33,7 @@ function pos = calculateGuiOnMonitorPosition(aspect_ratio)
 %% get the monitor layout
 scr = get(0,'MonitorPosition');
 if size(scr,1) > 1
+    % find main screen
     ind = find(scr(:,1)==1 & scr(:,2)==1);
     sw = scr(ind,3); % width
     sh = scr(ind,4); % height
@@ -41,31 +42,16 @@ else
     sh = scr(4); % height
 end
 
-%% positioning of the GUI
-if numel(scr) > 4
-    % dual screen mode
-    % GUI on second screen
-    gh = 730; % reference height
-    gw = ceil(gh*aspect_ratio); % reference width (1152)
-    if any(scr(:,1)<0)
-        pos = [-sw+(sw-gw)/2 (sh-gh)/3 gw gh];
-    else
-        pos = [sw+(sw-gw)/2 (sh-gh)/3 gw gh];
-    end
-    % if any screen is smaller than 800
-    if any(scr(:,4)<800)
-        pos = [(sw-gw)/2 (sh-gh)/3 gw gh];
-    end
+%% GUI positioning
+if any(sh<800)
+    gh = 600; % reference height for small screens
 else
-    % single screen mode    
-    if any(scr(:,4)<800)
-        gh = 600; % reference height for small screens
-    else
-        gh = 730; % reference height
-    end
-    gw = ceil(gh*aspect_ratio); % reference width (960)
-    pos = [(sw-gw)/2 (sh-gh)/2 gw gh];
+    gh = 730; % reference height
 end
+% reference width
+gw = ceil(gh*aspect_ratio); % 960 or 1152
+% GUI position
+pos = round([(sw-gw)/2 (sh-gh)/3 gw gh]);
 
 return
 

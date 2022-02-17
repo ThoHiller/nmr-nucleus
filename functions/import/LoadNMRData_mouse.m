@@ -28,8 +28,8 @@ function out = LoadNMRData_mouse(in)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -134,7 +134,7 @@ end
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2021 Stephan Costabel
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

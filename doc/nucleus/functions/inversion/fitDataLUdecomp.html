@@ -39,6 +39,7 @@ Matlab &quot;\&quot;-operator to fit NMR data multi-exponentially
                    T1T2    : flag between 'T1' or 'T2' inversion
                    T1IRfac : either '1' or '2' depending on T1 method
                    Tb      : bulk relaxation time
+                   Td      : diffusion relaxation time
                    Tint    : relaxation times [log10(tmin) log10(tmax) Ndec]
                    Lorder  : smoothness constraint (derivative matrix)
                    lambda  : regularization parameter (if -1 automatic
@@ -81,8 +82,8 @@ Matlab &quot;\&quot;-operator to fit NMR data multi-exponentially
        none
 
  See also:
- Author: Thomas Hiller
- email: thomas.hiller[at]leibniz-liag.de
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
  NOTE: I harvested this routine partly from the Internet but forgot where
  I found the routines ... so there is no warranty at all</pre></div>
 
@@ -90,7 +91,7 @@ Matlab &quot;\&quot;-operator to fit NMR data multi-exponentially
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)">createKernelMatrix</a>	 creates a Kernel matrix from signal time vector "t"</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f)">getTLogMean</a>	 calculates the T logmean value out of a relaxation time</li></ul>
+<li><a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>	 creates a Kernel matrix from signal time vector "t"</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f)">getTLogMean</a>	 calculates the T logmean value out of a relaxation time</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/functions/interface/runInversionBatch.html" class="code" title="function runInversionBatch">runInversionBatch</a>	 batch processes the inversion using for all NMR signals</li><li><a href="../../../nucleus/functions/interface/runInversionStd.html" class="code" title="function runInversionStd">runInversionStd</a>	 controls the standard inversion process to invert a</li></ul>
@@ -113,185 +114,187 @@ This function is called by:
 0012 <span class="comment">%                   T1T2    : flag between 'T1' or 'T2' inversion</span>
 0013 <span class="comment">%                   T1IRfac : either '1' or '2' depending on T1 method</span>
 0014 <span class="comment">%                   Tb      : bulk relaxation time</span>
-0015 <span class="comment">%                   Tint    : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
-0016 <span class="comment">%                   Lorder  : smoothness constraint (derivative matrix)</span>
-0017 <span class="comment">%                   lambda  : regularization parameter (if -1 automatic</span>
-0018 <span class="comment">%                             regularization)</span>
-0019 <span class="comment">%                   noise   : noise level</span>
-0020 <span class="comment">%</span>
-0021 <span class="comment">% Outputs:</span>
-0022 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
-0023 <span class="comment">%                   fit_t      : time vector for plotting</span>
-0024 <span class="comment">%                   fit_s      : signal vector for plotting</span>
-0025 <span class="comment">%                   T1T2me     : relaxation time values</span>
-0026 <span class="comment">%                   T1T2f      : relaxation time spectrum</span>
-0027 <span class="comment">%                   Tlgm       : T logmean</span>
-0028 <span class="comment">%                   E0         : initial amplitude at t=0 (T2) or t=max (T1)</span>
-0029 <span class="comment">%                   resnorm    : residual norm</span>
-0030 <span class="comment">%                   residual   : vector of residuals</span>
-0031 <span class="comment">%                   chi2       : chi square error</span>
-0032 <span class="comment">%                   rms        : RMS error</span>
-0033 <span class="comment">%                   lambda_out : regularization parameter lambda determined</span>
-0034 <span class="comment">%                                by the different options from the 'regu'</span>
-0035 <span class="comment">%                                toolbox</span>
-0036 <span class="comment">%                   KK         : Kernel matrix</span>
-0037 <span class="comment">%                   L          : derivative matrix</span>
-0038 <span class="comment">%                   xn         : model norm |L*x|_2</span>
-0039 <span class="comment">%                   rn         : residual norm |A*x-b|_2</span>
-0040 <span class="comment">%</span>
-0041 <span class="comment">% Example:</span>
-0042 <span class="comment">%       [fitdata] = fitDataLUdecomp(t,s,parameter)</span>
-0043 <span class="comment">%</span>
-0044 <span class="comment">% Other m-files required:</span>
-0045 <span class="comment">%       createKernelMatrix</span>
-0046 <span class="comment">%       getFitErrors</span>
-0047 <span class="comment">%       getTLogMean</span>
-0048 <span class="comment">%       get_l (from 'Regularization Toolbox')</span>
-0049 <span class="comment">%</span>
-0050 <span class="comment">% Subfunctions:</span>
-0051 <span class="comment">%       none</span>
-0052 <span class="comment">%</span>
-0053 <span class="comment">% MAT-files required:</span>
-0054 <span class="comment">%       none</span>
-0055 <span class="comment">%</span>
-0056 <span class="comment">% See also:</span>
-0057 <span class="comment">% Author: Thomas Hiller</span>
-0058 <span class="comment">% email: thomas.hiller[at]leibniz-liag.de</span>
-0059 <span class="comment">% NOTE: I harvested this routine partly from the Internet but forgot where</span>
-0060 <span class="comment">% I found the routines ... so there is no warranty at all</span>
-0061 
-0062 <span class="comment">%------------- BEGIN CODE --------------</span>
-0063 
-0064 <span class="comment">% make input column vectors</span>
-0065 time = time(:);
-0066 signal = signal(:);
-0067 
-0068 <span class="comment">% get the maximum value of the signal to scale the signal for the inversion</span>
-0069 <span class="comment">% to 1</span>
-0070 maxS = max(signal);
-0071 
-0072 <span class="comment">% temporary variables</span>
-0073 t = time;
-0074 g = signal./maxS;
-0075 
-0076 <span class="comment">% get the input parameters</span>
-0077 flag = parameter.T1T2;       <span class="comment">% T1/T2 switch</span>
-0078 T1IRfac = parameter.T1IRfac; <span class="comment">% T1 Sat/Inv Recovery factor</span>
-0079 Tb = parameter.Tb;           <span class="comment">% bulk relaxation time</span>
-0080 tstart = parameter.Tint(1);  <span class="comment">% log10 value</span>
-0081 tend = parameter.Tint(2);    <span class="comment">% log10 value</span>
-0082 N = parameter.Tint(3);       <span class="comment">% N per decade</span>
-0083 order = parameter.Lorder;    <span class="comment">% smoothness constraint</span>
-0084 lambda = parameter.lambda;   <span class="comment">% regularization parameter</span>
-0085 noise = parameter.noise;     <span class="comment">% noise</span>
-0086 
-0087 <span class="comment">% create the relaxation time vector</span>
-0088 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0089 
-0090 <span class="comment">% create the Kernel matrix</span>
-0091 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,flag,T1IRfac);
-0092 
-0093 <span class="comment">% calculate reg matrix H</span>
-0094 m  = length(T1T2me);
-0095 B = get_l(m,order);
-0096 H = B'*B;
-0097 
-0098 <span class="comment">% scale the noise and error matrix W accordingly</span>
-0099 noise = noise./maxS;
-0100 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0101     e = diag(parameter.W);
-0102     e = e./maxS;
-0103     W = diag(e);
-0104 <span class="keyword">end</span>
-0105 
-0106 <span class="comment">% apply error weight matrix</span>
-0107 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0108    g = W*g;
-0109    K = W*K;
-0110 <span class="keyword">end</span>
-0111 
-0112 <span class="comment">% automatic regularization</span>
-0113 <span class="keyword">if</span> lambda == -1
-0114     lambda = trace(K'*K)/trace(H);
-0115 <span class="keyword">end</span>
-0116 
-0117 <span class="comment">% calculate A = K'*K + lambda*H</span>
-0118 A = K'*K + lambda*H;
-0119 <span class="comment">% calculate y = K'*g</span>
-0120 y = K'*g;
-0121 <span class="comment">% calculate f by LU decomposition</span>
-0122 [L,U] = lu(A);
-0123 f = U\(L\y);
-0124 
-0125 <span class="comment">% now iterate, mapping negative values to zero.</span>
-0126 e = 2/max(eig(A));
-0127 A = K'*K;  <span class="comment">% no regularization now</span>
-0128 <span class="keyword">for</span> i = 1:1000
-0129     f = (f&gt;0).*f; <span class="comment">% map neg to zero</span>
-0130     f =(eye(m)-e*A)*f+e*y;
-0131 <span class="keyword">end</span>
-0132 f = (f&gt;0).*f; <span class="comment">% map neg to zero again</span>
-0133 
-0134 <span class="comment">% rescale f so that the sum(f)= unscaled E0</span>
-0135 f = (f.*maxS);
-0136 
-0137 <span class="comment">% the inverted signal</span>
-0138 s_fit = K*f;
-0139 s_fit = s_fit(1:length(t),1);
-0140 
-0141 <span class="comment">% get residuals and error measures</span>
-0142 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0143     <span class="comment">% normalize the fit because the signal was error weighted for the</span>
-0144     <span class="comment">% inversion</span>
-0145     e = diag(W);
-0146     einv = 1./e;
-0147     Winv = diag(einv);
-0148     s_fit = Winv * s_fit;
-0149     
-0150     <span class="comment">% because signal and s_fit are unscaled the initial values for noise</span>
-0151     <span class="comment">% and W are used to get the error estimates</span>
-0152     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise,parameter.W);
-0153 <span class="keyword">else</span>
-0154     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise);
-0155 <span class="keyword">end</span>
-0156 
-0157 <span class="comment">% derivative matrix</span>
-0158 L = get_l(length(T1T2me),order);
-0159 <span class="comment">% L-curve parameter</span>
-0160 <span class="comment">% model norm |L*x|_2</span>
-0161 xn = norm(L*f,2);
-0162 <span class="comment">% residual norm |A*x-b|_2</span>
-0163 rn = norm(out.residual,2);
-0164 
-0165 <span class="comment">% get &quot;initial&quot; value E0</span>
-0166 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
-0167     t2 = 10*time(end);
-0168     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,flag,T1IRfac);
-0169 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
-0170     t2 = 0;
-0171     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,flag,T1IRfac);
-0172 <span class="keyword">end</span>
-0173 E0 = K2*f;
-0174 
-0175 <span class="comment">% output struct</span>
-0176 fitdata.fit_t = time(:);
-0177 fitdata.fit_s = s_fit(:);
-0178 fitdata.T1T2me = T1T2me(:);
-0179 fitdata.T1T2f = f(:);
-0180 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f)">getTLogMean</a>(T1T2me,f);
-0181 fitdata.E0 = E0;
-0182 fitdata.residual = out.residual;
-0183 fitdata.chi2 = out.chi2;
-0184 fitdata.rms = out.rms;
-0185 fitdata.lambda_out = lambda;
-0186 fitdata.KK = K;
-0187 fitdata.L = L;
-0188 fitdata.xn = xn;
-0189 fitdata.rn = rn;
-0190 
-0191 <span class="keyword">return</span>
+0015 <span class="comment">%                   Td      : diffusion relaxation time</span>
+0016 <span class="comment">%                   Tint    : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
+0017 <span class="comment">%                   Lorder  : smoothness constraint (derivative matrix)</span>
+0018 <span class="comment">%                   lambda  : regularization parameter (if -1 automatic</span>
+0019 <span class="comment">%                             regularization)</span>
+0020 <span class="comment">%                   noise   : noise level</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Outputs:</span>
+0023 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
+0024 <span class="comment">%                   fit_t      : time vector for plotting</span>
+0025 <span class="comment">%                   fit_s      : signal vector for plotting</span>
+0026 <span class="comment">%                   T1T2me     : relaxation time values</span>
+0027 <span class="comment">%                   T1T2f      : relaxation time spectrum</span>
+0028 <span class="comment">%                   Tlgm       : T logmean</span>
+0029 <span class="comment">%                   E0         : initial amplitude at t=0 (T2) or t=max (T1)</span>
+0030 <span class="comment">%                   resnorm    : residual norm</span>
+0031 <span class="comment">%                   residual   : vector of residuals</span>
+0032 <span class="comment">%                   chi2       : chi square error</span>
+0033 <span class="comment">%                   rms        : RMS error</span>
+0034 <span class="comment">%                   lambda_out : regularization parameter lambda determined</span>
+0035 <span class="comment">%                                by the different options from the 'regu'</span>
+0036 <span class="comment">%                                toolbox</span>
+0037 <span class="comment">%                   KK         : Kernel matrix</span>
+0038 <span class="comment">%                   L          : derivative matrix</span>
+0039 <span class="comment">%                   xn         : model norm |L*x|_2</span>
+0040 <span class="comment">%                   rn         : residual norm |A*x-b|_2</span>
+0041 <span class="comment">%</span>
+0042 <span class="comment">% Example:</span>
+0043 <span class="comment">%       [fitdata] = fitDataLUdecomp(t,s,parameter)</span>
+0044 <span class="comment">%</span>
+0045 <span class="comment">% Other m-files required:</span>
+0046 <span class="comment">%       createKernelMatrix</span>
+0047 <span class="comment">%       getFitErrors</span>
+0048 <span class="comment">%       getTLogMean</span>
+0049 <span class="comment">%       get_l (from 'Regularization Toolbox')</span>
+0050 <span class="comment">%</span>
+0051 <span class="comment">% Subfunctions:</span>
+0052 <span class="comment">%       none</span>
+0053 <span class="comment">%</span>
+0054 <span class="comment">% MAT-files required:</span>
+0055 <span class="comment">%       none</span>
+0056 <span class="comment">%</span>
+0057 <span class="comment">% See also:</span>
+0058 <span class="comment">% Author: see AUTHORS.md</span>
+0059 <span class="comment">% email: see AUTHORS.md</span>
+0060 <span class="comment">% NOTE: I harvested this routine partly from the Internet but forgot where</span>
+0061 <span class="comment">% I found the routines ... so there is no warranty at all</span>
+0062 
+0063 <span class="comment">%------------- BEGIN CODE --------------</span>
+0064 
+0065 <span class="comment">% make input column vectors</span>
+0066 time = time(:);
+0067 signal = signal(:);
+0068 
+0069 <span class="comment">% get the maximum value of the signal to scale the signal for the inversion</span>
+0070 <span class="comment">% to 1</span>
+0071 maxS = max(signal);
+0072 
+0073 <span class="comment">% temporary variables</span>
+0074 t = time;
+0075 g = signal./maxS;
+0076 
+0077 <span class="comment">% get the input parameters</span>
+0078 flag = parameter.T1T2;       <span class="comment">% T1/T2 switch</span>
+0079 T1IRfac = parameter.T1IRfac; <span class="comment">% T1 Sat/Inv Recovery factor</span>
+0080 Tb = parameter.Tb;           <span class="comment">% bulk relaxation time</span>
+0081 Td = parameter.Td;           <span class="comment">% diffusion relaxation time</span>
+0082 tstart = parameter.Tint(1);  <span class="comment">% log10 value</span>
+0083 tend = parameter.Tint(2);    <span class="comment">% log10 value</span>
+0084 N = parameter.Tint(3);       <span class="comment">% N per decade</span>
+0085 order = parameter.Lorder;    <span class="comment">% smoothness constraint</span>
+0086 lambda = parameter.lambda;   <span class="comment">% regularization parameter</span>
+0087 noise = parameter.noise;     <span class="comment">% noise</span>
+0088 
+0089 <span class="comment">% create the relaxation time vector</span>
+0090 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
+0091 
+0092 <span class="comment">% create the Kernel matrix</span>
+0093 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0094 
+0095 <span class="comment">% calculate reg matrix H</span>
+0096 m  = length(T1T2me);
+0097 B = get_l(m,order);
+0098 H = B'*B;
+0099 
+0100 <span class="comment">% scale the noise and error matrix W accordingly</span>
+0101 noise = noise./maxS;
+0102 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0103     e = diag(parameter.W);
+0104     e = e./maxS;
+0105     W = diag(e);
+0106 <span class="keyword">end</span>
+0107 
+0108 <span class="comment">% apply error weight matrix</span>
+0109 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0110    g = W*g;
+0111    K = W*K;
+0112 <span class="keyword">end</span>
+0113 
+0114 <span class="comment">% automatic regularization</span>
+0115 <span class="keyword">if</span> lambda == -1
+0116     lambda = trace(K'*K)/trace(H);
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="comment">% calculate A = K'*K + lambda*H</span>
+0120 A = K'*K + lambda*H;
+0121 <span class="comment">% calculate y = K'*g</span>
+0122 y = K'*g;
+0123 <span class="comment">% calculate f by LU decomposition</span>
+0124 [L,U] = lu(A);
+0125 f = U\(L\y);
+0126 
+0127 <span class="comment">% now iterate, mapping negative values to zero.</span>
+0128 e = 2/max(eig(A));
+0129 A = K'*K;  <span class="comment">% no regularization now</span>
+0130 <span class="keyword">for</span> i = 1:1000
+0131     f = (f&gt;0).*f; <span class="comment">% map neg to zero</span>
+0132     f =(eye(m)-e*A)*f+e*y;
+0133 <span class="keyword">end</span>
+0134 f = (f&gt;0).*f; <span class="comment">% map neg to zero again</span>
+0135 
+0136 <span class="comment">% rescale f so that the sum(f)= unscaled E0</span>
+0137 f = (f.*maxS);
+0138 
+0139 <span class="comment">% the inverted signal</span>
+0140 s_fit = K*f;
+0141 s_fit = s_fit(1:length(t),1);
+0142 
+0143 <span class="comment">% get residuals and error measures</span>
+0144 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0145     <span class="comment">% normalize the fit because the signal was error weighted for the</span>
+0146     <span class="comment">% inversion</span>
+0147     e = diag(W);
+0148     einv = 1./e;
+0149     Winv = diag(einv);
+0150     s_fit = Winv * s_fit;
+0151     
+0152     <span class="comment">% because signal and s_fit are unscaled the initial values for noise</span>
+0153     <span class="comment">% and W are used to get the error estimates</span>
+0154     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise,parameter.W);
+0155 <span class="keyword">else</span>
+0156     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise);
+0157 <span class="keyword">end</span>
+0158 
+0159 <span class="comment">% derivative matrix</span>
+0160 L = get_l(length(T1T2me),order);
+0161 <span class="comment">% L-curve parameter</span>
+0162 <span class="comment">% model norm |L*x|_2</span>
+0163 xn = norm(L*f,2);
+0164 <span class="comment">% residual norm |A*x-b|_2</span>
+0165 rn = norm(out.residual,2);
+0166 
+0167 <span class="comment">% get &quot;initial&quot; value E0</span>
+0168 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
+0169     t2 = 10*time(end);
+0170     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
+0171 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
+0172     t2 = 0;
+0173     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
+0174 <span class="keyword">end</span>
+0175 E0 = K2*f;
+0176 
+0177 <span class="comment">% output struct</span>
+0178 fitdata.fit_t = time(:);
+0179 fitdata.fit_s = s_fit(:);
+0180 fitdata.T1T2me = T1T2me(:);
+0181 fitdata.T1T2f = f(:);
+0182 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f)">getTLogMean</a>(T1T2me,f);
+0183 fitdata.E0 = E0;
+0184 fitdata.residual = out.residual;
+0185 fitdata.chi2 = out.chi2;
+0186 fitdata.rms = out.rms;
+0187 fitdata.lambda_out = lambda;
+0188 fitdata.KK = K;
+0189 fitdata.L = L;
+0190 fitdata.xn = xn;
+0191 fitdata.rn = rn;
 0192 
-0193 <span class="comment">%------------- END OF CODE --------------</span></pre></div>
+0193 <span class="keyword">return</span>
+0194 
+0195 <span class="comment">%------------- END OF CODE --------------</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

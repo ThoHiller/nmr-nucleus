@@ -25,8 +25,8 @@ function [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -68,8 +68,9 @@ t = nmrraw.t;
 if isreal(nmrraw.s)
     s = nmrraw.s;
     % check if noise was calculated / estimated during import
+    % and normalize if necessary
     if isfield(nmrraw,'noise')
-        noise = nmrraw.noise;
+        noise = nmrraw.noise./nmrproc.normfac;
     else
         noise = 0;
     end

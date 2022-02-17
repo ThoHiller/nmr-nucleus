@@ -29,8 +29,8 @@ function onMenuImport(src,~)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -68,13 +68,15 @@ switch fig_tag
         
         % activate the PhaseView GUI in case real data is imported
         switch menu_tag
-            case {'NUCLEUSinv','NUCLEUSmod'}
+            case 'NUCLEUSmod'
                 set(gui.menu.extra_phaseview,'Enable','off');
             otherwise
                 set(gui.menu.extra_phaseview,'Enable','on');
         end
         
-        % update the "last import" value within the ini-file        
+        % get updated gui data
+        gui = getappdata(fig,'gui');
+        % update the "last import" value within the ini-file     
         gui.myui.inidata.lastimport = [menu_tag,'_',label];
         setappdata(fig,'gui',gui);
         gui = makeINIfile(gui,'update');

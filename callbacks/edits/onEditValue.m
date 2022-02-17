@@ -26,7 +26,6 @@ function onEditValue(src,~)
 %       updateInfo
 %       updateNMRsignals
 %       updatePlotsDistribution
-%       updatePlotsNMR
 %       updatePlotsSignal
 %
 % Subfunctions:
@@ -36,8 +35,8 @@ function onEditValue(src,~)
 %       none
 %
 % See also: NUCLEUSinv
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -146,6 +145,12 @@ switch fig_tag
                             setappdata(fig,'data',data);
                             set(src,'String',num2str(data.invstd.Tbulk));
                         end
+                    case 'Tdiff'
+                        if data.invstd.Tdiff <=0
+                            data.invstd.Tdiff = 1e6;
+                            setappdata(fig,'data',data);
+                            set(src,'String',num2str(data.invstd.Tdiff));
+                        end    
                     case 'porosity'
                         if data.invstd.porosity < 0 || data.invstd.porosity > 1
                             data.invstd.porosity = 1;
@@ -225,9 +230,17 @@ switch fig_tag
             case 'nmr'
                 switch out.field
                     case 'noise'
+                        switch data.nmr.noisetype
+                            case 'level'
+                            case 'SNR'
+                                if data.nmr.noise == 0
+                                    data.nmr.noise = Inf;
+                                    set(src,'String',num2str(data.nmr.noise));
+                                end
+                        end
+                        setappdata(fig,'data',data);
                         if isfield(data.results,'NMR')
                             updateNMRsignals;
-                            updatePlotsNMR;
                         end
                     case 'porosity'
                         if data.nmr.porosity <= 0 || data.nmr.porosity > 1
@@ -237,7 +250,6 @@ switch fig_tag
                         end
                         if isfield(data.results,'NMR')
                             updateNMRsignals;
-                            updatePlotsNMR;
                         end
                     otherwise
                         data = removeCalculationFields(data,'nmr');

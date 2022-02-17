@@ -24,8 +24,8 @@ function varargout = exportGraphics(fig_tag,format)
 %       none
 %
 % See also: NUCLEUSinv, NUCLEUSmod
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -303,9 +303,19 @@ switch format
         
         switch fig_tag
             case 'INV'
+                % which NMR signal
+                id = get(gui.listbox_handles.signal,'Value');
+                % get the new file name
+                sfilename = data.import.NMR.filesShort{id};
+                ind1 = strfind(sfilename,'.');
+                if isempty(ind1)
+                    sfilename = [sfilename,'_INV'];
+                else
+                    sfilename = [sfilename(1:ind1-1),'_INV'];
+                end
                 [FileName,PathName,~] = uiputfile({putext,put1},...
                     ['NUCLEUSinv: Save ',statstr,' Graphics'],...
-                    fullfile(pwd,'NUCLEUSinv_inversion'));
+                    fullfile(data.import.path,sfilename));
             case 'MOD'
                 [FileName,PathName,~] = uiputfile({putext,put1},...
                     ['NUCLEUSmod: Save ',statstr,' Graphics'],...

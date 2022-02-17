@@ -9,6 +9,7 @@ function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)
 %       nmr - structure containing fields:
 %           t   : time vector [s]
 %           Tb  : bulk relaxation time [s]
+%           Td  : diffusion relaxation time [s]
 %           rho : surface relaxivity [m/s]
 %       type - either 'cyl', 'ang' and 'poly'
 %       SatData - structure (output from 'getSaturationfromPressure')
@@ -40,8 +41,8 @@ function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)
 %       none
 %
 % See also:
-% Author: Thomas Hiller
-% email: thomas.hiller[at]leibniz-liag.de
+% Author: see AUTHORS.md
+% email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
@@ -56,6 +57,7 @@ EdT2 = zeros(size(SatData.Sdfull,1),numel(nmr.t));
 % get general parameters
 t = nmr.t;
 Tb = nmr.Tb;
+Td = nmr.Td;
 rho = nmr.rho;
 
 %% some informative wait-bar ;-)
@@ -88,13 +90,13 @@ switch type
             % for all time steps
             for j = 1:length(t)
                 EiT1(p,j) = sum(SatData.Si(p,:) .* psdData.psd .* ...
-                    (1-exp(-t(j) .* (1./Tb+rho.*SVi(p,:)) )));
+                    (1-exp(-t(j) .* (1./Td+1./Tb+rho.*SVi(p,:)) )));
                 EiT2(p,j) = sum(SatData.Si(p,:) .* psdData.psd .* ...
-                    exp(-t(j) .* (1./Tb+rho.*SVi(p,:)) ) );
+                    exp(-t(j) .* (1./Td+1./Tb+rho.*SVi(p,:)) ) );
                 EdT1(p,j) = sum(SatData.Sd(p,:) .* psdData.psd .* ...
-                    (1-exp(-t(j) .* (1./Tb+rho.*SVd(p,:)) )));
+                    (1-exp(-t(j) .* (1./Td+1./Tb+rho.*SVd(p,:)) )));
                 EdT2(p,j) = sum(SatData.Sd(p,:) .* psdData.psd .* ...
-                    exp(-t(j) .* (1./Tb+rho.*SVd(p,:)) ) );
+                    exp(-t(j) .* (1./Td+1./Tb+rho.*SVd(p,:)) ) );
             end
             if wbopts.show
                 waitbar(p / steps,hwb,['processing ... ',num2str(p),' / ',...
@@ -128,31 +130,31 @@ switch type
             for j = 1:numel(psdData.r)                
                 % --- imbibition ---
                 if SatData.isfullsati(p,j) == 1 % if fully saturated -> Ampl = 1
-                    sigiT1(j,:) = (1-exp(-t .* (1./Tb + rho.*SVi(j,1)) ));
-                    sigiT2(j,:) =    exp(-t .* (1./Tb + rho.*SVi(j,1)) );
+                    sigiT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) ));
+                    sigiT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) );
                 else
                     % partially saturated pore -> account for corners
                     for jj = 1:Ncorners
                         Ampl = Aai(j,jj) / SatData.A0(j);
                         sigiT1(j,:) = sigiT1(j,:) + (Ampl * (1-exp(-t .* ...
-                            (1./Tb + rho.*SVi(j,jj)))) );
+                            (1./Td + 1./Tb + rho.*SVi(j,jj)))) );
                         sigiT2(j,:) = sigiT2(j,:) + (Ampl *    exp(-t .* ...
-                            (1./Tb + rho.*SVi(j,jj)))  );
+                            (1./Td + 1./Tb + rho.*SVi(j,jj)))  );
                     end
                 end
                 
                 % --- drainage ---
                 if SatData.isfullsatd(p,j) == 1 % if fully saturated -> Ampl = 1
-                    sigdT1(j,:) = (1-exp(-t .* (1./Tb + rho.*SVd(j,1)) ));
-                    sigdT2(j,:) =    exp(-t .* (1./Tb + rho.*SVd(j,1)) );
+                    sigdT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) ));
+                    sigdT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) );
                 else
                     % partially saturated pore -> account for corners
                     for jj = 1:Ncorners
                         Ampl = Aad(j,jj) / SatData.A0(j);
                         sigdT1(j,:) = sigdT1(j,:) + (Ampl * (1-exp(-t .* ...
-                            (1./Tb + rho.*SVd(j,jj)))) );
+                            (1./Td + 1./Tb + rho.*SVd(j,jj)))) );
                         sigdT2(j,:) = sigdT2(j,:) + (Ampl *    exp(-t .* ...
-                            (1./Tb + rho.*SVd(j,jj)))  );
+                            (1./Td + 1./Tb + rho.*SVd(j,jj)))  );
                     end
                 end
                 
