@@ -113,12 +113,23 @@ switch type
         for p = 1:numel(SatData.pressure)            
             % area of water-filled corners is later used for NMR amplitude
             % calculation
-            Aai = squeeze(SatData.Aai(p,:,:));
-            Aad = squeeze(SatData.Aad(p,:,:));
+            if numel(psdData.psd) > 1
+                Aai = squeeze(SatData.Aai(p,:,:));
+                Aad = squeeze(SatData.Aad(p,:,:));
             
-            % surface to volume ratio (S/V) for imbibition / drainage
-            SVi = squeeze(SatData.Pai(p,:,:)./SatData.Aai(p,:,:));
-            SVd = squeeze(SatData.Pad(p,:,:)./SatData.Aad(p,:,:));
+                % surface to volume ratio (S/V) for imbibition / drainage
+                SVi = squeeze(SatData.Pai(p,:,:)./SatData.Aai(p,:,:));
+                SVd = squeeze(SatData.Pad(p,:,:)./SatData.Aad(p,:,:));
+            else
+                % for single pores the shape of the vectors needs to be
+                % flippd
+                Aai = squeeze(SatData.Aai(p,:,:))';
+                Aad = squeeze(SatData.Aad(p,:,:))';
+            
+                % surface to volume ratio (S/V) for imbibition / drainage
+                SVi = squeeze(SatData.Pai(p,:,:)./SatData.Aai(p,:,:))';
+                SVd = squeeze(SatData.Pad(p,:,:)./SatData.Aad(p,:,:))';
+            end
             
             % temporary NMR signals
             sigiT1 = zeros(size(SVi,1),numel(t));

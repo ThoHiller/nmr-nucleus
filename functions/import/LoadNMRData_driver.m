@@ -62,7 +62,6 @@ switch in.fileformat
     case 'corelab'
         out = LoadNMRData_corelab(in);
     case 'dart'
-        in.version = 2; % use the updated mat-file format
         out = LoadNMRData_dart(in);
     case 'field'
         out = LoadNMRData_field(in);

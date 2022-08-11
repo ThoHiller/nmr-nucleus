@@ -147,7 +147,7 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     
     % data
     switch data.invstd.invtype
-        case {'MUMO','NNLS'}
+        case {'MUMO'}
             if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
                 % uncertainty patch created from min max of uncertainty
                 % data
@@ -175,7 +175,7 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
             end
         otherwise            
             if isfield(data.results,'invstd')
-                plot(nmrproc.t,nmrproc.s,'-','Color',col.RE,'LineWidth',1,'Parent',ax);
+                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
                 plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,'Parent',ax);
                 if nmrproc.noise > 0
                     plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',col.IM,...

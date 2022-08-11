@@ -62,7 +62,7 @@ If you do not have the Optimization or Statistics toolboxes then not all feature
 
 #### Operating System
 
-I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2014b and newer. Always with the latest version of the GUI Layout Toolbox (current version is v2.3.5)
+I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is v2.3.5)
 
 **NOTE:** So far I did not test anything on Linux or a Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
 
@@ -108,7 +108,7 @@ In no particular order and without guarantee that it will ever happen :-) :
 ### Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2021, March 12). ThoHiller/nmr-nucleus: v0.1.12 (Version v0.1.12). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
+Thomas Hiller. (2022, Aug 11). ThoHiller/nmr-nucleus: v0.1.13 (Version v0.1.13). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 

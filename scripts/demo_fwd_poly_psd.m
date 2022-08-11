@@ -29,6 +29,7 @@ sat = getSaturationFromPressureBatch(geom,pressure,psddata,constants,wbopts);
 nmr.t = getNMRTimeVector(0.1,'ms','tmax',0.1);
 nmr.rho = 1e-5;
 nmr.Tb = 2;
+nmr.Td = 1e6;
 % get NMR data
 nmr = getNMRSignal(nmr,geom.type,sat,psddata,wbopts);
 

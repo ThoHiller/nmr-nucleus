@@ -89,7 +89,7 @@ with 'nExp' free relaxation times (T1 or T2)
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="fcn_fitFreeT1.html" class="code" title="function F = fcn_fitFreeT1(x,xdata,IR)">fcn_fitFreeT1</a>	 is the objective function for T1 mono- and free exponential</li><li><a href="fcn_fitFreeT1_fmin.html" class="code" title="function SSE = fcn_fitFreeT1_fmin(x,t,s,IR)">fcn_fitFreeT1_fmin</a>	 is the objective function for T1 mono- and free exponential</li><li><a href="fcn_fitFreeT2.html" class="code" title="function F = fcn_fitFreeT2(x,xdata)">fcn_fitFreeT2</a>	 is the objective function for T2 mono- and free exponential</li><li><a href="fcn_fitFreeT2_fmin.html" class="code" title="function SSE = fcn_fitFreeT2_fmin(x,t,s,e)">fcn_fitFreeT2_fmin</a>	 is the objective function for T2 mono- and free exponential</li><li><a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>	 calculates the confidence interval for the inversion</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getFitFreeJacobian.html" class="code" title="function J = getFitFreeJacobian(x,t,flag,IR)">getFitFreeJacobian</a>	 calculates the Jacobi matrix for the NMR inversion</li></ul>
+<li><a href="fcn_fitFreeT1.html" class="code" title="function F = fcn_fitFreeT1(x,xdata,IR)">fcn_fitFreeT1</a>	 is the objective function for T1 mono- and free exponential</li><li><a href="fcn_fitFreeT1_fmin.html" class="code" title="function SSE = fcn_fitFreeT1_fmin(x,t,s,IR)">fcn_fitFreeT1_fmin</a>	 is the objective function for T1 mono- and free exponential</li><li><a href="fcn_fitFreeT2.html" class="code" title="function F = fcn_fitFreeT2(x,xdata)">fcn_fitFreeT2</a>	 is the objective function for T2 mono- and free exponential</li><li><a href="fcn_fitFreeT2_fmin.html" class="code" title="function SSE = fcn_fitFreeT2_fmin(x,t,s,e)">fcn_fitFreeT2_fmin</a>	 is the objective function for T2 mono- and free exponential</li><li><a href="fcn_fitFreeT2w.html" class="code" title="function [F,J] = fcn_fitFreeT2w(x,iparam)">fcn_fitFreeT2w</a>	 is the objective function for T2 mono- and free exponential</li><li><a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>	 calculates the confidence interval for the inversion</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getFitFreeJacobian.html" class="code" title="function J = getFitFreeJacobian(x,t,flag,IR)">getFitFreeJacobian</a>	 calculates the Jacobi matrix for the NMR inversion</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/functions/import/LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li><li><a href="../../../nucleus/functions/interface/importASCIIdata.html" class="code" title="function importASCIIdata(src)">importASCIIdata</a>	 imports NMR data from ASCII files</li><li><a href="../../../nucleus/functions/interface/runInversionBatch.html" class="code" title="function runInversionBatch">runInversionBatch</a>	 batch processes the inversion using for all NMR signals</li><li><a href="../../../nucleus/functions/interface/runInversionStd.html" class="code" title="function runInversionStd">runInversionStd</a>	 controls the standard inversion process to invert a</li><li><a href="fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter,nModes)">fitDataMultiModal</a>	 is a control routine that uses either 'lsqnonlin' or</li></ul>
@@ -164,160 +164,156 @@ This function is called by:
 0064 t = time(:);
 0065 s = signal(:);
 0066 
-0067 <span class="comment">% data noise</span>
-0068 noise = parameter.noise;
-0069 <span class="comment">% T1 saturation/inversion recovery factor</span>
-0070 IRfac = parameter.T1IRfac;
-0071 
-0072 <span class="comment">% error weights after gating</span>
-0073 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0074     e = diag(parameter.W);
-0075     iparam.e = sqrt(e);
-0076 <span class="keyword">else</span>
-0077     e = ones(size(s));
-0078 <span class="keyword">end</span>
-0079 
-0080 <span class="comment">% switch off output if no option is given via 'parameter'</span>
-0081 <span class="keyword">if</span> ~isfield(parameter,<span class="string">'info'</span>)
-0082     parameter.info = <span class="string">'off'</span>;
-0083 <span class="keyword">end</span>
-0084 
-0085 <span class="comment">% start values for E and T</span>
-0086 x0 = zeros(1,2*nExp);
-0087 <span class="keyword">for</span> i = 1:nExp
-0088     x0(2*i-1) = i*max(signal)/nExp;
-0089     x0(2*i) = i*max(t)/nExp;
-0090 <span class="comment">%     x0(2*i) = exp(i*max(log(t))/nExp);</span>
-0091 <span class="keyword">end</span>
-0092 
-0093 <span class="keyword">switch</span> parameter.optim
-0094     <span class="keyword">case</span> <span class="string">'on'</span>
-0095         <span class="keyword">switch</span> flag
-0096             <span class="keyword">case</span> <span class="string">'T1'</span>
-0097                 <span class="comment">% solver options</span>
-0098                 options = optimoptions(<span class="string">'lsqcurvefit'</span>);
-0099                 options.Display = parameter.info;
-0100                 options.OptimalityTolerance = 1e-18;
-0101                 options.StepTolerance = 1e-18;
-0102 <span class="comment">%                 options.MaxIterations = 1e3;</span>
-0103                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)<a href="fcn_fitFreeT1.html" class="code" title="function F = fcn_fitFreeT1(x,xdata,IR)">fcn_fitFreeT1</a>(x,t,IRfac),<span class="keyword">...</span>
-0104                     x0,t,s,zeros(size(x0)),[],options);
-0105             <span class="keyword">case</span> <span class="string">'T2'</span>
-0106                 <span class="comment">% solver options</span>
-0107                 options = optimoptions(<span class="string">'lsqnonlin'</span>);
-0108                 options.Algorithm = <span class="string">'levenberg-marquardt'</span>;
-0109                 options.Display = parameter.info;
-0110                 options.OptimalityTolerance = 1e-18;
-0111                 options.StepTolerance = 1e-18;
-0112 <span class="comment">%                 options.MaxIterations = 1e3;</span>
-0113                 
-0114                 iparam.t = t;
-0115                 iparam.s = s;
-0116 <span class="comment">%                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...</span>
-0117 <span class="comment">%                     x0,zeros(size(x0)),[],options);</span>
-0118                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@<a href="fcn_fitFreeT2.html" class="code" title="function F = fcn_fitFreeT2(x,xdata)">fcn_fitFreeT2</a>,<span class="keyword">...</span>
-0119                     x0,t,s,zeros(size(x0)),[],options);
-0120         <span class="keyword">end</span>
-0121     <span class="keyword">case</span> <span class="string">'off'</span>
-0122         <span class="comment">% solver options</span>
-0123         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'MaxFunEvals'</span>,10^6,<span class="keyword">...</span>
-0124             <span class="string">'MaxIter'</span>,5000,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12);        
-0125         <span class="keyword">switch</span> flag
-0126             <span class="keyword">case</span> <span class="string">'T1'</span>
-0127                 [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitFreeT1_fmin.html" class="code" title="function SSE = fcn_fitFreeT1_fmin(x,t,s,IR)">fcn_fitFreeT1_fmin</a>(x,t,s,IRfac),<span class="keyword">...</span>
-0128                     x0,zeros(size(x0)),[],options);
-0129             <span class="keyword">case</span> <span class="string">'T2'</span>
-0130                 [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitFreeT2_fmin.html" class="code" title="function SSE = fcn_fitFreeT2_fmin(x,t,s,e)">fcn_fitFreeT2_fmin</a>(x,t,s,e),<span class="keyword">...</span>
-0131                     x0,zeros(size(x0)),[],options);
-0132         <span class="keyword">end</span>
-0133 <span class="keyword">end</span>
-0134 
-0135 <span class="comment">% get the fit</span>
-0136 fit_t = t;
-0137 <span class="keyword">switch</span> flag
-0138     <span class="keyword">case</span> <span class="string">'T1'</span>
-0139         fit_s = <a href="fcn_fitFreeT1.html" class="code" title="function F = fcn_fitFreeT1(x,xdata,IR)">fcn_fitFreeT1</a>(x,fit_t,IRfac);
-0140     <span class="keyword">case</span> <span class="string">'T2'</span>
-0141         fit_s = <a href="fcn_fitFreeT2.html" class="code" title="function F = fcn_fitFreeT2(x,xdata)">fcn_fitFreeT2</a>(x,fit_t);
-0142 <span class="keyword">end</span>
-0143 
-0144 <span class="comment">% get residuals and error measures</span>
-0145 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0146     <span class="comment">% when signal gating was used the error estimates need to be adjusted</span>
-0147     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise,parameter.W);
-0148 <span class="keyword">else</span>
-0149     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise);
-0150 <span class="keyword">end</span>
-0151 
-0152 <span class="comment">% get Jacobian</span>
-0153 <span class="keyword">switch</span> parameter.optim
-0154     <span class="keyword">case</span> <span class="string">'on'</span>
-0155         <span class="comment">% nothing to do because the Optim. Toolbox gives the jacobian as</span>
-0156         <span class="comment">% output</span>
-0157     <span class="keyword">case</span> <span class="string">'off'</span>        
-0158         jacobian = <a href="getFitFreeJacobian.html" class="code" title="function J = getFitFreeJacobian(x,t,flag,IR)">getFitFreeJacobian</a>(x,t,flag,IRfac);
-0159 <span class="keyword">end</span>
-0160 
-0161 <span class="comment">% confidence interval</span>
-0162 ci = <a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>(out.resnorm,jacobian,0.05);
-0163 
-0164 <span class="comment">% sort the relaxation times in ascending order</span>
-0165 E0 = x(1:2:end);
-0166 T = x(2:2:end);
-0167 [T,idx] = sort(T);
-0168 E0  = E0(idx);
-0169 ciT = ci(2:2:end);
-0170 ciE = ci(1:2:end);
-0171 ciT = ciT(idx);
-0172 ciE = ciE(idx);
-0173 ci(2:2:end) = ciT;
-0174 ci(1:2:end) = ciE;
-0175 
-0176 <span class="comment">% output struct</span>
-0177 fitdata.E0 = E0;
-0178 <span class="keyword">switch</span> flag
-0179     <span class="keyword">case</span> <span class="string">'T1'</span>
-0180         fitdata.T1 = T;
-0181     <span class="keyword">case</span> <span class="string">'T2'</span>
-0182         fitdata.T2 = T;
-0183 <span class="keyword">end</span>
-0184 fitdata.fit_t = fit_t;
-0185 fitdata.fit_s = fit_s;
-0186 fitdata.resnorm = out.resnorm;
-0187 fitdata.residual = out.residual;
-0188 fitdata.errornorm = out.errnorm1;
-0189 fitdata.rms = out.rms;
-0190 fitdata.chi2 = out.chi2;
-0191 fitdata.ci = ci;
-0192 fitdata.x = x;
-0193 fitdata.output = output;
+0067 <span class="comment">% T1 saturation/inversion recovery factor</span>
+0068 IRfac = parameter.T1IRfac;
+0069 
+0070 <span class="comment">% error weights after gating</span>
+0071 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0072     e = diag(parameter.W);
+0073     iparam.e = sqrt(e);
+0074 <span class="keyword">else</span>
+0075     e = ones(size(s));
+0076 <span class="keyword">end</span>
+0077 
+0078 <span class="comment">% switch off output if no option is given via 'parameter'</span>
+0079 <span class="keyword">if</span> ~isfield(parameter,<span class="string">'info'</span>)
+0080     parameter.info = <span class="string">'off'</span>;
+0081 <span class="keyword">end</span>
+0082 
+0083 <span class="comment">% start values for E and T</span>
+0084 x0 = zeros(1,2*nExp);
+0085 <span class="keyword">for</span> i = 1:nExp
+0086     x0(2*i-1) = i*max(signal)/nExp;
+0087     x0(2*i) = i*max(t)/nExp;
+0088 <span class="keyword">end</span>
+0089 
+0090 <span class="keyword">switch</span> parameter.optim
+0091     <span class="keyword">case</span> <span class="string">'on'</span>
+0092         <span class="keyword">switch</span> flag
+0093             <span class="keyword">case</span> <span class="string">'T1'</span>
+0094                 <span class="comment">% solver options</span>
+0095                 options = optimoptions(<span class="string">'lsqcurvefit'</span>);
+0096                 options.Display = parameter.info;
+0097 <span class="comment">%                 options.OptimalityTolerance = 1e-18;</span>
+0098 <span class="comment">%                 options.StepTolerance = 1e-18;</span>
+0099 <span class="comment">%                 options.MaxIterations = 1e3;</span>
+0100                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)<a href="fcn_fitFreeT1.html" class="code" title="function F = fcn_fitFreeT1(x,xdata,IR)">fcn_fitFreeT1</a>(x,t,IRfac),<span class="keyword">...</span>
+0101                     x0,t,s,zeros(size(x0)),[],options);
+0102             <span class="keyword">case</span> <span class="string">'T2'</span>
+0103                 <span class="comment">% solver options</span>
+0104                 options = optimoptions(<span class="string">'lsqnonlin'</span>);
+0105                 options.Display = parameter.info;
+0106 <span class="comment">%                 options.OptimalityTolerance = 1e-18;</span>
+0107 <span class="comment">%                 options.StepTolerance = 1e-18;</span>
+0108 <span class="comment">%                 options.MaxIterations = 1e3;</span>
+0109                 
+0110                 iparam.t = t;
+0111                 iparam.s = s;
+0112                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)<a href="fcn_fitFreeT2w.html" class="code" title="function [F,J] = fcn_fitFreeT2w(x,iparam)">fcn_fitFreeT2w</a>(x,iparam),<span class="keyword">...</span>
+0113                     x0,zeros(size(x0)),[],options);
+0114 <span class="comment">%                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...</span>
+0115 <span class="comment">%                     x0,t,s,zeros(size(x0)),[],options);</span>
+0116         <span class="keyword">end</span>
+0117     <span class="keyword">case</span> <span class="string">'off'</span>
+0118         <span class="comment">% solver options</span>
+0119         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'MaxFunEvals'</span>,10^6,<span class="keyword">...</span>
+0120             <span class="string">'MaxIter'</span>,5000,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12);        
+0121         <span class="keyword">switch</span> flag
+0122             <span class="keyword">case</span> <span class="string">'T1'</span>
+0123                 [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitFreeT1_fmin.html" class="code" title="function SSE = fcn_fitFreeT1_fmin(x,t,s,IR)">fcn_fitFreeT1_fmin</a>(x,t,s,IRfac),<span class="keyword">...</span>
+0124                     x0,zeros(size(x0)),[],options);
+0125             <span class="keyword">case</span> <span class="string">'T2'</span>
+0126                 [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitFreeT2_fmin.html" class="code" title="function SSE = fcn_fitFreeT2_fmin(x,t,s,e)">fcn_fitFreeT2_fmin</a>(x,t,s,e),<span class="keyword">...</span>
+0127                     x0,zeros(size(x0)),[],options);
+0128         <span class="keyword">end</span>
+0129 <span class="keyword">end</span>
+0130 
+0131 <span class="comment">% get the fit</span>
+0132 fit_t = t;
+0133 <span class="keyword">switch</span> flag
+0134     <span class="keyword">case</span> <span class="string">'T1'</span>
+0135         fit_s = <a href="fcn_fitFreeT1.html" class="code" title="function F = fcn_fitFreeT1(x,xdata,IR)">fcn_fitFreeT1</a>(x,fit_t,IRfac);
+0136     <span class="keyword">case</span> <span class="string">'T2'</span>
+0137         fit_s = <a href="fcn_fitFreeT2.html" class="code" title="function F = fcn_fitFreeT2(x,xdata)">fcn_fitFreeT2</a>(x,fit_t);
+0138 <span class="keyword">end</span>
+0139 
+0140 <span class="comment">% get residuals and error measures</span>
+0141 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0142     <span class="comment">% when signal gating was used the error estimates need to be adjusted</span>
+0143     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise,parameter.W);
+0144 <span class="keyword">else</span>
+0145     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise);
+0146 <span class="keyword">end</span>
+0147 
+0148 <span class="comment">% get Jacobian</span>
+0149 <span class="keyword">switch</span> parameter.optim
+0150     <span class="keyword">case</span> <span class="string">'on'</span>
+0151         <span class="comment">% nothing to do because the Optim. Toolbox gives the jacobian as</span>
+0152         <span class="comment">% output</span>
+0153     <span class="keyword">case</span> <span class="string">'off'</span>        
+0154         jacobian = <a href="getFitFreeJacobian.html" class="code" title="function J = getFitFreeJacobian(x,t,flag,IR)">getFitFreeJacobian</a>(x,t,flag,IRfac);
+0155 <span class="keyword">end</span>
+0156 
+0157 <span class="comment">% confidence interval</span>
+0158 ci = <a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>(out.resnorm,jacobian,0.05);
+0159 
+0160 <span class="comment">% sort the relaxation times in ascending order</span>
+0161 E0 = x(1:2:end);
+0162 T = x(2:2:end);
+0163 [T,idx] = sort(T);
+0164 E0  = E0(idx);
+0165 ciT = ci(2:2:end);
+0166 ciE = ci(1:2:end);
+0167 ciT = ciT(idx);
+0168 ciE = ciE(idx);
+0169 ci(2:2:end) = ciT;
+0170 ci(1:2:end) = ciE;
+0171 
+0172 <span class="comment">% output struct</span>
+0173 fitdata.E0 = E0;
+0174 <span class="keyword">switch</span> flag
+0175     <span class="keyword">case</span> <span class="string">'T1'</span>
+0176         fitdata.T1 = T;
+0177     <span class="keyword">case</span> <span class="string">'T2'</span>
+0178         fitdata.T2 = T;
+0179 <span class="keyword">end</span>
+0180 fitdata.fit_t = fit_t;
+0181 fitdata.fit_s = fit_s;
+0182 fitdata.resnorm = out.resnorm;
+0183 fitdata.residual = out.residual;
+0184 fitdata.errornorm = out.errnorm1;
+0185 fitdata.rms = out.rms;
+0186 fitdata.chi2 = out.chi2;
+0187 fitdata.ci = ci;
+0188 fitdata.x = x;
+0189 fitdata.output = output;
+0190 
+0191 <span class="keyword">return</span>
+0192 
+0193 <span class="comment">%------------- END OF CODE --------------</span>
 0194 
-0195 <span class="keyword">return</span>
-0196 
-0197 <span class="comment">%------------- END OF CODE --------------</span>
-0198 
-0199 <span class="comment">%% License:</span>
-0200 <span class="comment">% MIT License</span>
-0201 <span class="comment">%</span>
-0202 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0203 <span class="comment">%</span>
-0204 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0205 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0206 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0207 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0208 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0209 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0210 <span class="comment">%</span>
-0211 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0212 <span class="comment">% copies or substantial portions of the Software.</span>
-0213 <span class="comment">%</span>
-0214 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0215 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0216 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0217 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0218 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0219 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0220 <span class="comment">% SOFTWARE.</span></pre></div>
+0195 <span class="comment">%% License:</span>
+0196 <span class="comment">% MIT License</span>
+0197 <span class="comment">%</span>
+0198 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0199 <span class="comment">%</span>
+0200 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0201 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0202 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0203 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0204 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0205 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0206 <span class="comment">%</span>
+0207 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0208 <span class="comment">% copies or substantial portions of the Software.</span>
+0209 <span class="comment">%</span>
+0210 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0211 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0212 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0213 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0214 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0215 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0216 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -292,315 +292,323 @@ This function is called by:
 0205         <span class="keyword">end</span>
 0206         
 0207         <span class="comment">% output data</span>
-0208         <span class="comment">% simple E0 confidence interval</span>
-0209         invstd.ciE0 = 2*std(E0INTERP);
-0210         
-0211         <span class="comment">% uncertainty calculation results</span>
-0212         uncert.interp_t = time0(:);
-0213         uncert.interp_E0 = E0INTERP;
-0214         uncert.interp_f = TDIST;
-0215         uncert.interp_s = SINTERP;
-0216         
-0217         <span class="comment">% uncertainty patch for fitted signal</span>
-0218         uncert.interp_s_min = min(SINTERP,[],2);
-0219         uncert.interp_s_max = max(SINTERP,[],2);
+0208         <span class="keyword">if</span> sum(E0INTERP) &gt; 0
+0209             <span class="comment">% E0 from uncertainy calculation</span>
+0210             invstd.E0 = mean(E0INTERP);
+0211             <span class="comment">% simple E0 confidence interval</span>
+0212             invstd.ciE0 = 2*std(E0INTERP);
+0213         <span class="keyword">end</span>
+0214 
+0215         <span class="comment">% uncertainty calculation results</span>
+0216         uncert.interp_t = time0(:);
+0217         uncert.interp_E0 = E0INTERP;
+0218         uncert.interp_f = TDIST;
+0219         uncert.interp_s = SINTERP;
 0220         
-0221         <span class="comment">% uncertainty patch for fitted RTD</span>
-0222         uncert.interp_f_min = min(TDIST);
-0223         uncert.interp_f_max = max(TDIST);
-0224         
-0225         invstd.uncert = uncert;
+0221         <span class="comment">% uncertainty patch for fitted signal -&gt; mean +-2*std</span>
+0222         meantmp = mean(SINTERP,2);
+0223         stdtmp = std(SINTERP,0,2);
+0224         uncert.interp_s_min = meantmp-2*stdtmp;
+0225         uncert.interp_s_max = meantmp+2*stdtmp;
 0226         
-0227     <span class="keyword">case</span> <span class="string">'NNLS'</span>
-0228         
-0229         <span class="comment">% 'RTD_var' | 'Lambda' | 'RMS_bound' | 'RMS_free'</span>
-0230         <span class="comment">% uncertMethod = 'RMS_bound';</span>
-0231         
-0232         <span class="keyword">switch</span> uncertMethod
-0233             <span class="keyword">case</span> <span class="string">'RTD_var'</span>
-0234                 <span class="comment">% find uncertainty models by varying the optimal RTD bins</span>
-0235                 <span class="comment">% individually</span>
-0236                 
-0237                 <span class="comment">% uncertN = 5;</span>
-0238                 <span class="comment">% uncertThresh = 0.1;</span>
-0239                 <span class="comment">% uncertChi2 = 0.05;</span>
-0240                 f_final = invstd.T1T2f;
-0241                 
-0242                 <span class="comment">% initialize variables</span>
-0243                 <span class="comment">% NOTE: we save 'uncertN' models for each RTD bin</span>
-0244                 TDIST = zeros(uncertN*numel(invstd.T1T2me),numel(invstd.T1T2me));
-0245                 SINTERP = zeros(numel(time0),uncertN*numel(invstd.T1T2me));
-0246                 E0INTERP = zeros(uncertN*numel(invstd.T1T2me),1);
-0247                 <span class="comment">% loop over all RTD bins</span>
-0248                 <span class="keyword">for</span> i1 = 1:numel(f_final)
-0249                     count = 0;
-0250                     <span class="keyword">while</span> count &lt; uncertN
-0251                         <span class="comment">% start RTD is always the optimal one</span>
-0252                         x0 = f_final;
-0253                         <span class="comment">% global bounds</span>
-0254                         lb = zeros(size(x0));
-0255                         ub = max(f_final).*3.*ones(size(x0));
-0256                         <span class="comment">% now draw a random value for the current RTD bin</span>
-0257                         a = 1-uncertThresh;
-0258                         b = 1+uncertThresh;
-0259                         rr = (b-a).*rand(1,1) + a;
-0260                         <span class="comment">% adjust the initial model and bounds accordingly</span>
-0261                         x0(i1) = f_final(i1)*rr;
-0262                         lb(i1) = x0(i1);
-0263                         ub(i1) = x0(i1);
-0264                         
-0265                         <span class="comment">% save bounds for the LSQ inversion</span>
-0266                         iparam.bounds.lb = lb;
-0267                         iparam.bounds.ub = ub;
-0268                         iparam.bounds.f0 = x0;
-0269                         
-0270                         <span class="comment">% calculate solution</span>
-0271                         invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signal,iparam);
-0272                         s0_interp = K0f*invtmp.T1T2f;
-0273                         
-0274                         <span class="comment">% check if the temporary chi2 and model norm are</span>
-0275                         <span class="comment">% within the desired limits</span>
-0276                         <span class="keyword">if</span> abs(1-invtmp.chi2/invstd.chi2) &lt;= uncertChi2 &amp;&amp;  <span class="keyword">...</span>
-0277                                 abs(1-invtmp.xn/invstd.xn) &lt;= uncertChi2/2
-0278                             <span class="comment">% if YES then keep it</span>
-0279                             count = count + 1;
-0280                             <span class="comment">% save RTD</span>
-0281                             TDIST(i1*uncertN-(uncertN-count),:) = invtmp.T1T2f;
-0282                             <span class="comment">% save signal</span>
-0283                             SINTERP(:,i1*uncertN-(uncertN-count)) = s0_interp;
-0284                             <span class="comment">% save E0</span>
-0285                             E0INTERP(i1*uncertN-(uncertN-count),1) = invtmp.E0;
-0286                             <span class="comment">% status bar info</span>
-0287                             infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
-0288                                 num2str(count),<span class="string">' / '</span>,num2str(uncertN),<span class="keyword">...</span>
-0289                                 <span class="string">' for RTD bin: '</span>,num2str(i1),<span class="string">' / '</span>,num2str(numel(f_final))];
-0290                             <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0291                         <span class="keyword">end</span>
-0292                     <span class="keyword">end</span>
-0293                 <span class="keyword">end</span>
-0294                 
-0295             <span class="keyword">case</span> <span class="string">'Lambda'</span>
-0296                 <span class="comment">% find uncertainty models by varying the optimal</span>
-0297                 <span class="comment">% regularization parameter lambda</span>
-0298                 
-0299                 <span class="comment">% set regularization to 'manual' just in case</span>
-0300                 iparam.regMethod = <span class="string">'manual'</span>;
-0301                 
-0302                 <span class="comment">% lambda search range</span>
-0303                 a = log10(invstd.lambda_out/100);
-0304                 b = log10(invstd.lambda_out*10);
-0305                 
-0306                 <span class="comment">% counter</span>
-0307                 count = 0;
-0308                 countm = 0;
+0227         <span class="comment">% uncertainty patch for fitted RTD -&gt; mean +-2*std</span>
+0228         meantmp = mean(TDIST);
+0229         stdtmp = std(TDIST);
+0230         uncert.interp_f_min = meantmp-2*stdtmp;
+0231         uncert.interp_f_max = meantmp+2*stdtmp;
+0232         
+0233         invstd.uncert = uncert;
+0234         
+0235     <span class="keyword">case</span> <span class="string">'NNLS'</span>
+0236         
+0237         <span class="comment">% 'RTD_var' | 'Lambda' | 'RMS_bound' | 'RMS_free'</span>
+0238         <span class="comment">% uncertMethod = 'RMS_bound';</span>
+0239         
+0240         <span class="keyword">switch</span> uncertMethod
+0241             <span class="keyword">case</span> <span class="string">'RTD_var'</span>
+0242                 <span class="comment">% find uncertainty models by varying the optimal RTD bins</span>
+0243                 <span class="comment">% individually</span>
+0244                 
+0245                 <span class="comment">% uncertN = 5;</span>
+0246                 <span class="comment">% uncertThresh = 0.1;</span>
+0247                 <span class="comment">% uncertChi2 = 0.05;</span>
+0248                 f_final = invstd.T1T2f;
+0249                 
+0250                 <span class="comment">% initialize variables</span>
+0251                 <span class="comment">% NOTE: we save 'uncertN' models for each RTD bin</span>
+0252                 TDIST = zeros(uncertN*numel(invstd.T1T2me),numel(invstd.T1T2me));
+0253                 SINTERP = zeros(numel(time0),uncertN*numel(invstd.T1T2me));
+0254                 E0INTERP = zeros(uncertN*numel(invstd.T1T2me),1);
+0255                 <span class="comment">% loop over all RTD bins</span>
+0256                 <span class="keyword">for</span> i1 = 1:numel(f_final)
+0257                     count = 0;
+0258                     <span class="keyword">while</span> count &lt; uncertN
+0259                         <span class="comment">% start RTD is always the optimal one</span>
+0260                         x0 = f_final;
+0261                         <span class="comment">% global bounds</span>
+0262                         lb = zeros(size(x0));
+0263                         ub = max(f_final).*3.*ones(size(x0));
+0264                         <span class="comment">% now draw a random value for the current RTD bin</span>
+0265                         a = 1-uncertThresh;
+0266                         b = 1+uncertThresh;
+0267                         rr = (b-a).*rand(1,1) + a;
+0268                         <span class="comment">% adjust the initial model and bounds accordingly</span>
+0269                         x0(i1) = f_final(i1)*rr;
+0270                         lb(i1) = x0(i1);
+0271                         ub(i1) = x0(i1);
+0272                         
+0273                         <span class="comment">% save bounds for the LSQ inversion</span>
+0274                         iparam.bounds.lb = lb;
+0275                         iparam.bounds.ub = ub;
+0276                         iparam.bounds.f0 = x0;
+0277                         
+0278                         <span class="comment">% calculate solution</span>
+0279                         invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signal,iparam);
+0280                         s0_interp = K0f*invtmp.T1T2f;
+0281                         
+0282                         <span class="comment">% check if the temporary chi2 and model norm are</span>
+0283                         <span class="comment">% within the desired limits</span>
+0284                         <span class="keyword">if</span> abs(1-invtmp.chi2/invstd.chi2) &lt;= uncertChi2 &amp;&amp;  <span class="keyword">...</span>
+0285                                 abs(1-invtmp.xn/invstd.xn) &lt;= uncertChi2/2
+0286                             <span class="comment">% if YES then keep it</span>
+0287                             count = count + 1;
+0288                             <span class="comment">% save RTD</span>
+0289                             TDIST(i1*uncertN-(uncertN-count),:) = invtmp.T1T2f;
+0290                             <span class="comment">% save signal</span>
+0291                             SINTERP(:,i1*uncertN-(uncertN-count)) = s0_interp;
+0292                             <span class="comment">% save E0</span>
+0293                             E0INTERP(i1*uncertN-(uncertN-count),1) = invtmp.E0;
+0294                             <span class="comment">% status bar info</span>
+0295                             infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
+0296                                 num2str(count),<span class="string">' / '</span>,num2str(uncertN),<span class="keyword">...</span>
+0297                                 <span class="string">' for RTD bin: '</span>,num2str(i1),<span class="string">' / '</span>,num2str(numel(f_final))];
+0298                             <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0299                         <span class="keyword">end</span>
+0300                     <span class="keyword">end</span>
+0301                 <span class="keyword">end</span>
+0302                 
+0303             <span class="keyword">case</span> <span class="string">'Lambda'</span>
+0304                 <span class="comment">% find uncertainty models by varying the optimal</span>
+0305                 <span class="comment">% regularization parameter lambda</span>
+0306                 
+0307                 <span class="comment">% set regularization to 'manual' just in case</span>
+0308                 iparam.regMethod = <span class="string">'manual'</span>;
 0309                 
-0310                 <span class="comment">% initialize variables</span>
-0311                 TDIST = zeros(uncertN,numel(invstd.T1T2me));
-0312                 SINTERP = zeros(numel(time0),uncertN);
-0313                 E0INTERP = zeros(uncertN,1);
-0314                 <span class="comment">% calculate uncertainty models</span>
-0315                 <span class="keyword">while</span> count &lt; uncertN
-0316                     <span class="comment">% draw a random lambda value</span>
-0317                     rr = (b-a).*rand(1,1) + a;
-0318                     iparam.lambda = 10^(rr);
-0319                     <span class="comment">% calculate solution</span>
-0320                     invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signal,iparam);
-0321                     s0_interp = K0f*invtmp.T1T2f;
-0322                     
-0323                     <span class="comment">% check if temporary chi2 and model norm are within the</span>
-0324                     <span class="comment">% desired limits</span>
-0325                     <span class="keyword">if</span> abs(1-invtmp.chi2/invstd.chi2) &lt;= uncertChi2 &amp;&amp;<span class="keyword">...</span>
-0326                             abs(1-invtmp.xn/invstd.xn) &lt;= uncertChi2*10
-0327                         <span class="comment">% if YES then keep it</span>
-0328                         count = count + 1;
-0329                         <span class="comment">% save RTD</span>
-0330                         TDIST(count,:) = invtmp.T1T2f;
-0331                         <span class="comment">% save signal</span>
-0332                         SINTERP(:,count) = s0_interp;
-0333                         <span class="comment">% save E0</span>
-0334                         E0INTERP(count,1) = invtmp.E0;
-0335                         <span class="comment">% status bar info</span>
-0336                         infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
-0337                             num2str(count),<span class="string">' / '</span>,num2str(uncertN)];
-0338                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0339                         <span class="comment">% reset max counter</span>
-0340                         countm = 0;
-0341                     <span class="keyword">else</span>
-0342 <span class="comment">%                         % update the lambda search range</span>
-0343 <span class="comment">%                         if invtmp.xn &gt; invstd.xn % lambda was too small</span>
-0344 <span class="comment">%                             % new lower lambda search bound</span>
-0345 <span class="comment">%                             a = rr;</span>
-0346 <span class="comment">%                         end</span>
-0347 <span class="comment">%                         if invtmp.chi2 &gt; invstd.chi2 % lambda was too big</span>
-0348 <span class="comment">%                             % new upper lambda search bound</span>
-0349 <span class="comment">%                             b = rr;</span>
-0350 <span class="comment">%                         end</span>
-0351                         <span class="comment">% as long as we did not find a model keep counting</span>
-0352                         <span class="keyword">if</span> count &lt; 1
-0353                             countm = countm + 1;
-0354                             infostring = [<span class="string">'Trying to find uncertainty model: '</span>,<span class="keyword">...</span>
-0355                                 num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
-0356                             <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0357                         <span class="keyword">end</span>
-0358                     <span class="keyword">end</span>
-0359                     <span class="comment">% after to many unsuccessful attempts STOP</span>
-0360                     <span class="keyword">if</span> countm &gt; uncertMax
-0361                         infostring = [<span class="string">'No uncertainty model found: '</span>,<span class="keyword">...</span>
-0362                             num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
-0363                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0364                         <span class="keyword">break</span>;
-0365                     <span class="keyword">end</span>                    
-0366                 <span class="keyword">end</span>
-0367                 
-0368             <span class="keyword">case</span> <span class="string">'RMS_bound'</span>
-0369                 <span class="comment">% find uncertainty models by adding random noise (based on</span>
-0370                 <span class="comment">% fit RMS) on the optimal fit to create new &quot;raw data&quot; and</span>
-0371                 <span class="comment">% invert them with the original optimal inversion settings</span>
-0372                 <span class="comment">% select models based on chi2 and model norm bounds</span>
-0373                 
-0374                 <span class="comment">% set regularization to 'manual' just in case</span>
-0375                 iparam.regMethod = <span class="string">'manual'</span>;
-0376                 
-0377                 <span class="comment">% counter</span>
-0378                 count = 0;
-0379                 countm = 0;
-0380                 
-0381                 <span class="comment">% initialize variables</span>
-0382                 TDIST = zeros(uncertN,numel(invstd.T1T2me));
-0383                 SINTERP = zeros(numel(time0),uncertN);
-0384                 E0INTERP = zeros(uncertN,1);
-0385                 <span class="comment">% calculate uncertainty models</span>
-0386                 <span class="keyword">while</span> count &lt; uncertN
-0387                     <span class="comment">% the original fit</span>
-0388                     sig1 = invstd.fit_s;
-0389                     <span class="comment">% create some random noise based on original fit RMS</span>
-0390                     [signalN,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(sig1,0,invstd.rms);
-0391                     <span class="comment">% calculate solution</span>
-0392                     invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signalN,iparam);
-0393                     s0_interp = K0f*invtmp.T1T2f;
-0394                     
-0395                     <span class="comment">% check if temporary chi2 and model norm are within the</span>
-0396                     <span class="comment">% desired limits</span>
-0397                     <span class="keyword">if</span> abs(1-invtmp.chi2/invstd.chi2) &lt;= uncertChi2 &amp;&amp;<span class="keyword">...</span>
-0398                             abs(1-invtmp.xn/invstd.xn) &lt;= uncertChi2*10
-0399                         <span class="comment">% if YES then keep it</span>
-0400                         count = count + 1;
-0401                         <span class="comment">% save RTD</span>
-0402                         TDIST(count,:) = invtmp.T1T2f;
-0403                         <span class="comment">% save signal</span>
-0404                         SINTERP(:,count) = s0_interp;
-0405                         <span class="comment">% save E0</span>
-0406                         E0INTERP(count,1) = invtmp.E0;
-0407                         <span class="comment">% status bar info</span>
-0408                         infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
-0409                             num2str(count),<span class="string">' / '</span>,num2str(uncertN)];
-0410                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0411                         <span class="comment">% reset max counter</span>
-0412                         countm = 0;
-0413                     <span class="keyword">else</span>
-0414                         <span class="comment">% as long as we did not find a model keep counting</span>
-0415                         <span class="keyword">if</span> count &lt; 1
-0416                             countm = countm + 1;
-0417                             infostring = [<span class="string">'Trying to find uncertainty model: '</span>,<span class="keyword">...</span>
-0418                                 num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
-0419                             <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0420                         <span class="keyword">end</span>
-0421                     <span class="keyword">end</span>
-0422                     <span class="comment">% after to many unsuccessful attempts STOP</span>
-0423                     <span class="keyword">if</span> countm &gt; uncertMax
-0424                         infostring = [<span class="string">'No uncertainty model found: '</span>,<span class="keyword">...</span>
-0425                             num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
-0426                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0427                         <span class="keyword">break</span>;
-0428                     <span class="keyword">end</span>
-0429                 <span class="keyword">end</span>
-0430                    
-0431             <span class="keyword">case</span> <span class="string">'RMS_free'</span>
-0432                 <span class="comment">% find uncertainty models by adding random noise (based on</span>
-0433                 <span class="comment">% fit RMS) on the optimal fit to create new &quot;raw data&quot; and</span>
-0434                 <span class="comment">% invert them with the original optimal inversion settings</span>
-0435                 
-0436                 <span class="comment">% set regularization to 'manual' just in case</span>
-0437                 iparam.regMethod = <span class="string">'manual'</span>;
-0438                 
-0439                 <span class="comment">% initialize variables</span>
-0440                 TDIST = zeros(uncertN,numel(invstd.T1T2me));
-0441                 SINTERP = zeros(numel(time0),uncertN);
-0442                 E0INTERP = zeros(uncertN,1);
-0443                 <span class="comment">% calculate uncertainty models</span>
-0444                 <span class="keyword">for</span> count = 1:uncertN
-0445                     <span class="comment">% the original fit</span>
-0446                     sig1 = invstd.fit_s;
-0447                     <span class="comment">% create some random noise based on original fit RMS</span>
-0448                     [signalN,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(sig1,0,invstd.rms);
-0449                     
-0450                     <span class="comment">% calculate solution</span>
-0451                     invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signalN,iparam);
-0452                     s0_interp = K0f*invtmp.T1T2f;
-0453                     <span class="comment">% save RTD</span>
-0454                     TDIST(count,:) = invtmp.T1T2f;
-0455                     <span class="comment">% save signal</span>
-0456                     SINTERP(:,count) = s0_interp;
-0457                     <span class="comment">% save E0</span>
-0458                     E0INTERP(count,1) = invtmp.E0;
-0459                     <span class="comment">% status bar info</span>
-0460                     infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
-0461                         num2str(count),<span class="string">' / '</span>,num2str(uncertN)];
-0462                     <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0463                 <span class="keyword">end</span>
-0464         <span class="keyword">end</span>
-0465         
-0466         <span class="comment">% output data</span>
-0467         <span class="comment">% simple E0 confidence interval</span>
-0468         invstd.ciE0 = 2*std(E0INTERP);
-0469         
-0470         <span class="comment">% uncertainty calculation results</span>
-0471         uncert.interp_t = time0(:);
-0472         uncert.interp_E0 = E0INTERP;
-0473         uncert.interp_f = TDIST;
-0474         uncert.interp_s = SINTERP;
-0475         
-0476         <span class="comment">% uncertainty patch for fitted signal</span>
-0477         uncert.interp_s_min = min(SINTERP,[],2);
-0478         uncert.interp_s_max = max(SINTERP,[],2);
-0479         
-0480         <span class="comment">% uncertainty patch for fitted RTD</span>
-0481         uncert.interp_f_min = min(TDIST);
-0482         uncert.interp_f_max = max(TDIST);
+0310                 <span class="comment">% lambda search range</span>
+0311                 a = log10(invstd.lambda_out/100);
+0312                 b = log10(invstd.lambda_out*10);
+0313                 
+0314                 <span class="comment">% counter</span>
+0315                 count = 0;
+0316                 countm = 0;
+0317                 
+0318                 <span class="comment">% initialize variables</span>
+0319                 TDIST = zeros(uncertN,numel(invstd.T1T2me));
+0320                 SINTERP = zeros(numel(time0),uncertN);
+0321                 E0INTERP = zeros(uncertN,1);
+0322                 <span class="comment">% calculate uncertainty models</span>
+0323                 <span class="keyword">while</span> count &lt; uncertN
+0324                     <span class="comment">% draw a random lambda value</span>
+0325                     rr = (b-a).*rand(1,1) + a;
+0326                     iparam.lambda = 10^(rr);
+0327                     <span class="comment">% calculate solution</span>
+0328                     invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signal,iparam);
+0329                     s0_interp = K0f*invtmp.T1T2f;
+0330                     
+0331                     <span class="comment">% check if temporary chi2 and model norm are within the</span>
+0332                     <span class="comment">% desired limits</span>
+0333                     <span class="keyword">if</span> abs(1-invtmp.chi2/invstd.chi2) &lt;= uncertChi2 &amp;&amp;<span class="keyword">...</span>
+0334                             abs(1-invtmp.xn/invstd.xn) &lt;= uncertChi2*10
+0335                         <span class="comment">% if YES then keep it</span>
+0336                         count = count + 1;
+0337                         <span class="comment">% save RTD</span>
+0338                         TDIST(count,:) = invtmp.T1T2f;
+0339                         <span class="comment">% save signal</span>
+0340                         SINTERP(:,count) = s0_interp;
+0341                         <span class="comment">% save E0</span>
+0342                         E0INTERP(count,1) = invtmp.E0;
+0343                         <span class="comment">% status bar info</span>
+0344                         infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
+0345                             num2str(count),<span class="string">' / '</span>,num2str(uncertN)];
+0346                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0347                         <span class="comment">% reset max counter</span>
+0348                         countm = 0;
+0349                     <span class="keyword">else</span>
+0350 <span class="comment">%                         % update the lambda search range</span>
+0351 <span class="comment">%                         if invtmp.xn &gt; invstd.xn % lambda was too small</span>
+0352 <span class="comment">%                             % new lower lambda search bound</span>
+0353 <span class="comment">%                             a = rr;</span>
+0354 <span class="comment">%                         end</span>
+0355 <span class="comment">%                         if invtmp.chi2 &gt; invstd.chi2 % lambda was too big</span>
+0356 <span class="comment">%                             % new upper lambda search bound</span>
+0357 <span class="comment">%                             b = rr;</span>
+0358 <span class="comment">%                         end</span>
+0359                         <span class="comment">% as long as we did not find a model keep counting</span>
+0360                         <span class="keyword">if</span> count &lt; 1
+0361                             countm = countm + 1;
+0362                             infostring = [<span class="string">'Trying to find uncertainty model: '</span>,<span class="keyword">...</span>
+0363                                 num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
+0364                             <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0365                         <span class="keyword">end</span>
+0366                     <span class="keyword">end</span>
+0367                     <span class="comment">% after to many unsuccessful attempts STOP</span>
+0368                     <span class="keyword">if</span> countm &gt; uncertMax
+0369                         infostring = [<span class="string">'No uncertainty model found: '</span>,<span class="keyword">...</span>
+0370                             num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
+0371                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0372                         <span class="keyword">break</span>;
+0373                     <span class="keyword">end</span>                    
+0374                 <span class="keyword">end</span>
+0375                 
+0376             <span class="keyword">case</span> <span class="string">'RMS_bound'</span>
+0377                 <span class="comment">% find uncertainty models by adding random noise (based on</span>
+0378                 <span class="comment">% fit RMS) on the optimal fit to create new &quot;raw data&quot; and</span>
+0379                 <span class="comment">% invert them with the original optimal inversion settings</span>
+0380                 <span class="comment">% select models based on chi2 and model norm bounds</span>
+0381                 
+0382                 <span class="comment">% set regularization to 'manual' just in case</span>
+0383                 iparam.regMethod = <span class="string">'manual'</span>;
+0384                 
+0385                 <span class="comment">% counter</span>
+0386                 count = 0;
+0387                 countm = 0;
+0388                 
+0389                 <span class="comment">% initialize variables</span>
+0390                 TDIST = zeros(uncertN,numel(invstd.T1T2me));
+0391                 SINTERP = zeros(numel(time0),uncertN);
+0392                 E0INTERP = zeros(uncertN,1);
+0393                 <span class="comment">% calculate uncertainty models</span>
+0394                 <span class="keyword">while</span> count &lt; uncertN
+0395                     <span class="comment">% the original fit</span>
+0396                     sig1 = invstd.fit_s;
+0397                     <span class="comment">% create some random noise based on original fit RMS</span>
+0398                     [signalN,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(sig1,0,invstd.rms);
+0399                     <span class="comment">% calculate solution</span>
+0400                     invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signalN,iparam);
+0401                     s0_interp = K0f*invtmp.T1T2f;
+0402                     
+0403                     <span class="comment">% check if temporary chi2 and model norm are within the</span>
+0404                     <span class="comment">% desired limits</span>
+0405                     <span class="keyword">if</span> abs(1-invtmp.chi2/invstd.chi2) &lt;= uncertChi2 &amp;&amp;<span class="keyword">...</span>
+0406                             abs(1-invtmp.xn/invstd.xn) &lt;= uncertChi2*10
+0407                         <span class="comment">% if YES then keep it</span>
+0408                         count = count + 1;
+0409                         <span class="comment">% save RTD</span>
+0410                         TDIST(count,:) = invtmp.T1T2f;
+0411                         <span class="comment">% save signal</span>
+0412                         SINTERP(:,count) = s0_interp;
+0413                         <span class="comment">% save E0</span>
+0414                         E0INTERP(count,1) = invtmp.E0;
+0415                         <span class="comment">% status bar info</span>
+0416                         infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
+0417                             num2str(count),<span class="string">' / '</span>,num2str(uncertN)];
+0418                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0419                         <span class="comment">% reset max counter</span>
+0420                         countm = 0;
+0421                     <span class="keyword">else</span>
+0422                         <span class="comment">% as long as we did not find a model keep counting</span>
+0423                         <span class="keyword">if</span> count &lt; 1
+0424                             countm = countm + 1;
+0425                             infostring = [<span class="string">'Trying to find uncertainty model: '</span>,<span class="keyword">...</span>
+0426                                 num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
+0427                             <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0428                         <span class="keyword">end</span>
+0429                     <span class="keyword">end</span>
+0430                     <span class="comment">% after to many unsuccessful attempts STOP</span>
+0431                     <span class="keyword">if</span> countm &gt; uncertMax
+0432                         infostring = [<span class="string">'No uncertainty model found: '</span>,<span class="keyword">...</span>
+0433                             num2str(countm),<span class="string">' / '</span>,num2str(uncertMax)];
+0434                         <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0435                         <span class="keyword">break</span>;
+0436                     <span class="keyword">end</span>
+0437                 <span class="keyword">end</span>
+0438                    
+0439             <span class="keyword">case</span> <span class="string">'RMS_free'</span>
+0440                 <span class="comment">% find uncertainty models by adding random noise (based on</span>
+0441                 <span class="comment">% fit RMS) on the optimal fit to create new &quot;raw data&quot; and</span>
+0442                 <span class="comment">% invert them with the original optimal inversion settings</span>
+0443                 
+0444                 <span class="comment">% set regularization to 'manual' just in case</span>
+0445                 iparam.regMethod = <span class="string">'manual'</span>;
+0446                 
+0447                 <span class="comment">% initialize variables</span>
+0448                 TDIST = zeros(uncertN,numel(invstd.T1T2me));
+0449                 SINTERP = zeros(numel(time0),uncertN);
+0450                 E0INTERP = zeros(uncertN,1);
+0451                 <span class="comment">% calculate uncertainty models</span>
+0452                 <span class="keyword">for</span> count = 1:uncertN
+0453                     <span class="comment">% the original fit</span>
+0454                     sig1 = invstd.fit_s;
+0455                     <span class="comment">% create some random noise based on original fit RMS</span>
+0456                     [signalN,~] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(sig1,0,invstd.rms);
+0457                     
+0458                     <span class="comment">% calculate solution</span>
+0459                     invtmp = <a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(time,signalN,iparam);
+0460                     s0_interp = K0f*invtmp.T1T2f;
+0461                     <span class="comment">% save RTD</span>
+0462                     TDIST(count,:) = invtmp.T1T2f;
+0463                     <span class="comment">% save signal</span>
+0464                     SINTERP(:,count) = s0_interp;
+0465                     <span class="comment">% save E0</span>
+0466                     E0INTERP(count,1) = invtmp.E0;
+0467                     <span class="comment">% status bar info</span>
+0468                     infostring = [<span class="string">'Calculating uncertainty models: '</span>,<span class="keyword">...</span>
+0469                         num2str(count),<span class="string">' / '</span>,num2str(uncertN)];
+0470                     <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0471                 <span class="keyword">end</span>
+0472         <span class="keyword">end</span>
+0473         
+0474         <span class="comment">% output data</span>
+0475         <span class="comment">% simple E0 confidence interval</span>
+0476         invstd.ciE0 = 2*std(E0INTERP);
+0477         
+0478         <span class="comment">% uncertainty calculation results</span>
+0479         uncert.interp_t = time0(:);
+0480         uncert.interp_E0 = E0INTERP;
+0481         uncert.interp_f = TDIST;
+0482         uncert.interp_s = SINTERP;
 0483         
-0484         invstd.uncert = uncert;
-0485         
-0486     <span class="keyword">otherwise</span>
-0487         <span class="comment">% nothing to do</span>
-0488         uncert = [];
-0489 <span class="keyword">end</span>
-0490 
-0491 <span class="keyword">return</span>
-0492 
-0493 <span class="comment">%------------- END OF CODE --------------</span>
-0494 
-0495 <span class="comment">%% License:</span>
-0496 <span class="comment">% MIT License</span>
-0497 <span class="comment">%</span>
-0498 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
-0499 <span class="comment">%</span>
-0500 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0501 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0502 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0503 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0504 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0505 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0506 <span class="comment">%</span>
-0507 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0508 <span class="comment">% copies or substantial portions of the Software.</span>
-0509 <span class="comment">%</span>
-0510 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0511 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0512 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0513 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0514 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0515 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0516 <span class="comment">% SOFTWARE.</span></pre></div>
+0484         <span class="comment">% uncertainty patch for fitted signal</span>
+0485         uncert.interp_s_min = min(SINTERP,[],2);
+0486         uncert.interp_s_max = max(SINTERP,[],2);
+0487         
+0488         <span class="comment">% uncertainty patch for fitted RTD</span>
+0489         uncert.interp_f_min = min(TDIST);
+0490         uncert.interp_f_max = max(TDIST);
+0491         
+0492         invstd.uncert = uncert;
+0493         
+0494     <span class="keyword">otherwise</span>
+0495         <span class="comment">% nothing to do</span>
+0496         uncert = [];
+0497 <span class="keyword">end</span>
+0498 
+0499 <span class="keyword">return</span>
+0500 
+0501 <span class="comment">%------------- END OF CODE --------------</span>
+0502 
+0503 <span class="comment">%% License:</span>
+0504 <span class="comment">% MIT License</span>
+0505 <span class="comment">%</span>
+0506 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
+0507 <span class="comment">%</span>
+0508 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0509 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0510 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0511 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0512 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0513 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0514 <span class="comment">%</span>
+0515 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0516 <span class="comment">% copies or substantial portions of the Software.</span>
+0517 <span class="comment">%</span>
+0518 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0519 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0520 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0521 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0522 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0523 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0524 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

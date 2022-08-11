@@ -199,7 +199,7 @@ if isfield(data.results,'invstd')
                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
                     end
                     
-                    plot(invstd.T1T2me,F,'-','Color',col.FIT,...
+                    plot(invstd.T1T2me,F,'o-','Color',col.FIT,...
                         'LineWidth',2,'Parent',ax);
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
@@ -218,7 +218,7 @@ if isfield(data.results,'invstd')
                         patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
                             'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
                     end
-                    plot(invstd.T1T2me,cumsum(F),'-','Color',col.FIT,...
+                    plot(invstd.T1T2me,cumsum(F),'o-','Color',col.FIT,...
                         'LineWidth',2,'Parent',ax);
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);

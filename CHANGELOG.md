@@ -1,6 +1,16 @@
 # Changelog
 
-## [0.1.12] - latest
+## [0.1.13] - 2022-08-11
+
+### Changed
+- Changed the way the uncertainty region is displayed when the *Multi modal* fitting option in **NUCLEUSinv** is used (now it is `[mean-2*std mean+2*std]` before it was `[min max]`)
+
+### Fixed
+- Fixed an issue in **NUCLEUSmod** when calculating forward NMR data for single capillaries with corners (*right angular* and *polygon*)
+- Fixed an issue in the **NUCLEUSmod** example scripts (*T<sub>diff</sub>* was not initialized)
+- Fixed an issue in **NUCLEUSinv** regarding the fitting routine `fitDataFree` in combination with the Optimization Toolbox in Matlab Versions newer than R2019b
+
+## [0.1.12] - 2022-02-17
 
 ### Added
 - New *SNR*-option in **NUCLEUSmod** to set the noise of the forward modelled NMR data either by noise level or signal-to-noise ratio (SNR)
@@ -171,6 +181,7 @@
 
 Initial Version
 
+[0.1.13]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.12...v.0.1.13
 [0.1.12]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.11...v.0.1.12
 [0.1.11]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.10...v.0.1.11
 [0.1.10]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.9...v.0.1.10

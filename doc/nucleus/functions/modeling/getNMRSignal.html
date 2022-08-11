@@ -200,116 +200,127 @@ This function is called by:
 0113         <span class="keyword">for</span> p = 1:numel(SatData.pressure)            
 0114             <span class="comment">% area of water-filled corners is later used for NMR amplitude</span>
 0115             <span class="comment">% calculation</span>
-0116             Aai = squeeze(SatData.Aai(p,:,:));
-0117             Aad = squeeze(SatData.Aad(p,:,:));
-0118             
-0119             <span class="comment">% surface to volume ratio (S/V) for imbibition / drainage</span>
-0120             SVi = squeeze(SatData.Pai(p,:,:)./SatData.Aai(p,:,:));
-0121             SVd = squeeze(SatData.Pad(p,:,:)./SatData.Aad(p,:,:));
-0122             
-0123             <span class="comment">% temporary NMR signals</span>
-0124             sigiT1 = zeros(size(SVi,1),numel(t));
-0125             sigiT2 = zeros(size(SVi,1),numel(t));
-0126             sigdT1 = zeros(size(SVd,1),numel(t));
-0127             sigdT2 = zeros(size(SVd,1),numel(t));
+0116             <span class="keyword">if</span> numel(psdData.psd) &gt; 1
+0117                 Aai = squeeze(SatData.Aai(p,:,:));
+0118                 Aad = squeeze(SatData.Aad(p,:,:));
+0119             
+0120                 <span class="comment">% surface to volume ratio (S/V) for imbibition / drainage</span>
+0121                 SVi = squeeze(SatData.Pai(p,:,:)./SatData.Aai(p,:,:));
+0122                 SVd = squeeze(SatData.Pad(p,:,:)./SatData.Aad(p,:,:));
+0123             <span class="keyword">else</span>
+0124                 <span class="comment">% for single pores the shape of the vectors needs to be</span>
+0125                 <span class="comment">% flippd</span>
+0126                 Aai = squeeze(SatData.Aai(p,:,:))';
+0127                 Aad = squeeze(SatData.Aad(p,:,:))';
 0128             
-0129             <span class="comment">% for all pore sizes</span>
-0130             <span class="keyword">for</span> j = 1:numel(psdData.r)                
-0131                 <span class="comment">% --- imbibition ---</span>
-0132                 <span class="keyword">if</span> SatData.isfullsati(p,j) == 1 <span class="comment">% if fully saturated -&gt; Ampl = 1</span>
-0133                     sigiT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) ));
-0134                     sigiT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) );
-0135                 <span class="keyword">else</span>
-0136                     <span class="comment">% partially saturated pore -&gt; account for corners</span>
-0137                     <span class="keyword">for</span> jj = 1:Ncorners
-0138                         Ampl = Aai(j,jj) / SatData.A0(j);
-0139                         sigiT1(j,:) = sigiT1(j,:) + (Ampl * (1-exp(-t .* <span class="keyword">...</span>
-0140                             (1./Td + 1./Tb + rho.*SVi(j,jj)))) );
-0141                         sigiT2(j,:) = sigiT2(j,:) + (Ampl *    exp(-t .* <span class="keyword">...</span>
-0142                             (1./Td + 1./Tb + rho.*SVi(j,jj)))  );
-0143                     <span class="keyword">end</span>
-0144                 <span class="keyword">end</span>
-0145                 
-0146                 <span class="comment">% --- drainage ---</span>
-0147                 <span class="keyword">if</span> SatData.isfullsatd(p,j) == 1 <span class="comment">% if fully saturated -&gt; Ampl = 1</span>
-0148                     sigdT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) ));
-0149                     sigdT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) );
-0150                 <span class="keyword">else</span>
-0151                     <span class="comment">% partially saturated pore -&gt; account for corners</span>
-0152                     <span class="keyword">for</span> jj = 1:Ncorners
-0153                         Ampl = Aad(j,jj) / SatData.A0(j);
-0154                         sigdT1(j,:) = sigdT1(j,:) + (Ampl * (1-exp(-t .* <span class="keyword">...</span>
-0155                             (1./Td + 1./Tb + rho.*SVd(j,jj)))) );
-0156                         sigdT2(j,:) = sigdT2(j,:) + (Ampl *    exp(-t .* <span class="keyword">...</span>
-0157                             (1./Td + 1./Tb + rho.*SVd(j,jj)))  );
-0158                     <span class="keyword">end</span>
-0159                 <span class="keyword">end</span>
-0160                 
-0161                 <span class="comment">% account for pore size distribution</span>
-0162                 sigiT1(j,:) = sigiT1(j,:) * psdData.psd(j);
-0163                 sigiT2(j,:) = sigiT2(j,:) * psdData.psd(j);
-0164                 sigdT1(j,:) = sigdT1(j,:) * psdData.psd(j);
-0165                 sigdT2(j,:) = sigdT2(j,:) * psdData.psd(j);
-0166             <span class="keyword">end</span>
-0167             
-0168             <span class="comment">% sum up all pores into one NMR signal for the current pressure /</span>
-0169             <span class="comment">% saturation step</span>
-0170             <span class="keyword">if</span> numel(psdData.psd) &gt; 1
-0171                 EiT1(p,:) = sum(sigiT1);
-0172                 EiT2(p,:) = sum(sigiT2);
-0173                 EdT1(p,:) = sum(sigdT1);
-0174                 EdT2(p,:) = sum(sigdT2);
-0175             <span class="keyword">else</span>
-0176                 <span class="comment">% single pore case</span>
-0177                 EiT1(p,:) = sigiT1;
-0178                 EiT2(p,:) = sigiT2;
-0179                 EdT1(p,:) = sigdT1;
-0180                 EdT2(p,:) = sigdT2;
-0181             <span class="keyword">end</span>
-0182             
-0183             <span class="comment">% update wait-bar</span>
-0184             <span class="keyword">if</span> wbopts.show
-0185                 waitbar(p / steps,hwb,[<span class="string">'processing ... '</span>,num2str(p),<span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
-0186             <span class="keyword">end</span>
-0187         <span class="keyword">end</span>
-0188 <span class="keyword">end</span>
-0189 <span class="comment">%% delete wait-bar</span>
-0190 <span class="keyword">if</span> wbopts.show
-0191     delete(hwb);
-0192 <span class="keyword">end</span>
-0193 
-0194 <span class="comment">%% output data</span>
-0195 nmr.EiT1 = EiT1;
-0196 nmr.EiT2 = EiT2;
-0197 nmr.EdT1 = EdT1;
-0198 nmr.EdT2 = EdT2;
-0199 
-0200 <span class="keyword">return</span>
-0201 
-0202 <span class="comment">%------------- END OF CODE --------------</span>
-0203 
-0204 <span class="comment">%% License:</span>
-0205 <span class="comment">% MIT License</span>
-0206 <span class="comment">%</span>
-0207 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0208 <span class="comment">%</span>
-0209 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0210 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0211 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0212 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0213 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0214 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0215 <span class="comment">%</span>
-0216 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0217 <span class="comment">% copies or substantial portions of the Software.</span>
-0218 <span class="comment">%</span>
-0219 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0220 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0221 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0222 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0223 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0224 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0225 <span class="comment">% SOFTWARE.</span></pre></div>
+0129                 <span class="comment">% surface to volume ratio (S/V) for imbibition / drainage</span>
+0130                 SVi = squeeze(SatData.Pai(p,:,:)./SatData.Aai(p,:,:))';
+0131                 SVd = squeeze(SatData.Pad(p,:,:)./SatData.Aad(p,:,:))';
+0132             <span class="keyword">end</span>
+0133             
+0134             <span class="comment">% temporary NMR signals</span>
+0135             sigiT1 = zeros(size(SVi,1),numel(t));
+0136             sigiT2 = zeros(size(SVi,1),numel(t));
+0137             sigdT1 = zeros(size(SVd,1),numel(t));
+0138             sigdT2 = zeros(size(SVd,1),numel(t));
+0139             
+0140             <span class="comment">% for all pore sizes</span>
+0141             <span class="keyword">for</span> j = 1:numel(psdData.r)                
+0142                 <span class="comment">% --- imbibition ---</span>
+0143                 <span class="keyword">if</span> SatData.isfullsati(p,j) == 1 <span class="comment">% if fully saturated -&gt; Ampl = 1</span>
+0144                     sigiT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) ));
+0145                     sigiT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) );
+0146                 <span class="keyword">else</span>
+0147                     <span class="comment">% partially saturated pore -&gt; account for corners</span>
+0148                     <span class="keyword">for</span> jj = 1:Ncorners
+0149                         Ampl = Aai(j,jj) / SatData.A0(j);
+0150                         sigiT1(j,:) = sigiT1(j,:) + (Ampl * (1-exp(-t .* <span class="keyword">...</span>
+0151                             (1./Td + 1./Tb + rho.*SVi(j,jj)))) );
+0152                         sigiT2(j,:) = sigiT2(j,:) + (Ampl *    exp(-t .* <span class="keyword">...</span>
+0153                             (1./Td + 1./Tb + rho.*SVi(j,jj)))  );
+0154                     <span class="keyword">end</span>
+0155                 <span class="keyword">end</span>
+0156                 
+0157                 <span class="comment">% --- drainage ---</span>
+0158                 <span class="keyword">if</span> SatData.isfullsatd(p,j) == 1 <span class="comment">% if fully saturated -&gt; Ampl = 1</span>
+0159                     sigdT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) ));
+0160                     sigdT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) );
+0161                 <span class="keyword">else</span>
+0162                     <span class="comment">% partially saturated pore -&gt; account for corners</span>
+0163                     <span class="keyword">for</span> jj = 1:Ncorners
+0164                         Ampl = Aad(j,jj) / SatData.A0(j);
+0165                         sigdT1(j,:) = sigdT1(j,:) + (Ampl * (1-exp(-t .* <span class="keyword">...</span>
+0166                             (1./Td + 1./Tb + rho.*SVd(j,jj)))) );
+0167                         sigdT2(j,:) = sigdT2(j,:) + (Ampl *    exp(-t .* <span class="keyword">...</span>
+0168                             (1./Td + 1./Tb + rho.*SVd(j,jj)))  );
+0169                     <span class="keyword">end</span>
+0170                 <span class="keyword">end</span>
+0171                 
+0172                 <span class="comment">% account for pore size distribution</span>
+0173                 sigiT1(j,:) = sigiT1(j,:) * psdData.psd(j);
+0174                 sigiT2(j,:) = sigiT2(j,:) * psdData.psd(j);
+0175                 sigdT1(j,:) = sigdT1(j,:) * psdData.psd(j);
+0176                 sigdT2(j,:) = sigdT2(j,:) * psdData.psd(j);
+0177             <span class="keyword">end</span>
+0178             
+0179             <span class="comment">% sum up all pores into one NMR signal for the current pressure /</span>
+0180             <span class="comment">% saturation step</span>
+0181             <span class="keyword">if</span> numel(psdData.psd) &gt; 1
+0182                 EiT1(p,:) = sum(sigiT1);
+0183                 EiT2(p,:) = sum(sigiT2);
+0184                 EdT1(p,:) = sum(sigdT1);
+0185                 EdT2(p,:) = sum(sigdT2);
+0186             <span class="keyword">else</span>
+0187                 <span class="comment">% single pore case</span>
+0188                 EiT1(p,:) = sigiT1;
+0189                 EiT2(p,:) = sigiT2;
+0190                 EdT1(p,:) = sigdT1;
+0191                 EdT2(p,:) = sigdT2;
+0192             <span class="keyword">end</span>
+0193             
+0194             <span class="comment">% update wait-bar</span>
+0195             <span class="keyword">if</span> wbopts.show
+0196                 waitbar(p / steps,hwb,[<span class="string">'processing ... '</span>,num2str(p),<span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
+0197             <span class="keyword">end</span>
+0198         <span class="keyword">end</span>
+0199 <span class="keyword">end</span>
+0200 <span class="comment">%% delete wait-bar</span>
+0201 <span class="keyword">if</span> wbopts.show
+0202     delete(hwb);
+0203 <span class="keyword">end</span>
+0204 
+0205 <span class="comment">%% output data</span>
+0206 nmr.EiT1 = EiT1;
+0207 nmr.EiT2 = EiT2;
+0208 nmr.EdT1 = EdT1;
+0209 nmr.EdT2 = EdT2;
+0210 
+0211 <span class="keyword">return</span>
+0212 
+0213 <span class="comment">%------------- END OF CODE --------------</span>
+0214 
+0215 <span class="comment">%% License:</span>
+0216 <span class="comment">% MIT License</span>
+0217 <span class="comment">%</span>
+0218 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0219 <span class="comment">%</span>
+0220 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0221 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0222 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0223 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0224 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0225 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0226 <span class="comment">%</span>
+0227 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0228 <span class="comment">% copies or substantial portions of the Software.</span>
+0229 <span class="comment">%</span>
+0230 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0231 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0232 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0233 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0234 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0235 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0236 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

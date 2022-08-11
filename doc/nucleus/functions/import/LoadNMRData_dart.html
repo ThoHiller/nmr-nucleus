@@ -38,7 +38,7 @@ measurements
        in.path - data path
        in.name - file name
        in.fileformat - 'dart'
-       in.version - '1' or '2' (a.t.m. '2' is hardcoded in 'driver'-file)
+       in.version - different input routines for different DART versions
 
  Outputs:
        out - output structure
@@ -88,7 +88,7 @@ This function is called by:
 0011 <span class="comment">%       in.path - data path</span>
 0012 <span class="comment">%       in.name - file name</span>
 0013 <span class="comment">%       in.fileformat - 'dart'</span>
-0014 <span class="comment">%       in.version - '1' or '2' (a.t.m. '2' is hardcoded in 'driver'-file)</span>
+0014 <span class="comment">%       in.version - different input routines for different DART versions</span>
 0015 <span class="comment">%</span>
 0016 <span class="comment">% Outputs:</span>
 0017 <span class="comment">%       out - output structure</span>
@@ -285,39 +285,88 @@ This function is called by:
 0208             <span class="keyword">end</span>
 0209             d{1} = tmp;
 0210             parData{1}.all = d;            
-0211         <span class="keyword">end</span>        
-0212 <span class="keyword">end</span>
-0213 
-0214 <span class="comment">% save data to output struct</span>
-0215 out.nmrData = nmrData;
-0216 out.parData = parData;
-0217 
-0218 <span class="keyword">end</span>
-0219 
-0220 <span class="comment">%------------- END OF CODE --------------</span>
-0221 
-0222 <span class="comment">%% License:</span>
-0223 <span class="comment">% MIT License</span>
-0224 <span class="comment">%</span>
-0225 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
-0226 <span class="comment">%</span>
-0227 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0228 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0229 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0230 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0231 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0232 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0233 <span class="comment">%</span>
-0234 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0235 <span class="comment">% copies or substantial portions of the Software.</span>
-0236 <span class="comment">%</span>
-0237 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0238 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0239 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0240 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0241 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0242 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0243 <span class="comment">% SOFTWARE.</span></pre></div>
+0211         <span class="keyword">end</span>
+0212 
+0213     <span class="keyword">case</span> 3 <span class="comment">% University of Vienna</span>
+0214 
+0215         disp([in.name,<span class="string">': importing NMR data ...'</span>]);
+0216 
+0217         <span class="comment">% init stuff</span>
+0218         tmp = cell(1,1);
+0219         nmrData = cell(1,numel(data.jpd.depth));
+0220         parData = cell(1,numel(data.jpd.depth));
+0221         
+0222         <span class="keyword">for</span> i = 1:numel(data.jpd.depth) <span class="comment">% loop over all depths</span>
+0223             <span class="comment">% get file statistics</span>
+0224             nmrData{i}.datfile = file.name;
+0225             nmrData{i}.date = file.date;
+0226             nmrData{i}.datenum = file.datenum;
+0227             nmrData{i}.bytes = file.bytes;
+0228 
+0229             <span class="comment">% save the NMR data</span>
+0230             nmrData{i}.flag = <span class="string">'T2'</span>;
+0231             nmrData{i}.T1IRfac = 1;
+0232             nmrData{i}.time = data.jpd.freq_stack.time(1,1:end)';
+0233             nmrData{i}.signal = data.jpd.freq_stack.se(i,1:end)';
+0234             nmrData{i}.raw.time = data.jpd.freq_stack.time(1,1:end)';
+0235             nmrData{i}.raw.signal = data.jpd.freq_stack.se(i,1:end)';
+0236             nmrData{i}.phase = 0;
+0237 
+0238             <span class="comment">% create parameter data</span>
+0239             parData{i}.depth = data.jpd.depth(i);
+0240             parData{i}.depth_units = data.jpd.depth_units;
+0241             parData{i}.depth_offset = data.state_proc.depth_offset;
+0242             parData{i}.stack_method = data.state_proc.stack_method;
+0243             parData{i}.phase_method = data.state_proc.phase_method;
+0244             parData{i}.d_avg = data.state_proc.d_avg;
+0245             parData{i}.reg_factor = data.state_proc.reg_factor;
+0246             parData{i}.min_T2 = data.state_proc.min_T2;
+0247             parData{i}.doDCscale = data.state_proc.doDCscale;
+0248 
+0249             fields = fieldnames(parData{i});
+0250             <span class="keyword">for</span> j = 1:size(fields,1)
+0251                 tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(i),<span class="string">'}.'</span>,fields{j}]))];
+0252             <span class="keyword">end</span>
+0253             d{1} = tmp;
+0254             parData{i}.all = d;
+0255             clear d tmp
+0256 
+0257             <span class="comment">% command line output</span>
+0258             disp([in.name,<span class="string">': importing NMR data from depth: '</span>,<span class="keyword">...</span>
+0259                 sprintf(<span class="string">'%3.2f'</span>,data.jpd.depth(i)),<span class="string">' '</span>,data.jpd.depth_units]);
+0260         <span class="keyword">end</span>
+0261 <span class="keyword">end</span>
+0262 
+0263 <span class="comment">% save data to output struct</span>
+0264 out.nmrData = nmrData;
+0265 out.parData = parData;
+0266 
+0267 <span class="keyword">end</span>
+0268 
+0269 <span class="comment">%------------- END OF CODE --------------</span>
+0270 
+0271 <span class="comment">%% License:</span>
+0272 <span class="comment">% MIT License</span>
+0273 <span class="comment">%</span>
+0274 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
+0275 <span class="comment">%</span>
+0276 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0277 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0278 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0279 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0280 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0281 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0282 <span class="comment">%</span>
+0283 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0284 <span class="comment">% copies or substantial portions of the Software.</span>
+0285 <span class="comment">%</span>
+0286 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0287 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0288 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0289 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0290 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0291 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0292 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

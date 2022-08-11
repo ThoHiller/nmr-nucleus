@@ -11,7 +11,7 @@ function out = LoadNMRData_dart(in)
 %       in.path - data path
 %       in.name - file name
 %       in.fileformat - 'dart'
-%       in.version - '1' or '2' (a.t.m. '2' is hardcoded in 'driver'-file)
+%       in.version - different input routines for different DART versions
 %
 % Outputs:
 %       out - output structure
@@ -208,7 +208,56 @@ switch in.version
             end
             d{1} = tmp;
             parData{1}.all = d;            
-        end        
+        end
+
+    case 3 % University of Vienna
+
+        disp([in.name,': importing NMR data ...']);
+
+        % init stuff
+        tmp = cell(1,1);
+        nmrData = cell(1,numel(data.jpd.depth));
+        parData = cell(1,numel(data.jpd.depth));
+        
+        for i = 1:numel(data.jpd.depth) % loop over all depths
+            % get file statistics
+            nmrData{i}.datfile = file.name;
+            nmrData{i}.date = file.date;
+            nmrData{i}.datenum = file.datenum;
+            nmrData{i}.bytes = file.bytes;
+
+            % save the NMR data
+            nmrData{i}.flag = 'T2';
+            nmrData{i}.T1IRfac = 1;
+            nmrData{i}.time = data.jpd.freq_stack.time(1,1:end)';
+            nmrData{i}.signal = data.jpd.freq_stack.se(i,1:end)';
+            nmrData{i}.raw.time = data.jpd.freq_stack.time(1,1:end)';
+            nmrData{i}.raw.signal = data.jpd.freq_stack.se(i,1:end)';
+            nmrData{i}.phase = 0;
+
+            % create parameter data
+            parData{i}.depth = data.jpd.depth(i);
+            parData{i}.depth_units = data.jpd.depth_units;
+            parData{i}.depth_offset = data.state_proc.depth_offset;
+            parData{i}.stack_method = data.state_proc.stack_method;
+            parData{i}.phase_method = data.state_proc.phase_method;
+            parData{i}.d_avg = data.state_proc.d_avg;
+            parData{i}.reg_factor = data.state_proc.reg_factor;
+            parData{i}.min_T2 = data.state_proc.min_T2;
+            parData{i}.doDCscale = data.state_proc.doDCscale;
+
+            fields = fieldnames(parData{i});
+            for j = 1:size(fields,1)
+                tmp{j,1} = [fields{j},'=',num2str(eval(['parData{',num2str(i),'}.',fields{j}]))];
+            end
+            d{1} = tmp;
+            parData{i}.all = d;
+            clear d tmp
+
+            % command line output
+            disp([in.name,': importing NMR data from depth: ',...
+                sprintf('%3.2f',data.jpd.depth(i)),' ',data.jpd.depth_units]);
+        end
 end
 
 % save data to output struct

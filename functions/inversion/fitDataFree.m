@@ -64,8 +64,6 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 t = time(:);
 s = signal(:);
 
-% data noise
-noise = parameter.noise;
 % T1 saturation/inversion recovery factor
 IRfac = parameter.T1IRfac;
 
@@ -87,7 +85,6 @@ x0 = zeros(1,2*nExp);
 for i = 1:nExp
     x0(2*i-1) = i*max(signal)/nExp;
     x0(2*i) = i*max(t)/nExp;
-%     x0(2*i) = exp(i*max(log(t))/nExp);
 end
 
 switch parameter.optim
@@ -97,26 +94,25 @@ switch parameter.optim
                 % solver options
                 options = optimoptions('lsqcurvefit');
                 options.Display = parameter.info;
-                options.OptimalityTolerance = 1e-18;
-                options.StepTolerance = 1e-18;
+%                 options.OptimalityTolerance = 1e-18;
+%                 options.StepTolerance = 1e-18;
 %                 options.MaxIterations = 1e3;
                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)fcn_fitFreeT1(x,t,IRfac),...
                     x0,t,s,zeros(size(x0)),[],options);
             case 'T2'
                 % solver options
                 options = optimoptions('lsqnonlin');
-                options.Algorithm = 'levenberg-marquardt';
                 options.Display = parameter.info;
-                options.OptimalityTolerance = 1e-18;
-                options.StepTolerance = 1e-18;
+%                 options.OptimalityTolerance = 1e-18;
+%                 options.StepTolerance = 1e-18;
 %                 options.MaxIterations = 1e3;
                 
                 iparam.t = t;
                 iparam.s = s;
-%                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
-%                     x0,zeros(size(x0)),[],options);
-                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
-                    x0,t,s,zeros(size(x0)),[],options);
+                [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
+                    x0,zeros(size(x0)),[],options);
+%                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
+%                     x0,t,s,zeros(size(x0)),[],options);
         end
     case 'off'
         % solver options

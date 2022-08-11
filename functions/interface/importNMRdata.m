@@ -64,6 +64,8 @@ try
         data.import.fileformat = 'dart';
     elseif strcmp(label,'CoreLab ascii')
         data.import.fileformat = 'corelab';
+    elseif strcmp(label,'DART')
+        data.import.fileformat = 'dart';    
     elseif strcmp(label,'MOUSE')
         data.import.fileformat = 'mouse';
     elseif strcmp(label,'LIAG single')
@@ -120,9 +122,19 @@ try
                 case {'GGE ascii','GGE field','CoreLab ascii','BGR std',...
                         'BAM TOM'}
                     [data,gui] = importDataGeneral(data,gui);
-                case 'Dart'
+                case 'GGE Dart'
                     data.import.file = NMRfile;
+                    % the data in the example folder is an older type
+                    if contains(NMRpath,'nucleus\example_data\dart')
+                        data.import.version = 1;
+                    else
+                        data.import.version = 2;
+                    end
                     [data,gui] = importDataDart(data,gui);
+                case 'DART'
+                    data.import.file = NMRfile;
+                    data.import.version = 3;
+                    [data,gui] = importDataDart(data,gui);    
                 case 'MOUSE'
                     [data,gui] = importDataMouse(data,gui);
                 case 'LIAG single'
@@ -279,7 +291,7 @@ switch label
             [pathstr,~,~] = fileparts(here);
             NMRpath = uigetdir(pathstr,'Choose Project Path');
         end
-    case {'GGE Dart','BGR mat','NMR mat'}
+    case {'GGE Dart','DART','BGR mat','NMR mat'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             [NMRfile,NMRpath] = uigetfile(import.path,'Choose Data file');
@@ -592,6 +604,7 @@ function [data,gui] = importDataDart(data,gui)
 in.path = fullfile(data.import.path);
 in.name = data.import.file;
 in.fileformat = data.import.fileformat;
+in.version = data.import.version;
 out = LoadNMRData_driver(in);
 
 fnames = struct;

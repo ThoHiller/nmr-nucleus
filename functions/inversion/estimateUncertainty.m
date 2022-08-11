@@ -205,22 +205,30 @@ switch invtype
         end
         
         % output data
-        % simple E0 confidence interval
-        invstd.ciE0 = 2*std(E0INTERP);
-        
+        if sum(E0INTERP) > 0
+            % E0 from uncertainy calculation
+            invstd.E0 = mean(E0INTERP);
+            % simple E0 confidence interval
+            invstd.ciE0 = 2*std(E0INTERP);
+        end
+
         % uncertainty calculation results
         uncert.interp_t = time0(:);
         uncert.interp_E0 = E0INTERP;
         uncert.interp_f = TDIST;
         uncert.interp_s = SINTERP;
         
-        % uncertainty patch for fitted signal
-        uncert.interp_s_min = min(SINTERP,[],2);
-        uncert.interp_s_max = max(SINTERP,[],2);
+        % uncertainty patch for fitted signal -> mean +-2*std
+        meantmp = mean(SINTERP,2);
+        stdtmp = std(SINTERP,0,2);
+        uncert.interp_s_min = meantmp-2*stdtmp;
+        uncert.interp_s_max = meantmp+2*stdtmp;
         
-        % uncertainty patch for fitted RTD
-        uncert.interp_f_min = min(TDIST);
-        uncert.interp_f_max = max(TDIST);
+        % uncertainty patch for fitted RTD -> mean +-2*std
+        meantmp = mean(TDIST);
+        stdtmp = std(TDIST);
+        uncert.interp_f_min = meantmp-2*stdtmp;
+        uncert.interp_f_max = meantmp+2*stdtmp;
         
         invstd.uncert = uncert;
         

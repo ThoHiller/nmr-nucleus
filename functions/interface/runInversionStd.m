@@ -365,7 +365,7 @@ if ~isempty(id) && ~isempty(INVdata)
         % ---
         % special treatment for LIAG processing
         if isfield(data.import,'LIAG') && ~strcmp(data.invstd.regtype,'lcurve')
-            if ~isempty(strfind(str1,' - calibration'))
+            if contains(str1,' - calibration')
                 % save Tbulk from the calibration sample
                 btn1 = 'Yes keep it';
                 btn2 = 'No, reset to 1e6 [s]';
