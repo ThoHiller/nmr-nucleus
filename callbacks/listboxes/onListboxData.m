@@ -69,6 +69,13 @@ if isfield(data.import,'NMR')
             data_upd.calib = data.calib;
             data_upd.pressure = data.pressure;
             data = data_upd;
+
+            % if "mono" or "free" inversion is chossen update the internal
+            % fixed relaxation times field
+            if strcmp(data.invstd.invtype,'mono') ||...
+                    strcmp(data.invstd.invtype,'free')
+                data.invstd.Tfixed_val = [data.results.invstd.T zeros(1,5-data.invstd.freeDT)];
+            end
             setappdata(fig,'data',data);
             
             % update interface and plot axes
@@ -189,6 +196,10 @@ if isfield(data.import,'NMR')
         % if the PhaseView window is open update it
         if ~isempty(findobj('Tag','PHASEVIEW'))
             PhaseView(gui.menu.extra_phaseview);
+        end
+        % if the FixedTimeView window is open update it
+        if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+            FixedTimeView(gui.menu.extra_fixedtime);
         end
     else
         helpdlg({'onListboxData:','Only choose one data set at a time.'},...

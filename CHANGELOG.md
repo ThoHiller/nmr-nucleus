@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.14] - 2023-09-27
+
+### Added
+- New optional sub GUI *FixedTimeView* in **NUCLEUSinv** that allows to fix relaxation times (up to five) if the *N free exp. (2-5)* option for inversion is chosen and thus only the corresponding amplitudes are fitted
+- New import routine in **NUCLEUSinv** for the LIAG core scanner (several NMR measurements along a core)
+
+### Changed
+- Changed the import routines in **NUCLEUSinv** for *BGR* devices (*Mouse* and *Helios*) due to device software updates
+
 ## [0.1.13] - 2022-08-11
 
 ### Changed
@@ -65,7 +74,7 @@
 
 ### Added
 - A *last export* entry added to the export menu. It always shows the last chosen export routine (speeds up exporting when handling a lot of data). **NUCLEUSinv**
-- Session files from an older *NUCLEUSinv* version can now be imported (starting from v.0.1.8). **NUCLEUSinv**
+- Session files from an older **NUCLEUSinv** version can now be imported (starting from v.0.1.8). **NUCLEUSinv**
 
 ### Changed
 -  Within the context menu of the signal list the entry *all* was renamed to *batch*. Now it indicates what it is actually doing - batch processing of multiple files. **NUCLEUSinv**
@@ -181,6 +190,7 @@
 
 Initial Version
 
+[0.1.14]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.13...v.0.1.14
 [0.1.13]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.12...v.0.1.13
 [0.1.12]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.11...v.0.1.12
 [0.1.11]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.10...v.0.1.11

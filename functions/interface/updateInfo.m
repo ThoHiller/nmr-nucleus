@@ -315,14 +315,22 @@ if showit
                             info{end+1,1} = invtype;
                             info{end+1,1} = ' ';
                             ciT = sum(full(invstd.ci(2:2:end)));
-                            
+
+                            if data.invstd.Tfixed_bool(1)
+                                col = gui.myui.colors.listINV.*255;
+                            else
+                                col = [1 1 1].*255;
+                            end
+
                             switch nmrproc.T1T2
                                 case 'T1'
-                                    info{end+1,1} = ['<HTML><BODY>T<sub><font size="',num2str(subfs),'">1</sub> = ',...
+                                    info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
+                                sprintf('%d,%d,%d',col),')">T<sub><font size="',num2str(subfs),'">1</sub> = ',...
                                         sprintf('%5.4f',invstd.T1),...
                                         ' &#8723 (',sprintf('%5.4f',ciT),')','</BODY></HTML>'];
                                 case 'T2'
-                                    info{end+1,1} = ['<HTML><BODY>T<sub><font size="',num2str(subfs),'">2</sub> = ',...
+                                    info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
+                                sprintf('%d,%d,%d',col),')">T<sub><font size="',num2str(subfs),'">2</sub> = ',...
                                         sprintf('%5.4f',invstd.T2),...
                                         ' &#8723 (',sprintf('%5.4f',ciT),')','</BODY></HTML>'];
                             end
@@ -345,7 +353,15 @@ if showit
                             end
                             
                             for i = 1:length(T)
-                                info{end+1,1} = ['<HTML><BODY>T(',num2str(i),') = ',sprintf('%5.4f',T(i)),...
+
+                                if data.invstd.Tfixed_bool(i)
+                                    col = gui.myui.colors.listINV.*255;
+                                else
+                                    col = [1 1 1].*255;
+                                end
+
+                                info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
+                                sprintf('%d,%d,%d',col),')">T(',num2str(i),') = ',sprintf('%5.4f',T(i)),...
                                     ' &#8723 (',sprintf('%5.4f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
                                 info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.4f',E0(i)),...
                                     ' &#8723 (',sprintf('%5.4f',ciE0(i)),')','</BODY></HTML>'];

@@ -119,7 +119,7 @@ fclose(fid);
 for i = 1:size(d{1},1)
     str = char(d{1}(i));
     str = fixParameterString(str);
-    eval(['data.',str,';']);
+    eval(['data.',str,';']); %#ok<EVLDOT> 
 end
 data.all = d;
 

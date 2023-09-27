@@ -55,6 +55,17 @@ switch onoff
         % update GUI data
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
+
+        % dectivate FixedTime View GUI
+        data.invstd.Tfixed_bool = zeros(1,5);
+        data.invstd.Tfixed_val = zeros(1,5);
+        setappdata(fig,'data',data);
+        % check if the figure is already open
+        fig_fixedtime = findobj('Tag','FIXEDTIMEVIEW');
+        if ~isempty(fig_fixedtime)
+            delete(fig_fixedtime);
+        end
+        set(gui.menu.extra_fixedtime,'Enable','off');
         
         % deactivate solver menu and set to default
         onMenuSolver(gui.menu.extra_solver_lsqnonneg);
@@ -87,7 +98,10 @@ switch onoff
         data.info.ExpertMode = 'on';
         % menu entry
         set(gui.menu.extra_expert,'Checked','on');
-        
+
+        % activate FixedTime View GUI
+        set(gui.menu.extra_fixedtime,'Enable','on');
+
         % activate solver menu if optimization toolbox is available
         switch data.info.has_optim
             case 'on'

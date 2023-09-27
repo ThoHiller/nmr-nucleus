@@ -104,6 +104,8 @@ N = parameter.Tint(3);
 param0.T1IRfac = T1IRfac;
 param0.noise = parameter.noise;
 param0.optim = parameter.optim;
+param0.Tfixed_bool = [0 0 0 0 0];
+param0.Tfixed_val = [0 0 0 0 0];
 if isfield(parameter,'W')
     param0.W = parameter.W;
 end

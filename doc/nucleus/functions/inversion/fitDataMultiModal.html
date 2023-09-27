@@ -217,199 +217,201 @@ This function is called by:
 0104 param0.T1IRfac = T1IRfac;
 0105 param0.noise = parameter.noise;
 0106 param0.optim = parameter.optim;
-0107 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0108     param0.W = parameter.W;
-0109 <span class="keyword">end</span>
-0110 <span class="comment">% free exponential fit to get some reasonable start values</span>
-0111 invstd0 = <a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(t,s,flag,param0,nModes);
-0112 
-0113 <span class="comment">% start values for E and T</span>
-0114 x0 = zeros(1,3*nModes);
-0115 lb = zeros(1,3*nModes);
-0116 ub = zeros(1,3*nModes);
-0117 <span class="keyword">for</span> i = 1:nModes
-0118     <span class="comment">% initial values for T, sigma and E</span>
-0119     x0(3*i-2) = log(invstd0.x(2*i));
-0120     x0(3*i-1) = 1;
-0121     x0(3*i) = invstd0.x(2*i-1);
-0122     
-0123     <span class="comment">% lower bounds for T, sigma and E</span>
-0124     lb(3*i-2) = log(1e-6);<span class="comment">%log(invstd0.x(2*i)*0.8);%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));</span>
-0125     lb(3*i-1) = 0.01;
-0126     lb(3*i) = invstd0.x(2*i-1)*0.8;<span class="comment">%invstd0.x(2*i-1) - 10*invstd0.ci(2*i-1);</span>
-0127     
-0128     <span class="comment">% upper bounds for T, sigma and E</span>
-0129     ub(3*i-2) = log(10);<span class="comment">%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));</span>
-0130     ub(3*i-1) = 3.5;
-0131     ub(3*i) = max(invstd0.E0)*1.1;<span class="comment">%invstd0.x(2*i-1) + 50*invstd0.ci(2*i-1);</span>
-0132 <span class="keyword">end</span>
-0133 
-0134 <span class="comment">% switch off output if no option is given via 'parameter'</span>
-0135 <span class="keyword">if</span> ~isfield(parameter,<span class="string">'info'</span>)
-0136     parameter.info = <span class="string">'off'</span>;
-0137 <span class="keyword">end</span>
-0138 
-0139 <span class="comment">% create the relaxation time vector</span>
-0140 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0141 
-0142 <span class="comment">% just needed for debugging the Optimization Toolbox availability</span>
-0143 <span class="comment">% parameter.optim = 'off';</span>
-0144 
-0145 <span class="keyword">switch</span> parameter.optim
-0146     <span class="keyword">case</span> <span class="string">'on'</span>
-0147         <span class="comment">% solver options</span>
-0148         options = optimoptions(<span class="string">'lsqnonlin'</span>);
-0149         options.Algorithm = <span class="string">'levenberg-marquardt'</span>;
-0150         options.Display = parameter.info;
-0151         options.OptimalityTolerance = 1e-12;
-0152         options.StepTolerance = 1e-12;
-0153         
-0154         iparam.optim = parameter.optim;
-0155         iparam.flag = flag;
-0156         iparam.T1IRfac = T1IRfac;
-0157         iparam.nModes = nModes;
-0158         iparam.t = t;
-0159         iparam.s = s;
-0160         iparam.T = T1T2me;
-0161         iparam.Tb = Tb;
-0162         iparam.Td = Td;
-0163         [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)<a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),<span class="keyword">...</span>
-0164             x0,lb,ub,options);
-0165         
-0166     <span class="keyword">case</span> <span class="string">'off'</span>
-0167         <span class="comment">% solver options</span>
-0168         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'MaxFunEvals'</span>,10^6,<span class="keyword">...</span>
-0169             <span class="string">'MaxIter'</span>,5000,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12);
-0170         
-0171         iparam.optim = parameter.optim;
-0172         iparam.flag = flag;
-0173         iparam.T1IRfac = T1IRfac;
-0174         iparam.nModes = nModes;
-0175         iparam.t = t;
-0176         iparam.s = s;
-0177         iparam.T = T1T2me;
-0178         iparam.Tb = Tb;
-0179         iparam.Td = Td;
-0180         [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),<span class="keyword">...</span>
-0181             x0,lb,ub,options);
-0182         
-0183         <span class="comment">% get Jacobian</span>
-0184         <span class="comment">% therefore we need to switch the 'optim' on to get the correct</span>
-0185         <span class="comment">% output of 'fcn_fitMultiModal'</span>
-0186         iparam.optim = <span class="string">'on'</span>;
-0187         jacobian = <a href="estimateJacobian.html" class="code" title="function J = estimateJacobian(f,x)">estimateJacobian</a>(@(x)<a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),x);
-0188 <span class="keyword">end</span>
-0189 
-0190 <span class="comment">% assemble the final RTD</span>
-0191 Tdist = 0;
-0192 <span class="keyword">for</span> i = 1:length(x)/3
-0193     mu = exp(x(3*i-2)); <span class="comment">% T</span>
-0194     sigma = x(3*i-1); <span class="comment">% S</span>
-0195     amp = x(3*i); <span class="comment">% E</span>
-0196     
-0197     tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(T1T2me) - log(mu))/ sqrt(2)/sigma).^2);
+0107 param0.Tfixed_bool = [0 0 0 0 0];
+0108 param0.Tfixed_val = [0 0 0 0 0];
+0109 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0110     param0.W = parameter.W;
+0111 <span class="keyword">end</span>
+0112 <span class="comment">% free exponential fit to get some reasonable start values</span>
+0113 invstd0 = <a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(t,s,flag,param0,nModes);
+0114 
+0115 <span class="comment">% start values for E and T</span>
+0116 x0 = zeros(1,3*nModes);
+0117 lb = zeros(1,3*nModes);
+0118 ub = zeros(1,3*nModes);
+0119 <span class="keyword">for</span> i = 1:nModes
+0120     <span class="comment">% initial values for T, sigma and E</span>
+0121     x0(3*i-2) = log(invstd0.x(2*i));
+0122     x0(3*i-1) = 1;
+0123     x0(3*i) = invstd0.x(2*i-1);
+0124     
+0125     <span class="comment">% lower bounds for T, sigma and E</span>
+0126     lb(3*i-2) = log(1e-6);<span class="comment">%log(invstd0.x(2*i)*0.8);%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));</span>
+0127     lb(3*i-1) = 0.01;
+0128     lb(3*i) = invstd0.x(2*i-1)*0.8;<span class="comment">%invstd0.x(2*i-1) - 10*invstd0.ci(2*i-1);</span>
+0129     
+0130     <span class="comment">% upper bounds for T, sigma and E</span>
+0131     ub(3*i-2) = log(10);<span class="comment">%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));</span>
+0132     ub(3*i-1) = 3.5;
+0133     ub(3*i) = max(invstd0.E0)*1.1;<span class="comment">%invstd0.x(2*i-1) + 50*invstd0.ci(2*i-1);</span>
+0134 <span class="keyword">end</span>
+0135 
+0136 <span class="comment">% switch off output if no option is given via 'parameter'</span>
+0137 <span class="keyword">if</span> ~isfield(parameter,<span class="string">'info'</span>)
+0138     parameter.info = <span class="string">'off'</span>;
+0139 <span class="keyword">end</span>
+0140 
+0141 <span class="comment">% create the relaxation time vector</span>
+0142 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
+0143 
+0144 <span class="comment">% just needed for debugging the Optimization Toolbox availability</span>
+0145 <span class="comment">% parameter.optim = 'off';</span>
+0146 
+0147 <span class="keyword">switch</span> parameter.optim
+0148     <span class="keyword">case</span> <span class="string">'on'</span>
+0149         <span class="comment">% solver options</span>
+0150         options = optimoptions(<span class="string">'lsqnonlin'</span>);
+0151         options.Algorithm = <span class="string">'levenberg-marquardt'</span>;
+0152         options.Display = parameter.info;
+0153         options.OptimalityTolerance = 1e-12;
+0154         options.StepTolerance = 1e-12;
+0155         
+0156         iparam.optim = parameter.optim;
+0157         iparam.flag = flag;
+0158         iparam.T1IRfac = T1IRfac;
+0159         iparam.nModes = nModes;
+0160         iparam.t = t;
+0161         iparam.s = s;
+0162         iparam.T = T1T2me;
+0163         iparam.Tb = Tb;
+0164         iparam.Td = Td;
+0165         [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)<a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),<span class="keyword">...</span>
+0166             x0,lb,ub,options);
+0167         
+0168     <span class="keyword">case</span> <span class="string">'off'</span>
+0169         <span class="comment">% solver options</span>
+0170         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'MaxFunEvals'</span>,10^6,<span class="keyword">...</span>
+0171             <span class="string">'MaxIter'</span>,5000,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12);
+0172         
+0173         iparam.optim = parameter.optim;
+0174         iparam.flag = flag;
+0175         iparam.T1IRfac = T1IRfac;
+0176         iparam.nModes = nModes;
+0177         iparam.t = t;
+0178         iparam.s = s;
+0179         iparam.T = T1T2me;
+0180         iparam.Tb = Tb;
+0181         iparam.Td = Td;
+0182         [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),<span class="keyword">...</span>
+0183             x0,lb,ub,options);
+0184         
+0185         <span class="comment">% get Jacobian</span>
+0186         <span class="comment">% therefore we need to switch the 'optim' on to get the correct</span>
+0187         <span class="comment">% output of 'fcn_fitMultiModal'</span>
+0188         iparam.optim = <span class="string">'on'</span>;
+0189         jacobian = <a href="estimateJacobian.html" class="code" title="function J = estimateJacobian(f,x)">estimateJacobian</a>(@(x)<a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),x);
+0190 <span class="keyword">end</span>
+0191 
+0192 <span class="comment">% assemble the final RTD</span>
+0193 Tdist = 0;
+0194 <span class="keyword">for</span> i = 1:length(x)/3
+0195     mu = exp(x(3*i-2)); <span class="comment">% T</span>
+0196     sigma = x(3*i-1); <span class="comment">% S</span>
+0197     amp = x(3*i); <span class="comment">% E</span>
 0198     
-0199     <span class="comment">% scale to amplitude</span>
-0200     tmp = (tmp/sum(tmp)) * amp;
-0201     <span class="comment">% add the tmp per mu to Tdist</span>
-0202     Tdist = Tdist + tmp;
-0203 <span class="keyword">end</span>
-0204 f = Tdist;
-0205 <span class="comment">% the fitted signal</span>
-0206 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,1);
-0207 si = K*f';
-0208 
-0209 <span class="comment">% get the fit</span>
-0210 fit_t = t;
-0211 fit_s = si;
-0212 
-0213 <span class="comment">% get residuals and error measures</span>
-0214 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0215     <span class="comment">% when signal gating was used the error estimates need to be adjusted</span>
-0216     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise,parameter.W);
-0217 <span class="keyword">else</span>
-0218     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise);
-0219 <span class="keyword">end</span>
-0220 
-0221 <span class="comment">% confidence interval</span>
-0222 ci = <a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>(out.resnorm,jacobian,0.05);
-0223 
-0224 <span class="comment">% sort the relaxation times in ascending order and adjust the confidence</span>
-0225 <span class="comment">% interval accordingly</span>
-0226 T = exp(x(1:3:end));
-0227 S = x(2:3:end);
-0228 E = x(3:3:end);
-0229 [T,idx] = sort(T);
-0230 S  = S(idx);
-0231 E  = E(idx);
-0232 ciT = ci(1:3:end);
-0233 ciS = ci(2:3:end);
-0234 ciE = ci(3:3:end);
-0235 ciT = ciT(idx);
-0236 ciS = ciS(idx);
-0237 ciE = ciE(idx);
-0238 ci(1:3:end) = ciT;
-0239 ci(2:3:end) = ciS;
-0240 ci(3:3:end) = ciE;
-0241 
-0242 <span class="comment">% get &quot;initial&quot; value E0</span>
-0243 <span class="keyword">switch</span> flag
-0244     <span class="keyword">case</span> <span class="string">'T1'</span>
-0245         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
-0246     <span class="keyword">case</span> <span class="string">'T2'</span>
-0247         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
-0248 <span class="keyword">end</span>
-0249 E0 = K0*f';
-0250 
-0251 <span class="comment">% output struct</span>
-0252 fitdata.fit_t = fit_t;
-0253 fitdata.fit_s = fit_s;
-0254 fitdata.T1T2me = T1T2me(:);
-0255 fitdata.T1T2f = f(:);
-0256 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f)">getTLogMean</a>(T1T2me,f);
-0257 fitdata.E0 = E0;
-0258 fitdata.ciE0 = NaN;
-0259 fitdata.resnorm = out.resnorm;
-0260 fitdata.residual = out.residual;
-0261 fitdata.errornorm = out.errnorm1;
-0262 fitdata.lambda_out = 0;
-0263 fitdata.rms = out.rms;
-0264 fitdata.chi2 = out.chi2;
-0265 fitdata.ci = ci;
-0266 fitdata.T = T;
-0267 fitdata.S = S;
-0268 fitdata.E = E;
-0269 fitdata.x = x;
-0270 fitdata.lb = lb;
-0271 fitdata.ub = ub;
-0272 fitdata.output = output;
-0273 
-0274 <span class="keyword">return</span>
+0199     tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(T1T2me) - log(mu))/ sqrt(2)/sigma).^2);
+0200     
+0201     <span class="comment">% scale to amplitude</span>
+0202     tmp = (tmp/sum(tmp)) * amp;
+0203     <span class="comment">% add the tmp per mu to Tdist</span>
+0204     Tdist = Tdist + tmp;
+0205 <span class="keyword">end</span>
+0206 f = Tdist;
+0207 <span class="comment">% the fitted signal</span>
+0208 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,1);
+0209 si = K*f';
+0210 
+0211 <span class="comment">% get the fit</span>
+0212 fit_t = t;
+0213 fit_s = si;
+0214 
+0215 <span class="comment">% get residuals and error measures</span>
+0216 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0217     <span class="comment">% when signal gating was used the error estimates need to be adjusted</span>
+0218     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise,parameter.W);
+0219 <span class="keyword">else</span>
+0220     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise);
+0221 <span class="keyword">end</span>
+0222 
+0223 <span class="comment">% confidence interval</span>
+0224 ci = <a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>(out.resnorm,jacobian,0.05);
+0225 
+0226 <span class="comment">% sort the relaxation times in ascending order and adjust the confidence</span>
+0227 <span class="comment">% interval accordingly</span>
+0228 T = exp(x(1:3:end));
+0229 S = x(2:3:end);
+0230 E = x(3:3:end);
+0231 [T,idx] = sort(T);
+0232 S  = S(idx);
+0233 E  = E(idx);
+0234 ciT = ci(1:3:end);
+0235 ciS = ci(2:3:end);
+0236 ciE = ci(3:3:end);
+0237 ciT = ciT(idx);
+0238 ciS = ciS(idx);
+0239 ciE = ciE(idx);
+0240 ci(1:3:end) = ciT;
+0241 ci(2:3:end) = ciS;
+0242 ci(3:3:end) = ciE;
+0243 
+0244 <span class="comment">% get &quot;initial&quot; value E0</span>
+0245 <span class="keyword">switch</span> flag
+0246     <span class="keyword">case</span> <span class="string">'T1'</span>
+0247         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+0248     <span class="keyword">case</span> <span class="string">'T2'</span>
+0249         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
+0250 <span class="keyword">end</span>
+0251 E0 = K0*f';
+0252 
+0253 <span class="comment">% output struct</span>
+0254 fitdata.fit_t = fit_t;
+0255 fitdata.fit_s = fit_s;
+0256 fitdata.T1T2me = T1T2me(:);
+0257 fitdata.T1T2f = f(:);
+0258 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f)">getTLogMean</a>(T1T2me,f);
+0259 fitdata.E0 = E0;
+0260 fitdata.ciE0 = NaN;
+0261 fitdata.resnorm = out.resnorm;
+0262 fitdata.residual = out.residual;
+0263 fitdata.errornorm = out.errnorm1;
+0264 fitdata.lambda_out = 0;
+0265 fitdata.rms = out.rms;
+0266 fitdata.chi2 = out.chi2;
+0267 fitdata.ci = ci;
+0268 fitdata.T = T;
+0269 fitdata.S = S;
+0270 fitdata.E = E;
+0271 fitdata.x = x;
+0272 fitdata.lb = lb;
+0273 fitdata.ub = ub;
+0274 fitdata.output = output;
 0275 
-0276 <span class="comment">%------------- END OF CODE --------------</span>
+0276 <span class="keyword">return</span>
 0277 
-0278 <span class="comment">%% License:</span>
-0279 <span class="comment">% MIT License</span>
-0280 <span class="comment">%</span>
-0281 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
+0278 <span class="comment">%------------- END OF CODE --------------</span>
+0279 
+0280 <span class="comment">%% License:</span>
+0281 <span class="comment">% MIT License</span>
 0282 <span class="comment">%</span>
-0283 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0284 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0285 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0286 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0287 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0288 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0289 <span class="comment">%</span>
-0290 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0291 <span class="comment">% copies or substantial portions of the Software.</span>
-0292 <span class="comment">%</span>
-0293 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0294 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0295 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0296 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0297 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0298 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0299 <span class="comment">% SOFTWARE.</span></pre></div>
+0283 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
+0284 <span class="comment">%</span>
+0285 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0286 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0287 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0288 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0289 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0290 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0291 <span class="comment">%</span>
+0292 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0293 <span class="comment">% copies or substantial portions of the Software.</span>
+0294 <span class="comment">%</span>
+0295 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0296 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0297 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0298 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0299 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0300 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0301 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

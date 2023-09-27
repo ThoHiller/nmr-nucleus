@@ -46,8 +46,16 @@ invtype = data.invstd.invtype;
 % change settings accordingly
 switch invtype
     case 'free'
-        % # free decay times = value (1 to 5)
+        % # free relaxation times = value (1 to 5)
         data.invstd.freeDT = value;
+
+        % if the FixedTimeView window is open update it
+        if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+            % update GUI data
+            setappdata(fig,'data',data);
+            FixedTimeView(gui.menu.extra_fixedtime);
+            data = getappdata(fig,'data');
+        end
         
     case 'NNLS'
         switch data.info.ExpertMode

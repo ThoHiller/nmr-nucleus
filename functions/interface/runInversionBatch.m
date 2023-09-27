@@ -108,24 +108,31 @@ if ~isempty(INVdata)
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
                     param.optim = data.info.has_optim;
+                    param.Tfixed_bool = data.invstd.Tfixed_bool;
+                    param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,1);
+                    data.invstd.Tfixed_val = [invstd.T zeros(1,4)];
                     
                 case 'free'
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
                     param.optim = data.info.has_optim;
+                    param.Tfixed_bool = data.invstd.Tfixed_bool;
+                    param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
+                    data.invstd.Tfixed_val = [invstd.T(1:data.invstd.freeDT)...
+                        zeros(1,5-data.invstd.freeDT)];
                     
                 case 'LU'
                     param.T1T2 = data.results.nmrproc.T1T2;

@@ -51,24 +51,24 @@ switch in.fileformat
         out = LoadNMRData_bamtom(in);
     case 'bgr'
         out = LoadNMRData_bgr(in);
-    case 'MouseCPMG'
-        out = LoadNMRData_mousecpmg(in);
     case 'bgrmat'
         out = LoadNMRData_bgrmat(in);
-    case {'MouseLiftSingle','MouseLiftAll'}
-        out = LoadNMRData_mouselift(in);
-    case 'helios'
-        out = LoadNMRData_helios(in);
     case 'corelab'
         out = LoadNMRData_corelab(in);
     case 'dart'
         out = LoadNMRData_dart(in);
     case 'field'
         out = LoadNMRData_field(in);
+    case {'heliosCPMG','heliosSeries'}
+        out = LoadNMRData_helios(in);
     case 'liag'
         out = LoadNMRData_liag(in);
     case 'mouse'
         out = LoadNMRData_mouse(in);
+    case 'MouseCPMG'
+        out = LoadNMRData_mousecpmg(in);
+    case 'MouseLift'
+        out = LoadNMRData_mouselift(in);
     case 'rwth'
         out = LoadNMRData_rwth(in);
     case 'pm5'
@@ -79,13 +79,16 @@ end
 
 % if an imported T2 signal has no imaginary part, the noise is estimated
 % from an exponential fit
-if ~strcmp(in.fileformat,'helios')
+if ~strcmp(in.fileformat,'heliosCPMG') && ~strcmp(in.fileformat,'heliosSeries')...
+        && (isfield(in,'T1T2') && ~strcmp(in.T1T2,'T1'))
     for i = 1:numel(out.nmrData)
         if isreal(out.nmrData{i}.signal)    
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = out.nmrData{i}.T1IRfac;
             param.noise = 0;
             param.optim = 'off';
+            param.Tfixed_bool = [0 0 0 0 0];
+            param.Tfixed_val = [0 0 0 0 0];
             invstd = fitDataFree(out.nmrData{i}.time,out.nmrData{i}.signal,...
                 out.nmrData{i}.flag,param,5);
             out.nmrData{i}.noise = invstd.rms;

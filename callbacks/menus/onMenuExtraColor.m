@@ -33,7 +33,6 @@ function onMenuExtraColor(src,~)
 fig = ancestor(src,'figure','toplevel');
 fig_tag = get(fig,'Tag');
 gui = getappdata(fig,'gui');
-data = getappdata(fig,'data');
 
 % get the menu label
 label = get(src,'Label');
@@ -64,6 +63,11 @@ end
 
 % adjust the colors
 changeColorTheme(fig_tag,label);
+
+% check the sub GUIs
+if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+    changeColorTheme('FIXEDTIMEVIEW',label);
+end
 
 end
 

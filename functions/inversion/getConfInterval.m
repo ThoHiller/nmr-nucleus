@@ -39,7 +39,7 @@ function CI = getConfInterval(resnorm,J,alpha)
 
 %% degrees of freedom DOF
 [i,j]    = size(J);
-deg_free = i-j;
+deg_free = abs(i-j);
 
 %% mean squared error MSE:
 mse = sqrt(resnorm/deg_free);
@@ -71,7 +71,7 @@ else
     if deg_free <= 1000
         stud_fac = getStudentInvCDF(1-alpha,deg_free);
     else
-        stud_fac = NaN;
+        stud_fac = 1;%NaN;
     end
 end
 

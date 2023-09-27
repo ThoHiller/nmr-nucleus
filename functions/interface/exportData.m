@@ -6,7 +6,7 @@ function exportData(fig_tag,format)
 %
 % Inputs:
 %       fig_tag - 'MOD' or 'INV'
-%       format - 'matS', 'matA', 'excelS' or 'LIAG'
+%       format - 'matS', 'matA', 'excelS', 'LIAG', or 'bgr_repo'
 %
 % Outputs:
 %       none
@@ -22,6 +22,7 @@ function exportData(fig_tag,format)
 %       checkMOD
 %       exportINV_EXCEL
 %       exportINV_CSV
+%       exportINV_BGR_repos
 %       exportMOD_EXCEL
 %       findApproxTlgmAmplitude
 %
@@ -130,7 +131,6 @@ switch fig_tag
                             if sum([sfile spath]) > 0
                                 exportINV_EXCEL(gui,INVdata,id,sfile,spath);
                             end
-                            
                         case 'matS'
                             % get the file name
                             [sfile,spath] = uiputfile('*.mat',...
@@ -301,6 +301,19 @@ switch fig_tag
                                     'This routine works only on LIAG specific project data.'},...
                                     'No LIAG data');
                             end
+                        case 'BGR_repos'
+                            
+                            % get the file name
+                            [sfile,spath] = uiputfile('*.csv',...
+                                'Save measurement and inversion data and parameters csv-file',...
+                                fullfile(data.import.path,[sfilename,'.csv']));
+                            % if user didn't cancel
+                            if sum([sfile spath]) > 0
+                                csvname = fullfile(spath,sfile);
+                                exportINV_BGR_repos(INVdata{id},csvname);
+                            end
+                            
+                                
                     end
                 end
         end
@@ -542,6 +555,116 @@ yi = yi + size(tmp3,2);
 out(1:maxrows,yi:yi-1+size(tmp4,2)) = tmp4;
 
 % save to file
+%write header to file
+fid = fopen(sfile,'w');
+fprintf(fid,'%s\n',textHeader);
+fclose(fid);
+%write data to end of file
+dlmwrite(sfile,out,'-append','precision','%.5f');
+
+end
+%%
+function exportINV_BGR_repos(INVdata,sfile)
+unit = INVdata.process.timescale;
+
+% gather all data
+% raw data
+tmp1(:,1) = INVdata.results.nmrraw.t(:);
+header1{1} = ['time [',unit,']'];
+if isreal(INVdata.results.nmrraw.s(:))
+    header1{2} = 'amplitude [a.u.]';
+    tmp1(:,2) = INVdata.results.nmrraw.s(:);
+    
+    b1 = {'raw data',''};
+    b1(2,:) = header1;
+    b1(3:2+size(tmp1,1),:) = [num2cell(tmp1(:,1)),num2cell(tmp1(:,2))];
+else
+    header1{2} = 'real [a.u.]';
+    header1{3} = 'imag [a.u.]';
+    tmp1(:,2) = real(INVdata.results.nmrraw.s(:));
+    tmp1(:,3) = imag(INVdata.results.nmrraw.s(:));
+    
+    b1 = {'raw data','',''};
+    b1(2,:) = header1;
+    b1(3:2+size(tmp1,1),:) = [num2cell(tmp1(:,1)),num2cell(tmp1(:,2)),...
+        num2cell(tmp1(:,3))];
+end
+% proc data
+tmp2(:,1) = INVdata.results.nmrproc.t(:);
+tmp2(:,2) = INVdata.results.nmrproc.s(:);
+header2{1} = ['time [',unit,']'];
+header2{2} = 'signal [a.u.]';
+
+% fit data (incl. residuals)
+tmp3(:,1) = INVdata.results.invstd.fit_t(:);
+tmp3(:,2) = INVdata.results.invstd.fit_s(:);
+tmp3(:,3) = INVdata.results.invstd.residual(:);
+header3{1} = ['time [',unit,']'];
+header3{2} = 'fit [a.u.]';
+header3{3} = 'residual [-]';
+
+% relaxation times
+switch INVdata.invstd.invtype
+    case {'LU','NNLS'}
+        por = INVdata.invstd.porosity;
+        F = INVdata.results.invstd.T1T2f(:);
+        F = 100*por.*F./sum(F);
+        tmp4 = [INVdata.results.invstd.T1T2me(:)...
+            INVdata.results.invstd.T1T2f(:) F];
+        header4 = {['relaxation times [',unit,']'],'amplitude [-]',...
+            'partial water content [vol. %]'};
+        
+    case {'mono','free'}
+        por = INVdata.invstd.porosity;
+        F = 100*por.*INVdata.results.invstd.E0./sum(INVdata.results.invstd.E0);
+        switch INVdata.results.nmrproc.T1T2
+            case 'T1'
+                tmp4 = [INVdata.results.invstd.T1(:)...
+                    INVdata.results.invstd.E0(:) F(:)];
+                header4 = {['relaxation time(s) T1 [',unit,']'],...
+                    'amplitude [a.u.]','partial water content [vol. %]'};
+            case 'T2'
+                tmp4 = [INVdata.results.invstd.T2(:)...
+                    INVdata.results.invstd.E0(:) F(:)];
+                header4 = {['relaxation time(s) T2 [',unit,']'],...
+                    'amplitude [a.u.]','partial water content [vol. %]'};
+        end
+        
+    otherwise
+        % Nothing to do
+end
+
+% glue together headers
+cHeader = [header1 header2 header3 header4];
+% insert commas
+commaHeader = [cHeader;repmat({','},1,numel(cHeader))];
+commaHeader = commaHeader(:)';
+% cHeader as string with commas
+textHeader = cell2mat(commaHeader(1:numel(commaHeader)-1));
+
+maxrows = max([size(tmp1,1) size(tmp2,1) size(tmp3,1) size(tmp4,1)]);
+% glue together data
+if size(tmp1,1) < maxrows
+    tmp1(end+1:maxrows,:) = NaN;
+end
+if size(tmp2,1) < maxrows
+    tmp2(end+1:maxrows,:) = NaN;
+end
+if size(tmp3,1) < maxrows
+    tmp3(end+1:maxrows,:) = NaN;
+end
+if size(tmp4,1) < maxrows
+    tmp4(end+1:maxrows,:) = NaN;
+end
+out(1:maxrows,1:size(tmp1,2)) = tmp1;
+yi = size(tmp1,2)+1;
+out(1:maxrows,yi:yi-1+size(tmp2,2)) = tmp2;
+yi = yi + size(tmp2,2);
+out(1:maxrows,yi:yi-1+size(tmp3,2)) = tmp3;
+yi = yi + size(tmp3,2);
+out(1:maxrows,yi:yi-1+size(tmp4,2)) = tmp4;
+
+% save data to file
 %write header to file
 fid = fopen(sfile,'w');
 fprintf(fid,'%s\n',textHeader);

@@ -56,38 +56,40 @@ try
     label = get(src,'Label');
     
     % set file format for later use
-    if strcmp(label,'GGE ascii')
+    if strcmp(label,'BAM TOM')
+        data.import.fileformat = 'bamtom';
+    elseif strcmp(label,'BGR mat')
+        data.import.fileformat = 'bgrmat';
+    elseif strcmp(label,'BGR std')
+        data.import.fileformat = 'bgr';
+    elseif strcmp(label,'CoreLab ascii')
+        data.import.fileformat = 'corelab';
+    elseif strcmp(label,'DART')
+        data.import.fileformat = 'dart';    
+    elseif strcmp(label,'GGE ascii')
         data.import.fileformat = 'rwth';
     elseif strcmp(label,'GGE field')
         data.import.fileformat = 'field';
     elseif strcmp(label,'GGE Dart')
         data.import.fileformat = 'dart';
-    elseif strcmp(label,'CoreLab ascii')
-        data.import.fileformat = 'corelab';
-    elseif strcmp(label,'DART')
-        data.import.fileformat = 'dart';    
-    elseif strcmp(label,'MOUSE')
-        data.import.fileformat = 'mouse';
-    elseif strcmp(label,'LIAG single')
+    elseif strcmp(label,'HeliosCPMG')
+        data.import.fileformat = 'heliosCPMG';
+    elseif strcmp(label,'HeliosSeries')
+        data.import.fileformat = 'heliosSeries';    
+    elseif strcmp(label,'LIAG core')
         data.import.fileformat = 'liag';
     elseif strcmp(label,'LIAG from project')
         data.import.fileformat = 'liag';
     elseif strcmp(label,'LIAG last project')
         data.import.fileformat = 'liag';
-    elseif strcmp(label,'BGR std')
-        data.import.fileformat = 'bgr';
+    elseif strcmp(label,'LIAG single')
+        data.import.fileformat = 'liag';
+    elseif strcmp(label,'MOUSE')
+        data.import.fileformat = 'mouse';
     elseif strcmp(label,'MouseCPMG')
         data.import.fileformat = 'MouseCPMG';
-    elseif strcmp(label,'BGR mat')
-        data.import.fileformat = 'bgrmat';
-    elseif strcmp(label,'MouseLiftSingle')
-        data.import.fileformat = 'MouseLiftSingle';
-    elseif strcmp(label,'MouseLiftAll')
-        data.import.fileformat = 'MouseLiftAll';
-    elseif strcmp(label,'Helios')
-        data.import.fileformat = 'helios';
-    elseif strcmp(label,'BAM TOM')
-        data.import.fileformat = 'bamtom';
+    elseif strcmp(label,'MouseLift')
+        data.import.fileformat = 'MouseLift';
     elseif strcmp(label,'PM5')
         data.import.fileformat = 'pm5';
     elseif strcmp(label,'PM25')
@@ -119,8 +121,8 @@ try
             displayStatusText(gui,'Reading NMR Data ...');
             % call the corresponding subroutines
             switch label
-                case {'GGE ascii','GGE field','CoreLab ascii','BGR std',...
-                        'BAM TOM'}
+                case {'BAM TOM','BGR std','CoreLab ascii','GGE ascii',...
+                        'GGE field'}
                     [data,gui] = importDataGeneral(data,gui);
                 case 'GGE Dart'
                     data.import.file = NMRfile;
@@ -139,6 +141,8 @@ try
                     [data,gui] = importDataMouse(data,gui);
                 case 'LIAG single'
                     [data,gui] = importDataLIAG(data,gui);
+                case 'LIAG core'
+                    [data,gui] = importDataLIAGcore(data,gui);    
                 case {'LIAG from project','LIAG last project'}
                     [data,gui] = importDataLIAGproject(data,gui);
                     % make the Petro Panel visible as default
@@ -153,13 +157,14 @@ try
                     [data,gui] = importDataBGRmat(data,gui);
                 case 'MouseCPMG'
                     [data,gui] = importDataMouseCPMG(data,gui);
-                case 'MouseLiftSingle'
-                    [data,gui] = importDataBGRliftSingle(data,gui);
-                case 'MouseLiftAll'
-                    [data,gui] = importDataBGRliftAll(data,gui);
-                case 'Helios'
+                case 'MouseLift'
+                    [data,gui] = importDataBGRlift(data,gui);
+                case 'HeliosCPMG'
                     data.import.file = NMRfile;
-                    [data,gui] = importDataHelios(data,gui);
+                    [data,gui] = importDataHeliosCPMG(data,gui);
+                case 'HeliosSeries'
+                    data.import.file = NMRfile;
+                    [data,gui] = importDataHeliosSeries(data,gui);
                 case {'PM5','PM25'}
                     data.import.file = NMRfile;
                     [data,gui] = importDataIBAC(data,gui);
@@ -244,8 +249,7 @@ catch ME
     % show error message in case import fails
     errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
         'Check File Format settings.'};
-    errordlg(errmsg,'importNMRdata: Error!');
-    
+    errordlg(errmsg,'importNMRdata: Error!');    
 end
 
 end
@@ -257,8 +261,9 @@ NMRpath = -1;
 NMRfile = -1;
 % for almost all import cases we load a folder ... but not for all
 switch label
-    case {'GGE ascii','GGE field','CoreLab ascii','MOUSE','LIAG single',...
-            'BGR std','MouseCPMG','MouseLiftSingle','MouseLiftAll','Helios','BAM TOM','PM25'}
+    case {'BAM TOM','BGR std','CoreLab ascii','GGE ascii','GGE field',...
+            'HeliosCPMG','HeliosSeries','LIAG core','LIAG single',...
+            'MOUSE','MouseCPMG','MouseLift','PM25'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             NMRpath = uigetdir(import.path,'Choose Data Path');
@@ -435,10 +440,12 @@ function [data,gui] = importDataBGRliftSingle(data,gui)
 
 % first check whether T1 or T2 was measured...
 % by analyzing the name of data folder
-indiz = find(data.import.path == filesep);
-checkT1T2 = data.import.path(indiz(end-1)+1:indiz(end)-1);
+ind = find(data.import.path == filesep);
+checkT1T2 = data.import.path(ind(end-1)+1:ind(end)-1);
 if strcmp(checkT1T2,'t1test')
     in.T1T2 = 'T1';
+elseif strcmp(checkT1T2,'T1auto')
+    in.T1T2 = 'T1'; 
 elseif strcmp(checkT1T2,'cpmgfastautotest')
     in.T1T2 = 'T2'; 
 elseif strcmp(checkT1T2,'cpmgfastauto')
@@ -483,20 +490,31 @@ else
     helpdlg('No data folders in the given directory.','onMenuImport: No data.');
 end
 
-
-    % update the global data structure
-    data.import.NMR.files = fnames;
-    data.import.NMR.filesShort = shownames;
+% update the global data structure
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
 
 end
 %%
-function [data,gui] = importDataBGRliftAll(data,gui)
+function [data,gui] = importDataBGRlift(data,gui)
+
+% 1) show all folders and ask for sample
+subdirs = dir(data.import.path);
+% remove the dot-dirs
+subdirs = subdirs(~ismember({subdirs.name},{'.','..'}));
+
+fnames = {subdirs.name};
+[indx,~] = listdlg('PromptString','Choose data set:',...
+    'SelectionMode','multiple',...
+    'ListString',fnames);
 
 % first check whether T1 or T2 was measured
-indiz = find(data.import.path == filesep);
-checkT1T2 = data.import.path(indiz(end)+1:end);
+ind = find(data.import.path == filesep);
+checkT1T2 = data.import.path(ind(end)+1:end);
 if strcmp(checkT1T2,'t1test')
     in.T1T2 = 'T1';
+elseif strcmp(checkT1T2,'T1auto')
+    in.T1T2 = 'T1'; 
 elseif strcmp(checkT1T2,'cpmgfastautotest')
     in.T1T2 = 'T2'; 
 elseif strcmp(checkT1T2,'cpmgfastauto')
@@ -505,9 +523,26 @@ else
     helpdlg('No original data folder','onMenuImport: No data.');
 end
 
-% there should be folders with integer values in their names 
-t1t2path = dir(data.import.path);
-t1t2path = t1t2path(~ismember({t1t2path.name},{'.','..'}));
+% now ask for stacking
+answer = questdlg('Do you want to stack the slices?');
+switch answer
+    case 'Yes'
+        doSliceStack = true;
+        % if stacking ask for stack-rotate-order
+        answer = questdlg('Select stack-rotate-order:',...
+            'Select order', ...
+        	'stack-rotate (default)','rotate-stack','Cancel','stack-rotate (default)');
+        switch answer
+            case 'stack-rotate'
+                StackFirst = true;
+            case 'rotate-stack'
+                StackFirst = false;
+            otherwise
+                StackFirst = true;
+        end
+    otherwise
+        doSliceStack = false;
+end
 
 fnames = struct;
 % shownames is just a dummy to hold all data file names that
@@ -515,41 +550,86 @@ fnames = struct;
 shownames = cell(1,1);
 
 c = 0;
-if ~isempty(t1t2path)
-    for i = 1:size(t1t2path,1)
-        in.path = fullfile(data.import.path,t1t2path(i).name);
+if ~isempty(indx)
+    for i = indx
+        in.path = fullfile(data.import.path,subdirs(i).name);
         in.fileformat = data.import.fileformat;
         out = LoadNMRData_driver(in);
-        
-        for j = 1:size(out.nmrData,2)
+
+        if doSliceStack
             % the individual file names
             c = c + 1;
             fnames(c).parfile = 'acq.par';
-            fnames(c).datafile = out.nmrData{j}.datfile;
-            
-            shownames{c} = [in.T1T2,'_',t1t2path(i).name,'_',fnames(c).datafile];
-            
-            % the NMR data
-            % here we fix the time scale from [ms] to [s]
-            if max(out.nmrData{j}.time) > 100
-                out.nmrData{j}.time = out.nmrData{j}.time/1000;
-                out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+            fnames(c).datafile = out.nmrData{1}.datfile;
+
+            shownames{c} = [in.T1T2,'_',subdirs(i).name];
+
+            % use the meta data from the first slice
+            % fix the time scale from [ms] to [s]
+            if max(out.nmrData{1}.time) > 100
+                out.nmrData{1}.time = out.nmrData{1}.time/1000;
+                out.nmrData{1}.raw.time = out.nmrData{1}.raw.time/1000;
             end
-            data.import.NMR.data{c} = out.nmrData{j};
+            % import into GUI data struct
+            data.import.NMR.data{c} = out.nmrData{1};
+
+            % stacking
+            for j = 1:size(out.nmrData,2)
+                if j == 1
+                    signal = out.nmrData{j}.signal;
+                else
+                    signal = signal + out.nmrData{j}.signal;
+                end
+            end
+            signal = signal./size(out.nmrData,2);
+
+            % now rotate after the stacking
+            if StackFirst
+                [signal,phase] = rotateT2phase(signal);
+                data.import.NMR.data{c}.phase = phase;
+                data.import.NMR.data{c}.signal = signal;
+                data.import.NMR.data{c}.raw.signal = signal;
+            else
+                % no rotation after stacking
+                data.import.NMR.data{c}.signal = signal;
+                data.import.NMR.data{c}.raw.signal = signal;
+            end
+            
+            % parameter data
             data.import.NMR.para{c} = out.parData;
+        else
+
+            for j = 1:size(out.nmrData,2)
+                % the individual file names
+                c = c + 1;
+                fnames(c).parfile = 'acq.par';
+                fnames(c).datafile = out.nmrData{j}.datfile;
+
+                shownames{c} = [in.T1T2,'_',subdirs(i).name,'_',fnames(c).datafile];
+
+                % the NMR data
+                % here we fix the time scale from [ms] to [s]
+                if max(out.nmrData{j}.time) > 100
+                    out.nmrData{j}.time = out.nmrData{j}.time/1000;
+                    out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
+                end
+                data.import.NMR.data{c} = out.nmrData{j};
+                data.import.NMR.para{c} = out.parData;
+            end
         end
     end
 else
     helpdlg('No data folders in the given directory.','onMenuImport: No data.');
 end
-    % update the global data structure
-    data.import.NMR.files = fnames;
-    data.import.NMR.filesShort = shownames;
+
+% update the global data structure
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
 
 end
 
 %%
-function [data,gui] = importDataHelios(data,gui)
+function [data,gui] = importDataHeliosCPMG(data,gui)
 
 % first check the subpaths
 % there should be some folders with names ...
@@ -571,28 +651,75 @@ if ~isempty(datpath)
             content = dir([data.import.path,filesep,datpath(i).name]);
             content = content(~ismember({content.name},{'.','..'}));
             for j = 1:size(content,1)
-                if strcmp(content(j).name,[datpath(i).name,'_1.hrd'])
-                    in.T1T2 = 'T2';
-                    in.name = content(j).name;
-                    in.path = fullfile(data.import.path,filesep,datpath(i).name);
-                    in.fileformat = data.import.fileformat;
-                    out = LoadNMRData_driver(in);
-                    
-                    % the individual file names
-                    c = c + 1;
-                    fnames(c).parfile = '';
-                    fnames(c).datafile = out.nmrData.datfile;
-                    fnames(c).T2specfile = '';
-                    shownames{c} = ['T2_',datpath(i).name];
-            
-                    data.import.NMR.data{c} = out.nmrData;
-                    data.import.NMR.para{c} = out.parData;
+                if strcmp(content(j).name,[datpath(i).name,'.hrd'])
+                    if ~strcmp(content(j).name,[datpath(i).name,'_ref'])
+                        in.T1T2 = 'T2';
+                        in.name = content(j).name;
+                        in.path = fullfile(data.import.path,filesep,datpath(i).name);
+                        in.fileformat = data.import.fileformat;
+                        out = LoadNMRData_driver(in);
+                        
+                        % the individual file names
+                        c = c + 1;
+                        fnames(c).parfile = '';
+                        fnames(c).datafile = out.nmrData.datfile;
+                        fnames(c).T2specfile = '';
+                        shownames{c} = ['T2_',datpath(i).name];
+                        
+                        data.import.NMR.data{c} = out.nmrData;
+                        data.import.NMR.para{c} = out.parData;
+                    end
                 end
             end
         end
     end
 end
 
+% update the global data structure
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
+
+end
+
+%%
+function [data,gui] = importDataHeliosSeries(data,gui)
+
+% first check the subpaths
+% there should be some folders with names ...
+% ... similar to the data filenames inside them
+datpath = dir(data.import.path);
+datpath = datpath(~ismember({datpath.name},{'.','..'}));
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+c = 0;
+if ~isempty(datpath)
+    content = datpath;
+    for j = 1:size(content,1)
+        if ~strcmp(content(j).name(end-7:end),'_ref.hrd')
+            in.T1T2 = 'T2';
+            in.name = content(j).name;
+            in.path = fullfile(data.import.path);
+            in.fileformat = data.import.fileformat;
+            out = LoadNMRData_driver(in);
+            % the individual file names
+            c = c + 1;
+            fnames(c).parfile = '';
+            fnames(c).datafile = out.nmrData.datfile;
+            fnames(c).T2specfile = '';
+            shownames{c} = ['T2_',content(j).name];
+            
+            data.import.NMR.data{c} = out.nmrData;
+            data.import.NMR.para{c} = out.parData;
+        end
+        
+    end
+end
+
+% update the global data structure
 data.import.NMR.files = fnames;
 data.import.NMR.filesShort = shownames;
 
@@ -632,6 +759,7 @@ for j = 1:size(out.nmrData,2)
     data.import.NMR.para{c} = out.parData{j};
 end
 
+% update the global data structure
 data.import.NMR.files = fnames;
 data.import.NMR.filesShort = shownames;
 
@@ -805,6 +933,166 @@ for j = 1:size(out.nmrData,2)
     data.import.NMR.data{c} = out.nmrData{j};
     data.import.NMR.para{c} = out.parData;
 end
+
+% update the global data structure
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
+
+end
+
+%%
+function [data,gui] = importDataLIAGcore(data,gui)
+
+% get all subfolders containing a measurement at a certain heigth
+subdirs = dir(data.import.path);
+% remove the dot-dirs
+subdirs = subdirs(~ismember({subdirs.name},{'.','..'}));
+
+% now get the background data ("Leermessung")
+bgPath = uigetdir(data.import.path,'Choose Background Data Path');
+isbgPath = false;
+if bgPath == 0
+    disp('NUCLEUSinv: LIAG core import: No background file provided.');
+else
+    isbgPath = true;
+    in.path = fullfile(bgPath);
+    in.fileformat = data.import.fileformat;
+    bgout = LoadNMRData_driver(in);
+    ref1.t = bgout.nmrData{1}.time;
+    ref1.s = bgout.nmrData{1}.signal;
+    [ref1.s,~] = rotateT2phase(ref1.s);
+end
+
+% get the Position file
+[posFile,posFilePath] = uigetfile('*.*','Choose Lift Position File',data.import.path);
+isposFile = false;
+if posFilePath == 0
+    disp('NUCLEUSinv: LIAG core import: No position file provided.');
+else
+    isposFile = true;
+    % import LIAG lift file
+    buffer = fileread(fullfile(posFilePath,posFile));
+
+    % get the time stamps of the lift positions
+    substr = 'Zeit:' ;
+    loc = strfind(buffer, substr);
+    timepoint = cell(1,1);
+    for i = 1:length(loc)
+        timestr = strtrim(buffer(loc(i)+numel(substr):loc(i)+numel(substr)+19));
+        timepoint{i} = datetime(timestr,'InputFormat','dd.MM.yyyy HH:mm:ss');
+    end
+    % ignore the first time stamp
+    t_range = [datenum(timepoint{2}), datenum(timepoint{3})];
+    % get the z coords
+    substr = 'Z1=';
+    loc = strfind(buffer, substr) ;
+    z_range(1) = sscanf(buffer(loc+numel(substr):loc+numel(substr)+10),'%f',1);
+    substr = 'Z2=';
+    loc = strfind(buffer, substr) ;
+    z_range(2) =  sscanf(buffer(loc+numel(substr):loc+numel(substr)+10),'%f',1);
+end
+
+% import the NMR data
+count = 0;
+levels = zeros(size(subdirs));
+nmrDataTMP = cell(1,1);
+for i = 1:numel(subdirs)
+    if ~isnan(str2double(subdirs(i).name))
+
+        % import the NMR file
+        in.path = fullfile(data.import.path,subdirs(i).name,'T2CPMG');
+        in.fileformat = data.import.fileformat;
+        out = LoadNMRData_driver(in);
+
+        % if there is a position file
+        if isposFile
+            % keep only files within the correct time range
+            if out.nmrData{1}.datenum > t_range(1) && out.nmrData{1}.datenum < t_range(2)
+                count = count + 1;
+                % interpolate the z position via the time stamp of the NMR file
+                levels(count) = interp1(t_range,z_range,out.nmrData{1}.datenum,'linear');
+                nmrDataTMP{count} = out;
+            end
+        else % just read everything
+            count = count + 1;
+            levels(count) = str2double(subdirs(i).name);
+            nmrDataTMP{count} = out;
+        end
+    end
+end
+% cut off data that is not part of the scan
+levels = levels(1:count);
+% sort in ascending order
+[levels,idx] = sort(levels);
+
+% sort the NMR data accordingly
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+for c = 1:numel(levels)
+    % the individual file names
+    fnames(c).parfile = 'acqu.par';
+    fnames(c).datafile = nmrDataTMP{idx(c)}.nmrData{1}.datfile;
+    fnames(c).T2specfile = '';
+    
+    shownames{c} = fnames(c).datafile;
+    tmp = shownames{c};
+    if isposFile
+        shownames{c} = [tmp,': ',sprintf('%4d',floor(levels(c))),'mm'];
+    else
+        shownames{c} = [tmp,' level:',sprintf('%d',levels(c))];
+    end
+    out = nmrDataTMP{idx(c)};
+    
+    % the NMR data
+    % here we fix the time scale to [s] if neccessary
+    TE = out.parData.echoTime; % [µs]
+    if out.nmrData{1}.time(1) == TE/1e3
+        % change [ms] to [s]
+        out.nmrData{1}.time = out.nmrData{1}.time/1e3;
+        out.nmrData{1}.raw.time = out.nmrData{1}.raw.time/1e3;
+    elseif out.nmrData{1}.time(1) == TE
+        % change [µs] to [s] -> very unlikely
+        out.nmrData{1}.time = out.nmrData{1}.time/1e6;
+        out.nmrData{1}.raw.time = out.nmrData{1}.raw.time/1e6;
+    end
+    data.import.NMR.data{c} = out.nmrData{1};
+    data.import.NMR.para{c} = out.parData;
+
+    % subtract the background signal is one is available
+    if isbgPath
+        % get the original signal
+        s = data.import.NMR.data{c}.signal;
+        % if the background signal is longer than the signal cut it, if
+        % not extend it with zeros
+        if numel(ref1.s) > numel(s)
+            tmp_r = ref1.s(1:numel(s));
+        else
+            tmp_r = zeros(size(s));
+            tmp_r(1:numel(ref1.s)) = ref1.s;
+        end
+        s = complex(real(s)-real(tmp_r),imag(s)-imag(tmp_r));
+
+        % sign check
+        if real(s(1:3))<0
+            s = s*-1;
+        end
+
+        % rotate phase again - TEST
+        [s,~] = rotateT2phase(s);
+
+        % update signal
+        data.import.NMR.data{c}.signal = s;
+        data.import.NMR.data{c}.raw.signal = s;
+    end
+end
+if isposFile
+    data.import.LIAGCORE.use_z = true;
+else
+    data.import.LIAGCORE.use_z = false;
+end
+data.import.LIAGCORE.zslice = levels;
 
 % update the global data structure
 data.import.NMR.files = fnames;
@@ -1087,7 +1375,6 @@ if ~isempty(indx)
     % update the global data structure
     data.import.NMR.files = ffnames;
     data.import.NMR.filesShort = shownames;
-    
 end
 
 end
@@ -1196,7 +1483,7 @@ data = struct;
 for i = 1:size(d{1},1)
     str = char(d{1}(i));
     str = fixParameterString(str);
-    eval(['data.',str,';']);
+    eval(['data.',str,';']); %#ok<EVLDOT> 
 end
 
 end

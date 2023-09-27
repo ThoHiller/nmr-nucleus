@@ -185,6 +185,23 @@ switch fig_tag
         updatePlotsPSD;
         updatePlotsCPS;
         updatePlotsNMR;
+
+    case 'FIXEDTIMEVIEW'
+        % set the background color for all uicontainer (HBox, VBox, etc.)
+        h = findall(fig,'-depth',inf,'Type','uicontainer');
+        set(h,'BackGroundColor',myui.colors.panelBG);
+        
+        % chekcbox controls
+        h = findobj(fig,'Type','uicontrol','-and','Style','checkbox');
+        set(h,'BackGroundColor',myui.colors.panelBG,'ForeGroundColor',myui.colors.panelFG);
+
+        % edit field
+        h = findall(fig,'Type','uicontrol','-and','Style','edit');
+        set(h,'BackGroundColor',myui.colors.editBG,'ForeGroundColor',myui.colors.panelFG);
+
+        % text field
+        h = findobj(fig,'Type','uicontrol','-and','Style','text');
+        set(h,'BackGroundColor',myui.colors.panelBG,'ForeGroundColor',myui.colors.panelFG);
 end
 
 end

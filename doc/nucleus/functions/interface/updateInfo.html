@@ -384,233 +384,249 @@ This function is called by:
 0315                             info{end+1,1} = invtype;
 0316                             info{end+1,1} = <span class="string">' '</span>;
 0317                             ciT = sum(full(invstd.ci(2:2:end)));
-0318                             
-0319                             <span class="keyword">switch</span> nmrproc.T1T2
-0320                                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0321                                     info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;T&lt;sub&gt;&lt;font size=&quot;'</span>,num2str(subfs),<span class="string">'&quot;&gt;1&lt;/sub&gt; = '</span>,<span class="keyword">...</span>
-0322                                         sprintf(<span class="string">'%5.4f'</span>,invstd.T1),<span class="keyword">...</span>
-0323                                         <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0324                                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0325                                     info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;T&lt;sub&gt;&lt;font size=&quot;'</span>,num2str(subfs),<span class="string">'&quot;&gt;2&lt;/sub&gt; = '</span>,<span class="keyword">...</span>
-0326                                         sprintf(<span class="string">'%5.4f'</span>,invstd.T2),<span class="keyword">...</span>
-0327                                         <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0328                             <span class="keyword">end</span>
-0329                             info{end+1,1} = <span class="string">' '</span>;
-0330                             
-0331                         <span class="keyword">case</span> <span class="string">'free'</span>
-0332                             str = [invtype,<span class="string">' '</span>,num2str(data.invstd.freeDT)];
-0333                             info{end+1,1} = str;
-0334                             info{end+1,1} = <span class="string">' '</span>;
-0335                             
-0336                             E0 = invstd.E0;
-0337                             ciE0 = full(invstd.ci(1:2:end));
-0338                             ciT = full(invstd.ci(2:2:end));
-0339                             
-0340                             <span class="keyword">switch</span> nmrproc.T1T2
-0341                                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0342                                     T = invstd.T1;
-0343                                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0344                                     T = invstd.T2;
-0345                             <span class="keyword">end</span>
-0346                             
-0347                             <span class="keyword">for</span> i = 1:length(T)
-0348                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;T('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,T(i)),<span class="keyword">...</span>
-0349                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>]; <span class="comment">%#ok&lt;*AGROW&gt;</span>
-0350                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;E('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,E0(i)),<span class="keyword">...</span>
-0351                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciE0(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0352                                 info{end+1,1} = <span class="string">' '</span>;
+0318 
+0319                             <span class="keyword">if</span> data.invstd.Tfixed_bool(1)
+0320                                 col = gui.myui.colors.listINV.*255;
+0321                             <span class="keyword">else</span>
+0322                                 col = [1 1 1].*255;
+0323                             <span class="keyword">end</span>
+0324 
+0325                             <span class="keyword">switch</span> nmrproc.T1T2
+0326                                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0327                                     info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0328                                 sprintf(<span class="string">'%d,%d,%d'</span>,col),<span class="string">')&quot;&gt;T&lt;sub&gt;&lt;font size=&quot;'</span>,num2str(subfs),<span class="string">'&quot;&gt;1&lt;/sub&gt; = '</span>,<span class="keyword">...</span>
+0329                                         sprintf(<span class="string">'%5.4f'</span>,invstd.T1),<span class="keyword">...</span>
+0330                                         <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0331                                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0332                                     info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0333                                 sprintf(<span class="string">'%d,%d,%d'</span>,col),<span class="string">')&quot;&gt;T&lt;sub&gt;&lt;font size=&quot;'</span>,num2str(subfs),<span class="string">'&quot;&gt;2&lt;/sub&gt; = '</span>,<span class="keyword">...</span>
+0334                                         sprintf(<span class="string">'%5.4f'</span>,invstd.T2),<span class="keyword">...</span>
+0335                                         <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0336                             <span class="keyword">end</span>
+0337                             info{end+1,1} = <span class="string">' '</span>;
+0338                             
+0339                         <span class="keyword">case</span> <span class="string">'free'</span>
+0340                             str = [invtype,<span class="string">' '</span>,num2str(data.invstd.freeDT)];
+0341                             info{end+1,1} = str;
+0342                             info{end+1,1} = <span class="string">' '</span>;
+0343                             
+0344                             E0 = invstd.E0;
+0345                             ciE0 = full(invstd.ci(1:2:end));
+0346                             ciT = full(invstd.ci(2:2:end));
+0347                             
+0348                             <span class="keyword">switch</span> nmrproc.T1T2
+0349                                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0350                                     T = invstd.T1;
+0351                                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0352                                     T = invstd.T2;
 0353                             <span class="keyword">end</span>
 0354                             
-0355                         <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
-0356                             <span class="comment">% info is a cell array</span>
-0357                             str = [invtype,<span class="string">' '</span>,data.invstd.regtype,<span class="string">' '</span>,num2str(data.invstd.Lorder)];
-0358                             info{end+1,1} = str;
-0359                             info{end+1,1} = <span class="string">' '</span>;
-0360                             
-0361                             <span class="comment">% TLGM</span>
-0362                             info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;TLGM&lt;/sub&gt; = '</span>,sprintf(<span class="string">'%5.4f'</span>,invstd.Tlgm),<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0363                             info{end+1,1} = <span class="string">' '</span>;
-0364                             
-0365                             <span class="comment">% clay-bound water CBW &lt; tcut ms</span>
-0366                             <span class="comment">% irreducible water / capillary water BVI ccut - tcut ms</span>
-0367                             <span class="comment">% movable water BVM &gt; tcut ms</span>
-0368                             <span class="keyword">switch</span> data.process.timescale
-0369                                 <span class="keyword">case</span> <span class="string">'s'</span>
-0370                                     ccut = data.param.CBWcutoff/1000;
-0371                                     tcut = data.param.BVIcutoff/1000;
-0372                                 <span class="keyword">case</span> <span class="string">'ms'</span>
-0373                                     ccut = data.param.CBWcutoff;
-0374                                     tcut = data.param.BVIcutoff;
-0375                             <span class="keyword">end</span>
-0376                             por = data.invstd.porosity;
-0377                             CBW = abs(sum(invstd.T1T2f(invstd.T1T2me&lt;=ccut))/sum(invstd.T1T2f));
-0378                             BVI = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;ccut &amp; invstd.T1T2me&lt;=tcut))/sum(invstd.T1T2f));
-0379                             BVM = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;tcut))/sum(invstd.T1T2f));
-0380                             info{end+1,1} = [<span class="string">'CBW('</span>,sprintf(<span class="string">'%2d'</span>,data.param.CBWcutoff),<span class="keyword">...</span>
-0381                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*CBW*100),<span class="string">' [vol. %]'</span>];
-0382                             
-0383                             info{end+1,1} = [<span class="string">'BVI('</span>,sprintf(<span class="string">'%2d'</span>,data.param.BVIcutoff),<span class="keyword">...</span>
-0384                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVI*100),<span class="string">' [vol. %]'</span>];
-0385                             info{end+1,1} = [<span class="string">'BVM     = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVM*100),<span class="string">' [vol. %]'</span>];
-0386                             
-0387                         <span class="keyword">case</span> {<span class="string">'MUMO'</span>}
-0388                             
-0389                             <span class="comment">% info is a cell array</span>
-0390                             str = [invtype,<span class="string">' '</span>,num2str(data.invstd.freeDT)];
-0391                             info{end+1,1} = str;
-0392                             info{end+1,1} = <span class="string">' '</span>;
-0393                             
-0394                             <span class="comment">% TLGM</span>
-0395                             info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;TLGM&lt;/sub&gt; = '</span>,sprintf(<span class="string">'%5.4f'</span>,invstd.Tlgm),<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0396                             info{end+1,1} = <span class="string">' '</span>;
-0397                             
-0398                             <span class="comment">% clay-bound water CBW &lt; tcut ms</span>
-0399                             <span class="comment">% irreducible water / capillary water BVI ccut - tcut ms</span>
-0400                             <span class="comment">% movable water BVM &gt; tcut ms</span>
-0401                             <span class="keyword">switch</span> data.process.timescale
-0402                                 <span class="keyword">case</span> <span class="string">'s'</span>
-0403                                     ccut = data.param.CBWcutoff/1000;
-0404                                     tcut = data.param.BVIcutoff/1000;
-0405                                 <span class="keyword">case</span> <span class="string">'ms'</span>
-0406                                     ccut = data.param.CBWcutoff;
-0407                                     tcut = data.param.BVIcutoff;
-0408                             <span class="keyword">end</span>
-0409                             por = data.invstd.porosity;
-0410                             CBW = abs(sum(invstd.T1T2f(invstd.T1T2me&lt;=ccut))/sum(invstd.T1T2f));
-0411                             BVI = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;ccut &amp; invstd.T1T2me&lt;=tcut))/sum(invstd.T1T2f));
-0412                             BVM = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;tcut))/sum(invstd.T1T2f));
-0413                             info{end+1,1} = [<span class="string">'CBW('</span>,sprintf(<span class="string">'%2d'</span>,data.param.CBWcutoff),<span class="keyword">...</span>
-0414                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*CBW*100),<span class="string">' [vol. %]'</span>];
-0415                             
-0416                             info{end+1,1} = [<span class="string">'BVI('</span>,sprintf(<span class="string">'%2d'</span>,data.param.BVIcutoff),<span class="keyword">...</span>
-0417                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVI*100),<span class="string">' [vol. %]'</span>];
-0418                             info{end+1,1} = [<span class="string">'BVM     = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVM*100),<span class="string">' [vol. %]'</span>];
-0419                             info{end+1,1} = <span class="string">' '</span>;
-0420                             
-0421                             <span class="comment">% values for T, sigma and amplitude</span>
-0422                             T = invstd.T; ciT = invstd.ci(1:3:end);
-0423                             S = invstd.S; ciS = invstd.ci(2:3:end);
-0424                             E = invstd.E; ciE = invstd.ci(3:3:end);
-0425                             <span class="comment">% transform ciT because it is in log scale</span>
-0426                             tmpT = log(T)-ciT';
-0427                             ciT = T - exp(tmpT);
-0428                             
-0429                             <span class="keyword">for</span> i = 1:length(T)
-0430                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;T('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,T(i)),<span class="keyword">...</span>
-0431                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>]; <span class="comment">%#ok&lt;*AGROW&gt;</span>
-0432                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;S('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,S(i)),<span class="keyword">...</span>
-0433                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciS(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0434                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;E('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,E(i)),<span class="keyword">...</span>
-0435                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciE(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0436                                 info{end+1,1} = <span class="string">' '</span>;
-0437                             <span class="keyword">end</span>
-0438                     <span class="keyword">end</span>
-0439                 <span class="keyword">end</span>
-0440             <span class="keyword">end</span>
-0441             
-0442         <span class="keyword">case</span> 2 <span class="comment">% PSD</span>
-0443             info{end+1,1} = <span class="string">'PSD'</span>;
-0444             info{end+1,1} = <span class="string">' '</span>;
-0445             
-0446         <span class="keyword">case</span> 3 <span class="comment">% PSDJ</span>
-0447             <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
-0448                 <span class="keyword">if</span> isfield(data.results,<span class="string">'invjoint'</span>)
-0449                     invjoint = data.results.invjoint;
-0450                     
-0451                     info{end+1,1} = [<span class="string">'Inversion type: '</span>,data.invjoint.invtype];
-0452                     info{end+1,1} = <span class="string">' '</span>;
-0453                     <span class="keyword">switch</span> data.invjoint.geometry_type
-0454                         <span class="keyword">case</span> <span class="string">'cyl'</span>
-0455                             info{end+1,1} = [<span class="string">'Shape: '</span>,data.invjoint.geometry_type];
-0456                             info{end+1,1} = [<span class="string">'Geom.: '</span>,sprintf(<span class="string">'%4.2f'</span>,invjoint.iGEOM.a)];
-0457                         <span class="keyword">case</span> <span class="string">'ang'</span>
-0458                             info{end+1,1} = [<span class="string">'Shape: '</span>,data.invjoint.geometry_type,<span class="string">' '</span>,<span class="keyword">...</span>
-0459                                 num2str(invjoint.iGEOM.angles(1)),<span class="string">' '</span>,<span class="keyword">...</span>
-0460                                 num2str(invjoint.iGEOM.angles(2)),<span class="string">' '</span>,<span class="keyword">...</span>
-0461                                 num2str(invjoint.iGEOM.angles(3))];
-0462                             info{end+1,1} = [<span class="string">'Geom.: '</span>,sprintf(<span class="string">'%4.2f'</span>,invjoint.iGEOM.a)];
-0463                         <span class="keyword">case</span> <span class="string">'poly'</span>
-0464                             info{end+1,1} = [<span class="string">'Shape: '</span>,data.invjoint.geometry_type,<span class="keyword">...</span>
-0465                                 <span class="string">' '</span>,num2str(data.invjoint.polyN),<span class="string">' sides'</span>];
-0466                             info{end+1,1} = [<span class="string">'Geom.: '</span>,sprintf(<span class="string">'%4.2f'</span>,invjoint.iGEOM.a)];
-0467                     <span class="keyword">end</span>
+0355                             <span class="keyword">for</span> i = 1:length(T)
+0356 
+0357                                 <span class="keyword">if</span> data.invstd.Tfixed_bool(i)
+0358                                     col = gui.myui.colors.listINV.*255;
+0359                                 <span class="keyword">else</span>
+0360                                     col = [1 1 1].*255;
+0361                                 <span class="keyword">end</span>
+0362 
+0363                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0364                                 sprintf(<span class="string">'%d,%d,%d'</span>,col),<span class="string">')&quot;&gt;T('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,T(i)),<span class="keyword">...</span>
+0365                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>]; <span class="comment">%#ok&lt;*AGROW&gt;</span>
+0366                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;E('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,E0(i)),<span class="keyword">...</span>
+0367                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciE0(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0368                                 info{end+1,1} = <span class="string">' '</span>;
+0369                             <span class="keyword">end</span>
+0370                             
+0371                         <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
+0372                             <span class="comment">% info is a cell array</span>
+0373                             str = [invtype,<span class="string">' '</span>,data.invstd.regtype,<span class="string">' '</span>,num2str(data.invstd.Lorder)];
+0374                             info{end+1,1} = str;
+0375                             info{end+1,1} = <span class="string">' '</span>;
+0376                             
+0377                             <span class="comment">% TLGM</span>
+0378                             info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;TLGM&lt;/sub&gt; = '</span>,sprintf(<span class="string">'%5.4f'</span>,invstd.Tlgm),<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0379                             info{end+1,1} = <span class="string">' '</span>;
+0380                             
+0381                             <span class="comment">% clay-bound water CBW &lt; tcut ms</span>
+0382                             <span class="comment">% irreducible water / capillary water BVI ccut - tcut ms</span>
+0383                             <span class="comment">% movable water BVM &gt; tcut ms</span>
+0384                             <span class="keyword">switch</span> data.process.timescale
+0385                                 <span class="keyword">case</span> <span class="string">'s'</span>
+0386                                     ccut = data.param.CBWcutoff/1000;
+0387                                     tcut = data.param.BVIcutoff/1000;
+0388                                 <span class="keyword">case</span> <span class="string">'ms'</span>
+0389                                     ccut = data.param.CBWcutoff;
+0390                                     tcut = data.param.BVIcutoff;
+0391                             <span class="keyword">end</span>
+0392                             por = data.invstd.porosity;
+0393                             CBW = abs(sum(invstd.T1T2f(invstd.T1T2me&lt;=ccut))/sum(invstd.T1T2f));
+0394                             BVI = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;ccut &amp; invstd.T1T2me&lt;=tcut))/sum(invstd.T1T2f));
+0395                             BVM = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;tcut))/sum(invstd.T1T2f));
+0396                             info{end+1,1} = [<span class="string">'CBW('</span>,sprintf(<span class="string">'%2d'</span>,data.param.CBWcutoff),<span class="keyword">...</span>
+0397                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*CBW*100),<span class="string">' [vol. %]'</span>];
+0398                             
+0399                             info{end+1,1} = [<span class="string">'BVI('</span>,sprintf(<span class="string">'%2d'</span>,data.param.BVIcutoff),<span class="keyword">...</span>
+0400                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVI*100),<span class="string">' [vol. %]'</span>];
+0401                             info{end+1,1} = [<span class="string">'BVM     = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVM*100),<span class="string">' [vol. %]'</span>];
+0402                             
+0403                         <span class="keyword">case</span> {<span class="string">'MUMO'</span>}
+0404                             
+0405                             <span class="comment">% info is a cell array</span>
+0406                             str = [invtype,<span class="string">' '</span>,num2str(data.invstd.freeDT)];
+0407                             info{end+1,1} = str;
+0408                             info{end+1,1} = <span class="string">' '</span>;
+0409                             
+0410                             <span class="comment">% TLGM</span>
+0411                             info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;TLGM&lt;/sub&gt; = '</span>,sprintf(<span class="string">'%5.4f'</span>,invstd.Tlgm),<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0412                             info{end+1,1} = <span class="string">' '</span>;
+0413                             
+0414                             <span class="comment">% clay-bound water CBW &lt; tcut ms</span>
+0415                             <span class="comment">% irreducible water / capillary water BVI ccut - tcut ms</span>
+0416                             <span class="comment">% movable water BVM &gt; tcut ms</span>
+0417                             <span class="keyword">switch</span> data.process.timescale
+0418                                 <span class="keyword">case</span> <span class="string">'s'</span>
+0419                                     ccut = data.param.CBWcutoff/1000;
+0420                                     tcut = data.param.BVIcutoff/1000;
+0421                                 <span class="keyword">case</span> <span class="string">'ms'</span>
+0422                                     ccut = data.param.CBWcutoff;
+0423                                     tcut = data.param.BVIcutoff;
+0424                             <span class="keyword">end</span>
+0425                             por = data.invstd.porosity;
+0426                             CBW = abs(sum(invstd.T1T2f(invstd.T1T2me&lt;=ccut))/sum(invstd.T1T2f));
+0427                             BVI = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;ccut &amp; invstd.T1T2me&lt;=tcut))/sum(invstd.T1T2f));
+0428                             BVM = abs(sum(invstd.T1T2f(invstd.T1T2me&gt;tcut))/sum(invstd.T1T2f));
+0429                             info{end+1,1} = [<span class="string">'CBW('</span>,sprintf(<span class="string">'%2d'</span>,data.param.CBWcutoff),<span class="keyword">...</span>
+0430                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*CBW*100),<span class="string">' [vol. %]'</span>];
+0431                             
+0432                             info{end+1,1} = [<span class="string">'BVI('</span>,sprintf(<span class="string">'%2d'</span>,data.param.BVIcutoff),<span class="keyword">...</span>
+0433                                 <span class="string">') = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVI*100),<span class="string">' [vol. %]'</span>];
+0434                             info{end+1,1} = [<span class="string">'BVM     = '</span>,sprintf(<span class="string">'%5.2f'</span>,por*BVM*100),<span class="string">' [vol. %]'</span>];
+0435                             info{end+1,1} = <span class="string">' '</span>;
+0436                             
+0437                             <span class="comment">% values for T, sigma and amplitude</span>
+0438                             T = invstd.T; ciT = invstd.ci(1:3:end);
+0439                             S = invstd.S; ciS = invstd.ci(2:3:end);
+0440                             E = invstd.E; ciE = invstd.ci(3:3:end);
+0441                             <span class="comment">% transform ciT because it is in log scale</span>
+0442                             tmpT = log(T)-ciT';
+0443                             ciT = T - exp(tmpT);
+0444                             
+0445                             <span class="keyword">for</span> i = 1:length(T)
+0446                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;T('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,T(i)),<span class="keyword">...</span>
+0447                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciT(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>]; <span class="comment">%#ok&lt;*AGROW&gt;</span>
+0448                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;S('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,S(i)),<span class="keyword">...</span>
+0449                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciS(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0450                                 info{end+1,1} = [<span class="string">'&lt;HTML&gt;&lt;BODY&gt;E('</span>,num2str(i),<span class="string">') = '</span>,sprintf(<span class="string">'%5.4f'</span>,E(i)),<span class="keyword">...</span>
+0451                                     <span class="string">' &amp;#8723 ('</span>,sprintf(<span class="string">'%5.4f'</span>,ciE(i)),<span class="string">')'</span>,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0452                                 info{end+1,1} = <span class="string">' '</span>;
+0453                             <span class="keyword">end</span>
+0454                     <span class="keyword">end</span>
+0455                 <span class="keyword">end</span>
+0456             <span class="keyword">end</span>
+0457             
+0458         <span class="keyword">case</span> 2 <span class="comment">% PSD</span>
+0459             info{end+1,1} = <span class="string">'PSD'</span>;
+0460             info{end+1,1} = <span class="string">' '</span>;
+0461             
+0462         <span class="keyword">case</span> 3 <span class="comment">% PSDJ</span>
+0463             <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
+0464                 <span class="keyword">if</span> isfield(data.results,<span class="string">'invjoint'</span>)
+0465                     invjoint = data.results.invjoint;
+0466                     
+0467                     info{end+1,1} = [<span class="string">'Inversion type: '</span>,data.invjoint.invtype];
 0468                     info{end+1,1} = <span class="string">' '</span>;
-0469                     info{end+1,1} = [<span class="string">'rho (INV): '</span>,sprintf(<span class="string">'%5.3f'</span>,invjoint.irho*1e6),<span class="string">' [µm/s]'</span>];
-0470                     <span class="keyword">if</span> isfield(data.import,<span class="string">'NMRMOD'</span>)
-0471                         info{end+1,1} = [<span class="string">'rho (MOD): '</span>,<span class="keyword">...</span>
-0472                             sprintf(<span class="string">'%5.3f'</span>,data.import.NMRMOD.nmr.rho*1e6),<span class="string">' [µm/s]'</span>];
-0473                     <span class="keyword">end</span>
-0474                 <span class="keyword">end</span>
-0475             <span class="keyword">end</span>
-0476     <span class="keyword">end</span>
-0477     <span class="comment">% and update the text box</span>
-0478     set(gui.listbox_handles.info_dist,<span class="string">'String'</span>,info,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0479     
-0480     <span class="comment">%% CPS panel info</span>
-0481     <span class="comment">% check if the CPS panel is maximized</span>
-0482     isminimized = get(gui.plots.CPSPanel,<span class="string">'Minimized'</span>);
-0483     <span class="keyword">if</span> ~isminimized
-0484         clear info;
-0485         info{1,1} = <span class="string">' '</span>;
-0486         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
-0487             <span class="keyword">if</span> isfield(data.results,<span class="string">'invjoint'</span>)
-0488                 invjoint = data.results.invjoint;
-0489                 nmr = invjoint.idata.nmr;
-0490                 levels = invjoint.levels;
-0491                 
-0492                 <span class="keyword">for</span> i = 1:numel(levels)
-0493                     info{end+1,1} = nmr{levels(i)}.name;
-0494                     info{end+1,1} = [<span class="string">'press. : '</span>,<span class="keyword">...</span>
-0495                         sprintf(<span class="string">'%5.4f'</span>,invjoint.p0(levels(i))*data.pressure.unitfac),<span class="keyword">...</span>
-0496                         <span class="string">' ['</span>,data.pressure.unit,<span class="string">']'</span>];
-0497                     <span class="keyword">switch</span> invjoint.T1T2
-0498                         <span class="keyword">case</span> <span class="string">'T1'</span>
-0499                             info{end+1,1} = [<span class="string">'sat. (INV) : '</span>,<span class="keyword">...</span>
-0500                                 sprintf(<span class="string">'%4.2f'</span>,invjoint.idata.nmr{levels(i)}.fit_g(end))];
-0501                         <span class="keyword">case</span> <span class="string">'T2'</span>
-0502                             info{end+1,1} = [<span class="string">'sat. (INV) : '</span>,<span class="keyword">...</span>
-0503                                 sprintf(<span class="string">'%4.2f'</span>,invjoint.idata.nmr{levels(i)}.fit_g(1))];
-0504                     <span class="keyword">end</span>
-0505                     info{end+1,1} = [<span class="string">'sat. (MOD) : '</span>,<span class="keyword">...</span>
-0506                         sprintf(<span class="string">'%4.2f'</span>,invjoint.S0(levels(i)))];
-0507                     info{end+1,1} = <span class="string">' '</span>;
-0508                 <span class="keyword">end</span>
-0509             <span class="keyword">end</span>
-0510         <span class="keyword">end</span>
-0511         set(gui.listbox_handles.info_cps,<span class="string">'String'</span>,info,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0512     <span class="keyword">end</span>
-0513     
-0514     <span class="comment">% update GUI data</span>
-0515     setappdata(fig,<span class="string">'data'</span>,data);
-0516     setappdata(fig,<span class="string">'gui'</span>,gui);
-0517 <span class="keyword">end</span>
-0518 
-0519 <span class="keyword">end</span>
-0520 
-0521 <span class="comment">%------------- END OF CODE --------------</span>
-0522 
-0523 <span class="comment">%% License:</span>
-0524 <span class="comment">% MIT License</span>
-0525 <span class="comment">%</span>
-0526 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0527 <span class="comment">%</span>
-0528 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0529 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0530 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0531 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0532 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0533 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0534 <span class="comment">%</span>
-0535 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0536 <span class="comment">% copies or substantial portions of the Software.</span>
-0537 <span class="comment">%</span>
-0538 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0539 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0540 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0541 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0542 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0543 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0544 <span class="comment">% SOFTWARE.</span></pre></div>
+0469                     <span class="keyword">switch</span> data.invjoint.geometry_type
+0470                         <span class="keyword">case</span> <span class="string">'cyl'</span>
+0471                             info{end+1,1} = [<span class="string">'Shape: '</span>,data.invjoint.geometry_type];
+0472                             info{end+1,1} = [<span class="string">'Geom.: '</span>,sprintf(<span class="string">'%4.2f'</span>,invjoint.iGEOM.a)];
+0473                         <span class="keyword">case</span> <span class="string">'ang'</span>
+0474                             info{end+1,1} = [<span class="string">'Shape: '</span>,data.invjoint.geometry_type,<span class="string">' '</span>,<span class="keyword">...</span>
+0475                                 num2str(invjoint.iGEOM.angles(1)),<span class="string">' '</span>,<span class="keyword">...</span>
+0476                                 num2str(invjoint.iGEOM.angles(2)),<span class="string">' '</span>,<span class="keyword">...</span>
+0477                                 num2str(invjoint.iGEOM.angles(3))];
+0478                             info{end+1,1} = [<span class="string">'Geom.: '</span>,sprintf(<span class="string">'%4.2f'</span>,invjoint.iGEOM.a)];
+0479                         <span class="keyword">case</span> <span class="string">'poly'</span>
+0480                             info{end+1,1} = [<span class="string">'Shape: '</span>,data.invjoint.geometry_type,<span class="keyword">...</span>
+0481                                 <span class="string">' '</span>,num2str(data.invjoint.polyN),<span class="string">' sides'</span>];
+0482                             info{end+1,1} = [<span class="string">'Geom.: '</span>,sprintf(<span class="string">'%4.2f'</span>,invjoint.iGEOM.a)];
+0483                     <span class="keyword">end</span>
+0484                     info{end+1,1} = <span class="string">' '</span>;
+0485                     info{end+1,1} = [<span class="string">'rho (INV): '</span>,sprintf(<span class="string">'%5.3f'</span>,invjoint.irho*1e6),<span class="string">' [µm/s]'</span>];
+0486                     <span class="keyword">if</span> isfield(data.import,<span class="string">'NMRMOD'</span>)
+0487                         info{end+1,1} = [<span class="string">'rho (MOD): '</span>,<span class="keyword">...</span>
+0488                             sprintf(<span class="string">'%5.3f'</span>,data.import.NMRMOD.nmr.rho*1e6),<span class="string">' [µm/s]'</span>];
+0489                     <span class="keyword">end</span>
+0490                 <span class="keyword">end</span>
+0491             <span class="keyword">end</span>
+0492     <span class="keyword">end</span>
+0493     <span class="comment">% and update the text box</span>
+0494     set(gui.listbox_handles.info_dist,<span class="string">'String'</span>,info,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0495     
+0496     <span class="comment">%% CPS panel info</span>
+0497     <span class="comment">% check if the CPS panel is maximized</span>
+0498     isminimized = get(gui.plots.CPSPanel,<span class="string">'Minimized'</span>);
+0499     <span class="keyword">if</span> ~isminimized
+0500         clear info;
+0501         info{1,1} = <span class="string">' '</span>;
+0502         <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>)
+0503             <span class="keyword">if</span> isfield(data.results,<span class="string">'invjoint'</span>)
+0504                 invjoint = data.results.invjoint;
+0505                 nmr = invjoint.idata.nmr;
+0506                 levels = invjoint.levels;
+0507                 
+0508                 <span class="keyword">for</span> i = 1:numel(levels)
+0509                     info{end+1,1} = nmr{levels(i)}.name;
+0510                     info{end+1,1} = [<span class="string">'press. : '</span>,<span class="keyword">...</span>
+0511                         sprintf(<span class="string">'%5.4f'</span>,invjoint.p0(levels(i))*data.pressure.unitfac),<span class="keyword">...</span>
+0512                         <span class="string">' ['</span>,data.pressure.unit,<span class="string">']'</span>];
+0513                     <span class="keyword">switch</span> invjoint.T1T2
+0514                         <span class="keyword">case</span> <span class="string">'T1'</span>
+0515                             info{end+1,1} = [<span class="string">'sat. (INV) : '</span>,<span class="keyword">...</span>
+0516                                 sprintf(<span class="string">'%4.2f'</span>,invjoint.idata.nmr{levels(i)}.fit_g(end))];
+0517                         <span class="keyword">case</span> <span class="string">'T2'</span>
+0518                             info{end+1,1} = [<span class="string">'sat. (INV) : '</span>,<span class="keyword">...</span>
+0519                                 sprintf(<span class="string">'%4.2f'</span>,invjoint.idata.nmr{levels(i)}.fit_g(1))];
+0520                     <span class="keyword">end</span>
+0521                     info{end+1,1} = [<span class="string">'sat. (MOD) : '</span>,<span class="keyword">...</span>
+0522                         sprintf(<span class="string">'%4.2f'</span>,invjoint.S0(levels(i)))];
+0523                     info{end+1,1} = <span class="string">' '</span>;
+0524                 <span class="keyword">end</span>
+0525             <span class="keyword">end</span>
+0526         <span class="keyword">end</span>
+0527         set(gui.listbox_handles.info_cps,<span class="string">'String'</span>,info,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0528     <span class="keyword">end</span>
+0529     
+0530     <span class="comment">% update GUI data</span>
+0531     setappdata(fig,<span class="string">'data'</span>,data);
+0532     setappdata(fig,<span class="string">'gui'</span>,gui);
+0533 <span class="keyword">end</span>
+0534 
+0535 <span class="keyword">end</span>
+0536 
+0537 <span class="comment">%------------- END OF CODE --------------</span>
+0538 
+0539 <span class="comment">%% License:</span>
+0540 <span class="comment">% MIT License</span>
+0541 <span class="comment">%</span>
+0542 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0543 <span class="comment">%</span>
+0544 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0545 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0546 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0547 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0548 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0549 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0550 <span class="comment">%</span>
+0551 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0552 <span class="comment">% copies or substantial portions of the Software.</span>
+0553 <span class="comment">%</span>
+0554 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0555 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0556 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0557 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0558 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0559 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0560 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -33,7 +33,7 @@ function colors = getColorTheme(fig_tag,th)
 colors.theme = th;
 %% switch depending on the calling figure
 switch fig_tag
-    case 'INV'
+    case {'INV','FIXEDTIMEVIEW'}
         % chose selected theme
         switch th
             case 'standard'

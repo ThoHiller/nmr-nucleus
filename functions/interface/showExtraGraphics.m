@@ -32,7 +32,7 @@ function showExtraGraphics(method)
 
 %% get GUI handle and data
 fig = findobj('Tag','INV');
-fig_tag = get(fig,'Tag');
+% fig_tag = get(fig,'Tag');
 data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 gui = getappdata(fig,'gui');
@@ -128,6 +128,7 @@ if foundINV
         if data.import.BAM.use_z
             xval = data.import.BAM.zslice;
             xlabelstr = 'position';
+            ylabelstr = 'position [µm]';
         else
             xlabelstr = 'date' ;
         end
@@ -135,8 +136,18 @@ if foundINV
         if data.import.IBAC.use_z
             xval = data.import.IBAC.zslice;
             xlabelstr = 'position';
+            ylabelstr = 'position [µm]';
         else
             xlabelstr = 'date' ;
+        end
+    elseif isfield(data.import,'LIAGCORE')
+        xval = data.import.LIAGCORE.zslice;
+        if data.import.LIAGCORE.use_z
+            xlabelstr = 'position [mm]';
+            ylabelstr = 'position [mm]';
+        else
+            xlabelstr = 'level';
+            ylabelstr = 'level';
         end
     else
         xlabelstr = 'date' ;
@@ -254,7 +265,7 @@ if foundINV
                         cmap = jet; cmap = flipud(cmap);
                         colormap(ax,cmap);
                         xlabel(['relaxation time [',timescale,']']);
-                        ylabel('position [µm]');
+                        ylabel(ylabelstr);
                         cb = colorbar;
                         set(get(cb,'YLabel'),'String','norm. amplitude');
                         
@@ -262,6 +273,9 @@ if foundINV
                         axes_cm = uicontextmenu(f);
                         gui.cm_handles.axes_proc_xaxis = uimenu(axes_cm,...
                             'Label','flip y-axis','Tag','flip','Enable','on',...
+                            'Callback',@onContextFlip);
+                        gui.cm_handles.axes_proc_xaxis2 = uimenu(axes_cm,...
+                            'Label','color scale log/lin','Tag','loglin','Enable','on',...
                             'Callback',@onContextFlip);
                         set(ax,'UIContextMenu',axes_cm);
                         
@@ -290,13 +304,25 @@ end
 function onContextFlip(src,~)
 f = ancestor(src,'Figure','toplevel');
 ax = findobj(f,'Type','Axes');
+tag = get(src,'Tag');
 
-direction = get(ax,'Ydir');
-switch direction
-    case 'normal'
-        set(ax,'Ydir','reverse')
-    case 'reverse'
-        set(ax,'Ydir','normal')
+switch tag
+    case 'loglin'
+        isscale = get(ax,'ColorScale');
+        switch isscale
+            case 'log'
+                set(ax,'ColorScale','lin','CLim',[0 1]);
+            case 'linear'
+                set(ax,'ColorScale','log','CLim',[0.01 1]);
+        end
+    case 'flip'
+        direction = get(ax,'Ydir');
+        switch direction
+            case 'normal'
+                set(ax,'Ydir','reverse')
+            case 'reverse'
+                set(ax,'Ydir','normal')
+        end
 end
 
 end

@@ -103,6 +103,9 @@ out.calib.name = '';
 out.invstd.invtype = 'NNLS';
 % when inversion method is 'free' choose No. of free relaxation times
 out.invstd.freeDT = 2;
+% option to fix some of the 'free' relaxation times to a certain value
+out.invstd.Tfixed_bool = [0 0 0 0 0];
+out.invstd.Tfixed_val = [0 0 0 0 0];
 % regularization options for multi-exponential fitting routines
 % 'NNLS' and 'LU'
 out.invstd.regtype = 'manual';

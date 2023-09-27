@@ -97,6 +97,17 @@ if sum(Sessionpath) > 0
                     end
                 end
             end
+            if version_in < 114 % changes introduced with v.0.1.14
+                % add 'Tfixed_bool' & 'Tfixed_val' field to savedata
+                savedata.data.invstd.Tfixed_bool = data.invstd.Tfixed_bool;
+                savedata.data.invstd.Tfixed_val = data.invstd.Tfixed_val;
+                for i = 1:numel(savedata.INVdata)
+                    if isstruct(savedata.INVdata{i})
+                        savedata.INVdata{i}.invstd.Tfixed_bool = data.invstd.Tfixed_bool;
+                        savedata.INVdata{i}.invstd.Tfixed_val = data.invstd.Tfixed_val;
+                    end
+                end
+            end
         end
         
         % update GUI data from session mat-file

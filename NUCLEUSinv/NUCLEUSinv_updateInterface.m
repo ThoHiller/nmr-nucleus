@@ -102,7 +102,7 @@ switch data.info.ExpertMode
                     'Value',data.invstd.freeDT,...
                     'String',{'1','2','3','4','5'});
                 set(gui.text_handles.invstd_InvTypeOpt,...
-                    'String','No. of free decay times T');
+                    'String','No. of free relaxation times T');
                 
                 % lambda, smoothness constraint and RTD limits
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
@@ -586,7 +586,7 @@ switch data.info.ExpertMode
                     'Value',data.invstd.freeDT,...
                     'String',{'1','2','3','4','5'});
                 set(gui.text_handles.invstd_InvTypeOpt,...
-                    'String','No. of free decay times T');
+                    'String','No. of relaxation decay times T');
                 
                 % lambda, smoothness constraint and RTD limits
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
@@ -675,22 +675,19 @@ set(gui.radio_handles.process_gates_none,'Enable','on');
 
 switch gatetype
     
-    case 'log'
-        
+    case 'log'        
         set(gui.radio_handles.process_gates_log,'Value',1);
         set(gui.radio_handles.process_gates_lin,'Value',0);
         set(gui.radio_handles.process_gates_none,'Value',0);
         set(gui.edit_handles.process_Nechoes,'Enable','on');
         
-    case 'lin'
-        
+    case 'lin'        
         set(gui.radio_handles.process_gates_log,'Value',0);
         set(gui.radio_handles.process_gates_lin,'Value',1);
         set(gui.radio_handles.process_gates_none,'Value',0);
         set(gui.edit_handles.process_Nechoes,'Enable','on');
         
-    case 'raw'
-        
+    case 'raw'        
         set(gui.radio_handles.process_gates_log,'Value',0);
         set(gui.radio_handles.process_gates_lin,'Value',0);
         set(gui.radio_handles.process_gates_none,'Value',1);

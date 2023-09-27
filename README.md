@@ -108,7 +108,7 @@ In no particular order and without guarantee that it will ever happen :-) :
 ### Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2022, Aug 11). ThoHiller/nmr-nucleus: v0.1.13 (Version v0.1.13). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
+Thomas Hiller. (2023, Sep 27). ThoHiller/nmr-nucleus: v0.1.14 (Version v0.1.14). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 

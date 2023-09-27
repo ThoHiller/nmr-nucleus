@@ -47,12 +47,32 @@ switch data.info.ExpertMode
                 data.invstd.invtype = 'mono';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
+                data.invstd.freeDT = 1;
+
+%                 % if the FixedTimeView window is open update it
+%                 if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+%                     data.invstd.Tfixed_bool = zeros(1,5);
+%                     % update GUI data
+%                     setappdata(fig,'data',data);
+%                     FixedTimeView(gui.menu.extra_fixedtime);
+%                     data = getappdata(fig,'data');
+%                 end
                 
             case 2
                 data.invstd.invtype = 'free';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
-                
+                data.invstd.freeDT = 2;
+
+%                 % if the FixedTimeView window is open update it
+%                 if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+%                     data.invstd.Tfixed_bool = zeros(1,5);
+%                     % update GUI data
+%                     setappdata(fig,'data',data);
+%                     FixedTimeView(gui.menu.extra_fixedtime);
+%                     data = getappdata(fig,'data');
+%                 end
+
             case 3
                 data.invstd.invtype = 'NNLS';
                 data.invstd.regtype = 'manual';
@@ -75,11 +95,13 @@ switch data.info.ExpertMode
                 data.invstd.invtype = 'mono';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
+                data.invstd.freeDT = 1;
                 
             case 2
                 data.invstd.invtype = 'free';
                 data.invstd.regtype = 'none';
                 data.invstd.lambda = 1;
+                data.invstd.freeDT = 2;
                 
             case 3
                 data.invstd.invtype = 'NNLS';
@@ -107,6 +129,16 @@ switch data.info.ExpertMode
                 data.invstd.lambda = 1;
         end
 end
+
+% if the FixedTimeView window is open update it
+if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+    data.invstd.Tfixed_bool = zeros(1,5);
+    % update GUI data
+    setappdata(fig,'data',data);
+    FixedTimeView(gui.menu.extra_fixedtime);
+    data = getappdata(fig,'data');
+end
+
 % update GUI data
 setappdata(fig,'data',data);
 % update interface

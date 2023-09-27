@@ -141,7 +141,8 @@ if sum(ASCIIpath) > 0
             data.import.NMR.data{c}.T1IRfac = 1;
             data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
             data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-
+            data.import.NMR.data{c}.phase = 0;
+            
             % dummy parameter data
             data.import.NMR.para{c} = 0;
         end        

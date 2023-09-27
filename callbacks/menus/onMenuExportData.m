@@ -58,7 +58,9 @@ switch fig_tag
             case 'LIAG archive'
                 exportData(fig_tag,'LIAG');
             case 'LIAG CSV T2'
-                exportData(fig_tag,'LIAGcsvT2');    
+                exportData(fig_tag,'LIAGcsvT2');   
+            case 'BGR repository'
+                exportData(fig_tag,'BGR_repos');                                 
         end
         % update the "last export" value within the ini-file
         gui = getappdata(fig,'gui');

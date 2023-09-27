@@ -80,11 +80,53 @@ if ~isfield(parameter,'info')
     parameter.info = 'off';
 end
 
-% start values for E and T
-x0 = zeros(1,2*nExp);
-for i = 1:nExp
-    x0(2*i-1) = i*max(signal)/nExp;
-    x0(2*i) = i*max(t)/nExp;
+% check if any relaxation time is fixed
+if any(parameter.Tfixed_bool)
+
+    % start values for E and T
+    x0 = zeros(1,2*nExp);
+    for i = 1:nExp
+        x0(2*i-1) = i*max(signal)/nExp;
+        if parameter.Tfixed_bool(i)
+            x0(2*i) = parameter.Tfixed_val(i);
+        else
+            x0(2*i) = i*max(t)/nExp;
+        end
+    end
+
+    % bounds for E and T
+    lb = zeros(1,2*nExp);
+    ub = zeros(1,2*nExp);
+    for i = 1:nExp
+        lb(2*i-1) = 0;
+        ub(2*i-1) = 2*i*max(signal);
+        if parameter.Tfixed_bool(i)
+            lb(2*i) = parameter.Tfixed_val(i);
+            ub(2*i) = parameter.Tfixed_val(i);
+        else
+            lb(2*i) = 0;        
+            ub(2*i) = 2*i*max(t);
+        end        
+    end
+
+else % if not proceed with the standard version
+
+    % start values for E and T
+    x0 = zeros(1,2*nExp);
+    for i = 1:nExp
+        x0(2*i-1) = i*max(signal)/nExp;
+        x0(2*i) = i*max(t)/nExp;
+    end
+
+    % bounds for E and T
+    lb = zeros(1,2*nExp);
+    ub = zeros(1,2*nExp);
+    for i = 1:nExp
+        lb(2*i-1) = 0;
+        ub(2*i-1) = 2*i*max(signal);
+        lb(2*i) = 0;        
+        ub(2*i) = 2*i*max(t);
+    end
 end
 
 switch parameter.optim
@@ -98,7 +140,7 @@ switch parameter.optim
 %                 options.StepTolerance = 1e-18;
 %                 options.MaxIterations = 1e3;
                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)fcn_fitFreeT1(x,t,IRfac),...
-                    x0,t,s,zeros(size(x0)),[],options);
+                    x0,t,s,lb,ub,options);
             case 'T2'
                 % solver options
                 options = optimoptions('lsqnonlin');
@@ -110,7 +152,7 @@ switch parameter.optim
                 iparam.t = t;
                 iparam.s = s;
                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
-                    x0,zeros(size(x0)),[],options);
+                    x0,lb,ub,options);
 %                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
 %                     x0,t,s,zeros(size(x0)),[],options);
         end
@@ -121,10 +163,10 @@ switch parameter.optim
         switch flag
             case 'T1'
                 [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s,IRfac),...
-                    x0,zeros(size(x0)),[],options);
+                    x0,lb,ub,options);
             case 'T2'
                 [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT2_fmin(x,t,s,e),...
-                    x0,zeros(size(x0)),[],options);
+                    x0,lb,ub,options);
         end
 end
 
@@ -160,7 +202,11 @@ ci = getConfInterval(out.resnorm,jacobian,0.05);
 % sort the relaxation times in ascending order
 E0 = x(1:2:end);
 T = x(2:2:end);
-[T,idx] = sort(T);
+if any(parameter.Tfixed_bool)
+    idx = 1:1:nExp;
+else
+    [T,idx] = sort(T);
+end
 E0  = E0(idx);
 ciT = ci(2:2:end);
 ciE = ci(1:2:end);
@@ -177,6 +223,7 @@ switch flag
     case 'T2'
         fitdata.T2 = T;
 end
+fitdata.T = T;
 fitdata.fit_t = fit_t;
 fitdata.fit_s = fit_s;
 fitdata.resnorm = out.resnorm;

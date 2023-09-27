@@ -45,6 +45,11 @@ end
 %% check for " and make it ''
 str = strrep(str,'"','''');
 
+%% check for "d" at the end of a number and delete it
+if strncmpi(str,'b1Freq',6)
+    str = strrep(str,'d','');
+end
+
 return
 
 %------------- END OF CODE --------------
