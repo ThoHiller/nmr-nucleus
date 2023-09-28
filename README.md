@@ -62,7 +62,7 @@ If you do not have the Optimization or Statistics toolboxes then not all feature
 
 #### Operating System
 
-I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is v2.3.5)
+I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is afaik v2.3.6)
 
 **NOTE:** So far I did not test anything on Linux or a Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
 
@@ -114,6 +114,8 @@ Note: Even though the version number might change due to updates, this DOI is pe
 
 ### References
 
+1. Costabel, S., Hiller, T. and Houben, G. "Nuclear magnetic resonance at the laboratory and field scale as a tool for detecting redox fronts in aquifers", *GEOPHYSICS*, **88**(2), 2023, KS13-KS25, [DOI](https://doi.org/10.1190/geo2022-0127.1)
+2. Costabel, S., Hiller, T., Dlugosch, R., Kruschwitz, S. and Müller-Petke, M. "Evaluation of single-sided nuclear magnetic resonance technology for usage in geosciences", *Measurement Science and Technology*, **34**(1), 2023, 015112, [DOI](https://dx.doi.org/10.1088/1361-6501/ac9800)
 1. Hiller, T., Costabel, S., Radic, T., Dlugosch, R. and Müller-Petke, M. "Feasibility study on prepolarized surface nuclear magnetic resonance for soil moisture measurements", *Vadose Zone Journal*, **20**(5), 2021, e20138, [DOI](https://doi.org/10.1002/vzj2.20138)
 2. Costabel, S. and Hiller, T., "Soil hydraulic interpretation of nuclear magnetic resonance measurements based on circular and triangular capillary models", *Vadose Zone Journal*, **20**(2), 2021, e20104, [DOI](https://doi.org/10.1002/vzj2.20104)
 3. Hiller, T. and Klitzsch, N., "Joint inversion of nuclear magnetic resonance data from partially saturated rocks using a triangular pore model", *GEOPHYSICS*, **83**(4), JM15-JM28, 2018, [DOI](https://doi.org/10.1190/geo2017-0697.1)
