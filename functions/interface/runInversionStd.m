@@ -211,6 +211,8 @@ if ~isempty(id) && ~isempty(INVdata)
                             infostring = 'Inversion using ''fminsearchbnd'' ... ';
                     end
                     displayStatusText(gui,infostring);
+                    param.t_raw = data.results.nmrraw.t;
+                    param.s_raw = data.results.nmrraw.s;
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,1);
                     data.invstd.Tfixed_val = [invstd.T zeros(1,4)];
@@ -285,6 +287,7 @@ if ~isempty(id) && ~isempty(INVdata)
                         data.results.nmrproc.s,param);
                     
                 case 'MUMO' % N free distribution inversion
+                    param.nModes = data.invstd.freeDT;
                     param.T1T2 = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.Tb = data.invstd.Tbulk;
@@ -305,22 +308,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     end
                     displayStatusText(gui,infostring);
                     invstd = fitDataMultiModal(data.results.nmrproc.t,...
-                        data.results.nmrproc.s,param,data.invstd.freeDT);
-                    
-                    % estimate uncertainty
-                    if data.invstd.useUncert
-                        % original fit parameter
-                        iparam = param;
-                        % uncertainty parameter
-                        uparam.time = data.results.nmrproc.t;
-                        uparam.signal = data.results.nmrproc.s;
-                        uparam.uncertMethod = data.invstd.uncertMethod;
-                        uparam.uncertThresh = data.invstd.uncertThresh;
-                        uparam.uncertChi2 = data.invstd.uncertChi2;
-                        uparam.uncertN = data.invstd.uncertN;
-                        uparam.uncertMax = data.invstd.uncertMax;
-                        invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
-                    end
+                        data.results.nmrproc.s,param);
             end            
             % normalize to 1
             if data.process.norm == 1
@@ -400,7 +388,7 @@ if ~isempty(id) && ~isempty(INVdata)
                 calibratePorosity;
             end
         end
-        % ---        
+        % ---
     else  % STOP was pressed (because "UserData" is 0)
         % reset "UserData"
         set(gui.push_handles.invstd_run,'UserData',1);

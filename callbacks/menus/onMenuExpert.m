@@ -66,6 +66,12 @@ switch onoff
             delete(fig_fixedtime);
         end
         set(gui.menu.extra_fixedtime,'Enable','off');
+        % check if the figure is already open
+        fig_uncert = findobj('Tag','UNCERTVIEW');
+        if ~isempty(fig_uncert)
+            delete(fig_uncert);
+        end
+        set(gui.menu.extra_uncert,'Enable','off');
         
         % deactivate solver menu and set to default
         onMenuSolver(gui.menu.extra_solver_lsqnonneg);
@@ -101,6 +107,8 @@ switch onoff
 
         % activate FixedTime View GUI
         set(gui.menu.extra_fixedtime,'Enable','on');
+        % activate Uncertainty View GUI
+        set(gui.menu.extra_uncert,'Enable','on');
 
         % activate solver menu if optimization toolbox is available
         switch data.info.has_optim

@@ -1,4 +1,4 @@
-function [TLGM,index] = getTLogMean(T,f)
+function [TLGM,index] = getTLogMean(T,f,varargin)
 %getTLogMean calculates the T logmean value out of a relaxation time
 %distribution
 %
@@ -33,16 +33,24 @@ function [TLGM,index] = getTLogMean(T,f)
 %------------- BEGIN CODE --------------
 
 %% calculate TLGM
+% check input
+if nargin > 2
+    mask = varargin{1};
+else
+    mask = true(size(T));
+end
+
 % make everything a column vector
 T = T(:);
 f = f(:);
+mask = mask(:);
 
 % get TLGM
-TLGM = 10.^(sum(f.*log10(T))./sum(f));
+TLGM = 10.^(sum(f(mask).*log10(T(mask)))./sum(f(mask)));
 
 % if desired get the closest T
 if nargout == 2
-    index = find(abs(T-TLGM)==min(abs(T-TLGM)));
+    index = find(abs(T(mask)-TLGM)==min(abs(T(mask)-TLGM)));
 end
 
 return

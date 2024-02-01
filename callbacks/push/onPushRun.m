@@ -47,6 +47,8 @@ switch fig_tag
                 runInversionStd;
             case 'joint'
                 runInversionJoint;
+            case 'uncert'
+                runUncertaintyCalculation;
         end
     case 'MOD'
         tag = get(src,'Tag');

@@ -65,6 +65,8 @@ if isnumeric(id) && ~isempty(INVdata) % clear single inversion
         % clear inversion axes
         clearSingleAxis(gui.axes_handles.rtd);
         clearSingleAxis(gui.axes_handles.psd);
+        % switch-off uncert context menu
+        set(gui.cm_handles.axes_rtd_uncert,'Enable','off');
         % clear the info fields
         set(gui.listbox_handles.info_signal,'String',' ');
         set(gui.listbox_handles.info_dist,'String',' ');
@@ -102,6 +104,8 @@ else % clear all inversions
         % clear inversion axes
         clearSingleAxis(gui.axes_handles.rtd);
         clearSingleAxis(gui.axes_handles.psd);
+        % switch-off uncert context menu
+        set(gui.cm_handles.axes_rtd_uncert,'Enable','off');
         % clear the info fields
         set(gui.listbox_handles.info_signal,'String',' ');
         set(gui.listbox_handles.info_dist,'String',' ');

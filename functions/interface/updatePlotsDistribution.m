@@ -35,10 +35,22 @@ gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 col = gui.myui.colors;
 
-nmrproc = data.results.nmrproc;
+% assume there is no uncertainty data
+hasUncert = false;
+set(gui.cm_handles.axes_rtd_uncert,'Enable','off');
+
+if isfield(data,'results') && isfield(data.results,'nmrproc')
+    nmrproc = data.results.nmrproc;
+end
 % only continue if there is actual data to show
-if isfield(data.results,'invstd')
+if isfield(data,'results') && isfield(data.results,'invstd')
     invstd = data.results.invstd;
+
+    if isfield(invstd,'uncert')
+        hasUncert = true;
+        uncert = invstd.uncert;
+        set(gui.cm_handles.axes_rtd_uncert,'Enable','on');
+    end
     
     %% RTD
     % RTD axis
@@ -103,11 +115,11 @@ if isfield(data.results,'invstd')
             % grid
             grid(ax,'on');
             
-        case {'LU'}
+        case {'LU','NNLS'}
             % scale distribution by porosity
-            F = invstd.T1T2f;
-            if sum(F)>0
-                F = (data.invstd.porosity*100).*F./sum(F);
+            F0 = invstd.T1T2f;
+            if sum(F0)>0
+                F = (data.invstd.porosity*100).*F0./sum(F0);
                 ylims = [0 max(F)*1.05];
             else
                 ylims = [-1 1];
@@ -123,107 +135,97 @@ if isfield(data.results,'invstd')
             
             switch data.info.RTDflag
                 case 'freq'
-                    plot(invstd.T1T2me,F,'o-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
-                    % find approx. TLGM amplitude
-                    amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
-                        'LineWidth',2,'Tag','TLGM','Parent',ax);
-                    
-                    % y-limits
-                    set(ax,'YScale','lin','YLim',ylims);
-                    % y-label
-                    set(get(ax,'YLabel'),'String',ylab1);
-                    
-                case 'cum'
-                    plot(invstd.T1T2me,cumsum(F),'o-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
-                    % find approx. TLGM amplitude
-                    amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
-                        'LineWidth',2,'Tag','TLGM','Parent',ax);
-                    
-                    % y-limits
-                    set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
-                    % y-label
-                    set(get(ax,'YLabel'),'String',ylab2);
-            end
-            
-            % x-limits
-            ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
-            set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
-            % x-label
-            set(get(ax,'XLabel'),'String',xlstring);
-            % grid
-            grid(ax,'on');
-            
-        case {'NNLS'}
-            % scale distribution by porosity
-            F = invstd.T1T2f;
-            if sum(F)>0
-                % apply same scaling to the uncertainty patch
-                if isfield(data.results.invstd,'uncert')
-                    f_min = data.results.invstd.uncert.interp_f_min;
-                    f_max = data.results.invstd.uncert.interp_f_max;
-                    f_min = (data.invstd.porosity*100).*f_min./sum(F);
-                    f_max = (data.invstd.porosity*100).*f_max./sum(F);
-                end                
-                F = (data.invstd.porosity*100).*F./sum(F);
-                
-                ylims = [0 max(F)*1.05];
-            else
-                ylims = [-1 1];
-            end
-            if data.invstd.porosity == 1
-                ylab1 = 'amplitudes [-]';
-                ylab2 = 'cumulative amplitudes [-]';
-            else
-                ylab1 = 'water content [vol. %]';
-                ylab2 = 'cumulative water content [vol. %]';
-            end
-            % F = data.invstd.porosity.*F./trapz(T,F);
-            
-            switch data.info.RTDflag
-                case 'freq'
-                    if isfield(data.results.invstd,'uncert')
-                        % plot uncertainty
-                        for i = 1:size(invstd.uncert.interp_f,1)
-                         plot(invstd.T1T2me,(data.invstd.porosity*100).*invstd.uncert.interp_f(i,:)./sum(invstd.T1T2f),...
-                         '-','Color',[0.5 0.5 0.5],'LineWidth',1,'Parent',ax);
-                         end
-%                         verts = [invstd.T1T2me f_min'; flipud(invstd.T1T2me) flipud(f_max')];
-%                         faces = 1:1:size(verts,1);
-%                         patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-%                             'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                    % check if there is uncertainty data
+                    if hasUncert
+                        % plot uncertainty models
+                        f_max = 0;
+                        FDIST = uncert.interp_f;
+                        % scaling
+                        FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+
+                        switch data.info.RTDuncert
+                            case 'lines'
+                                f_max = max([ylims(2) max(FDIST(:))]);
+                                % need to plot transpose of FDIST because 'x'
+                                % is a column vector otherwise plot goes 
+                                % bananas if numel(x) = #models
+                                plot(invstd.T1T2me,FDIST(1,:)','-','Color',[0.5 0.5 0.5],...
+                                    'LineWidth',1,...
+                                    'DisplayName','uncert models','Parent',ax);
+                                plot(invstd.T1T2me,FDIST(2:end,:)','-','Color',[0.5 0.5 0.5],...
+                                    'LineWidth',1,'HandleVisibility','off',...
+                                    'Tag','infolines','Parent',ax);
+                            case 'patch'
+                                % get mean and std of all uncert models
+                                mean_f = mean(FDIST);
+                                std_f = std(FDIST);
+
+                                % patch lower and upper bounds
+                                patch_f_std1 = [mean_f+std_f;mean_f-std_f];
+                                patch_f_std2 = [mean_f+2*std_f;mean_f-2*std_f];
+                                patch_f_std3 = [mean_f+3*std_f;mean_f-3*std_f];
+                                patch_f_std1(patch_f_std1<0) = 0;
+                                patch_f_std2(patch_f_std2<0) = 0;
+                                patch_f_std3(patch_f_std3<0) = 0;
+                                f_max = max([ylims(2) max(patch_f_std1)...
+                                    max(patch_f_std2) max(patch_f_std3)]);
+
+                                % draw all three patches on top of each other
+                                verts = [invstd.T1T2me patch_f_std3(2,:)';....
+                                    flipud(invstd.T1T2me) flipud(patch_f_std3(1,:)')];
+                                faces = 1:1:size(verts,1);
+                                patch('Faces',faces,'Vertices',verts,...
+                                    'FaceColor',[0.6 0.6 0.6],...
+                                    'FaceAlpha',0.75,'EdgeColor','none',...
+                                    'DisplayName','mean (3*std)','Parent',ax);
+                                verts = [invstd.T1T2me patch_f_std2(2,:)';...
+                                    flipud(invstd.T1T2me) flipud(patch_f_std2(1,:)')];
+                                faces = 1:1:size(verts,1);
+                                patch('Faces',faces,'Vertices',verts,...
+                                    'FaceColor',[0.4 0.4 0.4],...
+                                    'FaceAlpha',0.75,'EdgeColor','none',...
+                                    'DisplayName','mean (2*std)','Parent',ax);
+                                verts = [invstd.T1T2me patch_f_std1(2,:)';...
+                                    flipud(invstd.T1T2me) flipud(patch_f_std1(1,:)')];
+                                faces = 1:1:size(verts,1);
+                                patch('Faces',faces,'Vertices',verts,...
+                                    'FaceColor',[0.2 0.2 0.2],...
+                                    'FaceAlpha',0.75,'EdgeColor','none',...
+                                    'DisplayName','mean (std)','Parent',ax);
+                        end                        
                         % adjust y-limits
                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
-                    end
+                        
+                        % plot original solution
+                        plot(invstd.T1T2me,F,'-','Color',col.FIT,...
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
+                    else
+                        plot(invstd.T1T2me,F,'o-','Color',col.FIT,...
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
+                    end                    
                     
-                    plot(invstd.T1T2me,F,'o-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
-                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.FIT,'LineStyle','--',...
+                        'LineWidth',2,'DisplayName','TLGM','Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
                     % y-label
                     set(get(ax,'YLabel'),'String',ylab1);
+                    % legend
+                    legend(ax,'Location','NorthEast');
                     
                 case 'cum'
-                    if isfield(data.results.invstd,'uncert')
-                        verts = [invstd.T1T2me cumsum(F)-f_min'; flipud(invstd.T1T2me) flipud(cumsum(F)+f_max')];
-                        faces = 1:1:size(verts,1);
-                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
-                    end
+                    % in the case of the cumulative plot, no uncertainty is
+                    % shown
                     plot(invstd.T1T2me,cumsum(F),'o-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
+
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
-                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.FIT,'LineStyle','--',...
+                        'LineWidth',2,'DisplayName','TLGM','Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
@@ -253,20 +255,15 @@ if isfield(data.results,'invstd')
                 dist(i,:) = (tmp/sum(tmp)) * amp;
             end
             
-            % scale distribution by porosity
-            F = invstd.T1T2f;
-            if sum(F)>0
+            % scale RTD(s) by porosity
+            F0 = invstd.T1T2f;
+            if sum(F0)>0
+                % individual RTDs
                 for i = 1:length(invstd.x)/3
-                    dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F);
+                    dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F0);
                 end
-                % apply same scaling to the uncertainty patch
-                if isfield(data.results.invstd,'uncert')
-                    f_min = data.results.invstd.uncert.interp_f_min;
-                    f_max = data.results.invstd.uncert.interp_f_max;
-                    f_min = (data.invstd.porosity*100).*f_min./sum(F);
-                    f_max = (data.invstd.porosity*100).*f_max./sum(F);
-                end
-                F = (data.invstd.porosity*100).*F./sum(F);
+                % combined (total) RTD
+                F = (data.invstd.porosity*100).*F0./sum(F0);
                 
                 ylims = [0 max(F)*1.05];
             else
@@ -286,66 +283,100 @@ if isfield(data.results,'invstd')
             
             switch data.info.RTDflag
                 case 'freq'
-                    if isfield(data.results.invstd,'uncert')
-                        % plot uncertainty
-                        % lines
-                        % for i = 1:size(invstd.TDIST,1)
-                        %  plot(invstd.T1T2me,(data.invstd.porosity*100).*invstd.TDIST(i,:)./sum(invstd.T1T2f),...
-                        %  '-','Color',[0.5 0.5 0.5],'LineWidth',1,'Parent',ax);
-                        %  end
-                        % patch
-%                         TDIST = invstd.TDIST;
-%                         for i = 1:size(invstd.TDIST,1)
-%                             TDIST(i,:) = (data.invstd.porosity*100).*invstd.TDIST(i,:)./sum(invstd.T1T2f);
-%                         end
-%                         TDISTmin = min(TDIST);
-%                         TDISTmax = max(TDIST);
-%                         verts = [nmrproc.t(nmrproc.t>0) s_min; flipud(nmrproc.t(nmrproc.t>0)) flipud(s_max)];
-%                         faces = 1:1:size(verts,1);
-%                 
-                        verts = [invstd.T1T2me f_min'; flipud(invstd.T1T2me) flipud(f_max')];
-                        faces = 1:1:size(verts,1);
-                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
+                    if hasUncert
+                        % plot uncertainty models
+                        f_max = 0;
+                        FDIST = uncert.interp_f;
+                        % scaling
+                        FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+
+                        switch data.info.RTDuncert
+                            case 'lines'
+                                f_max = max([ylims(2) max(FDIST(:))]);
+                                % need to plot transpose of FDIST because 'x'
+                                % is a column vector otherwise plot goes 
+                                % bananas if numel(x) = #models
+                                plot(invstd.T1T2me,FDIST(1,:)','-','Color',[0.5 0.5 0.5],...
+                                    'LineWidth',1,'DisplayName','uncert models',...
+                                    'Parent',ax);
+                                plot(invstd.T1T2me,FDIST(2:end,:)','-','Color',[0.5 0.5 0.5],...
+                                    'LineWidth',1,'HandleVisibility','off',...
+                                    'Tag','infolines','Parent',ax);
+                            case 'patch'
+                                % get mean and std of all uncert models
+                                mean_f = mean(FDIST);
+                                std_f = std(FDIST);
+
+                                % patch lower and upper bounds
+                                patch_f_std1 = [mean_f+std_f;mean_f-std_f];
+                                patch_f_std2 = [mean_f+2*std_f;mean_f-2*std_f];
+                                patch_f_std3 = [mean_f+3*std_f;mean_f-3*std_f];
+                                patch_f_std1(patch_f_std1<0) = 0;
+                                patch_f_std2(patch_f_std2<0) = 0;
+                                patch_f_std3(patch_f_std3<0) = 0;
+                                f_max = max([ylims(2) max(patch_f_std1)...
+                                    max(patch_f_std2) max(patch_f_std3)]);
+
+                                % draw all three patches on top of each other
+                                verts = [invstd.T1T2me patch_f_std3(2,:)';....
+                                    flipud(invstd.T1T2me) flipud(patch_f_std3(1,:)')];
+                                faces = 1:1:size(verts,1);
+                                patch('Faces',faces,'Vertices',verts,...
+                                    'FaceColor',[0.6 0.6 0.6],...
+                                    'FaceAlpha',0.75,'EdgeColor','none',...
+                                    'DisplayName','mean (3*std)','Parent',ax);
+                                verts = [invstd.T1T2me patch_f_std2(2,:)';...
+                                    flipud(invstd.T1T2me) flipud(patch_f_std2(1,:)')];
+                                faces = 1:1:size(verts,1);
+                                patch('Faces',faces,'Vertices',verts,...
+                                    'FaceColor',[0.4 0.4 0.4],...
+                                    'FaceAlpha',0.75,'EdgeColor','none',...
+                                    'DisplayName','mean (2*std)','Parent',ax);
+                                verts = [invstd.T1T2me patch_f_std1(2,:)';...
+                                    flipud(invstd.T1T2me) flipud(patch_f_std1(1,:)')];
+                                faces = 1:1:size(verts,1);
+                                patch('Faces',faces,'Vertices',verts,...
+                                    'FaceColor',[0.2 0.2 0.2],...
+                                    'FaceAlpha',0.75,'EdgeColor','none',...
+                                    'DisplayName','mean (std)','Parent',ax);
+                        end
                         % adjust y-limits
                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
                     end
                     
                     % plot total RTD
                     plot(invstd.T1T2me,F,'-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
                     % plot individual RTDs
                     for i = 1:length(invstd.x)/3
                         plot(invstd.T1T2me,dist(i,:),'--','Color',mycols(i,:),...
-                            'LineWidth',2,'Parent',ax);
+                            'DisplayName',['fit',num2str(i)],'LineWidth',2,'Parent',ax);
                     end
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,F,invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
-                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.FIT,'LineStyle','--',...
+                        'LineWidth',2,'DisplayName','TLGM','Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
                     % y-label
                     set(get(ax,'YLabel'),'String',ylab1);
+                    % legend
+                    legend(ax,'Location','NorthEast');
                     
                 case 'cum'
-                    if isfield(data.results.invstd,'uncert')
-                        verts = [invstd.T1T2me cumsum(F)-f_min'; flipud(invstd.T1T2me) flipud(cumsum(F)+f_max')];
-                        faces = 1:1:size(verts,1);
-                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
-                    end
+                    % in the case of the cumulative plot, no uncertainty is
+                    % shown
                     plot(invstd.T1T2me,cumsum(F),'-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
                     for i = 1:length(invstd.x)/3
                         plot(invstd.T1T2me,cumsum(dist(i,:)),'--','Color',mycols(i,:),...
-                            'LineWidth',2,'Parent',ax);
+                            'DisplayName',['fit',num2str(i)],'LineWidth',2,'Parent',ax);
                     end
                     % find approx. TLGM amplitude
                     amp = findApproxTlgmAmplitude(invstd.T1T2me,cumsum(F),invstd.Tlgm);
-                    stem(invstd.Tlgm,amp,'x-','Color',col.axisL,...
-                        'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(invstd.Tlgm,amp,'x-','Color',col.FIT,'LineStyle','--',...
+                        'LineWidth',2,'DisplayName','TLGM','Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
@@ -436,10 +467,10 @@ if isfield(data.results,'invstd')
             switch data.info.PSDflag
                 case 'freq'
                     plot(requiv,F,'o-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
                     % find approx. RLGM amplitude
                     amp = findApproxTlgmAmplitude(requiv,F,Rlgm);
-                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(Rlgm,amp,'x--','Color',col.FIT,'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
@@ -448,10 +479,10 @@ if isfield(data.results,'invstd')
                     
                 case 'cum'
                     plot(requiv,cumsum(F),'o-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
                     % find approx. RLGM amplitude
                     amp = findApproxTlgmAmplitude(requiv,cumsum(F),Rlgm);
-                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(Rlgm,amp,'x--','Color',col.FIT,'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);
@@ -461,7 +492,7 @@ if isfield(data.results,'invstd')
             
             % x-limits
             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
-            %         set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+            % set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
             set(ax,'XScale','log','XLim',[min(requiv) max(requiv)],'XTick',10.^ticks);
             % x-label
             set(get(ax,'XLabel'),'String',xlstring);
@@ -475,22 +506,15 @@ if isfield(data.results,'invstd')
             
             switch data.info.PSDflag
                 case 'freq'
-                    if isfield(data.results.invstd,'uncert')
-                        verts = [requiv f_min'; flipud(requiv) flipud(f_max')];
-                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
-                        % adjust y-limits
-                        ylims(2) = max([ylims(2) max(f_max)*1.05]);
-                    end
                     plot(requiv,F,'-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
                     for i = 1:length(invstd.x)/3
                         plot(requiv,dist(i,:),'--','Color',mycols(i,:),...
-                            'LineWidth',2,'Parent',ax);
+                            'DisplayName',['fit',num2str(i)],'LineWidth',2,'Parent',ax);
                     end                    
                     % find approx. RLGM amplitude
                     amp = findApproxTlgmAmplitude(requiv,F,Rlgm);
-                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(Rlgm,amp,'x--','Color',col.FIT,'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',ylims);
@@ -498,20 +522,15 @@ if isfield(data.results,'invstd')
                     set(get(ax,'YLabel'),'String',ylab1);
                     
                 case 'cum'
-                    if isfield(data.results.invstd,'uncert')
-                        verts = [requiv cumsum(F)-f_min'; flipud(requiv) flipud(cumsum(F)+f_max')];
-                        patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                            'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
-                    end
                     plot(requiv,cumsum(F),'-','Color',col.FIT,...
-                        'LineWidth',2,'Parent',ax);
+                        'DisplayName','fit','LineWidth',2,'Parent',ax);
                     for i = 1:length(invstd.x)/3
                         plot(requiv,cumsum(dist(i,:)),'--','Color',mycols(i,:),...
-                            'LineWidth',2,'Parent',ax);
+                            'DisplayName',['fit',num2str(i)],'LineWidth',2,'Parent',ax);
                     end                    
                     % find approx. RLGM amplitude
                     amp = findApproxTlgmAmplitude(requiv,cumsum(F),Rlgm);
-                    stem(Rlgm,amp,'x-','Color',col.axisL,'LineWidth',2,'Tag','TLGM','Parent',ax);
+                    stem(Rlgm,amp,'x--','Color',col.FIT,'LineWidth',2,'Tag','TLGM','Parent',ax);
                     
                     % y-limits
                     set(ax,'YScale','lin','YLim',[0 sum(F)*1.05]);

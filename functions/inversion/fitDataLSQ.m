@@ -150,8 +150,9 @@ switch parameter.solver
     case 'lsqlin'
         options = optimoptions('lsqlin');
         options.Display = parameter.info;
-        options.OptimalityTolerance = 1e-18;
-        options.StepTolerance = 1e-18;
+        options.OptimalityTolerance = 1e-16;
+        options.StepTolerance = 1e-16;
+%         options.MaxIterations = 2000;
         if isfield(parameter,'bounds')
             [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
                 f0_lb,f0_ub,f0,options);
@@ -219,6 +220,8 @@ fitdata.KK = KK;
 fitdata.L = L;
 fitdata.xn = xn;
 fitdata.rn = rn;
+fitdata.invtype = 'NNLS';
+fitdata.invparams = parameter;
 
 return
 

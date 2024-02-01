@@ -62,7 +62,7 @@ imported upon request
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>	 updates all GUI elements</li><li><a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li><li><a href="cleanupGUIData.html" class="code" title="function data = cleanupGUIData(data)">cleanupGUIData</a>	 removes unnecessary fields from the global "data" struct</li><li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li><li><a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>	 activates all necessary GUI elements after successful</li><li><a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>	 creates or updates the ini-File</li></ul>
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>	 updates all GUI elements</li><li><a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li><li><a href="cleanupGUIData.html" class="code" title="function data = cleanupGUIData(data)">cleanupGUIData</a>	 removes unnecessary fields from the global "data" struct</li><li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li><li><a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>	 activates all necessary GUI elements after successful</li><li><a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>	 creates or updates the ini-File</li><li><a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/callbacks/menus/onMenuImport.html" class="code" title="function onMenuImport(src,~)">onMenuImport</a>	 handles the import menu entries</li></ul>
@@ -228,82 +228,134 @@ This function is called by:
 0155                 <span class="comment">% the NMR data</span>
 0156                 data.import.NMR.data{c}.flag = T1T2;
 0157                 data.import.NMR.data{c}.time = num(:,1);
-0158                 <span class="keyword">if</span> size(num,2)&gt;2                    
-0159                     tmp_signal = complex(num(:,2),num(:,3));
-0160                     [tmp_signal,tmp_phase] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(tmp_signal);
-0161                     data.import.NMR.data{c}.signal = tmp_signal;
-0162                     data.import.NMR.data{c}.phase = tmp_phase;                    
-0163                 <span class="keyword">else</span>
-0164                     data.import.NMR.data{c}.signal = num(:,2);
-0165                 <span class="keyword">end</span>
-0166                 data.import.NMR.data{c}.T1IRfac = 1;
-0167                 data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
-0168                 data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-0169                 
-0170                 <span class="comment">% dummy parameter data</span>
-0171                 data.import.NMR.para{c} = 0;
-0172             <span class="keyword">end</span>            
-0173         <span class="keyword">end</span>
-0174         
-0175         <span class="comment">% save file names</span>
-0176         data.import.NMR.files = fnames;
-0177         data.import.NMR.filesShort = shownames;
-0178         
-0179         <span class="comment">% update the ini-file</span>
-0180         gui.myui.inidata.importpath = data.import.path;
-0181         gui = <a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
-0182         
-0183         <span class="comment">% update the list of file names</span>
-0184         set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
-0185         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0186         
-0187         <span class="comment">% create a global INVdata struct for every file in the list</span>
-0188         <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
-0189             setappdata(fig,<span class="string">'INVdata'</span>,[]);
-0190         <span class="keyword">end</span>
-0191         INVdata = cell(length(data.import.NMR.filesShort),1);
-0192         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0193         
-0194         <span class="comment">% clear all axes</span>
-0195         <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
-0196         
-0197         <span class="comment">% update GUI data and interface</span>
-0198         setappdata(fig,<span class="string">'data'</span>,data);
-0199         setappdata(fig,<span class="string">'gui'</span>,gui);
-0200         <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'EXCEL'</span>);
-0201         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;        
-0202     <span class="keyword">else</span>
-0203         helpdlg({<span class="string">'importEXCELdata:'</span>,<span class="string">'File is not a valid Excel file'</span>},<span class="keyword">...</span>
-0204             <span class="string">'File not recognized'</span>);
-0205     <span class="keyword">end</span>
-0206 <span class="keyword">end</span>
-0207 
-0208 <span class="keyword">end</span>
-0209 
-0210 <span class="comment">%------------- END OF CODE --------------</span>
-0211 
-0212 <span class="comment">%% License:</span>
-0213 <span class="comment">% MIT License</span>
-0214 <span class="comment">%</span>
-0215 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0216 <span class="comment">%</span>
-0217 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0218 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0219 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0220 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0221 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0222 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0223 <span class="comment">%</span>
-0224 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0225 <span class="comment">% copies or substantial portions of the Software.</span>
-0226 <span class="comment">%</span>
-0227 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0228 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0229 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0230 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0231 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0232 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0233 <span class="comment">% SOFTWARE.</span></pre></div>
+0158                 <span class="comment">% switch between T1 and T2 data</span>
+0159                 <span class="keyword">switch</span> T1T2
+0160                     <span class="keyword">case</span> <span class="string">'T1'</span>
+0161                         data.import.NMR.data{c}.signal = num(:,2);
+0162                         data.import.NMR.data{c}.phase = 0;
+0163 
+0164                         <span class="comment">% try saturation recovery first</span>
+0165                         param.T1IRfac = 1;
+0166                         param.noise = 0;
+0167                         param.optim = <span class="string">'off'</span>;
+0168                         param.Tfixed_bool = [0 0 0 0 0];
+0169                         param.Tfixed_val = [0 0 0 0 0];
+0170                         invstd1 = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0171                             data.import.NMR.data{c}.flag,param,5);
+0172 
+0173                         <span class="comment">% now inversion recovery</span>
+0174                         param.T1IRfac = 2;
+0175                         param.noise = 0;
+0176                         param.optim = <span class="string">'off'</span>;
+0177                         param.Tfixed_bool = [0 0 0 0 0];
+0178                         param.Tfixed_val = [0 0 0 0 0];
+0179                         invstd2 = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0180                             data.import.NMR.data{c}.flag,param,5);
+0181 
+0182                         <span class="comment">% compare the residuals</span>
+0183                         <span class="keyword">if</span> invstd1.resnorm &lt; invstd2.resnorm
+0184                             <span class="comment">% data is possibly saturation recovery</span>
+0185                             invstd = invstd1;
+0186                             T1IRfac = 1;
+0187                         <span class="keyword">else</span>
+0188                             <span class="comment">% data is possibly inversion recovery</span>
+0189                             invstd = invstd2;
+0190                             T1IRfac = 2;
+0191                         <span class="keyword">end</span>
+0192                         <span class="comment">% save the &quot;dummy&quot; RMS as noise estimate</span>
+0193                         data.import.NMR.data{c}.noise = invstd.rms;
+0194                     <span class="keyword">case</span> <span class="string">'T2'</span>
+0195                         T1IRfac = 1;
+0196                         <span class="keyword">if</span> size(num,2)&gt;2
+0197                             tmp_signal = complex(num(:,2),num(:,3));
+0198                             [tmp_signal,tmp_phase] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s)">rotateT2phase</a>(tmp_signal);
+0199                             data.import.NMR.data{c}.signal = tmp_signal;
+0200                             data.import.NMR.data{c}.phase = tmp_phase;
+0201                         <span class="keyword">else</span>
+0202                             data.import.NMR.data{c}.signal = num(:,2);
+0203                             data.import.NMR.data{c}.phase = 0;
+0204                             
+0205                             <span class="comment">% noise estimate</span>
+0206                             param.T1IRfac = 1;
+0207                             param.noise = 0;
+0208                             param.optim = <span class="string">'off'</span>;
+0209                             param.Tfixed_bool = [0 0 0 0 0];
+0210                             param.Tfixed_val = [0 0 0 0 0];
+0211                             invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0212                                 data.import.NMR.data{c}.flag,param,5);
+0213                             <span class="comment">% save the &quot;dummy&quot; RMS as noise estimate</span>
+0214                             data.import.NMR.data{c}.noise = invstd.rms;
+0215                         <span class="keyword">end</span>
+0216 
+0217                 <span class="keyword">end</span>
+0218                 data.import.NMR.data{c}.T1IRfac = T1IRfac;
+0219                 data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
+0220                 data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
+0221 
+0222                 <span class="comment">% dummy parameter data</span>
+0223                 data.import.NMR.para{c} = 0;
+0224             <span class="keyword">end</span>            
+0225         <span class="keyword">end</span>
+0226         
+0227         <span class="comment">% save file names</span>
+0228         data.import.NMR.files = fnames;
+0229         data.import.NMR.filesShort = shownames;
+0230         
+0231         <span class="comment">% update the ini-file</span>
+0232         gui.myui.inidata.importpath = data.import.path;
+0233         gui = <a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
+0234         
+0235         <span class="comment">% update the list of file names</span>
+0236         set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
+0237         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0238         
+0239         <span class="comment">% create a global INVdata struct for every file in the list</span>
+0240         <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
+0241             setappdata(fig,<span class="string">'INVdata'</span>,[]);
+0242         <span class="keyword">end</span>
+0243         INVdata = cell(length(data.import.NMR.filesShort),1);
+0244         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0245         
+0246         <span class="comment">% clear all axes</span>
+0247         <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
+0248         
+0249         <span class="comment">% update GUI data and interface</span>
+0250         setappdata(fig,<span class="string">'data'</span>,data);
+0251         setappdata(fig,<span class="string">'gui'</span>,gui);
+0252         <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'EXCEL'</span>);
+0253         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;        
+0254     <span class="keyword">else</span>
+0255         helpdlg({<span class="string">'importEXCELdata:'</span>,<span class="string">'File is not a valid Excel file'</span>},<span class="keyword">...</span>
+0256             <span class="string">'File not recognized'</span>);
+0257     <span class="keyword">end</span>
+0258 <span class="keyword">end</span>
+0259 
+0260 <span class="keyword">end</span>
+0261 
+0262 <span class="comment">%------------- END OF CODE --------------</span>
+0263 
+0264 <span class="comment">%% License:</span>
+0265 <span class="comment">% MIT License</span>
+0266 <span class="comment">%</span>
+0267 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0268 <span class="comment">%</span>
+0269 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0270 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0271 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0272 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0273 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0274 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0275 <span class="comment">%</span>
+0276 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0277 <span class="comment">% copies or substantial portions of the Software.</span>
+0278 <span class="comment">%</span>
+0279 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0280 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0281 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0282 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0283 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0284 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0285 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

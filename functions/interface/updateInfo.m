@@ -98,13 +98,18 @@ if showit
                         end
                         
                 end
-                info{end+1,1} = ['<HTML><BODY>noise&nbsp= ',sprintf('%4.2e',nmrproc.noise),'</BODY></HTML>'];
+                info{end+1,1} = ['<HTML><BODY>noise&nbsp= ',sprintf('%4.3f',nmrproc.noise),'</BODY></HTML>'];
                 info{end+1,1} = ' ';
                 
                 % possible inversion results/statistics
                 if isfield(data.results,'invstd')
                     invstd = data.results.invstd;
                     invtype = data.invstd.invtype;
+                    hasUncert = false;
+                    if isfield(invstd,'uncert')
+                        hasUncert = true;
+                        uncert = invstd.uncert;
+                    end
                     
                     switch invtype
                         case 'mono'
@@ -112,21 +117,21 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.2e',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%4.2e',ciE0),')','</BODY></HTML>'];
+                                        sprintf('%5.3f',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%5.3f',ciE0),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.2e',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%4.2e',ciE0),')','</BODY></HTML>'];
+                                        sprintf('%5.3f',sum(invstd.E0)),...
+                                        ' &#8723 (',sprintf('%5.3f',ciE0),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
                                 if ~isnan(invstd.chi2)
-                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%4.2f',invstd.chi2)];
+                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%5.3f',invstd.chi2)];
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.3f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
 %                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
                             if nmrproc.noise ~= 0
@@ -139,24 +144,23 @@ if showit
                             switch nmrproc.T1T2
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.2e',sum(E0)),...
-                                        ' &#8723 (',sprintf('%4.2e',ciE0s),')','</BODY></HTML>'];
+                                        sprintf('%5.3f',sum(E0)),...
+                                        ' &#8723 (',sprintf('%5.3f',ciE0s),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.2e',sum(E0)),...
-                                        ' &#8723 (',sprintf('%4.2e',ciE0s),')','</BODY></HTML>'];
+                                        sprintf('%5.3f',sum(E0)),...
+                                        ' &#8723 (',sprintf('%5.3f',ciE0s),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
                                 if ~isnan(invstd.chi2)
-                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%4.2f',invstd.chi2)];
+                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%5.3f',invstd.chi2)];
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.3f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
-%                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
                             if nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
@@ -164,52 +168,77 @@ if showit
                         case {'LU','NNLS'}
                             switch nmrproc.T1T2
                                 case 'T1'
-                                    info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.2e',sum(invstd.E0)),'</BODY></HTML>'];
+                                    info{end+1,1} = ['<HTML><BODY color="rgb(',sprintf('%d,%d,%d',gui.myui.colors.FIT.*255),...
+                                        ')">E<sub>&infin</sub> = ',...
+                                        sprintf('%5.3f',sum(invstd.E0)),'</BODY></HTML>'];
                                 case 'T2'
-                                    info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.2e',sum(invstd.E0)),'</BODY></HTML>'];
+                                    info{end+1,1} = ['<HTML><BODY color="rgb(',sprintf('%d,%d,%d',gui.myui.colors.FIT.*255),...
+                                        ')">E<sub><font size="',num2str(subfs),'">0</sub> = ',...
+                                        sprintf('%5.3f',sum(invstd.E0)),'</BODY></HTML>'];
+                            end
+                            if hasUncert
+                                switch nmrproc.T1T2
+                                    case 'T1'
+                                        info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
+                                            sprintf('%5.3f',uncert.E0(1)),...
+                                            ' &#8723 (',sprintf('%5.3f',2*uncert.E0(2)),')','</BODY></HTML>'];
+                                    case 'T2'
+                                        info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
+                                            sprintf('%5.3f',uncert.E0(1)),...
+                                            ' &#8723 (',sprintf('%5.3f',2*uncert.E0(2)),')','</BODY></HTML>'];
+                                end
                             end
                             info{end+1,1} = ' ';
                             if isfield(invstd,'chi2')
                                 if ~isnan(invstd.chi2)
-                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%4.2f',invstd.chi2)];
+                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%5.3f',invstd.chi2)];
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.3f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
-                            %                             if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
                             if nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
                             
-                            info{end+1,1} = ['<HTML><BODY>&lambda = ',sprintf('%6.5f',invstd.lambda_out),'</BODY></HTML>'];
+                            info{end+1,1} = ['<HTML><BODY>&lambda = ',sprintf('%5.3f',invstd.lambda_out),'</BODY></HTML>'];
                             info{end+1,1} = ' ';
                         case {'MUMO'}
                             switch nmrproc.T1T2
                                 case 'T1'
-                                    info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
-                                        sprintf('%4.2e',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%4.2e',invstd.ciE0),')','</BODY></HTML>'];
+                                    info{end+1,1} = ['<HTML><BODY color="rgb(',sprintf('%d,%d,%d',gui.myui.colors.FIT.*255),...
+                                        ')">E<sub>&infin</sub> = ',...
+                                        sprintf('%5.3f',sum(invstd.E0)),'</BODY></HTML>'];
                                 case 'T2'
-                                    info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
-                                        sprintf('%4.2e',sum(invstd.E0)),...
-                                        ' &#8723 (',sprintf('%4.2e',invstd.ciE0),')','</BODY></HTML>'];
+                                    info{end+1,1} = ['<HTML><BODY color="rgb(',sprintf('%d,%d,%d',gui.myui.colors.FIT.*255),...
+                                        ')">E<sub><font size="',num2str(subfs),'">0</sub> = ',...
+                                        sprintf('%5.3f',sum(invstd.E0)),'</BODY></HTML>'];
+                            end
+                            if hasUncert
+                                switch nmrproc.T1T2
+                                    case 'T1'
+                                        info{end+1,1} = ['<HTML><BODY>E<sub>&infin</sub> = ',...
+                                            sprintf('%5.3f',uncert.E0(1)),...
+                                            ' &#8723 (',sprintf('%5.3f',2*uncert.E0(2)),')','</BODY></HTML>'];
+                                    case 'T2'
+                                        info{end+1,1} = ['<HTML><BODY>E<sub><font size="',num2str(subfs),'">0</sub> = ',...
+                                            sprintf('%5.3f',uncert.E0(1)),...
+                                            ' &#8723 (',sprintf('%5.3f',2*uncert.E0(2)),')','</BODY></HTML>'];
+                                end
                             end
                             info{end+1,1} = ' ';
                             
                             if isfield(invstd,'chi2')
                                 if ~isnan(invstd.chi2)
-                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%4.2f',invstd.chi2)];
+                                    str = ['&Chi<sup><font size="',num2str(subfs),'">2</sup> = ',sprintf('%5.3f',invstd.chi2)];
                                     info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                                 end
                             end
-                            str = ['RMS = ',sprintf('%4.2e',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
+                            str = ['RMS = ',sprintf('%5.3f',invstd.rms),' (',sprintf('%4.2f',invstd.rms*100./sum(invstd.E0)),'%)'];
                             info{end+1,1} = ['<HTML><BODY>',str,'</BODY></HTML>'];
                             
-                            % if strcmp(nmrproc.T1T2,'T2') && nmrproc.noise ~= 0
+                            
                             if nmrproc.noise ~= 0
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
@@ -226,9 +255,9 @@ if showit
                 info{end+1,1} = data.import.NMR.data{id}.date;
                 info{end+1,1} = ' ';
                 info{end+1,1} = ['<HTML><BODY>t_min &nbsp= ',...
-                    sprintf('%4.3e',data.results.nmrraw.t(1)),'</BODY></HTML>'];
+                    sprintf('%5.3e',data.results.nmrraw.t(1)),'</BODY></HTML>'];
                 info{end+1,1} = ['<HTML><BODY>t_max &nbsp= ',...
-                    sprintf('%4.3e',data.results.nmrraw.t(end)),'</BODY></HTML>'];
+                    sprintf('%5.3e',data.results.nmrraw.t(end)),'</BODY></HTML>'];
                 switch data.results.nmrproc.T1T2
                     case 'T1'
                         info{end+1,1} = ' ';
@@ -237,9 +266,9 @@ if showit
                             '</BODY></HTML>'];
                     case 'T2'
                         info{end+1,1} = ['<HTML><BODY>t_echo = ',...
-                            sprintf('%4.3e',data.results.nmrproc.echotime),'</BODY></HTML>'];
+                            sprintf('%5.3e',data.results.nmrproc.echotime),'</BODY></HTML>'];
                         info{end+1,1} = ['<HTML><BODY>t_dead = ',...
-                            sprintf('%4.3e',data.results.nmrproc.dead),'</BODY></HTML>'];
+                            sprintf('%5.3e',data.results.nmrproc.dead),'</BODY></HTML>'];
                         info{end+1,1} = ' ';
                         info{end+1,1} = ['<HTML><BODY>Echos &nbsp= ',...
                             sprintf('%d',length(data.results.nmrraw.t)),...
@@ -278,19 +307,19 @@ if showit
                     levels = invjoint.levels;
                     
                     % global fit error
-                    info{end+1,1} = ['ErrNorm: ',sprintf('%4.3e',invjoint.errnorm)];
-                    info{end+1,1} = ['RMS: ',sprintf('%4.3e',invjoint.rms)];
+                    info{end+1,1} = ['ErrNorm: ',sprintf('%5.3f',invjoint.errnorm)];
+                    info{end+1,1} = ['RMS: ',sprintf('%5.3f',invjoint.rms)];
                     info{end+1,1} = ['<HTML><BODY>&Chi<sup><font size="',num2str(subfs),'">2</sup>: ',...
-                        sprintf('%5.4f',invjoint.chi2),'</BODY></HTML>'];
+                        sprintf('%5.3f',invjoint.chi2),'</BODY></HTML>'];
                     info{end+1,1}  = ' ';
                     info{end+1,1}  = '-----';
                     info{end+1,1}  = ' ';
                     
                     for i = 1:numel(levels)
                         info{end+1,1} = nmr{levels(i)}.name;
-                        info{end+1,1} = ['RMS: ',sprintf('%4.3e',nmr{levels(i)}.rms)];
+                        info{end+1,1} = ['RMS: ',sprintf('%5.3f',nmr{levels(i)}.rms)];
                         info{end+1,1} = ['<HTML><BODY>&Chi<sup><font size="',num2str(subfs),'">2</sup>: ',...
-                            sprintf('%5.4f',nmr{levels(i)}.chi2),'</BODY></HTML>'];
+                            sprintf('%5.3f',nmr{levels(i)}.chi2),'</BODY></HTML>'];
                         info{end+1,1} = ' ';
                     end
                 end
@@ -309,6 +338,11 @@ if showit
                     nmrproc = data.results.nmrproc;
                     invstd = data.results.invstd;
                     invtype = data.invstd.invtype;
+                    hasUncert = false;
+                    if isfield(invstd,'uncert')
+                        hasUncert = true;
+                        uncert = invstd.uncert;
+                    end
                     
                     switch invtype
                         case 'mono'
@@ -326,13 +360,13 @@ if showit
                                 case 'T1'
                                     info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
                                 sprintf('%d,%d,%d',col),')">T<sub><font size="',num2str(subfs),'">1</sub> = ',...
-                                        sprintf('%5.4f',invstd.T1),...
-                                        ' &#8723 (',sprintf('%5.4f',ciT),')','</BODY></HTML>'];
+                                        sprintf('%5.3f',invstd.T1),...
+                                        ' &#8723 (',sprintf('%5.3f',ciT),')','</BODY></HTML>'];
                                 case 'T2'
                                     info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
                                 sprintf('%d,%d,%d',col),')">T<sub><font size="',num2str(subfs),'">2</sub> = ',...
-                                        sprintf('%5.4f',invstd.T2),...
-                                        ' &#8723 (',sprintf('%5.4f',ciT),')','</BODY></HTML>'];
+                                        sprintf('%5.3f',invstd.T2),...
+                                        ' &#8723 (',sprintf('%5.3f',ciT),')','</BODY></HTML>'];
                             end
                             info{end+1,1} = ' ';
                             
@@ -361,10 +395,10 @@ if showit
                                 end
 
                                 info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
-                                sprintf('%d,%d,%d',col),')">T(',num2str(i),') = ',sprintf('%5.4f',T(i)),...
-                                    ' &#8723 (',sprintf('%5.4f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
-                                info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.4f',E0(i)),...
-                                    ' &#8723 (',sprintf('%5.4f',ciE0(i)),')','</BODY></HTML>'];
+                                sprintf('%d,%d,%d',col),')">T(',num2str(i),') = ',sprintf('%5.3f',T(i)),...
+                                    ' &#8723 (',sprintf('%5.3f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
+                                info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.3f',E0(i)),...
+                                    ' &#8723 (',sprintf('%5.3f',ciE0(i)),')','</BODY></HTML>'];
                                 info{end+1,1} = ' ';
                             end
                             
@@ -375,7 +409,12 @@ if showit
                             info{end+1,1} = ' ';
                             
                             % TLGM
-                            info{end+1,1} = ['<HTML><BODY>TLGM</sub> = ',sprintf('%5.4f',invstd.Tlgm),'</BODY></HTML>'];
+                            info{end+1,1} = ['<HTML><BODY color="rgb(',sprintf('%d,%d,%d',gui.myui.colors.FIT.*255),...
+                                ')">TLGM</sub> = ',sprintf('%5.3f',invstd.Tlgm),'</BODY></HTML>'];
+                            if hasUncert
+                                info{end+1,1} = ['<HTML><BODY>TLGM</sub> = ',sprintf('%5.3f',uncert.Tlgm(1)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*uncert.Tlgm(2)),')','</BODY></HTML>'];                                
+                            end
                             info{end+1,1} = ' ';
                             
                             % clay-bound water CBW < tcut ms
@@ -408,7 +447,12 @@ if showit
                             info{end+1,1} = ' ';
                             
                             % TLGM
-                            info{end+1,1} = ['<HTML><BODY>TLGM</sub> = ',sprintf('%5.4f',invstd.Tlgm),'</BODY></HTML>'];
+                            info{end+1,1} = ['<HTML><BODY color="rgb(',sprintf('%d,%d,%d',gui.myui.colors.FIT.*255),...
+                                ')">TLGM</sub> = ',sprintf('%5.3f',invstd.Tlgm),'</BODY></HTML>'];
+                            if hasUncert
+                                info{end+1,1} = ['<HTML><BODY>TLGM</sub> = ',sprintf('%5.3f',uncert.Tlgm(1)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*uncert.Tlgm(2)),')','</BODY></HTML>'];                                
+                            end
                             info{end+1,1} = ' ';
                             
                             % clay-bound water CBW < tcut ms
@@ -443,12 +487,12 @@ if showit
                             ciT = T - exp(tmpT);
                             
                             for i = 1:length(T)
-                                info{end+1,1} = ['<HTML><BODY>T(',num2str(i),') = ',sprintf('%5.4f',T(i)),...
-                                    ' &#8723 (',sprintf('%5.4f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
-                                info{end+1,1} = ['<HTML><BODY>S(',num2str(i),') = ',sprintf('%5.4f',S(i)),...
-                                    ' &#8723 (',sprintf('%5.4f',ciS(i)),')','</BODY></HTML>'];
-                                info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.4f',E(i)),...
-                                    ' &#8723 (',sprintf('%5.4f',ciE(i)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>T(',num2str(i),') = ',sprintf('%5.3f',T(i)),...
+                                    ' &#8723 (',sprintf('%5.3f',ciT(i)),')','</BODY></HTML>']; %#ok<*AGROW>
+                                info{end+1,1} = ['<HTML><BODY>S(',num2str(i),') = ',sprintf('%5.3f',S(i)),...
+                                    ' &#8723 (',sprintf('%5.3f',ciS(i)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>E(',num2str(i),') = ',sprintf('%5.3f',E(i)),...
+                                    ' &#8723 (',sprintf('%5.3f',ciE(i)),')','</BODY></HTML>'];
                                 info{end+1,1} = ' ';
                             end
                     end
@@ -469,17 +513,17 @@ if showit
                     switch data.invjoint.geometry_type
                         case 'cyl'
                             info{end+1,1} = ['Shape: ',data.invjoint.geometry_type];
-                            info{end+1,1} = ['Geom.: ',sprintf('%4.2f',invjoint.iGEOM.a)];
+                            info{end+1,1} = ['Geom.: ',sprintf('%5.3f',invjoint.iGEOM.a)];
                         case 'ang'
                             info{end+1,1} = ['Shape: ',data.invjoint.geometry_type,' ',...
                                 num2str(invjoint.iGEOM.angles(1)),' ',...
                                 num2str(invjoint.iGEOM.angles(2)),' ',...
                                 num2str(invjoint.iGEOM.angles(3))];
-                            info{end+1,1} = ['Geom.: ',sprintf('%4.2f',invjoint.iGEOM.a)];
+                            info{end+1,1} = ['Geom.: ',sprintf('%5.3f',invjoint.iGEOM.a)];
                         case 'poly'
                             info{end+1,1} = ['Shape: ',data.invjoint.geometry_type,...
                                 ' ',num2str(data.invjoint.polyN),' sides'];
-                            info{end+1,1} = ['Geom.: ',sprintf('%4.2f',invjoint.iGEOM.a)];
+                            info{end+1,1} = ['Geom.: ',sprintf('%5.3f',invjoint.iGEOM.a)];
                     end
                     info{end+1,1} = ' ';
                     info{end+1,1} = ['rho (INV): ',sprintf('%5.3f',invjoint.irho*1e6),' [µm/s]'];
@@ -508,18 +552,18 @@ if showit
                 for i = 1:numel(levels)
                     info{end+1,1} = nmr{levels(i)}.name;
                     info{end+1,1} = ['press. : ',...
-                        sprintf('%5.4f',invjoint.p0(levels(i))*data.pressure.unitfac),...
+                        sprintf('%5.3f',invjoint.p0(levels(i))*data.pressure.unitfac),...
                         ' [',data.pressure.unit,']'];
                     switch invjoint.T1T2
                         case 'T1'
                             info{end+1,1} = ['sat. (INV) : ',...
-                                sprintf('%4.2f',invjoint.idata.nmr{levels(i)}.fit_g(end))];
+                                sprintf('%5.3f',invjoint.idata.nmr{levels(i)}.fit_g(end))];
                         case 'T2'
                             info{end+1,1} = ['sat. (INV) : ',...
-                                sprintf('%4.2f',invjoint.idata.nmr{levels(i)}.fit_g(1))];
+                                sprintf('%5.3f',invjoint.idata.nmr{levels(i)}.fit_g(1))];
                     end
                     info{end+1,1} = ['sat. (MOD) : ',...
-                        sprintf('%4.2f',invjoint.S0(levels(i)))];
+                        sprintf('%5.3f',invjoint.S0(levels(i)))];
                     info{end+1,1} = ' ';
                 end
             end

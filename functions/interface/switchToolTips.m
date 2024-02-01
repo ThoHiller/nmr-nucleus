@@ -60,7 +60,7 @@ switch lower(onoff)
                     eval(['ud = get(gui.',h{i},'.',fnames{j},...
                         ',''UserData'');']);
                     if isfield(ud,'Tooltipstr')
-                        tstr = ud.Tooltipstr;
+                        % tstr = ud.Tooltipstr;
                         eval(['set(gui.',h{i},'.',fnames{j},...
                             ',''ToolTipString'','''');']);
                     end

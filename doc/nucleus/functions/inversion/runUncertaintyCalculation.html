@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of runUncertaintyCalculation</title>
+  <meta name="keywords" content="runUncertaintyCalculation">
+  <meta name="description" content=" caluclates inverison statistics in some kind of">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>runUncertaintyCalculation
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> caluclates inverison statistics in some kind of</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function runUncertaintyCalculation </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">runUncertaintyCalculation caluclates inverison statistics in some kind of
+bootstrapping manner
+
+ Syntax:
+       runUncertaintyCalculation
+
+ Inputs:
+       none
+
+ Outputs:
+       none
+
+ Example:
+       runUncertaintyCalculation
+
+ Other m-files required:
+       estimateUncertainty.m
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>	 updates the information shown in all information list boxes</li><li><a href="../../../nucleus/functions/interface/updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>	 plots the RTD and PSD curves into NUCLEUSinv</li><li><a href="../../../nucleus/functions/interface/updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>	 plots the raw and processed NMR signals in NUCLEUSinv</li><li><a href="estimateUncertainty.html" class="code" title="function [invstd,uncert] = estimateUncertainty(invtype,invstd,iparam,parameter)">estimateUncertainty</a>	 calculates pseudo uncertainty estimates for multi</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>	 handles the callbacks to all RUN push buttons in both GUIs and</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function runUncertaintyCalculation</a>
+0002 <span class="comment">%runUncertaintyCalculation caluclates inverison statistics in some kind of</span>
+0003 <span class="comment">%bootstrapping manner</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       runUncertaintyCalculation</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       none</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       none</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       runUncertaintyCalculation</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       estimateUncertainty.m</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       none</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% MAT-files required:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% See also: NUCLEUSinv</span>
+0027 <span class="comment">% Author: see AUTHORS.md</span>
+0028 <span class="comment">% email: see AUTHORS.md</span>
+0029 <span class="comment">% License: MIT License (at end)</span>
+0030 
+0031 <span class="comment">%------------- BEGIN CODE --------------</span>
+0032 
+0033 <span class="comment">%% get GUI handle and data</span>
+0034 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0035 gui = getappdata(fig,<span class="string">'gui'</span>);
+0036 data = getappdata(fig,<span class="string">'data'</span>);
+0037 INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0038 
+0039 <span class="comment">% id of the chosen NMR signal</span>
+0040 id = get(gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0041 
+0042 <span class="keyword">if</span> ~isempty(id) &amp;&amp; ~isempty(INVdata) &amp;&amp; isstruct(INVdata{id})
+0043     <span class="comment">% get original inversion data</span>
+0044     INVdata0 = INVdata{id};
+0045     invstd = INVdata0.results.invstd; <span class="comment">% results from original inversion</span>
+0046     invtype = INVdata0.invstd.invtype;
+0047 
+0048     <span class="comment">% original fit parameter</span>
+0049     iparam = invstd.invparams;
+0050 
+0051     <span class="comment">% uncertainty parameter</span>
+0052     uparam.id = id;
+0053     uparam.time = INVdata0.results.nmrproc.t;
+0054     uparam.signal = INVdata0.results.nmrproc.s;
+0055     <span class="comment">% can be set when switching the inversion method</span>
+0056     <span class="keyword">switch</span> invtype
+0057         <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
+0058             uparam.uncert.Method = <span class="string">'RMS_bound'</span>;
+0059         <span class="keyword">case</span> <span class="string">'MUMO'</span>
+0060             uparam.uncert.Method = <span class="string">'RMS_free'</span>;
+0061     <span class="keyword">end</span>
+0062     uparam.uncert.Thresh = data.uncert.Thresh;
+0063     uparam.uncert.chi2_range = [0 100];
+0064     uparam.uncert.mnorm_range = [0 1.5*invstd.xn];
+0065     uparam.uncert.N = data.uncert.N;
+0066     uparam.uncert.Max = data.uncert.Max;
+0067     invstd = <a href="estimateUncertainty.html" class="code" title="function [invstd,uncert] = estimateUncertainty(invtype,invstd,iparam,parameter)">estimateUncertainty</a>(invtype,invstd,iparam,uparam);
+0068 
+0069     <span class="comment">% save updated inversion results</span>
+0070     invstd.uncert.params = uparam;
+0071     data.results.invstd = invstd;
+0072     INVdata0.results.invstd = invstd;
+0073 
+0074     <span class="comment">% update INVdata</span>
+0075     INVdata{id} = INVdata0;
+0076     <span class="comment">% update GUI data</span>
+0077     setappdata(fig,<span class="string">'data'</span>,data);
+0078     <span class="comment">% update GUI INVdata</span>
+0079     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0080 
+0081     <span class="comment">% update plots and INFO fields</span>
+0082     <a href="../../../nucleus/functions/interface/updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
+0083     <a href="../../../nucleus/functions/interface/updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
+0084     <a href="../../../nucleus/functions/interface/updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);
+0085 <span class="keyword">else</span>
+0086     helpdlg(<span class="string">'Cannot start calculation because there is no suitable data!'</span>,<span class="keyword">...</span>
+0087         <span class="string">'Perform inversion first.'</span>);
+0088 <span class="keyword">end</span>
+0089 
+0090 <span class="keyword">end</span>
+0091 
+0092 <span class="comment">%------------- END OF CODE --------------</span>
+0093 
+0094 <span class="comment">%% License:</span>
+0095 <span class="comment">% MIT License</span>
+0096 <span class="comment">%</span>
+0097 <span class="comment">% Copyright (c) 2023 Thomas Hiller</span>
+0098 <span class="comment">%</span>
+0099 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0100 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0101 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0102 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0103 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0104 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0105 <span class="comment">%</span>
+0106 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0107 <span class="comment">% copies or substantial portions of the Software.</span>
+0108 <span class="comment">%</span>
+0109 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0110 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0111 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0112 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0113 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0114 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0115 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

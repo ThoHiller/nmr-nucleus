@@ -40,7 +40,8 @@ col = gui.myui.colors;
 isjoint = strcmp(get(gui.menu.extra_joint,'Checked'),'on');
 
 % proceed if there is data
-if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
+if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
+        isfield(data.results,'nmrproc')
     % get NMR data
     nmrraw = data.results.nmrraw;
     nmrproc = data.results.nmrproc;
@@ -121,7 +122,6 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axI);
         imag_mean = mean(imag(nmrraw.s));
         imag_std = std(imag(nmrraw.s));
-%         yticks = linspace(min(imag(nmrraw.s)),max(imag(nmrraw.s)),3);
         yticks = [imag_mean-imag_std*2 0 imag_mean+imag_std*2];
         ylim = [imag_mean-imag_std*3 imag_mean+imag_std*3];
         set(axI,'XTickLabel','','YLim',ylim,'YTick',yticks,'YTickLabelMode','auto');
@@ -147,22 +147,46 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     
     % data
     switch data.invstd.invtype
-        case {'MUMO'}
-            if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
-                % uncertainty patch created from min max of uncertainty
-                % data
-                s_min = data.results.invstd.uncert.interp_s_min;
-                s_max = data.results.invstd.uncert.interp_s_max;
-                t = data.results.invstd.uncert.interp_t;
-                verts = [t(t>0) s_min(t>0); flipud(t(t>0)) flipud(s_max(t>0))];
-                faces = 1:1:size(verts,1);
-                patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                    'FaceAlpha',0.75,'EdgeColor','none','Parent',ax);
-            end
-            
+        case {'LU','NNLS','MUMO'}            
             if isfield(data.results,'invstd')
-                plot(nmrproc.t,nmrproc.s,'-','Color',col.RE,'LineWidth',1,'Parent',ax);
-                plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,'Parent',ax);
+                if isfield(data.results.invstd,'uncert')
+                    uncert = data.results.invstd.uncert;
+                    t = uncert.interp_t;
+                    SDIST = uncert.interp_s;
+                    switch data.info.RTDuncert
+                        case 'lines'
+                            plot(t,SDIST(:,1),'-','Color',[0.5 0.5 0.5],...
+                                'LineWidth',1,...
+                                'DisplayName','uncert models','Parent',ax);
+                            plot(t,SDIST(:,2:end),'-','Color',[0.5 0.5 0.5],...
+                                'LineWidth',1,'HandleVisibility','off',...
+                                'Tag','infolines','Parent',ax);
+                        case 'patch'
+                            % uncertainty patch created from min max of uncertainty
+                            % data
+                            s_min = data.results.invstd.uncert.interp_s_min;
+                            s_max = data.results.invstd.uncert.interp_s_max;
+                            t = data.results.invstd.uncert.interp_t;
+                            verts = [t(t>0) s_min(t>0); flipud(t(t>0)) flipud(s_max(t>0))];
+                            faces = 1:1:size(verts,1);
+                            patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                                'FaceAlpha',0.75,'EdgeColor','none',...
+                                'DisplayName','uncert','Parent',ax);
+                    end
+
+                end
+                if nmrproc.isgated
+                    plot(data.results.nmrraw.t,data.results.nmrraw.s,'o',...
+                        'Color',[0.64 0.64 0.64],'LineWidth',0.75,...
+                        'DisplayName','signal_{raw}','Parent',ax);
+                    plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',0.75,...
+                        'DisplayName','signal_{gated}','Parent',ax);
+                else
+                    plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',0.75,...
+                        'DisplayName','signal','Parent',ax);
+                end                
+                plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,...
+                    'DisplayName','fit','Parent',ax);
                 if nmrproc.noise > 0
                     plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',col.IM,...
                         'LineWidth',1,'Parent',axE);
@@ -171,21 +195,39 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
                         'LineWidth',1,'Parent',axE);
                 end
             else
-                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
+                if nmrproc.isgated
+                    plot(data.results.nmrraw.t,data.results.nmrraw.s,'o',...
+                        'Color',[0.64 0.64 0.64],'LineWidth',0.75,...
+                        'DisplayName','signal_{raw}','Parent',ax);
+                    plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',0.75,...
+                        'DisplayName','signal_{gated}','Parent',ax);
+                else
+                    plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',0.75,...
+                        'DisplayName','signal','Parent',ax);
+                end                
             end
-        otherwise            
+
+        otherwise % mono & free
+            if nmrproc.isgated
+                plot(data.results.nmrraw.t,data.results.nmrraw.s,'o',...
+                    'Color',[0.64 0.64 0.64],'LineWidth',0.75,...
+                    'DisplayName','signal_{raw}','Parent',ax);
+                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,...
+                    'DisplayName','signal_{gated}','Parent',ax);
+            else
+                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,...
+                    'DisplayName','signal','Parent',ax);
+            end
             if isfield(data.results,'invstd')
-                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
-                plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,'Parent',ax);
+                plot(invstd.fit_t,invstd.fit_s,'Color',col.FIT,'LineWidth',2,...
+                    'DisplayName','fit','Parent',ax);
                 if nmrproc.noise > 0
                     plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',col.IM,...
                         'LineWidth',1,'Parent',axE);
                 else
                     plot(nmrproc.t,invstd.residual,'Color',col.IM,...
                         'LineWidth',1,'Parent',axE);
-                end
-            else
-                plot(nmrproc.t,nmrproc.s,'o','Color',col.RE,'LineWidth',1,'Parent',ax);
+                end        
             end
     end
     
@@ -199,6 +241,17 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
         case 'x-axis -> log' % lin axes
             set(ax,'XScale','lin','XLim',xlimraw,'XTickMode','auto');
     end
+    xlims = xlimraw;
+    switch nmrproc.T1T2
+        case 'T1'
+            if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
+                xlims(2) = max([xlimraw(2) max(data.results.invstd.uncert.interp_t)/2]);
+            end
+            set(ax,'XLim',xlims);
+            set(gui.axes_handles.raw,'XLim',xlims);
+            set(gui.axes_handles.imag,'XLim',xlims);            
+        case 'T2' 
+    end
     logliny = get(gui.cm_handles.axes_proc_yaxis,'Label');
     switch nmrproc.T1T2
         case 'T1'
@@ -207,6 +260,9 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
             if isfield(data.results,'invstd')
                 ymin = min([ymin min(invstd.residual)]);
                 ymax = max([ymax max(data.results.invstd.fit_s)]);
+                if isfield(data.results.invstd,'uncert')
+                    ymax = max([ymax max(data.results.invstd.uncert.interp_s(:))]);
+                end
             end
             if ymin>0
                 ymin = ymin*0.8;
@@ -228,6 +284,9 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
             if isfield(data.results,'invstd')
                 ymin = min([ymin min(invstd.residual)]);
                 ymax = max([ymax max(data.results.invstd.fit_s)]);
+                if isfield(data.results.invstd,'uncert')
+                    ymax = max([ymax max(data.results.invstd.uncert.interp_s(:))]);
+                end
             end
             switch logliny
                 case 'y-axis -> lin' % log axes
@@ -254,21 +313,12 @@ if isfield(data.results,'nmrraw') && isfield(data.results,'nmrproc')
     
     % legend
     if isfield(data.results,'invstd')
-        if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
-            lgdstr = {'uncert','signal','fit'};
-        else
-            lgdstr = {'signal','fit'};
-        end
-%         switch data.invstd.invtype
-%             case {'MUMO','NNLS'}
-%             otherwise
-%         end
         switch nmrproc.T1T2
             case 'T1'
-                lgh = legend(ax,lgdstr,'Location','NorthWest',...
+                lgh = legend(ax,'Location','NorthWest',...
                     'Tag','fitlegend','FontSize',10);
             case 'T2'
-                lgh = legend(ax,lgdstr,'Location','NorthEast',...
+                lgh = legend(ax,'Location','NorthEast',...
                     'Tag','fitlegend','FontSize',10);
         end
         set(lgh,'TextColor',gui.myui.colors.panelFG);

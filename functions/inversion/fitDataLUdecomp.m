@@ -189,6 +189,8 @@ fitdata.KK = K;
 fitdata.L = L;
 fitdata.xn = xn;
 fitdata.rn = rn;
+fitdata.invtype = 'LU';
+fitdata.invparams = parameter;
 
 return
 

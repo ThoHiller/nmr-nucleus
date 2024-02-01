@@ -29,10 +29,11 @@ function version = getVersionNoFromString(version_str)
 
 %------------- BEGIN CODE --------------
 
-% remove points
-version_str = strrep(version_str,'.','');
+% find first point
+idx = strfind(version_str,'.');
+version_str = version_str(idx(1)+1:end);
 % convert string to numeric value
-version = str2double(version_str);
+version = str2double(version_str)*100;
 
 end
 

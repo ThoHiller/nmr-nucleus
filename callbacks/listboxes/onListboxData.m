@@ -99,6 +99,7 @@ if isfield(data.import,'NMR')
             data = removeInversionFields(data);
             
             % set format and T1/T2 dependent GUI elements
+            data.process.isgated = false;
             switch data.import.NMR.data{id}.flag
                 case 'T1'
                     data.process.gatetype = 'raw';
@@ -177,6 +178,8 @@ if isfield(data.import,'NMR')
             % clear inversion axes
             clearSingleAxis(gui.axes_handles.rtd);
             clearSingleAxis(gui.axes_handles.psd);
+            % switch-off uncert context menu
+            set(gui.cm_handles.axes_rtd_uncert,'Enable','off');
         end
         
         % set focus on data

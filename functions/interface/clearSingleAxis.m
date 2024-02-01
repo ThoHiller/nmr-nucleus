@@ -43,6 +43,9 @@ if ~isempty(ph); set(ph,'HandleVisibility','on'); end
 ph = findall(axh,'Tag','fits');
 if ~isempty(ph); set(ph,'HandleVisibility','on'); end
 
+ph = findall(axh,'Tag','infolines');
+if ~isempty(ph); set(ph,'HandleVisibility','on'); end
+
 %% clear the axis itself
 cla(axh);
 

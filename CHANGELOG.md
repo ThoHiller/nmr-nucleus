@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.0] - 2024-02-01
+
+### Added
+- New functionality to estimate the uncertainty of relaxation time distributions (RTDs) by using a simple bootstrapping method
+- New sub GUI *UncertView* in **NUCLEUSinv** to process and evaluate the uncertainty data
+
+### Fixed
+ - Fixed an issue when importing **NUCLEUSinv** session files older than version v.0.1.14 (there is a new general *T* field for *mono* and *N free exp. (2-5)* inversion results which was not initialized)
+- Several minor improvements in GUI handling, usability and visualization.
+
 ## [0.1.14] - 2023-09-27
 
 ### Added
@@ -190,6 +200,7 @@
 
 Initial Version
 
+[0.2.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.14...v.0.2.0
 [0.1.14]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.13...v.0.1.14
 [0.1.13]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.12...v.0.1.13
 [0.1.12]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.11...v.0.1.12

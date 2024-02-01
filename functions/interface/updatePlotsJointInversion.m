@@ -40,7 +40,7 @@ data = getappdata(fig,'data');
 col = gui.myui.colors;
 
 % proceed only if there is data
-if isfield(data.results,'invjoint')
+if isfield(data,'results') && isfield(data.results,'invjoint')
     % get al relevant data
     invjoint = data.results.invjoint;
     nmr = invjoint.idata.nmr;

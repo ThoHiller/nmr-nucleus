@@ -55,9 +55,9 @@ end
 xx = get(ax,'XLim');
 yy = get(ax,'YLim');
 line([CBW CBW],[yy(1) yy(2)],'Color',col,'LineStyle','--',...
-    'LineWidth',2,'Parent',ax,'Tag','infolines');
+    'LineWidth',2,'Parent',ax,'Tag','infolines','HandleVisibility','off');
 line([BVI BVI],[yy(1) yy(2)],'Color',col,'LineStyle','--',...
-    'LineWidth',2,'Parent',ax,'Tag','infolines');
+    'LineWidth',2,'Parent',ax,'Tag','infolines','HandleVisibility','off');
 
 if CBW > xx(1)
     xx1 = mean([log10(xx(1)) log10(CBW)]);
@@ -103,9 +103,9 @@ end
 xx = get(ax,'XLim');
 yy = get(ax,'YLim');
 line([fast fast],[yy(1) yy(2)],'Color',col,'LineStyle','--',...
-    'LineWidth',2,'Parent',ax,'Tag','infolines');
+    'LineWidth',2,'Parent',ax,'Tag','infolines','HandleVisibility','off');
 line([slow slow],[yy(1) yy(2)],'Color',col,'LineStyle','--',...
-    'LineWidth',2,'Parent',ax,'Tag','infolines');
+    'LineWidth',2,'Parent',ax,'Tag','infolines','HandleVisibility','off');
 
 if fast > xx(1)
     xx2 = mean([log10(xx(1)) log10(fast)]);

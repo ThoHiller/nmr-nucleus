@@ -54,6 +54,9 @@ gui.panels.invstd.HBox5 = uix.HBox('Parent',gui.panels.invstd.VBox,...
 % RUN button
 gui.panels.invstd.HBox6 = uix.HBox('Parent',gui.panels.invstd.VBox,...
     'Spacing',3);
+% RTD uncertainty
+gui.panels.invstd.HBox7 = uix.HBox('Parent',gui.panels.invstd.VBox,...
+    'Spacing',3);
 
 %% inversion method
 gui.text_handles.invstd_InvType = uicontrol('Parent',gui.panels.invstd.HBox1,...
@@ -168,6 +171,21 @@ gui.push_handles.invstd_run = uicontrol('Parent',gui.panels.invstd.HBox6,'Enable
     'Tag','std','UserData',1,'Callback',@onPushRun);
 set(gui.panels.invstd.HBox6,'Widths',[200 -1]);
 
+%% RTD uncertainty
+gui.text_handles.uncert = uicontrol('Parent',gui.panels.invstd.HBox7,...
+    'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
+    'String','RTD uncertainty | # models');
+tstr = 'Number of uncertainty models to calculate.';
+gui.edit_handles.uncert_N = uicontrol('Parent',gui.panels.invstd.HBox7,...
+    'Style','edit','String',num2str(data.uncert.N),...
+    'UserData',struct('Tooltipstr',tstr,'defaults',[data.uncert.N 1 1]),...
+    'Tag','uncert_N','FontSize',myui.fontsize,...
+    'Enable','off','Callback',@onEditValue);
+gui.push_handles.uncert = uicontrol('Parent',gui.panels.invstd.HBox7,'Enable','off',...
+    'String','CALC.','FontSize',myui.fontsize,'BackGroundColor','g',...
+    'Tag','uncert','UserData',1,'Callback',@onPushRun);
+set(gui.panels.invstd.HBox7,'Widths',[200 -1 -1]);
+
 %% Java Hack to adjust vertical alignment of text fields
 jh = findjobj(gui.text_handles.invstd_InvType);
 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
@@ -180,6 +198,8 @@ jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
 jh = findjobj(gui.text_handles.invstd_lambda);
 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
 jh = findjobj(gui.text_handles.invstd_run);
+jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+jh = findjobj(gui.text_handles.uncert);
 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
 
 return

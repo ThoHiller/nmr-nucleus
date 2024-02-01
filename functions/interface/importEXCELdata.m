@@ -155,18 +155,70 @@ if sum([EXCELpath EXCELfile]) > 0
                 % the NMR data
                 data.import.NMR.data{c}.flag = T1T2;
                 data.import.NMR.data{c}.time = num(:,1);
-                if size(num,2)>2                    
-                    tmp_signal = complex(num(:,2),num(:,3));
-                    [tmp_signal,tmp_phase] = rotateT2phase(tmp_signal);
-                    data.import.NMR.data{c}.signal = tmp_signal;
-                    data.import.NMR.data{c}.phase = tmp_phase;                    
-                else
-                    data.import.NMR.data{c}.signal = num(:,2);
+                % switch between T1 and T2 data
+                switch T1T2
+                    case 'T1'
+                        data.import.NMR.data{c}.signal = num(:,2);
+                        data.import.NMR.data{c}.phase = 0;
+
+                        % try saturation recovery first
+                        param.T1IRfac = 1;
+                        param.noise = 0;
+                        param.optim = 'off';
+                        param.Tfixed_bool = [0 0 0 0 0];
+                        param.Tfixed_val = [0 0 0 0 0];
+                        invstd1 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                            data.import.NMR.data{c}.flag,param,5);
+
+                        % now inversion recovery
+                        param.T1IRfac = 2;
+                        param.noise = 0;
+                        param.optim = 'off';
+                        param.Tfixed_bool = [0 0 0 0 0];
+                        param.Tfixed_val = [0 0 0 0 0];
+                        invstd2 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                            data.import.NMR.data{c}.flag,param,5);
+
+                        % compare the residuals
+                        if invstd1.resnorm < invstd2.resnorm
+                            % data is possibly saturation recovery
+                            invstd = invstd1;
+                            T1IRfac = 1;
+                        else
+                            % data is possibly inversion recovery
+                            invstd = invstd2;
+                            T1IRfac = 2;
+                        end
+                        % save the "dummy" RMS as noise estimate
+                        data.import.NMR.data{c}.noise = invstd.rms;
+                    case 'T2'
+                        T1IRfac = 1;
+                        if size(num,2)>2
+                            tmp_signal = complex(num(:,2),num(:,3));
+                            [tmp_signal,tmp_phase] = rotateT2phase(tmp_signal);
+                            data.import.NMR.data{c}.signal = tmp_signal;
+                            data.import.NMR.data{c}.phase = tmp_phase;
+                        else
+                            data.import.NMR.data{c}.signal = num(:,2);
+                            data.import.NMR.data{c}.phase = 0;
+                            
+                            % noise estimate
+                            param.T1IRfac = 1;
+                            param.noise = 0;
+                            param.optim = 'off';
+                            param.Tfixed_bool = [0 0 0 0 0];
+                            param.Tfixed_val = [0 0 0 0 0];
+                            invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                                data.import.NMR.data{c}.flag,param,5);
+                            % save the "dummy" RMS as noise estimate
+                            data.import.NMR.data{c}.noise = invstd.rms;
+                        end
+
                 end
-                data.import.NMR.data{c}.T1IRfac = 1;
+                data.import.NMR.data{c}.T1IRfac = T1IRfac;
                 data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
                 data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-                
+
                 % dummy parameter data
                 data.import.NMR.para{c} = 0;
             end            

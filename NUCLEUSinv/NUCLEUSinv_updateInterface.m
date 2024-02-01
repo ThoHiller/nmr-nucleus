@@ -86,6 +86,11 @@ switch data.info.ExpertMode
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','off',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','off');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
@@ -108,6 +113,11 @@ switch data.info.ExpertMode
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','off',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','off');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
@@ -148,7 +158,12 @@ switch data.info.ExpertMode
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,data.invstd.time,...
                     data.invstd.Ntime);
-                
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','on',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','on');
+
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
                     'String',num2str(data.invstd.Tbulk));
@@ -180,6 +195,11 @@ switch data.info.ExpertMode
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,data.invstd.time,...
                     data.invstd.Ntime);
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','on',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','on');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
@@ -208,6 +228,11 @@ switch data.info.ExpertMode
                 % lambda, smoothness constraint and RTD limits
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','on',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','on');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...
@@ -570,6 +595,11 @@ switch data.info.ExpertMode
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','off',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','off');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
@@ -586,12 +616,17 @@ switch data.info.ExpertMode
                     'Value',data.invstd.freeDT,...
                     'String',{'1','2','3','4','5'});
                 set(gui.text_handles.invstd_InvTypeOpt,...
-                    'String','No. of relaxation decay times T');
+                    'String','No. of free relaxation times T');
                 
                 % lambda, smoothness constraint and RTD limits
                 gui = updateLambda(gui,data.invstd.regtype,0,0,0);
                 gui = updateLorder(gui,data.invstd.invtype,data.invstd.Lorder);
                 gui = updateInvstdTime(gui,data.invstd.invtype,0,0);
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','off',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','off');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','off',...
@@ -631,6 +666,11 @@ switch data.info.ExpertMode
                     'String',num2str(data.invstd.time(2)));
                 set(gui.edit_handles.invstd_Ntime,'Enable','off',...
                     'String',num2str(data.invstd.Ntime));
+
+                % RTD uncertainty
+                set(gui.edit_handles.uncert_N,'Enable','on',...
+                    'String',num2str(data.uncert.N));
+                set(gui.push_handles.uncert,'Enable','on');
                 
                 % Tbulk & Tdiff
                 set(gui.edit_handles.invstd_Tbulk,'Enable','on',...

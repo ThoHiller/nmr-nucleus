@@ -40,16 +40,7 @@ switch importtype
     case {'ASCII','EXCEL','MOD'}
         % process panel
         data.process.end = 0;
-        data.process.gatetype = 'raw';
-        data.process.norm = 0;
-        data.process.timescale = 's';
-        data.process.timefac = 1;
-        % invstd panel
-        data.invstd.invtype = 'NNLS';
-        data.invstd.regtype = 'manual';
-        data.invstd.lambda = 1;
-        data.invstd.Lorder = 1;
-        set(gui.push_handles.invstd_run,'Enable','on');
+        data.process.gatetype = 'raw';       
     case 'NMR'
         % process panel
         data.process.end = 0;
@@ -59,16 +50,19 @@ switch importtype
             otherwise
                 data.process.gatetype = 'log';
         end
-        data.process.norm = 0;
-        data.process.timescale = 's';
-        data.process.timefac = 1;
-        % invstd panel
-        data.invstd.invtype = 'NNLS';
-        data.invstd.regtype = 'manual';
-        data.invstd.lambda = 1;
-        data.invstd.Lorder = 1;
-        set(gui.push_handles.invstd_run,'Enable','on');
 end
+
+% process panel - contd
+data.process.norm = 0;
+data.process.timescale = 's';
+data.process.timefac = 1;
+
+% invstd panel
+data.invstd.invtype = 'NNLS';
+data.invstd.regtype = 'manual';
+data.invstd.lambda = 1;
+data.invstd.Lorder = 1;
+set(gui.push_handles.invstd_run,'Enable','on');
 
 % petro panel
 data.param.calibVol = 1;

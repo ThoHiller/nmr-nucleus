@@ -118,11 +118,11 @@ gui.panels.invjoint.main = uix.BoxPanel('Parent',gui.panels.main,...
     'TitleColor',myui.colors.BoxCPS,'ForegroundColor',myui.colors.BoxTitle);
 
 % adjust the heights of all left-column-panels
-myui.heights = [250 22 22 22 22; -1 109 165 190 299];
+myui.heights = [250 22 22 22 22; -1 109 165 221 299];
 % panel header is always 22 high
 set(gui.panels.main,'Heights',myui.heights(2,:),...
     'MinimumHeights',[250 22 22 22 22]);
-set(gui.left,'Heights',-1,'MinimumHeights',250+109+22+190+22);
+set(gui.left,'Heights',-1,'MinimumHeights',250+109+22+221+22);
 
 % 1. data panel
 if wbon

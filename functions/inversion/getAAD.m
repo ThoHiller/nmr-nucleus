@@ -1,22 +1,22 @@
-function processNMRDataControl(fig,id)
-%processNMRDataControl prepares simple NMR raw data processing 
-%(eg. re-sampling, normalizing, etc.
+function aad = getAAD(x,flag,dim)
+%getAAD gets the average absolute deviation from the values in x
 %
 % Syntax:
-%       processNMRDataControl(fig,id)
+%       getAAD(x,flag)
 %
 % Inputs:
-%       fig - NUCLEUSinv GUI handle
-%       id - selected NMR signal
+%       x - values
+%       flag - '0' (mean) or '1' (median)
+%       dim - to calculate aad on
 %
 % Outputs:
-%       none
+%       aad - average absolute deviation
 %
 % Example:
-%       processNMRDataControl(gcf,1)
+%       aad = getAAD(TLGMvals,1)
 %
 % Other m-files required:
-%       processNMRData
+%       none
 %
 % Subfunctions:
 %       none
@@ -24,59 +24,64 @@ function processNMRDataControl(fig,id)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSinv, NUCLEUSmod
+% See also:
 % Author: see AUTHORS.md
 % email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
-%% get GUI data
-data = getappdata(fig,'data');
-
-% the current data set
-nmrdata = data.import.NMR.data{id};
-
-% the raw data
-nmrraw.t = nmrdata.time;
-nmrraw.s = nmrdata.signal;
-if strcmp(nmrdata.flag,'T2')
-    nmrraw.phase = nmrdata.phase;
+%% check for Statistics Toolbox
+Mver = ver;
+hasStatBox = false;
+for i = 1:size(Mver,2)
+    if strfind(Mver(i).Name,'Statistics')
+        hasStatBox = true;
+        break
+    end
 end
 
-% check if noise was calculated / estimated during import
-% this value is used here
-if isfield(nmrdata,'noise')
-    nmrraw.noise = nmrdata.noise;
+% check flag
+if nargin < 2 || isempty(flag)
+    flag = 0;
 end
 
-% gather all processing parameter
-nmrproc.T1T2 = nmrdata.flag;
-nmrproc.T1IRfac = nmrdata.T1IRfac;
-nmrproc.timefac = data.process.timefac;
-nmrproc.start = data.process.start;
-nmrproc.end = data.process.end;
-nmrproc.norm = data.process.norm;
-nmrproc.isgated = data.process.isgated;
-nmrproc.gatetype = data.process.gatetype;
-nmrproc.Nechoes = data.process.Nechoes;
-
-[nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc);
-data.results.nmrraw = nmrraw;
-data.results.nmrproc = nmrproc;
-data.process.normfac = nmrproc.normfac;
-
-% update GUI data
-setappdata(fig,'data',data);
-
+% check dim
+if nargin < 3 || isempty(dim)
+    % get dimension
+    dim = find(size(x)~=1,1);
+    if isempty(dim)
+        dim = 1;
+    end
 end
+
+%% calculate AAD
+if hasStatBox
+    % use Statistics Toolbox built-in function 'mad'
+    aad = mad(x,flag,dim);
+else
+    % get rid of NaNs and Infs 
+    x(isnan(x)) = [];
+    x(isinf(x)) = [];
+    if flag == 0
+        % get AAD from mean
+        aad = mean(abs(x-mean(x,dim)),dim);
+    elseif flag == 1
+        % get AAD from median
+        aad = median(abs(x-median(x,dim)),dim);
+    else
+        error('getAAD: flag must be 0 or 1');
+    end
+end
+
+return
 
 %------------- END OF CODE --------------
 
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2024 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

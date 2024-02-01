@@ -50,12 +50,15 @@ if ~isempty(id)
     % change settings depending on the chosen radio button
     % for gated signals the lambda value is generally smaller
     % (just a rule of thumb)
+    data.process.isgated = false;
     switch str
         case 'log'
+            data.process.isgated = true;
             data.process.gatetype = 'log';
             lambdaFAK = 100;
             
         case 'lin'
+            data.process.isgated = true;
             data.process.gatetype = 'lin';
             lambdaFAK = 100;
             

@@ -191,19 +191,18 @@ if ~isempty(INVdata)
                         data.results.nmrproc.s,param,data.invstd.freeDT);
                     
                     % estimate uncertainty
-                    if data.invstd.useUncert
-                        % original fit parameter
-                        iparam = param;
-                        % uncertainty parameter
-                        uparam.time = data.results.nmrproc.t;
-                        uparam.signal = data.results.nmrproc.s;
-                        uparam.uncertMethod = data.invstd.uncertMethod;
-                        uparam.uncertThresh = data.invstd.uncertThresh;
-                        uparam.uncertChi2 = data.invstd.uncertChi2;
-                        uparam.uncertN = data.invstd.uncertN;
-                        uparam.uncertMax = data.invstd.uncertMax;
-                        invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
-                    end
+%                     if data.invstd.useUncert
+%                         % original fit parameter
+%                         iparam = param;
+%                         % uncertainty parameter
+%                         uparam.time = data.results.nmrproc.t;
+%                         uparam.signal = data.results.nmrproc.s;
+%                         uparam.uncertMethod = data.invstd.uncertMethod;
+%                         uparam.uncertThresh = data.invstd.uncertThresh;
+%                         uparam.uncertN = data.invstd.uncertN;
+%                         uparam.uncertMax = data.invstd.uncertMax;
+%                         invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
+%                     end
             end
             
             % save inversion results

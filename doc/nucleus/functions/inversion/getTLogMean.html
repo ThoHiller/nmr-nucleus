@@ -23,7 +23,7 @@
 <div class="box"><strong> calculates the T logmean value out of a relaxation time</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong>function [TLGM,index] = getTLogMean(T,f) </strong></div>
+<div class="box"><strong>function [TLGM,index] = getTLogMean(T,f,varargin) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre class="comment">getTLogMean calculates the T logmean value out of a relaxation time
@@ -64,13 +64,13 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li><li><a href="fitDataLUdecomp.html" class="code" title="function fitdata = fitDataLUdecomp(time,signal,parameter)">fitDataLUdecomp</a>	 is a control routine that uses a LU decomposition and the</li><li><a href="fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter,nModes)">fitDataMultiModal</a>	 is a control routine that uses either 'lsqnonlin' or</li></ul>
+<li><a href="../../../nucleus/functions/interface/UncertView.html" class="code" title="function UncertView(src,~)">UncertView</a>	 is an extra subGUI to show results of the uncertainty</li><li><a href="estimateUncertainty.html" class="code" title="function [invstd,uncert] = estimateUncertainty(invtype,invstd,iparam,parameter)">estimateUncertainty</a>	 calculates pseudo uncertainty estimates for multi</li><li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li><li><a href="fitDataLUdecomp.html" class="code" title="function fitdata = fitDataLUdecomp(time,signal,parameter)">fitDataLUdecomp</a>	 is a control routine that uses a LU decomposition and the</li><li><a href="fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter)">fitDataMultiModal</a>	 is a control routine that uses either 'lsqnonlin' or</li></ul>
 <!-- crossreference -->
 
 
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [TLGM,index] = getTLogMean(T,f)</a>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [TLGM,index] = getTLogMean(T,f,varargin)</a>
 0002 <span class="comment">%getTLogMean calculates the T logmean value out of a relaxation time</span>
 0003 <span class="comment">%distribution</span>
 0004 <span class="comment">%</span>
@@ -105,44 +105,52 @@ This function is called by:
 0033 <span class="comment">%------------- BEGIN CODE --------------</span>
 0034 
 0035 <span class="comment">%% calculate TLGM</span>
-0036 <span class="comment">% make everything a column vector</span>
-0037 T = T(:);
-0038 f = f(:);
-0039 
-0040 <span class="comment">% get TLGM</span>
-0041 TLGM = 10.^(sum(f.*log10(T))./sum(f));
+0036 <span class="comment">% check input</span>
+0037 <span class="keyword">if</span> nargin &gt; 2
+0038     mask = varargin{1};
+0039 <span class="keyword">else</span>
+0040     mask = true(size(T));
+0041 <span class="keyword">end</span>
 0042 
-0043 <span class="comment">% if desired get the closest T</span>
-0044 <span class="keyword">if</span> nargout == 2
-0045     index = find(abs(T-TLGM)==min(abs(T-TLGM)));
-0046 <span class="keyword">end</span>
+0043 <span class="comment">% make everything a column vector</span>
+0044 T = T(:);
+0045 f = f(:);
+0046 mask = mask(:);
 0047 
-0048 <span class="keyword">return</span>
-0049 
-0050 <span class="comment">%------------- END OF CODE --------------</span>
-0051 
-0052 <span class="comment">%% License:</span>
-0053 <span class="comment">% MIT License</span>
-0054 <span class="comment">%</span>
-0055 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0056 <span class="comment">%</span>
-0057 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0058 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0059 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0060 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0061 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0062 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0063 <span class="comment">%</span>
-0064 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0065 <span class="comment">% copies or substantial portions of the Software.</span>
-0066 <span class="comment">%</span>
-0067 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0068 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0069 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0070 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0071 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0072 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0073 <span class="comment">% SOFTWARE.</span></pre></div>
+0048 <span class="comment">% get TLGM</span>
+0049 TLGM = 10.^(sum(f(mask).*log10(T(mask)))./sum(f(mask)));
+0050 
+0051 <span class="comment">% if desired get the closest T</span>
+0052 <span class="keyword">if</span> nargout == 2
+0053     index = find(abs(T(mask)-TLGM)==min(abs(T(mask)-TLGM)));
+0054 <span class="keyword">end</span>
+0055 
+0056 <span class="keyword">return</span>
+0057 
+0058 <span class="comment">%------------- END OF CODE --------------</span>
+0059 
+0060 <span class="comment">%% License:</span>
+0061 <span class="comment">% MIT License</span>
+0062 <span class="comment">%</span>
+0063 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0064 <span class="comment">%</span>
+0065 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0066 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0067 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0068 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0069 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0070 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0071 <span class="comment">%</span>
+0072 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0073 <span class="comment">% copies or substantial portions of the Software.</span>
+0074 <span class="comment">%</span>
+0075 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0076 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0077 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0078 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0079 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0080 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0081 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

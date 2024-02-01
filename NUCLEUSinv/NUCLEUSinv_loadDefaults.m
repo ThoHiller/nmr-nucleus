@@ -40,6 +40,8 @@ out.import.fileformat = 'rwth';
 out.info.RTDflag = 'freq';
 out.info.PSDflag = 'freq';
 out.info.PSDJflag = 'freq';
+% plot switch for uncertainty line / patch plot
+out.info.RTDuncert = 'lines';
 % flags indicating expert mode / joint inversion / inversion info / tool
 % tips
 out.info.ExpertMode = 'off';
@@ -60,6 +62,8 @@ out.process.end = 0;
 % re-sampling (gating) of the raw signal 'log' | 'lin' | 'none'
 % depends on signal type 'T1' or 'T2'
 out.process.gatetype = 'log';
+% gateing flag for convenience
+out.process.isgated = false;
 % maximum number of echoes per gate
 out.process.Nechoes = 50;
 % normalize signal to 1 (no=0, yes=1)
@@ -135,12 +139,16 @@ out.invstd.Tdiff = 1e6;
 % porosity value between 0 and 1 [-]
 out.invstd.porosity = 1;
 
-out.invstd.useUncert = 1;
-out.invstd.uncertMethod = 'thresh';
-out.invstd.uncertThresh = 0.05;
-out.invstd.uncertChi2 = 0.005;
-out.invstd.uncertN = 100;
-out.invstd.uncertMax = 1e4;
+% uncertainty flag (intended for batch use)
+out.uncert.use = 1;
+% default uncertainty calculation method
+out.uncert.Method = 'RMS_bound';
+% uncertaintyx treshold (only need for method 'threshold')
+out.uncert.Thresh = 0.05;
+% number of uncertainty models to calculate
+out.uncert.N = 10;
+% number of unsuccesful tries before calculation stops
+out.uncert.Max = 1e4;
 
 %% joint inversion panel defaults
 % joint inversion methods to choose 'free' | 'fixed' | 'shape'

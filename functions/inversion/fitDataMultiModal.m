@@ -1,4 +1,4 @@
-function [fitdata] = fitDataMultiModal(time,signal,parameter,nModes)
+function [fitdata] = fitDataMultiModal(time,signal,parameter)
 %fitDataMultiModal is a control routine that uses either 'lsqnonlin' or
 %'fminsearchbnd' to fit NMR data with 'nModes' multi modal relaxation time
 %distributions (T1 or T2)
@@ -10,6 +10,7 @@ function [fitdata] = fitDataMultiModal(time,signal,parameter,nModes)
 %       time - time vector
 %       signal - NMR signal vector (no complex data allowed!)
 %       parameter - struct that holds additional settings:
+%                   nModes   : No. of free distributions
 %                   T1T2     : flag between 'T1' or 'T2' inversion
 %                   T1IRfac  : either '1' or '2' depending on T1 method
 %                   Tb       : bulk relaxation time
@@ -19,7 +20,6 @@ function [fitdata] = fitDataMultiModal(time,signal,parameter,nModes)
 %                              principle
 %                   optim    : 'on' or 'off' (Optimization Toolbox)
 %                   W        : error weighting matrix (optional)
-%       nModes - No. of free distributions
 %
 % Outputs:
 %       fitdata - struct that holds the inversion results:
@@ -84,6 +84,7 @@ if isfield(parameter,'W')
 end
 
 % get the input parameters
+nModes = parameter.nModes;
 % T1/T2 switch
 flag = parameter.T1T2;
 % T1 Sat/Inv Recovery factor
@@ -123,12 +124,14 @@ for i = 1:nModes
     x0(3*i) = invstd0.x(2*i-1);
     
     % lower bounds for T, sigma and E
-    lb(3*i-2) = log(1e-6);%log(invstd0.x(2*i)*0.8);%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));
+    %lb(3*i-2) = log(1e-6);%log(invstd0.x(2*i)*0.8);%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));
+    lb(3*i-2) = log(invstd0.x(2*i)/100);%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));
     lb(3*i-1) = 0.01;
     lb(3*i) = invstd0.x(2*i-1)*0.8;%invstd0.x(2*i-1) - 10*invstd0.ci(2*i-1);
     
     % upper bounds for T, sigma and E
-    ub(3*i-2) = log(10);%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));
+    %ub(3*i-2) = log(10);%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));
+    ub(3*i-2) = log(invstd0.x(2*i)*100);%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));
     ub(3*i-1) = 3.5;
     ub(3*i) = max(invstd0.E0)*1.1;%invstd0.x(2*i-1) + 50*invstd0.ci(2*i-1);
 end
@@ -250,6 +253,11 @@ switch flag
 end
 E0 = K0*f';
 
+% model norm |L*x|_2
+xn = norm(f,2);
+% residual norm |A*x-b|_2
+rn = norm(out.residual,2);
+
 % output struct
 fitdata.fit_t = fit_t;
 fitdata.fit_s = fit_s;
@@ -264,6 +272,8 @@ fitdata.errornorm = out.errnorm1;
 fitdata.lambda_out = 0;
 fitdata.rms = out.rms;
 fitdata.chi2 = out.chi2;
+fitdata.xn = xn;
+fitdata.rn = rn;
 fitdata.ci = ci;
 fitdata.T = T;
 fitdata.S = S;
@@ -272,6 +282,8 @@ fitdata.x = x;
 fitdata.lb = lb;
 fitdata.ub = ub;
 fitdata.output = output;
+fitdata.invtype = 'MUMO';
+fitdata.invparams = parameter;
 
 return
 

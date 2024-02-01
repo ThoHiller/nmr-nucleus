@@ -37,10 +37,11 @@ function importINV2INV(src)
 fig = findobj('Tag','INV');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
+data0 = data;
 
 % get the file name
-Sessionpath = -1;
-Sessionfile = -1;
+% Sessionpath = -1;
+% Sessionfile = -1;
 % if there is already a data folder present start from there
 if isfield(data.import,'path')
     [Sessionfile,Sessionpath] = uigetfile(data.import.path,...
@@ -103,8 +104,108 @@ if sum(Sessionpath) > 0
                 savedata.data.invstd.Tfixed_val = data.invstd.Tfixed_val;
                 for i = 1:numel(savedata.INVdata)
                     if isstruct(savedata.INVdata{i})
+                        if strcmp(savedata.INVdata{i}.invstd.invtype,'mono') || ....
+                                strcmp(savedata.INVdata{i}.invstd.invtype,'free')
+                            switch savedata.INVdata{i}.results.nmrproc.T1T2
+                                case 'T1'
+                                    savedata.INVdata{i}.results.invstd.T = ...
+                                        savedata.INVdata{i}.results.invstd.T1;
+                                case 'T2'
+                                    savedata.INVdata{i}.results.invstd.T = ...
+                                        savedata.INVdata{i}.results.invstd.T2;
+                            end
+                        end
                         savedata.INVdata{i}.invstd.Tfixed_bool = data.invstd.Tfixed_bool;
                         savedata.INVdata{i}.invstd.Tfixed_val = data.invstd.Tfixed_val;
+                    end
+                end
+            end
+            if version_in < 200 % changes introduced with v.0.2.0
+                % new 'RTDuncert' info flag
+                savedata.data.info.RTDuncert = data.info.RTDuncert;
+                % new 'isgated' field
+                savedata.data.process.isgated = data.process.isgated;
+                % clean-up possible old 'uncert' fields that were not used
+                % prior to version 0.2.0
+                if isfield(savedata.data.invstd,'useUncert')
+                    savedata.data.invstd = rmfield(savedata.data.invstd,'useUncert');
+                    savedata.data.invstd = rmfield(savedata.data.invstd,'uncertMethod');
+                    savedata.data.invstd = rmfield(savedata.data.invstd,'uncertThresh');
+                    savedata.data.invstd = rmfield(savedata.data.invstd,'uncertChi2');
+                    savedata.data.invstd = rmfield(savedata.data.invstd,'uncertN');
+                    savedata.data.invstd = rmfield(savedata.data.invstd,'uncertMax');
+                end
+                % now create the new 'uncert' struct
+                savedata.data.uncert = data.uncert;
+
+                for i = 1:numel(savedata.INVdata)
+                    if isstruct(savedata.INVdata{i})
+                        savedata.INVdata{i}.info.RTDuncert = data.info.RTDuncert;
+                        if strcmp(savedata.INVdata{i}.process.gatetype,'raw')
+                            savedata.INVdata{i}.process.isgated = false;
+                            savedata.INVdata{i}.results.nmrproc.isgated = false;
+                        else
+                            savedata.INVdata{i}.process.isgated = true;
+                            savedata.INVdata{i}.results.nmrproc.isgated = true;
+                        end
+
+                        % clean-up possible old 'uncert' fields that were
+                        % not used prior to version 0.2.0
+                        if isfield(savedata.INVdata{i}.invstd,'useUncert')
+                            savedata.INVdata{i}.invstd = rmfield(savedata.INVdata{i}.invstd,'useUncert');
+                            savedata.INVdata{i}.invstd = rmfield(savedata.INVdata{i}.invstd,'uncertMethod');
+                            savedata.INVdata{i}.invstd = rmfield(savedata.INVdata{i}.invstd,'uncertThresh');
+                            savedata.INVdata{i}.invstd = rmfield(savedata.INVdata{i}.invstd,'uncertChi2');
+                            savedata.INVdata{i}.invstd = rmfield(savedata.INVdata{i}.invstd,'uncertN');
+                            savedata.INVdata{i}.invstd = rmfield(savedata.INVdata{i}.invstd,'uncertMax');
+                        end
+                        % now create the new 'uncert' struct
+                        savedata.INVdata{i}.uncert = data.uncert;
+                        
+                        % now invtype is also stored in the results data
+                        savedata.INVdata{i}.results.invstd.invtype = savedata.INVdata{i}.invstd.invtype;
+
+                        % new 'invparams' field
+                        invparams.info = 'off';                        
+                        switch savedata.INVdata{i}.invstd.invtype
+                            case {'mono','free'}
+                                invparams.T1IRfac = savedata.INVdata{i}.results.nmrproc.T1IRfac;
+                                invparams.noise = savedata.INVdata{i}.results.nmrproc.noise;
+                                invparams.optim = data.info.has_optim;
+                                invparams.Tfixed_bool = savedata.INVdata{i}.invstd.Tfixed_bool;
+                                invparams.Tfixed_val = savedata.INVdata{i}.invstd.Tfixed_val;
+                                if isfield(savedata.INVdata{i}.results.nmrproc,'W')
+                                    invparams.W = savedata.INVdata{i}.results.nmrproc.W;
+                                end
+                                invparams.t_raw = savedata.INVdata{i}.results.nmrraw.t;
+                                invparams.s_raw = savedata.INVdata{i}.results.nmrraw.s;
+
+                            otherwise
+                                invparams.T1T2 = savedata.INVdata{i}.results.nmrproc.T1T2;
+                                invparams.T1IRfac = savedata.INVdata{i}.results.nmrproc.T1IRfac;
+                                invparams.Tb = savedata.INVdata{i}.invstd.Tbulk;
+                                invparams.Td = savedata.INVdata{i}.invstd.Tdiff;
+                                invparams.Tint = [log10(savedata.INVdata{i}.invstd.time) savedata.INVdata{i}.invstd.Ntime];
+                                invparams.noise = savedata.INVdata{i}.results.nmrproc.noise;
+                                if isfield(savedata.INVdata{i}.results.nmrproc,'W')
+                                    invparams.W = savedata.INVdata{i}.results.nmrproc.W;
+                                end
+                                switch savedata.INVdata{i}.invstd.invtype
+                                    case 'LU'
+                                        invparams.Lorder = savedata.INVdata{i}.invstd.Lorder;
+                                        invparams.lambda = savedata.INVdata{i}.invstd.lambda;
+                                    case 'NNLS'
+                                        invparams.regMethod = savedata.INVdata{i}.invstd.regtype;
+                                        invparams.Lorder = savedata.INVdata{i}.invstd.Lorder;
+                                        invparams.lambda = savedata.INVdata{i}.invstd.lambda;
+                                        invparams.solver = savedata.data.info.solver;
+                                    case 'MUMO'
+                                        invparams.nModes = savedata.INVdata{i}.invstd.freeDT;
+                                        invparams.optim = data.info.has_optim;
+                                end
+                        end
+                        % add the new field to the inversion results
+                        savedata.INVdata{i}.results.invstd.invparams = invparams;
                     end
                 end
             end
@@ -179,6 +280,27 @@ if sum(Sessionpath) > 0
                 set(gui.menu.extra_expert,'Checked','on');
         end
         onMenuExpert(gui.menu.extra_expert);
+
+        % adjust menu entry for LSQ solver
+        % first check if we have the optimization toolbox
+        switch data0.info.has_optim
+            case 'on'
+                % if yes, set the solver accordingly
+                switch savedata.data.info.solver
+                    case 'lsqlin'
+                        set(gui.menu.extra_solver_lsqlin,'Checked','on');
+                        onMenuSolver(gui.menu.extra_solver_lsqlin);
+                    case 'lsqnonneg'
+                        set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+                        onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+                end
+            case 'off'
+                % if not set solver to LSQNONNEG
+                data.info.has_optim = 'off';
+                set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+                onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+                set(gui.menu.extra_solver,'Enable','off');
+        end        
         
         % adjust menu entry for joint inversion
         switch savedata.data.info.JointInv

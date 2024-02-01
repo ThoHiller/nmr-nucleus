@@ -58,6 +58,22 @@ switch tag
         setappdata(fig,'gui',gui);
         % update the plot axes
         updatePlotsDistribution;
+    case 'uncert'
+        data.info.RTDuncert = label;
+        switch label
+            case 'lines'
+                set(src,'Checked','on');
+                set(gui.cm_handles.axes_rtd_uncert_patch,'Checked','off');
+            case 'patch'
+                set(src,'Checked','on');
+                set(gui.cm_handles.axes_rtd_uncert_lines,'Checked','off');
+        end
+        % update the GUI data
+        setappdata(fig,'data',data);
+        setappdata(fig,'gui',gui);
+        % update the plot axes
+        updatePlotsSignal;
+        updatePlotsDistribution;
     otherwise
         disp('onContextPlotsRTD: something is utterly wrong.');
 end
