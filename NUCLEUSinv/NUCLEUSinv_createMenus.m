@@ -306,18 +306,18 @@ switch gui.myui.inidata.expertmode
             'Label','RTD','Enable','off','Callback',@onMenuViewFigures);   
 end
 
-% 2.6 PhaseView
+% 2.6 PhaseView GUI
 gui.menu.extra_phaseview = uimenu(gui.menu.view,...
-    'Label','PhaseView GUI','Enable','off','Callback',@PhaseView);
-% 2.7 ConductVIEW -> hydraulic conductivity
+    'Label','PhaseView GUI','Enable','off','Separator','on','Callback',@onMenuSubGUIs);
+% 2.7 ConductVew GUI -> hydraulic conductivity
 gui.menu.extra_conduct = uimenu(gui.menu.view,...
-    'Label','ConductView GUI','Enable','off','Callback',@onMenuViewFigures);
-% 2.8 FixedTime VIEW
+    'Label','ConductView GUI','Enable','off','Callback',@onMenuSubGUIs);
+% 2.8 FixedTimeView GUI
 gui.menu.extra_fixedtime = uimenu(gui.menu.view,...
-    'Label','FixedTimeView GUI','Enable','off','Callback',@FixedTimeView);
-% 2.9 Uncertainty VIEW
+    'Label','FixedTimeView GUI','Enable','off','Callback',@onMenuSubGUIs);
+% 2.9 UncertaintyVIEW GUI
 gui.menu.extra_uncert = uimenu(gui.menu.view,...
-    'Label','UncertView GUI','Enable','off','Callback',@UncertView);
+    'Label','UncertView GUI','Enable','off','Callback',@onMenuSubGUIs);
 
 %% 3. Extras
 gui.menu.extra = uimenu(gui.figh,...
@@ -353,7 +353,12 @@ gui.menu.extra_solver_lsqlin = uimenu(gui.menu.extra_solver,...
 gui.menu.extra_solver_lsqnonneg = uimenu(gui.menu.extra_solver,...
     'Label','LSQNONNEG (default)','Checked','on','Callback',@onMenuSolver);
 
-% 3.3 joint inversion (on/off)
+% 3.3 flag for LSQLIN option to set RTs smaller than min(TE)/5 to 0
+gui.menu.extra_lsqlin_echoflag = uimenu(gui.menu.extra,...
+    'Label','RTD<TE/5=0','Enable','off',...
+    'Callback',@onMenuExtraEchoFlag);
+
+% 3.4 joint inversion (on/off)
 gui.menu.extra_joint = uimenu(gui.menu.extra,...
     'Label','Joint Inversion','Checked','off','Separator','on',...
     'Callback',@onMenuJointInversion);
@@ -364,7 +369,7 @@ switch gui.myui.inidata.expertmode
         set(gui.menu.extra_joint,'Enable','off');
 end
 
-% 3.4 set inversion bounds for surface relaxivity rho
+% 3.5 set inversion bounds for surface relaxivity rho
 gui.menu.extra_joint_rhobounds = uimenu(gui.menu.extra,...
     'Label','Surface relaxivity bounds','Enable','off',...
     'Callback',@onMenuExtraRhoBounds);

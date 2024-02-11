@@ -54,7 +54,12 @@ switch fig_tag
             case 'lsqnonneg'
                 set(gui.textSolver,'String','LSQNONNEG');
             case 'lsqlin'
-                set(gui.textSolver,'String','LSQLIN');
+                switch data.info.EchoFlag
+                    case 'on'
+                        set(gui.textSolver,'String','LSQLIN(<TE/5=0)');
+                    case 'off'
+                        set(gui.textSolver,'String','LSQLIN');
+                end
         end
         
         switch data.info.stat

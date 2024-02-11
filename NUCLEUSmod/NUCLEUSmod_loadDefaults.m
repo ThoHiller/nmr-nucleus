@@ -70,9 +70,9 @@ out.pressure.rangeN = 50;
 
 %% NMR panel defaults
 % echo time [µs]
-out.nmr.TE = 1000;
+out.nmr.TE = 200;
 % number of echoes
-out.nmr.echosN = 1001;
+out.nmr.echosN = 1000;
 % noise creation type 'level' or 'SNR'
 out.nmr.noisetype = 'level';
 % noise level [0:1] or SNR [-]
@@ -82,7 +82,7 @@ out.nmr.Tbulk = 2;
 % diffusion relaxation time [s]
 out.nmr.Tdiff = 1e6;
 % surface relaxivity [µm/s]
-out.nmr.rho = 10;
+out.nmr.rho = 100;
 % porosity value between 0 and 1 [-]
 out.nmr.porosity = 1;
 % plot T2 data as default

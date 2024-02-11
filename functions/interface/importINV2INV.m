@@ -208,7 +208,34 @@ if sum(Sessionpath) > 0
                         savedata.INVdata{i}.results.invstd.invparams = invparams;
                     end
                 end
-            end
+            end % version < 200
+            if version_in < 210 % changes introduced with v.0.2.1
+                % new 'EchoFlag' info flag
+                savedata.data.info.EchoFlag = data.info.EchoFlag;
+                for i = 1:numel(savedata.INVdata)
+                    if isstruct(savedata.INVdata{i})
+                        switch savedata.INVdata{i}.invstd.invtype
+                            case 'NNLS'
+                                invparams = savedata.INVdata{i}.results.invstd.invparams;
+                                switch invparams.solver
+                                    case 'lsqlin'
+                                        % after version 0.1.12 this "flag"
+                                        % was unfortunately hard-coded
+                                        if version_in < 112
+                                            invparams.EchoFlag = 'off';
+                                        else
+                                            invparams.EchoFlag = 'on';
+                                        end
+                                    otherwise
+                                        % nothing to do
+                                end
+                                savedata.INVdata{i}.results.invstd.invparams = invparams;
+                            otherwise
+                                % nothing to do
+                        end
+                    end
+                end
+            end % version < 210
         end
         
         % update GUI data from session mat-file

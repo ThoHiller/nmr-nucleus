@@ -75,10 +75,10 @@ modal and LSQ inversion results
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 shows status information either in the GUI or on the</li><li><a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>	 creates a Kernel matrix from signal time vector "t"</li><li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li><li><a href="fitDataLUdecomp.html" class="code" title="function fitdata = fitDataLUdecomp(time,signal,parameter)">fitDataLUdecomp</a>	 is a control routine that uses a LU decomposition and the</li><li><a href="fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter)">fitDataMultiModal</a>	 is a control routine that uses either 'lsqnonlin' or</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>	 calculates the T logmean value out of a relaxation time</li><li><a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>	 adds noise with mean 'mu' and standard deviation 'sigma' to</li></ul>
+<li><a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 shows status information either in the GUI or on the</li><li><a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>	 creates a Kernel matrix from signal time vector "t"</li><li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li><li><a href="fitDataLUdecomp.html" class="code" title="function fitdata = fitDataLUdecomp(time,signal,parameter)">fitDataLUdecomp</a>	 is a control routine that uses a LU decomposition and the</li><li><a href="fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter)">fitDataMultiModal</a>	 is a control routine that uses either 'lsqnonlin' or</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>	 calculates the T logmean value out of a relaxation time</li><li><a href="getUncertaintyStatistics.html" class="code" title="function out = getUncertaintyStatistics(T,RTDs,range,K0)">getUncertaintyStatistics</a>	</li><li><a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>	 adds noise with mean 'mu' and standard deviation 'sigma' to</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/functions/interface/UncertView.html" class="code" title="function UncertView(src,~)">UncertView</a>	 is an extra subGUI to show results of the uncertainty</li><li><a href="runUncertaintyCalculation.html" class="code" title="function runUncertaintyCalculation">runUncertaintyCalculation</a>	 caluclates inverison statistics in some kind of</li></ul>
+<li><a href="../../../nucleus/functions/interface/UncertView.html" class="code" title="function UncertView(src,~)">UncertView</a>	 is an extra subGUI to show results of the uncertainty</li><li><a href="../../../nucleus/functions/interface/runInversionBatch.html" class="code" title="function runInversionBatch">runInversionBatch</a>	 batch processes the inversion using for all NMR signals</li><li><a href="runUncertaintyCalculation.html" class="code" title="function runUncertaintyCalculation">runUncertaintyCalculation</a>	 caluclates inverison statistics in some kind of</li></ul>
 <!-- crossreference -->
 
 
@@ -461,33 +461,40 @@ This function is called by:
 0375 uncert.interp_f_min = min(TDIST);
 0376 uncert.interp_f_max = max(TDIST);
 0377 
-0378 invstd.uncert = uncert;
-0379 
-0380 <span class="keyword">end</span>
-0381 <span class="comment">%------------- END OF CODE --------------</span>
-0382 
-0383 <span class="comment">%% License:</span>
-0384 <span class="comment">% MIT License</span>
-0385 <span class="comment">%</span>
-0386 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
-0387 <span class="comment">%</span>
-0388 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0389 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0390 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0391 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0392 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0393 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0378 <span class="comment">% uncertainty calculation parameter</span>
+0379 uncert.params = parameter;
+0380 
+0381 <span class="comment">% statistics of all uncertainty runs</span>
+0382 uncert.statistics = <a href="getUncertaintyStatistics.html" class="code" title="function out = getUncertaintyStatistics(T,RTDs,range,K0)">getUncertaintyStatistics</a>(invstd.T1T2me,TDIST,<span class="keyword">...</span>
+0383     [min(invstd.T1T2me) max(invstd.T1T2me)],K0);
+0384 
+0385 invstd.uncert = uncert;
+0386 
+0387 <span class="keyword">end</span>
+0388 <span class="comment">%------------- END OF CODE --------------</span>
+0389 
+0390 <span class="comment">%% License:</span>
+0391 <span class="comment">% MIT License</span>
+0392 <span class="comment">%</span>
+0393 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
 0394 <span class="comment">%</span>
-0395 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0396 <span class="comment">% copies or substantial portions of the Software.</span>
-0397 <span class="comment">%</span>
-0398 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0399 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0400 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0401 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0402 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0403 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0404 <span class="comment">% SOFTWARE.</span></pre></div>
+0395 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0396 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0397 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0398 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0399 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0400 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0401 <span class="comment">%</span>
+0402 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0403 <span class="comment">% copies or substantial portions of the Software.</span>
+0404 <span class="comment">%</span>
+0405 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0406 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0407 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0408 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0409 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0410 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0411 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

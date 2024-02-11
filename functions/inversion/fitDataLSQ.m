@@ -24,6 +24,7 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %                              principle
 %                   W        : error weighting matrix (optional)
 %                   solver   : LSQ solver ('lsqlin' or 'lsqnonneg')
+%                   EchoFlag : Echo flag ('on' or 'off')
 %                   bounds   : predefined lower and upper bounds and start
 %                              model (optional and only for 'lsqlin')
 %
@@ -114,10 +115,19 @@ if strcmp(parameter.solver,'lsqlin')
         f0 = zeros(size(T1T2me));
         f0_lb = f0;
         f0_ub = 1.5*max(g)*ones(size(T1T2me));
-        % T2 measurements: cut everything < first considered echo to zero
-        f0_ub(T1T2me < time(1)/5) = 0;
-        % T1 measurements: cut everything > 5*time of last point in SR-curve
-        % f0_ub(T1T2me > time(end)) = 0;
+        % switch certain RTs to 0
+        if strcmp(parameter.EchoFlag,'on')
+            switch flag
+                case 'T1'
+                    % T1 measurements: cut everything > 5*time of last
+                    % point in SR-curve
+                    f0_ub(T1T2me > 5*time(end)) = 0;
+                case 'T2'
+                    % T2 measurements: cut everything < first considered
+                    % echo to zero
+                    f0_ub(T1T2me < time(1)/5) = 0;
+            end
+        end
     end
 end
 

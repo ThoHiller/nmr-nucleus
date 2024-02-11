@@ -50,8 +50,15 @@ nucleus.gui = getappdata(figh_nucleus,'gui');
 myui = nucleus.gui.myui;
 colors = myui.colors;
 
+hasUncert = false;
+if isfield(nucleus.data.results,'invstd')
+    if isfield(nucleus.data.results.invstd,'uncert')
+        hasUncert = true;
+    end
+end
+
 %% proceed only if there is already uncertainty data
-if isfield(nucleus.data.results.invstd,'uncert')
+if hasUncert
     nucleus_data = nucleus.data;
 
     % check if the figure is already open
@@ -600,7 +607,7 @@ if isfield(nucleus.data.results.invstd,'uncert')
     set(gui.edit_handles.mnorm_min,'String',sprintf('%7.6f',mnorm_range(1,1)));
     set(gui.edit_handles.mnorm_max,'String',sprintf('%7.6f',mnorm_range(1,2)));
     % 3.) RTD range
-    rtd_range = data.invstd.time;
+    rtd_range = uncert.statistics.RTD_bounds;
     set(gui.edit_handles.rtd_min,'String',num2str(rtd_range(1,1)));
     set(gui.edit_handles.rtd_max,'String',num2str(rtd_range(1,2)));
     uv.chi2_range = chi2_range;
@@ -615,10 +622,6 @@ if isfield(nucleus.data.results.invstd,'uncert')
     % plot all uncertainty data
     uv_updateInformation(fig_uncert);
     beautifyAxes(fig_uncert);
-else
-    helpdlg({'function: UNCERTVIEW',...
-        'Cannot continue because there is no data!'},...
-        'No uncertainty data.');
 end
 
 end
@@ -1007,8 +1010,12 @@ if sum(uvdata.uv.touse == 0) > 0
     uvdata.results.invstd.uncert.Tlgm = [mean(uvdata.results.invstd.uncert.interp_Tlgm) std(uvdata.results.invstd.uncert.interp_Tlgm)];
 end
 
+% add statisitics
+uvdata.results.invstd.uncert.statistics = uvdata.uv.stats;
+
 % update data structs
 data.results.invstd.uncert = uvdata.results.invstd.uncert;
+INVdata0.uncert = data.uncert;
 INVdata0.results.invstd = uvdata.results.invstd;
 
 % update INVdata
@@ -1081,9 +1088,6 @@ uv = data.uv;
 in = data.uv.touse == 1;
 % RTD time vector
 T = data.results.invstd.T1T2me;
-% RTD mask
-mask = T >= uv.rtd_range(1) & T <= uv.rtd_range(2);
-
 % kernel matrices for pure (single) E0 estimation
 iparam = invstd.invparams;
 switch iparam.T1T2
@@ -1094,43 +1098,35 @@ switch iparam.T1T2
         K0 = createKernelMatrix(0,T',iparam.Tb,...
             iparam.Td,'T2',iparam.T1IRfac);
 end
+% get statistics
+stats = getUncertaintyStatistics(T,uncert.interp_f(in,:),uv.rtd_range,K0);
 
-TLGM_tmp = zeros(sum(in),1);
-E0_tmp = zeros(sum(in),1);
-c = 0;
-for i = 1:size(uncert.interp_f,1)
-    if in(i)
-        F = uncert.interp_f(i,:);
-        c = c + 1;
-        TLGM_tmp(c,1) = getTLogMean(T,F,mask);
-        E0_tmp(c,1) = K0(mask')*F(mask')';
-    end
-end
-
+% assign to GUI fields
 % TLGM
-uv.Tlgm = [mean(TLGM_tmp) std(TLGM_tmp)];
+uv.Tlgm = [stats.Tlgm(1) stats.Tlgm(2)];
 set(gui.edit_handles.TLGM_mean,'String',sprintf('%5.4f',uv.Tlgm(1)));
 set(gui.edit_handles.TLGM_std,'String',sprintf('%5.4f',2*uv.Tlgm(2)));
 % aad - mean
-uv.Tlgm_aad = getAAD(TLGM_tmp,0);
+uv.Tlgm_aad = stats.Tlgm(3);
 set(gui.edit_handles.TLGM_aad,'String',sprintf('%5.4f',2*uv.Tlgm_aad));
 % aad - median
-uv.Tlgm_aadmed = [median(TLGM_tmp) getAAD(TLGM_tmp,1)];
+uv.Tlgm_aadmed = [stats.Tlgm_med(1) stats.Tlgm_med(2)];
 set(gui.edit_handles.TLGM_med,'String',sprintf('%5.4f',uv.Tlgm_aadmed(1)));
 set(gui.edit_handles.TLGM_aadmed,'String',sprintf('%5.4f',2*uv.Tlgm_aadmed(2)));
 % E0
-uv.E0 = [mean(E0_tmp) std(E0_tmp)];
+uv.E0 = [stats.E0(1) stats.E0(2)];
 set(gui.edit_handles.E0_mean,'String',sprintf('%5.4f',uv.E0(1)));
 set(gui.edit_handles.E0_std,'String',sprintf('%5.4f',2*uv.E0(2)));
 % aad - mean
-uv.E0_aad = getAAD(E0_tmp,0);
+uv.E0_aad = stats.E0(3);
 set(gui.edit_handles.E0_aad,'String',sprintf('%5.4f',2*uv.E0_aad));
 % aad - median
-uv.E0_aadmed = [median(E0_tmp) getAAD(E0_tmp,1)];
+uv.E0_aadmed = [stats.E0_med(1) stats.E0_med(2)];
 set(gui.edit_handles.E0_med,'String',sprintf('%5.4f',uv.E0_aadmed(1)));
 set(gui.edit_handles.E0_aadmed,'String',sprintf('%5.4f',2*uv.E0_aadmed(2)));
 
 % update GUI data
+uv.stats = stats;
 data.uv = uv;
 setappdata(figh,'data',data);
 % update plots
@@ -1372,17 +1368,8 @@ set(get(gui.axes2,'YLabel'),'String','amplitude');
 grid(gui.axes2,'on');
 
 % --- Histograms ---
-hasStatBox = strcmp(data.info.stat,'off');
-% get the kernel density estimate (more precise compared to a simple histogram)
-if hasStatBox
-    % Statistics ToolBox
-    [f1,xi1] = ksdensity(uncert.interp_E0(in));
-    [f2,xi2] = ksdensity(uncert.interp_Tlgm(in));
-else
-    % FEX contribution
-    [~,f1,xi1] = kde(uncert.interp_E0(in),numel(uncert.interp_E0(in)));
-    [~,f2,xi2] = kde(uncert.interp_Tlgm(in),numel(uncert.interp_Tlgm(in)));
-end
+[f1,xi1] = getKernelDensityEstimate(uncert.interp_E0(in));
+[f2,xi2] = getKernelDensityEstimate(uncert.interp_Tlgm(in));
 
 % plot the KDEs
 plot(xi1,f1,'Color',[0.5 0.5 0.5],'DisplayName','KDE','Parent',gui.axes21);

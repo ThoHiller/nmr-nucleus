@@ -36,91 +36,151 @@ fig = findobj('Tag','INV');
 data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 gui = getappdata(fig,'gui');
+col = gui.myui.colors;
+
+% color for individual realaxation time(s) (modes)
+mycols = [0.2157 0.4941 0.7216;0.3020 0.6863 0.2902;
+          0.5961 0.3059 0.6392;0.6510 0.3373 0.1569;
+          0.8941 0.1020 0.1098];
 
 %% proceed if there is data
 [foundINV,~] = checkIfInversionExists(INVdata);
 
 if foundINV
-    
     try
-    
     % find the first INVdata set
     for id = 1:size(INVdata,1)
         if isstruct(INVdata{id})
             break;
         end
-    end    
+    end
     
     Ninv = size(INVdata,1);
     % allocate memory
-    xval = zeros(Ninv,1);
-    E0 = zeros(Ninv,1);
-    E0er = zeros(Ninv,1);
-    SNR = zeros(Ninv,1);
+    xval = nan(Ninv,1);
+    SNR = nan(Ninv,1);
+    E0 = nan(Ninv,1);
+    E0_er = nan(Ninv,1);
+    E0_init = nan(Ninv,1);
+    T = nan(Ninv,1);
+    T_er = nan(Ninv,1);
+    T_init = nan(Ninv,1);    
     switch data.invstd.invtype
-        case 'mono'
-            T = zeros(Ninv,1);
-            Ter = zeros(Ninv,1);
         case 'free'
-            T = zeros(Ninv,data.invstd.freeDT);
-        otherwise
-            T = zeros(Ninv,1);
-            Tspec = zeros(Ninv,length(INVdata{id}.results.invstd.T1T2f));
+            Ex = nan(Ninv,data.invstd.freeDT);
+            Ex_er = nan(Ninv,data.invstd.freeDT);
+            Tx = nan(Ninv,data.invstd.freeDT);
+            Tx_er = nan(Ninv,data.invstd.freeDT);
+        case 'MUMO'
+            Ex = nan(Ninv,data.invstd.freeDT);
+            Ex_er = nan(Ninv,data.invstd.freeDT);
+            Tx = nan(Ninv,data.invstd.freeDT);
+            Tx_er = nan(Ninv,data.invstd.freeDT);
+            Tspec = nan(Ninv,length(INVdata{id}.results.invstd.T1T2f));
+        case {'LU','NNLS'}
+            Ex = nan(1,1);
+            Ex_er = nan(1,1);
+            Tx = nan(1,1);
+            Tx_er = nan(1,1);
+            Tspec = nan(Ninv,length(INVdata{id}.results.invstd.T1T2f));
     end
     
     % collect data for amplitude, relaxation time, SNR etc.
     c = 0;
     for id = 1:size(INVdata,1)
         if isstruct(INVdata{id})
+            % check for uncertainty data
+            hasUncert = false;
+            if isfield(INVdata{id}.results.invstd,'uncert')
+                hasUncert = true;
+                % uncertainty data
+                uncert = INVdata{id}.results.invstd.uncert;
+            end
+
+            % check for time scale
             c = c + 1;
             if c == 1
                 timescale = INVdata{id}.process.timescale;
             end
+
+            % get time stamp
             xval(id,1) = data.import.NMR.data{id}.datenum;
+
+            % 1.) get E0 and T data
             E0(id,1) = sum(INVdata{id}.results.invstd.E0) * INVdata{id}.results.nmrproc.normfac;
-            SNR(id,1) = sum(INVdata{id}.results.invstd.E0) / INVdata{id}.results.nmrproc.noise;
+            % get E0 error bounds
             switch data.invstd.invtype
-                case {'mono','free'}
-                    E0er(id,1) = sum(INVdata{id}.results.invstd.ci(1:2:end)) *...
+                case 'mono'
+                    % E0 error
+                    E0_er(id,1) = sum(INVdata{id}.results.invstd.ci(1:2:end)) *...
                         INVdata{id}.results.nmrproc.normfac;
                     
+                    % T
                     switch INVdata{id}.results.nmrproc.T1T2
                         case 'T1'
-                            ll = length(INVdata{id}.results.invstd.T1);
-                            T(id,1:ll) = INVdata{id}.results.invstd.T1;
+                            T(id,1) = INVdata{id}.results.invstd.T1;
                         case 'T2'
-                            ll = length(INVdata{id}.results.invstd.T2);
-                            T(id,1:ll) = INVdata{id}.results.invstd.T2;
+                            T(id,1) = INVdata{id}.results.invstd.T2;
                     end
+                    % T error
+                    T_er(id,1) = INVdata{id}.results.invstd.ci(2);
+
+                case 'free'
+                    % total E0 error
+                    E0_er(id,1) = sum(INVdata{id}.results.invstd.ci(1:2:end)) *...
+                        INVdata{id}.results.nmrproc.normfac;
+                    % individual Ex amplitudes
+                    Ex(id,:) = INVdata{id}.results.invstd.E0;
+                    Ex_er(id,:) = INVdata{id}.results.invstd.ci(1:2:end) *...
+                        INVdata{id}.results.nmrproc.normfac;
+                    % individual Tx relaxation times
+                    switch INVdata{id}.results.nmrproc.T1T2
+                        case 'T1'
+                            Tx(id,:) = INVdata{id}.results.invstd.T1;
+                        case 'T2'
+                            Tx(id,:) = INVdata{id}.results.invstd.T2;
+                    end
+                    Tx_er(id,:) = INVdata{id}.results.invstd.ci(2:2:end);
                     
+                case 'MUMO'
+                    % total E0 error
+                    E0_er(id,1) = sum(INVdata{id}.results.invstd.ci(3:3:end)) *...
+                        INVdata{id}.results.nmrproc.normfac;
+                    % individual Ex amplitudes
+                    Ex(id,:) = INVdata{id}.results.invstd.E;
+                    Ex_er(id,:) = INVdata{id}.results.invstd.ci(3:3:end) *...
+                        INVdata{id}.results.nmrproc.normfac;
+                    % TLGM
+                    T(id,1) = INVdata{id}.results.invstd.Tlgm;
+                    % individual Tx relaxation times
+                    Tx(id,:) = INVdata{id}.results.invstd.T;
+                    Tx_er(id,:) = INVdata{id}.results.invstd.ci(1:3:end);
+                    % RTDs
+                    Tspec(id,:) = INVdata{id}.results.invstd.T1T2f';
+                    if c == 1
+                        Tt = INVdata{id}.results.invstd.T1T2me;
+                    end
+
                 otherwise
                     T(id,1) = INVdata{id}.results.invstd.Tlgm;
                     Tspec(id,:) = INVdata{id}.results.invstd.T1T2f';
                     if c == 1
                         Tt = INVdata{id}.results.invstd.T1T2me;
                     end
-            end
+            end            
             
-            switch data.invstd.invtype
-                case {'mono'}
-                    Ter(id,1) = INVdata{id}.results.invstd.ci(2);
-                otherwise
-                    % nothing to do
+            % if there is uncertainty data we use these instead
+            if hasUncert
+                E0_init(id,:) = E0(id,1);
+                T_init(id,:) = T(id,1);
+                E0(id,:) = uncert.statistics.E0(1);
+                E0_er(id,:) = 2*uncert.statistics.E0(2);
+                T(id,:) = uncert.statistics.Tlgm(1);
+                T_er(id,:) = 2*uncert.statistics.Tlgm(2);                
             end
-        else
-            E0(id,:) = NaN;
-            switch data.invstd.invtype
-                case {'mono','free'}
-                     E0er(id,:) = NaN;
-                otherwise
-                    T(id,:) = NaN;
-                    Tspec(id,:) = NaN;
-            end
-            switch data.invstd.invtype
-                case {'mono'}
-                    Ter(id,:) = NaN;
-            end
-            SNR(id,1) = NaN;            
+
+            % 2.) signal-to-noise-ratio SNR
+            SNR(id,1) = sum(E0(id)) / INVdata{id}.results.nmrproc.noise;
         end
     end
     
@@ -161,43 +221,109 @@ if foundINV
             ax2 = subplot(312,'Parent',f);
             ax3 = subplot(313,'Parent',f);
             
+            % E0 amplitudes
             hold(ax1,'on');
             switch data.invstd.invtype
-                case {'mono','free'}
-                    errorbar(xval,E0,E0er,'o','Parent',ax1);
+                case 'mono'
+                    errorbar(xval,E0,E0_er,'o','Color',col.FIT,'Parent',ax1,...
+                        'DisplayName','E0');
+                case 'free'
+                    errorbar(xval,E0,E0_er,'o','Color',col.FIT,'Parent',ax1,...
+                        'LineWidth',1.5,'DisplayName','E0');
+                    for i = 1:size(Ex,2)
+                        errorbar(xval,Ex(:,i),E0_er(:,1),'o','Color',mycols(i,:),...
+                            'DisplayName',['Ex',num2str(i)],'Parent',ax1);
+                    end
+                case 'MUMO'
+                    if hasUncert
+                        errorbar(xval,E0_init,[],'o','Color',col.FIT,...
+                            'DisplayName','E0(init)','Parent',ax1);
+                        errorbar(xval,E0,E0_er,'ko','DisplayName','E0(uncert)',...
+                            'LineWidth',1.5,'Parent',ax1);
+                    else
+                        plot(xval,E0,'o','Color',col.FIT,'Parent',ax1,...
+                            'DisplayName','E0');
+                    end
+                    for i = 1:size(Ex,2)
+                        errorbar(xval,Ex(:,i),Ex_er(:,1),'o','Color',mycols(i,:),...
+                            'DisplayName',['Ex',num2str(i)],'Parent',ax1);
+                    end
                 otherwise
-                    plot(xval,E0,'o','Parent',ax1);
+                    if hasUncert
+                        errorbar(xval,E0_init,[],'o','Color',col.FIT,'DisplayName','E0(init)',...
+                            'Parent',ax1);
+                        errorbar(xval,E0,E0_er,'ko','DisplayName','E0(uncert)',...
+                            'LineWidth',1.5,'Parent',ax1);
+                    else
+                        plot(xval,E0,'o','Color',col.FIT,'DisplayName','E0',...
+                            'Parent',ax1);
+                    end
             end
+            ylims = [min([0 min(E0)*0.9 min(Ex)*0.9]) max(E0)*1.1];
             grid(ax1,'on');
             set(get(ax1,'YLabel'),'String','E0');
-            
+            set(ax1,'YLim',ylims);
+            legend(ax1,'Location','SouthWest');
+
+            % T relaxation times
             hold(ax2,'on');
             switch data.invstd.invtype
                 case 'mono'
-                    errorbar(xval,T,Ter,'ko','Parent',ax2);
+                    errorbar(xval,T,T_er,'o','Color',col.FIT,'DisplayName','T0','Parent',ax2);
                     set(get(ax2,'YLabel'),'String',['T [',timescale,']']);
                 case 'free'
-                    for i = 1:size(T,2)
-                        semilogy(xval,T(:,i),'ko','Parent',ax2);
+                    for i = 1:size(Tx,2)
+                        errorbar(xval,Tx(:,i),Tx_er(:,i),'o','Color',mycols(i,:),...
+                            'DisplayName',['Tx',num2str(i)],'Parent',ax2);
+                    end
+                    set(get(ax2,'YLabel'),'String',['T_x [',timescale,']']);
+                    set(ax2,'YScale','log');
+                case 'MUMO'
+                    if hasUncert
+                        errorbar(xval,T_init,[],'o','Color',col.FIT,...
+                            'DisplayName','Tlgm(init)','Parent',ax2);
+                        errorbar(xval,T,T_er,'ko','LineWidth',1.5,...
+                        'DisplayName','Tlgm(uncert)','Parent',ax2);
+                    else
+                        plot(xval,T,'o','Color',col.FIT,...
+                            'DisplayName','Tlgm','Parent',ax2);
+                    end
+                    for i = 1:size(Tx,2)
+                        errorbar(xval,Tx(:,i),Tx_er(:,i),'o','Color',mycols(i,:),...
+                            'DisplayName',['Tx',num2str(i)],'Parent',ax2);
                     end
                     set(get(ax2,'YLabel'),'String',['T_x [',timescale,']']);
                     set(ax2,'YScale','log');
                 otherwise
-                    for i = 1:size(T,2)
-                        semilogy(xval,T(:,i),'ko','Parent',ax2);
+                    if hasUncert
+                        errorbar(xval,T_init,[],'o','Color',col.FIT,...
+                            'DisplayName','Tlgm(init)','Parent',ax2);
+                        errorbar(xval,T,T_er,'ko','DisplayName','Tlgm(uncert)',...
+                            'LineWidth',1.5,'Parent',ax2);
+                    else
+                        for i = 1:size(T,2)
+                            plot(xval,T(:,i),'o','Color',col.FIT,...
+                                'DisplayName','Tlgm','Parent',ax2);
+                        end
                     end
                     set(get(ax2,'YLabel'),'String',['TLGM [',timescale,']']);
             end
+            ylims = [min([0 min(T)*0.9 min(Tx)*0.9]) max([max(T) max(Tx)])*1.1];
             grid(ax2,'on');
-            
+            set(ax2,'YLim',ylims);
+            legend(ax2,'Location','SouthWest');
+
+            % signal-to-noise-ratio SNR
             hold(ax3,'on');
-            plot(xval,SNR,'o','Parent',ax3);
+            plot(xval,SNR,'o','Color',col.FIT,'LineWidth',1.5,'Parent',ax3);
             grid on;
             xlabel(xlabelstr);
             set(get(ax3,'YLabel'),'String','signal-to-noise ratio');
             
+            % link axes for combined zooming and panning
             linkaxes([ax1 ax2 ax3], 'x');
             
+            % make nice date ticks
             if strcmp(xlabelstr,'date')
                 isfile = which('dynamicDateTicks');
                 if ~isempty(isfile)
@@ -219,7 +345,7 @@ if foundINV
             
         case 'rtd'
             switch data.invstd.invtype
-                case {'LU','NNLS'}
+                case {'LU','NNLS','MUMO'}
                     if strcmp(xlabelstr,'date')
                         mycol = jet(size(Tspec,1));
                         [time,ix] = sort(xval);

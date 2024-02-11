@@ -111,6 +111,7 @@ if ~isempty(id) && ~isempty(INVdata)
                 param.W = data.results.nmrproc.W;
             end
             param.solver = data.info.solver;
+            param.EchoFlag = data.info.EchoFlag;
             
             % status bar information
             infostring = 'L-curve calculation ... ';
@@ -271,6 +272,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     param.lambda = data.invstd.lambda;
                     param.noise = data.results.nmrproc.noise;
                     param.solver = data.info.solver;
+                    param.EchoFlag = data.info.EchoFlag;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end

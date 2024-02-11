@@ -1,23 +1,21 @@
-function onMenuViewFigures(src,~)
-%onMenuViewFigures handles the extra menu entries to show additional
-%graphical output
+function [f,x] = getKernelDensityEstimate(y)
+%getKernelDensityEstimate computes the one dimensional kernel density estimate
 %
 % Syntax:
-%       onMenuViewFigures
+%       [f,x] = getKernelDensityEstimate(y)
 %
 % Inputs:
-%       src - handle of the calling object
+%       y - values / samples
 %
 % Outputs:
-%       none
+%       f - density values
+%       x - sample points
 %
 % Example:
-%       onMenuViewFigures(src)
+%       [f,x] = getKernelDensityEstimate(y)
 %
 % Other m-files required:
-%       showExtraGraphics
-%       showFitStatistics
-%       showParameterInfo
+%       kde.m
 %
 % Subfunctions:
 %       none
@@ -25,28 +23,51 @@ function onMenuViewFigures(src,~)
 % MAT-files required:
 %       none
 %
-% See also: NUCLEUSinv
+% See also: NUCLEUSinv, NUCLEUSmod
 % Author: see AUTHORS.md
 % email: see AUTHORS.md
 % License: MIT License (at end)
 
 %------------- BEGIN CODE --------------
 
-%% label of the calling menu
-label = get(src,'Label');
+%% check for Matlab version and Statistics Toolbox
+useinternalKDE = false;
+% Matlab version
+v = ver('MATLAB');
+ind = strfind(v.Version,'.');
+% major number
+vMajor = str2double(v.Version(1:ind-1));
+% minor number
+vMinor = str2double(v.Version(ind+1:end));
+% check version
+if vMajor > 9 || (vMajor == 9 && vMinor >= 9)
+    if ~isMATLABReleaseOlderThan("R2023b")
+        % use internal 'kde' for versions R2023b and newer
+        useinternalKDE = true;
+    end
+end
 
-% chose the corresponding function
-switch label
-    case 'Parameter Info'
-        showParameterInfo;
-    case 'Fit statistics'
-        showFitStatistics;
-    case 'AMP-TLGM-SNR'
-        showExtraGraphics('amp');
-    case 'AMP vs TLGM'
-        showExtraGraphics('ampvst');
-    case 'RTD'    
-        showExtraGraphics('rtd');
+% check Statistics Toolbox
+hasStatBox = false;
+Mver = ver;
+for i = 1:size(Mver,2)
+    if strfind(Mver(i).Name,'Statistics')
+        hasStatBox = true;
+    end
+end
+
+%% get the kernel density estimate
+if hasStatBox
+    % Statistics ToolBox
+    [f,x] = ksdensity(y);
+else
+    if useinternalKDE
+        % 2023b built-in kde
+        [f,x] = kde(y);
+    else
+        % before 2023b use FEX kde in 'externals' folder
+        [~,f,x] = kde(y,numel(y));
+    end
 end
 
 end
@@ -56,7 +77,7 @@ end
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2024 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

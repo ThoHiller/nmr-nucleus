@@ -5,7 +5,7 @@
 modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**U**lar pore**S**
 
 [![release](https://img.shields.io/github/release/NMR-NUCLEUS/nmr-nucleus.svg)](https://github.com/NMR-NUCLEUS/nmr-nucleus/releases/latest)
-[![DOI](https://zenodo.org/badge/165993294.svg)](https://zenodo.org/badge/latestdoi/165993294)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4022195.svg)](https://doi.org/10.5281/zenodo.4022195)
 - - -
 
 ## Table of Contents
@@ -61,7 +61,7 @@ In order to work properly you need to meet the following requirements:
 4. `findjobj` (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/14317-findjobj-find-java-handles-of-matlab-graphic-objects)) (<span style="color:red">required</span>)
 5. `fminsearchbnd` (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/8277-fminsearchbnd-fminsearchcon)) (<span style="color:red">required</span>)
 6. `dynamicDateTicks` (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/27075-intelligent-dynamic-date-ticks)) (<span style="color:green">optional</span>)
-7. `kde` kernel density estimator (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/14034-kernel-density-estimator)) (<span style="color:green">optional</span>)
+7. `kde` kernel density estimator (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/14034-kernel-density-estimator)) (<span style="color:green">optional; not needed for R2023b and newer</span>)
 
 If you do not have the Optimization or Statistics toolboxes then not all features are available (especially parts of the joint inversion). However, the general functionality of obtaining relaxation time distributions (RTDs) form NMR relaxometry data is of course working.
 
@@ -123,7 +123,7 @@ In no particular order and without guarantee that it will ever happen :-) :
 ## Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2024, Feb 01). ThoHiller/nmr-nucleus: v0.2.0 (Version v0.2.0). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
+Thomas Hiller. (2024, Feb 11). ThoHiller/nmr-nucleus: v0.2.1 (Version v0.2.1). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 

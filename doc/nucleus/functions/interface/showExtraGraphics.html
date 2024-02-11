@@ -108,321 +108,447 @@ This function is called by:
 0036 data = getappdata(fig,<span class="string">'data'</span>);
 0037 INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
 0038 gui = getappdata(fig,<span class="string">'gui'</span>);
-0039 
-0040 <span class="comment">%% proceed if there is data</span>
-0041 [foundINV,~] = <a href="checkIfInversionExists.html" class="code" title="function [foundINV,N] = checkIfInversionExists(INVdata)">checkIfInversionExists</a>(INVdata);
-0042 
-0043 <span class="keyword">if</span> foundINV
-0044     
-0045     <span class="keyword">try</span>
-0046     
-0047     <span class="comment">% find the first INVdata set</span>
-0048     <span class="keyword">for</span> id = 1:size(INVdata,1)
-0049         <span class="keyword">if</span> isstruct(INVdata{id})
-0050             <span class="keyword">break</span>;
-0051         <span class="keyword">end</span>
-0052     <span class="keyword">end</span>    
-0053     
-0054     Ninv = size(INVdata,1);
-0055     <span class="comment">% allocate memory</span>
-0056     xval = zeros(Ninv,1);
-0057     E0 = zeros(Ninv,1);
-0058     E0er = zeros(Ninv,1);
-0059     SNR = zeros(Ninv,1);
-0060     <span class="keyword">switch</span> data.invstd.invtype
-0061         <span class="keyword">case</span> <span class="string">'mono'</span>
-0062             T = zeros(Ninv,1);
-0063             Ter = zeros(Ninv,1);
-0064         <span class="keyword">case</span> <span class="string">'free'</span>
-0065             T = zeros(Ninv,data.invstd.freeDT);
-0066         <span class="keyword">otherwise</span>
-0067             T = zeros(Ninv,1);
-0068             Tspec = zeros(Ninv,length(INVdata{id}.results.invstd.T1T2f));
-0069     <span class="keyword">end</span>
-0070     
-0071     <span class="comment">% collect data for amplitude, relaxation time, SNR etc.</span>
-0072     c = 0;
-0073     <span class="keyword">for</span> id = 1:size(INVdata,1)
-0074         <span class="keyword">if</span> isstruct(INVdata{id})
-0075             c = c + 1;
-0076             <span class="keyword">if</span> c == 1
-0077                 timescale = INVdata{id}.process.timescale;
-0078             <span class="keyword">end</span>
-0079             xval(id,1) = data.import.NMR.data{id}.datenum;
-0080             E0(id,1) = sum(INVdata{id}.results.invstd.E0) * INVdata{id}.results.nmrproc.normfac;
-0081             SNR(id,1) = sum(INVdata{id}.results.invstd.E0) / INVdata{id}.results.nmrproc.noise;
-0082             <span class="keyword">switch</span> data.invstd.invtype
-0083                 <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
-0084                     E0er(id,1) = sum(INVdata{id}.results.invstd.ci(1:2:end)) *<span class="keyword">...</span>
-0085                         INVdata{id}.results.nmrproc.normfac;
-0086                     
-0087                     <span class="keyword">switch</span> INVdata{id}.results.nmrproc.T1T2
-0088                         <span class="keyword">case</span> <span class="string">'T1'</span>
-0089                             ll = length(INVdata{id}.results.invstd.T1);
-0090                             T(id,1:ll) = INVdata{id}.results.invstd.T1;
-0091                         <span class="keyword">case</span> <span class="string">'T2'</span>
-0092                             ll = length(INVdata{id}.results.invstd.T2);
-0093                             T(id,1:ll) = INVdata{id}.results.invstd.T2;
-0094                     <span class="keyword">end</span>
-0095                     
-0096                 <span class="keyword">otherwise</span>
-0097                     T(id,1) = INVdata{id}.results.invstd.Tlgm;
-0098                     Tspec(id,:) = INVdata{id}.results.invstd.T1T2f';
-0099                     <span class="keyword">if</span> c == 1
-0100                         Tt = INVdata{id}.results.invstd.T1T2me;
-0101                     <span class="keyword">end</span>
-0102             <span class="keyword">end</span>
-0103             
-0104             <span class="keyword">switch</span> data.invstd.invtype
-0105                 <span class="keyword">case</span> {<span class="string">'mono'</span>}
-0106                     Ter(id,1) = INVdata{id}.results.invstd.ci(2);
-0107                 <span class="keyword">otherwise</span>
-0108                     <span class="comment">% nothing to do</span>
-0109             <span class="keyword">end</span>
-0110         <span class="keyword">else</span>
-0111             E0(id,:) = NaN;
+0039 col = gui.myui.colors;
+0040 
+0041 <span class="comment">% color for individual realaxation time(s) (modes)</span>
+0042 mycols = [0.2157 0.4941 0.7216;0.3020 0.6863 0.2902;
+0043           0.5961 0.3059 0.6392;0.6510 0.3373 0.1569;
+0044           0.8941 0.1020 0.1098];
+0045 
+0046 <span class="comment">%% proceed if there is data</span>
+0047 [foundINV,~] = <a href="checkIfInversionExists.html" class="code" title="function [foundINV,N] = checkIfInversionExists(INVdata)">checkIfInversionExists</a>(INVdata);
+0048 
+0049 <span class="keyword">if</span> foundINV
+0050     <span class="keyword">try</span>
+0051     <span class="comment">% find the first INVdata set</span>
+0052     <span class="keyword">for</span> id = 1:size(INVdata,1)
+0053         <span class="keyword">if</span> isstruct(INVdata{id})
+0054             <span class="keyword">break</span>;
+0055         <span class="keyword">end</span>
+0056     <span class="keyword">end</span>
+0057     
+0058     Ninv = size(INVdata,1);
+0059     <span class="comment">% allocate memory</span>
+0060     xval = nan(Ninv,1);
+0061     SNR = nan(Ninv,1);
+0062     E0 = nan(Ninv,1);
+0063     E0_er = nan(Ninv,1);
+0064     E0_init = nan(Ninv,1);
+0065     T = nan(Ninv,1);
+0066     T_er = nan(Ninv,1);
+0067     T_init = nan(Ninv,1);    
+0068     <span class="keyword">switch</span> data.invstd.invtype
+0069         <span class="keyword">case</span> <span class="string">'free'</span>
+0070             Ex = nan(Ninv,data.invstd.freeDT);
+0071             Ex_er = nan(Ninv,data.invstd.freeDT);
+0072             Tx = nan(Ninv,data.invstd.freeDT);
+0073             Tx_er = nan(Ninv,data.invstd.freeDT);
+0074         <span class="keyword">case</span> <span class="string">'MUMO'</span>
+0075             Ex = nan(Ninv,data.invstd.freeDT);
+0076             Ex_er = nan(Ninv,data.invstd.freeDT);
+0077             Tx = nan(Ninv,data.invstd.freeDT);
+0078             Tx_er = nan(Ninv,data.invstd.freeDT);
+0079             Tspec = nan(Ninv,length(INVdata{id}.results.invstd.T1T2f));
+0080         <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
+0081             Ex = nan(1,1);
+0082             Ex_er = nan(1,1);
+0083             Tx = nan(1,1);
+0084             Tx_er = nan(1,1);
+0085             Tspec = nan(Ninv,length(INVdata{id}.results.invstd.T1T2f));
+0086     <span class="keyword">end</span>
+0087     
+0088     <span class="comment">% collect data for amplitude, relaxation time, SNR etc.</span>
+0089     c = 0;
+0090     <span class="keyword">for</span> id = 1:size(INVdata,1)
+0091         <span class="keyword">if</span> isstruct(INVdata{id})
+0092             <span class="comment">% check for uncertainty data</span>
+0093             hasUncert = false;
+0094             <span class="keyword">if</span> isfield(INVdata{id}.results.invstd,<span class="string">'uncert'</span>)
+0095                 hasUncert = true;
+0096                 <span class="comment">% uncertainty data</span>
+0097                 uncert = INVdata{id}.results.invstd.uncert;
+0098             <span class="keyword">end</span>
+0099 
+0100             <span class="comment">% check for time scale</span>
+0101             c = c + 1;
+0102             <span class="keyword">if</span> c == 1
+0103                 timescale = INVdata{id}.process.timescale;
+0104             <span class="keyword">end</span>
+0105 
+0106             <span class="comment">% get time stamp</span>
+0107             xval(id,1) = data.import.NMR.data{id}.datenum;
+0108 
+0109             <span class="comment">% 1.) get E0 and T data</span>
+0110             E0(id,1) = sum(INVdata{id}.results.invstd.E0) * INVdata{id}.results.nmrproc.normfac;
+0111             <span class="comment">% get E0 error bounds</span>
 0112             <span class="keyword">switch</span> data.invstd.invtype
-0113                 <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
-0114                      E0er(id,:) = NaN;
-0115                 <span class="keyword">otherwise</span>
-0116                     T(id,:) = NaN;
-0117                     Tspec(id,:) = NaN;
-0118             <span class="keyword">end</span>
-0119             <span class="keyword">switch</span> data.invstd.invtype
-0120                 <span class="keyword">case</span> {<span class="string">'mono'</span>}
-0121                     Ter(id,:) = NaN;
-0122             <span class="keyword">end</span>
-0123             SNR(id,1) = NaN;            
-0124         <span class="keyword">end</span>
-0125     <span class="keyword">end</span>
-0126     
-0127     <span class="keyword">if</span> isfield(data.import,<span class="string">'BAM'</span>)
-0128         <span class="keyword">if</span> data.import.BAM.use_z
-0129             xval = data.import.BAM.zslice;
-0130             xlabelstr = <span class="string">'position'</span>;
-0131             ylabelstr = <span class="string">'position [µm]'</span>;
-0132         <span class="keyword">else</span>
-0133             xlabelstr = <span class="string">'date'</span> ;
-0134         <span class="keyword">end</span>
-0135     <span class="keyword">elseif</span> isfield(data.import,<span class="string">'IBAC'</span>)
-0136         <span class="keyword">if</span> data.import.IBAC.use_z
-0137             xval = data.import.IBAC.zslice;
-0138             xlabelstr = <span class="string">'position'</span>;
-0139             ylabelstr = <span class="string">'position [µm]'</span>;
-0140         <span class="keyword">else</span>
-0141             xlabelstr = <span class="string">'date'</span> ;
-0142         <span class="keyword">end</span>
-0143     <span class="keyword">elseif</span> isfield(data.import,<span class="string">'LIAGCORE'</span>)
-0144         xval = data.import.LIAGCORE.zslice;
-0145         <span class="keyword">if</span> data.import.LIAGCORE.use_z
-0146             xlabelstr = <span class="string">'position [mm]'</span>;
-0147             ylabelstr = <span class="string">'position [mm]'</span>;
-0148         <span class="keyword">else</span>
-0149             xlabelstr = <span class="string">'level'</span>;
-0150             ylabelstr = <span class="string">'level'</span>;
-0151         <span class="keyword">end</span>
-0152     <span class="keyword">else</span>
-0153         xlabelstr = <span class="string">'date'</span> ;
-0154     <span class="keyword">end</span>
-0155     
-0156     <span class="comment">% plot it</span>
-0157     <span class="keyword">switch</span> method
-0158         <span class="keyword">case</span> <span class="string">'amp'</span>
-0159             f = figure;
-0160             ax1 = subplot(311,<span class="string">'Parent'</span>,f);
-0161             ax2 = subplot(312,<span class="string">'Parent'</span>,f);
-0162             ax3 = subplot(313,<span class="string">'Parent'</span>,f);
-0163             
-0164             hold(ax1,<span class="string">'on'</span>);
-0165             <span class="keyword">switch</span> data.invstd.invtype
-0166                 <span class="keyword">case</span> {<span class="string">'mono'</span>,<span class="string">'free'</span>}
-0167                     errorbar(xval,E0,E0er,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax1);
-0168                 <span class="keyword">otherwise</span>
-0169                     plot(xval,E0,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax1);
-0170             <span class="keyword">end</span>
-0171             grid(ax1,<span class="string">'on'</span>);
-0172             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
-0173             
-0174             hold(ax2,<span class="string">'on'</span>);
-0175             <span class="keyword">switch</span> data.invstd.invtype
-0176                 <span class="keyword">case</span> <span class="string">'mono'</span>
-0177                     errorbar(xval,T,Ter,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
-0178                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
-0179                 <span class="keyword">case</span> <span class="string">'free'</span>
-0180                     <span class="keyword">for</span> i = 1:size(T,2)
-0181                         semilogy(xval,T(:,i),<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
-0182                     <span class="keyword">end</span>
-0183                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T_x ['</span>,timescale,<span class="string">']'</span>]);
-0184                     set(ax2,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
-0185                 <span class="keyword">otherwise</span>
-0186                     <span class="keyword">for</span> i = 1:size(T,2)
-0187                         semilogy(xval,T(:,i),<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax2);
-0188                     <span class="keyword">end</span>
-0189                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'TLGM ['</span>,timescale,<span class="string">']'</span>]);
-0190             <span class="keyword">end</span>
-0191             grid(ax2,<span class="string">'on'</span>);
-0192             
-0193             hold(ax3,<span class="string">'on'</span>);
-0194             plot(xval,SNR,<span class="string">'o'</span>,<span class="string">'Parent'</span>,ax3);
-0195             grid on;
-0196             xlabel(xlabelstr);
-0197             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'signal-to-noise ratio'</span>);
-0198             
-0199             linkaxes([ax1 ax2 ax3], <span class="string">'x'</span>);
-0200             
-0201             <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
-0202                 isfile = which(<span class="string">'dynamicDateTicks'</span>);
-0203                 <span class="keyword">if</span> ~isempty(isfile)
-0204                     dynamicDateTicks([ax1 ax2 ax3],<span class="string">'link'</span>,<span class="string">'dd.mm. HH:MM'</span>);
-0205                 <span class="keyword">else</span>
-0206                     datetick(ax1,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0207                     datetick(ax2,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0208                     datetick(ax3,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0209                 <span class="keyword">end</span>
-0210             <span class="keyword">end</span>
-0211             
-0212         <span class="keyword">case</span> <span class="string">'ampvst'</span>
-0213             f = figure;
-0214             ax1 = axes(<span class="string">'Parent'</span>,f);
-0215             
-0216             plot(E0,T,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax1),
-0217             set(get(ax1,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
-0218             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
-0219             
-0220         <span class="keyword">case</span> <span class="string">'rtd'</span>
-0221             <span class="keyword">switch</span> data.invstd.invtype
-0222                 <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
-0223                     <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
-0224                         mycol = jet(size(Tspec,1));
-0225                         [time,ix] = sort(xval);
-0226                         Tspec = Tspec(ix,:);
-0227                         f  = figure;
-0228                         ax = axes(<span class="string">'Parent'</span>,f);
-0229                         hold(ax,<span class="string">'on'</span>)
-0230                         <span class="keyword">for</span> i = 1:size(Tspec,1)
-0231                             plot3(time(i)*ones(size(Tt)),Tt,Tspec(i,:),<span class="keyword">...</span>
-0232                                 <span class="string">'Color'</span>,mycol(i,:),<span class="string">'Parent'</span>,ax);
-0233                         <span class="keyword">end</span>
-0234                         grid on; box on;
-0235                         xlabel(<span class="string">'date'</span>);
-0236                         ylabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
-0237                         zlabel(<span class="string">'amplitude [-]'</span>);
-0238                         
-0239                         set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
-0240                         isfile = which(<span class="string">'dynamicDateTicks'</span>);
-0241                         <span class="keyword">if</span> ~isempty(isfile)
-0242                             dynamicDateTicks(ax,<span class="string">'dd.mm. HH:MM'</span>);
-0243                         <span class="keyword">else</span>
-0244                             datetick(ax,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
-0245                         <span class="keyword">end</span>
-0246                         view([90 0]);
-0247                     <span class="keyword">else</span>
-0248                         dx = xval(2)-xval(1);
-0249                         [xx,yy] = meshgrid(Tt',[xval-dx/2; xval(end)+dx/2]);
-0250                         f  = figure;
-0251                         ax = axes(<span class="string">'Parent'</span>,f);
-0252                         hold(ax,<span class="string">'on'</span>)
-0253                         
-0254                         <span class="comment">% remove the backgound file</span>
-0255                         Tspec(isnan(Tspec)) = [];
-0256                         xi = numel(Tspec)/numel(Tt);
-0257                         Tspec = reshape(Tspec,[xi numel(Tt)]);
-0258                         
-0259                         surf(xx,yy,zeros(size(xx)),Tspec./max(Tspec(:)),<span class="string">'Parent'</span>,ax);
-0260                         shading(ax,<span class="string">'flat'</span>);
-0261                         xticks = log10(min(Tt)):1:log10(max(Tt));
-0262                         set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^xticks(1) 10^xticks(end)],<span class="keyword">...</span>
-0263                             <span class="string">'XTick'</span>,10.^xticks,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'Box'</span>,<span class="string">'on'</span>);                        
-0264                         set(ax,<span class="string">'YLim'</span>,[min(yy(:)) max(yy(:))],<span class="string">'YDir'</span>,<span class="string">'normal'</span>)
-0265                         cmap = jet; cmap = flipud(cmap);
-0266                         colormap(ax,cmap);
-0267                         xlabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
-0268                         ylabel(ylabelstr);
-0269                         cb = colorbar;
-0270                         set(get(cb,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'norm. amplitude'</span>);
-0271                         
-0272                         <span class="comment">% context menu to flip y-axis direction</span>
-0273                         axes_cm = uicontextmenu(f);
-0274                         gui.cm_handles.axes_proc_xaxis = uimenu(axes_cm,<span class="keyword">...</span>
-0275                             <span class="string">'Label'</span>,<span class="string">'flip y-axis'</span>,<span class="string">'Tag'</span>,<span class="string">'flip'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0276                             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction onContextFlip(src,~)">onContextFlip</a>);
-0277                         gui.cm_handles.axes_proc_xaxis2 = uimenu(axes_cm,<span class="keyword">...</span>
-0278                             <span class="string">'Label'</span>,<span class="string">'color scale log/lin'</span>,<span class="string">'Tag'</span>,<span class="string">'loglin'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-0279                             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction onContextFlip(src,~)">onContextFlip</a>);
-0280                         set(ax,<span class="string">'UIContextMenu'</span>,axes_cm);
-0281                         
-0282                     <span class="keyword">end</span>
-0283                 <span class="keyword">otherwise</span>
-0284                     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
-0285                         <span class="string">'Cannot plot RTDs because the inversion was not multi exponential'</span>},<span class="keyword">...</span>
-0286                         <span class="string">'Invert NMR data first.'</span>);
-0287             <span class="keyword">end</span>
-0288     <span class="keyword">end</span>
-0289     
-0290     <span class="keyword">catch</span> ME
-0291         <span class="comment">% show error message in case import fails</span>
-0292         errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
-0293             <span class="string">'Cannot show figure.'</span>};
-0294         errordlg(errmsg,<span class="string">'showExtraGraphics: Error!'</span>);
-0295     <span class="keyword">end</span>
-0296 <span class="keyword">else</span>
-0297     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
-0298         <span class="string">'Cannot continue because there need to be at least two NMR measurements.'</span>},<span class="keyword">...</span>
-0299         <span class="string">'Not enough data to show'</span>);
-0300 <span class="keyword">end</span>
-0301 
-0302 <span class="keyword">end</span>
-0303 
-0304 <a name="_sub1" href="#_subfunctions" class="code">function onContextFlip(src,~)</a>
-0305 f = ancestor(src,<span class="string">'Figure'</span>,<span class="string">'toplevel'</span>);
-0306 ax = findobj(f,<span class="string">'Type'</span>,<span class="string">'Axes'</span>);
-0307 tag = get(src,<span class="string">'Tag'</span>);
-0308 
-0309 <span class="keyword">switch</span> tag
-0310     <span class="keyword">case</span> <span class="string">'loglin'</span>
-0311         isscale = get(ax,<span class="string">'ColorScale'</span>);
-0312         <span class="keyword">switch</span> isscale
-0313             <span class="keyword">case</span> <span class="string">'log'</span>
-0314                 set(ax,<span class="string">'ColorScale'</span>,<span class="string">'lin'</span>,<span class="string">'CLim'</span>,[0 1]);
-0315             <span class="keyword">case</span> <span class="string">'linear'</span>
-0316                 set(ax,<span class="string">'ColorScale'</span>,<span class="string">'log'</span>,<span class="string">'CLim'</span>,[0.01 1]);
-0317         <span class="keyword">end</span>
-0318     <span class="keyword">case</span> <span class="string">'flip'</span>
-0319         direction = get(ax,<span class="string">'Ydir'</span>);
-0320         <span class="keyword">switch</span> direction
-0321             <span class="keyword">case</span> <span class="string">'normal'</span>
-0322                 set(ax,<span class="string">'Ydir'</span>,<span class="string">'reverse'</span>)
-0323             <span class="keyword">case</span> <span class="string">'reverse'</span>
-0324                 set(ax,<span class="string">'Ydir'</span>,<span class="string">'normal'</span>)
-0325         <span class="keyword">end</span>
-0326 <span class="keyword">end</span>
-0327 
-0328 <span class="keyword">end</span>
-0329 
-0330 <span class="comment">%------------- END OF CODE --------------</span>
-0331 
-0332 <span class="comment">%% License:</span>
-0333 <span class="comment">% MIT License</span>
-0334 <span class="comment">%</span>
-0335 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0336 <span class="comment">%</span>
-0337 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0338 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0339 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0340 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0341 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0342 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0343 <span class="comment">%</span>
-0344 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0345 <span class="comment">% copies or substantial portions of the Software.</span>
-0346 <span class="comment">%</span>
-0347 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0348 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0349 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0350 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0351 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0352 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0353 <span class="comment">% SOFTWARE.</span></pre></div>
+0113                 <span class="keyword">case</span> <span class="string">'mono'</span>
+0114                     <span class="comment">% E0 error</span>
+0115                     E0_er(id,1) = sum(INVdata{id}.results.invstd.ci(1:2:end)) *<span class="keyword">...</span>
+0116                         INVdata{id}.results.nmrproc.normfac;
+0117                     
+0118                     <span class="comment">% T</span>
+0119                     <span class="keyword">switch</span> INVdata{id}.results.nmrproc.T1T2
+0120                         <span class="keyword">case</span> <span class="string">'T1'</span>
+0121                             T(id,1) = INVdata{id}.results.invstd.T1;
+0122                         <span class="keyword">case</span> <span class="string">'T2'</span>
+0123                             T(id,1) = INVdata{id}.results.invstd.T2;
+0124                     <span class="keyword">end</span>
+0125                     <span class="comment">% T error</span>
+0126                     T_er(id,1) = INVdata{id}.results.invstd.ci(2);
+0127 
+0128                 <span class="keyword">case</span> <span class="string">'free'</span>
+0129                     <span class="comment">% total E0 error</span>
+0130                     E0_er(id,1) = sum(INVdata{id}.results.invstd.ci(1:2:end)) *<span class="keyword">...</span>
+0131                         INVdata{id}.results.nmrproc.normfac;
+0132                     <span class="comment">% individual Ex amplitudes</span>
+0133                     Ex(id,:) = INVdata{id}.results.invstd.E0;
+0134                     Ex_er(id,:) = INVdata{id}.results.invstd.ci(1:2:end) *<span class="keyword">...</span>
+0135                         INVdata{id}.results.nmrproc.normfac;
+0136                     <span class="comment">% individual Tx relaxation times</span>
+0137                     <span class="keyword">switch</span> INVdata{id}.results.nmrproc.T1T2
+0138                         <span class="keyword">case</span> <span class="string">'T1'</span>
+0139                             Tx(id,:) = INVdata{id}.results.invstd.T1;
+0140                         <span class="keyword">case</span> <span class="string">'T2'</span>
+0141                             Tx(id,:) = INVdata{id}.results.invstd.T2;
+0142                     <span class="keyword">end</span>
+0143                     Tx_er(id,:) = INVdata{id}.results.invstd.ci(2:2:end);
+0144                     
+0145                 <span class="keyword">case</span> <span class="string">'MUMO'</span>
+0146                     <span class="comment">% total E0 error</span>
+0147                     E0_er(id,1) = sum(INVdata{id}.results.invstd.ci(3:3:end)) *<span class="keyword">...</span>
+0148                         INVdata{id}.results.nmrproc.normfac;
+0149                     <span class="comment">% individual Ex amplitudes</span>
+0150                     Ex(id,:) = INVdata{id}.results.invstd.E;
+0151                     Ex_er(id,:) = INVdata{id}.results.invstd.ci(3:3:end) *<span class="keyword">...</span>
+0152                         INVdata{id}.results.nmrproc.normfac;
+0153                     <span class="comment">% TLGM</span>
+0154                     T(id,1) = INVdata{id}.results.invstd.Tlgm;
+0155                     <span class="comment">% individual Tx relaxation times</span>
+0156                     Tx(id,:) = INVdata{id}.results.invstd.T;
+0157                     Tx_er(id,:) = INVdata{id}.results.invstd.ci(1:3:end);
+0158                     <span class="comment">% RTDs</span>
+0159                     Tspec(id,:) = INVdata{id}.results.invstd.T1T2f';
+0160                     <span class="keyword">if</span> c == 1
+0161                         Tt = INVdata{id}.results.invstd.T1T2me;
+0162                     <span class="keyword">end</span>
+0163 
+0164                 <span class="keyword">otherwise</span>
+0165                     T(id,1) = INVdata{id}.results.invstd.Tlgm;
+0166                     Tspec(id,:) = INVdata{id}.results.invstd.T1T2f';
+0167                     <span class="keyword">if</span> c == 1
+0168                         Tt = INVdata{id}.results.invstd.T1T2me;
+0169                     <span class="keyword">end</span>
+0170             <span class="keyword">end</span>            
+0171             
+0172             <span class="comment">% if there is uncertainty data we use these instead</span>
+0173             <span class="keyword">if</span> hasUncert
+0174                 E0_init(id,:) = E0(id,1);
+0175                 T_init(id,:) = T(id,1);
+0176                 E0(id,:) = uncert.statistics.E0(1);
+0177                 E0_er(id,:) = 2*uncert.statistics.E0(2);
+0178                 T(id,:) = uncert.statistics.Tlgm(1);
+0179                 T_er(id,:) = 2*uncert.statistics.Tlgm(2);                
+0180             <span class="keyword">end</span>
+0181 
+0182             <span class="comment">% 2.) signal-to-noise-ratio SNR</span>
+0183             SNR(id,1) = sum(E0(id)) / INVdata{id}.results.nmrproc.noise;
+0184         <span class="keyword">end</span>
+0185     <span class="keyword">end</span>
+0186     
+0187     <span class="keyword">if</span> isfield(data.import,<span class="string">'BAM'</span>)
+0188         <span class="keyword">if</span> data.import.BAM.use_z
+0189             xval = data.import.BAM.zslice;
+0190             xlabelstr = <span class="string">'position'</span>;
+0191             ylabelstr = <span class="string">'position [µm]'</span>;
+0192         <span class="keyword">else</span>
+0193             xlabelstr = <span class="string">'date'</span> ;
+0194         <span class="keyword">end</span>
+0195     <span class="keyword">elseif</span> isfield(data.import,<span class="string">'IBAC'</span>)
+0196         <span class="keyword">if</span> data.import.IBAC.use_z
+0197             xval = data.import.IBAC.zslice;
+0198             xlabelstr = <span class="string">'position'</span>;
+0199             ylabelstr = <span class="string">'position [µm]'</span>;
+0200         <span class="keyword">else</span>
+0201             xlabelstr = <span class="string">'date'</span> ;
+0202         <span class="keyword">end</span>
+0203     <span class="keyword">elseif</span> isfield(data.import,<span class="string">'LIAGCORE'</span>)
+0204         xval = data.import.LIAGCORE.zslice;
+0205         <span class="keyword">if</span> data.import.LIAGCORE.use_z
+0206             xlabelstr = <span class="string">'position [mm]'</span>;
+0207             ylabelstr = <span class="string">'position [mm]'</span>;
+0208         <span class="keyword">else</span>
+0209             xlabelstr = <span class="string">'level'</span>;
+0210             ylabelstr = <span class="string">'level'</span>;
+0211         <span class="keyword">end</span>
+0212     <span class="keyword">else</span>
+0213         xlabelstr = <span class="string">'date'</span> ;
+0214     <span class="keyword">end</span>
+0215     
+0216     <span class="comment">% plot it</span>
+0217     <span class="keyword">switch</span> method
+0218         <span class="keyword">case</span> <span class="string">'amp'</span>
+0219             f = figure;
+0220             ax1 = subplot(311,<span class="string">'Parent'</span>,f);
+0221             ax2 = subplot(312,<span class="string">'Parent'</span>,f);
+0222             ax3 = subplot(313,<span class="string">'Parent'</span>,f);
+0223             
+0224             <span class="comment">% E0 amplitudes</span>
+0225             hold(ax1,<span class="string">'on'</span>);
+0226             <span class="keyword">switch</span> data.invstd.invtype
+0227                 <span class="keyword">case</span> <span class="string">'mono'</span>
+0228                     errorbar(xval,E0,E0_er,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,ax1,<span class="keyword">...</span>
+0229                         <span class="string">'DisplayName'</span>,<span class="string">'E0'</span>);
+0230                 <span class="keyword">case</span> <span class="string">'free'</span>
+0231                     errorbar(xval,E0,E0_er,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,ax1,<span class="keyword">...</span>
+0232                         <span class="string">'LineWidth'</span>,1.5,<span class="string">'DisplayName'</span>,<span class="string">'E0'</span>);
+0233                     <span class="keyword">for</span> i = 1:size(Ex,2)
+0234                         errorbar(xval,Ex(:,i),E0_er(:,1),<span class="string">'o'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0235                             <span class="string">'DisplayName'</span>,[<span class="string">'Ex'</span>,num2str(i)],<span class="string">'Parent'</span>,ax1);
+0236                     <span class="keyword">end</span>
+0237                 <span class="keyword">case</span> <span class="string">'MUMO'</span>
+0238                     <span class="keyword">if</span> hasUncert
+0239                         errorbar(xval,E0_init,[],<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0240                             <span class="string">'DisplayName'</span>,<span class="string">'E0(init)'</span>,<span class="string">'Parent'</span>,ax1);
+0241                         errorbar(xval,E0,E0_er,<span class="string">'ko'</span>,<span class="string">'DisplayName'</span>,<span class="string">'E0(uncert)'</span>,<span class="keyword">...</span>
+0242                             <span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax1);
+0243                     <span class="keyword">else</span>
+0244                         plot(xval,E0,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,ax1,<span class="keyword">...</span>
+0245                             <span class="string">'DisplayName'</span>,<span class="string">'E0'</span>);
+0246                     <span class="keyword">end</span>
+0247                     <span class="keyword">for</span> i = 1:size(Ex,2)
+0248                         errorbar(xval,Ex(:,i),Ex_er(:,1),<span class="string">'o'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0249                             <span class="string">'DisplayName'</span>,[<span class="string">'Ex'</span>,num2str(i)],<span class="string">'Parent'</span>,ax1);
+0250                     <span class="keyword">end</span>
+0251                 <span class="keyword">otherwise</span>
+0252                     <span class="keyword">if</span> hasUncert
+0253                         errorbar(xval,E0_init,[],<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'E0(init)'</span>,<span class="keyword">...</span>
+0254                             <span class="string">'Parent'</span>,ax1);
+0255                         errorbar(xval,E0,E0_er,<span class="string">'ko'</span>,<span class="string">'DisplayName'</span>,<span class="string">'E0(uncert)'</span>,<span class="keyword">...</span>
+0256                             <span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax1);
+0257                     <span class="keyword">else</span>
+0258                         plot(xval,E0,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'E0'</span>,<span class="keyword">...</span>
+0259                             <span class="string">'Parent'</span>,ax1);
+0260                     <span class="keyword">end</span>
+0261             <span class="keyword">end</span>
+0262             ylims = [min([0 min(E0)*0.9 min(Ex)*0.9]) max(E0)*1.1];
+0263             grid(ax1,<span class="string">'on'</span>);
+0264             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
+0265             set(ax1,<span class="string">'YLim'</span>,ylims);
+0266             legend(ax1,<span class="string">'Location'</span>,<span class="string">'SouthWest'</span>);
+0267 
+0268             <span class="comment">% T relaxation times</span>
+0269             hold(ax2,<span class="string">'on'</span>);
+0270             <span class="keyword">switch</span> data.invstd.invtype
+0271                 <span class="keyword">case</span> <span class="string">'mono'</span>
+0272                     errorbar(xval,T,T_er,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'T0'</span>,<span class="string">'Parent'</span>,ax2);
+0273                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
+0274                 <span class="keyword">case</span> <span class="string">'free'</span>
+0275                     <span class="keyword">for</span> i = 1:size(Tx,2)
+0276                         errorbar(xval,Tx(:,i),Tx_er(:,i),<span class="string">'o'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0277                             <span class="string">'DisplayName'</span>,[<span class="string">'Tx'</span>,num2str(i)],<span class="string">'Parent'</span>,ax2);
+0278                     <span class="keyword">end</span>
+0279                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T_x ['</span>,timescale,<span class="string">']'</span>]);
+0280                     set(ax2,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0281                 <span class="keyword">case</span> <span class="string">'MUMO'</span>
+0282                     <span class="keyword">if</span> hasUncert
+0283                         errorbar(xval,T_init,[],<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0284                             <span class="string">'DisplayName'</span>,<span class="string">'Tlgm(init)'</span>,<span class="string">'Parent'</span>,ax2);
+0285                         errorbar(xval,T,T_er,<span class="string">'ko'</span>,<span class="string">'LineWidth'</span>,1.5,<span class="keyword">...</span>
+0286                         <span class="string">'DisplayName'</span>,<span class="string">'Tlgm(uncert)'</span>,<span class="string">'Parent'</span>,ax2);
+0287                     <span class="keyword">else</span>
+0288                         plot(xval,T,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0289                             <span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="string">'Parent'</span>,ax2);
+0290                     <span class="keyword">end</span>
+0291                     <span class="keyword">for</span> i = 1:size(Tx,2)
+0292                         errorbar(xval,Tx(:,i),Tx_er(:,i),<span class="string">'o'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0293                             <span class="string">'DisplayName'</span>,[<span class="string">'Tx'</span>,num2str(i)],<span class="string">'Parent'</span>,ax2);
+0294                     <span class="keyword">end</span>
+0295                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T_x ['</span>,timescale,<span class="string">']'</span>]);
+0296                     set(ax2,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0297                 <span class="keyword">otherwise</span>
+0298                     <span class="keyword">if</span> hasUncert
+0299                         errorbar(xval,T_init,[],<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0300                             <span class="string">'DisplayName'</span>,<span class="string">'Tlgm(init)'</span>,<span class="string">'Parent'</span>,ax2);
+0301                         errorbar(xval,T,T_er,<span class="string">'ko'</span>,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm(uncert)'</span>,<span class="keyword">...</span>
+0302                             <span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax2);
+0303                     <span class="keyword">else</span>
+0304                         <span class="keyword">for</span> i = 1:size(T,2)
+0305                             plot(xval,T(:,i),<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0306                                 <span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="string">'Parent'</span>,ax2);
+0307                         <span class="keyword">end</span>
+0308                     <span class="keyword">end</span>
+0309                     set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'TLGM ['</span>,timescale,<span class="string">']'</span>]);
+0310             <span class="keyword">end</span>
+0311             ylims = [min([0 min(T)*0.9 min(Tx)*0.9]) max([max(T) max(Tx)])*1.1];
+0312             grid(ax2,<span class="string">'on'</span>);
+0313             set(ax2,<span class="string">'YLim'</span>,ylims);
+0314             legend(ax2,<span class="string">'Location'</span>,<span class="string">'SouthWest'</span>);
+0315 
+0316             <span class="comment">% signal-to-noise-ratio SNR</span>
+0317             hold(ax3,<span class="string">'on'</span>);
+0318             plot(xval,SNR,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,1.5,<span class="string">'Parent'</span>,ax3);
+0319             grid on;
+0320             xlabel(xlabelstr);
+0321             set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'signal-to-noise ratio'</span>);
+0322             
+0323             <span class="comment">% link axes for combined zooming and panning</span>
+0324             linkaxes([ax1 ax2 ax3], <span class="string">'x'</span>);
+0325             
+0326             <span class="comment">% make nice date ticks</span>
+0327             <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
+0328                 isfile = which(<span class="string">'dynamicDateTicks'</span>);
+0329                 <span class="keyword">if</span> ~isempty(isfile)
+0330                     dynamicDateTicks([ax1 ax2 ax3],<span class="string">'link'</span>,<span class="string">'dd.mm. HH:MM'</span>);
+0331                 <span class="keyword">else</span>
+0332                     datetick(ax1,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0333                     datetick(ax2,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0334                     datetick(ax3,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0335                 <span class="keyword">end</span>
+0336             <span class="keyword">end</span>
+0337             
+0338         <span class="keyword">case</span> <span class="string">'ampvst'</span>
+0339             f = figure;
+0340             ax1 = axes(<span class="string">'Parent'</span>,f);
+0341             
+0342             plot(E0,T,<span class="string">'ko'</span>,<span class="string">'Parent'</span>,ax1),
+0343             set(get(ax1,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'E0'</span>);
+0344             set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,[<span class="string">'T ['</span>,timescale,<span class="string">']'</span>]);
+0345             
+0346         <span class="keyword">case</span> <span class="string">'rtd'</span>
+0347             <span class="keyword">switch</span> data.invstd.invtype
+0348                 <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>,<span class="string">'MUMO'</span>}
+0349                     <span class="keyword">if</span> strcmp(xlabelstr,<span class="string">'date'</span>)
+0350                         mycol = jet(size(Tspec,1));
+0351                         [time,ix] = sort(xval);
+0352                         Tspec = Tspec(ix,:);
+0353                         f  = figure;
+0354                         ax = axes(<span class="string">'Parent'</span>,f);
+0355                         hold(ax,<span class="string">'on'</span>)
+0356                         <span class="keyword">for</span> i = 1:size(Tspec,1)
+0357                             plot3(time(i)*ones(size(Tt)),Tt,Tspec(i,:),<span class="keyword">...</span>
+0358                                 <span class="string">'Color'</span>,mycol(i,:),<span class="string">'Parent'</span>,ax);
+0359                         <span class="keyword">end</span>
+0360                         grid on; box on;
+0361                         xlabel(<span class="string">'date'</span>);
+0362                         ylabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
+0363                         zlabel(<span class="string">'amplitude [-]'</span>);
+0364                         
+0365                         set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0366                         isfile = which(<span class="string">'dynamicDateTicks'</span>);
+0367                         <span class="keyword">if</span> ~isempty(isfile)
+0368                             dynamicDateTicks(ax,<span class="string">'dd.mm. HH:MM'</span>);
+0369                         <span class="keyword">else</span>
+0370                             datetick(ax,<span class="string">'x'</span>,<span class="string">'dd.mm. HH:MM'</span>,<span class="string">'keepticks'</span>);
+0371                         <span class="keyword">end</span>
+0372                         view([90 0]);
+0373                     <span class="keyword">else</span>
+0374                         dx = xval(2)-xval(1);
+0375                         [xx,yy] = meshgrid(Tt',[xval-dx/2; xval(end)+dx/2]);
+0376                         f  = figure;
+0377                         ax = axes(<span class="string">'Parent'</span>,f);
+0378                         hold(ax,<span class="string">'on'</span>)
+0379                         
+0380                         <span class="comment">% remove the backgound file</span>
+0381                         Tspec(isnan(Tspec)) = [];
+0382                         xi = numel(Tspec)/numel(Tt);
+0383                         Tspec = reshape(Tspec,[xi numel(Tt)]);
+0384                         
+0385                         surf(xx,yy,zeros(size(xx)),Tspec./max(Tspec(:)),<span class="string">'Parent'</span>,ax);
+0386                         shading(ax,<span class="string">'flat'</span>);
+0387                         xticks = log10(min(Tt)):1:log10(max(Tt));
+0388                         set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^xticks(1) 10^xticks(end)],<span class="keyword">...</span>
+0389                             <span class="string">'XTick'</span>,10.^xticks,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'Box'</span>,<span class="string">'on'</span>);                        
+0390                         set(ax,<span class="string">'YLim'</span>,[min(yy(:)) max(yy(:))],<span class="string">'YDir'</span>,<span class="string">'normal'</span>)
+0391                         cmap = jet; cmap = flipud(cmap);
+0392                         colormap(ax,cmap);
+0393                         xlabel([<span class="string">'relaxation time ['</span>,timescale,<span class="string">']'</span>]);
+0394                         ylabel(ylabelstr);
+0395                         cb = colorbar;
+0396                         set(get(cb,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'norm. amplitude'</span>);
+0397                         
+0398                         <span class="comment">% context menu to flip y-axis direction</span>
+0399                         axes_cm = uicontextmenu(f);
+0400                         gui.cm_handles.axes_proc_xaxis = uimenu(axes_cm,<span class="keyword">...</span>
+0401                             <span class="string">'Label'</span>,<span class="string">'flip y-axis'</span>,<span class="string">'Tag'</span>,<span class="string">'flip'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0402                             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction onContextFlip(src,~)">onContextFlip</a>);
+0403                         gui.cm_handles.axes_proc_xaxis2 = uimenu(axes_cm,<span class="keyword">...</span>
+0404                             <span class="string">'Label'</span>,<span class="string">'color scale log/lin'</span>,<span class="string">'Tag'</span>,<span class="string">'loglin'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+0405                             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction onContextFlip(src,~)">onContextFlip</a>);
+0406                         set(ax,<span class="string">'UIContextMenu'</span>,axes_cm);
+0407                         
+0408                     <span class="keyword">end</span>
+0409                 <span class="keyword">otherwise</span>
+0410                     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
+0411                         <span class="string">'Cannot plot RTDs because the inversion was not multi exponential'</span>},<span class="keyword">...</span>
+0412                         <span class="string">'Invert NMR data first.'</span>);
+0413             <span class="keyword">end</span>
+0414     <span class="keyword">end</span>
+0415     
+0416     <span class="keyword">catch</span> ME
+0417         <span class="comment">% show error message in case import fails</span>
+0418         errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0419             <span class="string">'Cannot show figure.'</span>};
+0420         errordlg(errmsg,<span class="string">'showExtraGraphics: Error!'</span>);
+0421     <span class="keyword">end</span>
+0422 <span class="keyword">else</span>
+0423     helpdlg({<span class="string">'function: showExtraGraphics'</span>,<span class="keyword">...</span>
+0424         <span class="string">'Cannot continue because there need to be at least two NMR measurements.'</span>},<span class="keyword">...</span>
+0425         <span class="string">'Not enough data to show'</span>);
+0426 <span class="keyword">end</span>
+0427 
+0428 <span class="keyword">end</span>
+0429 
+0430 <a name="_sub1" href="#_subfunctions" class="code">function onContextFlip(src,~)</a>
+0431 f = ancestor(src,<span class="string">'Figure'</span>,<span class="string">'toplevel'</span>);
+0432 ax = findobj(f,<span class="string">'Type'</span>,<span class="string">'Axes'</span>);
+0433 tag = get(src,<span class="string">'Tag'</span>);
+0434 
+0435 <span class="keyword">switch</span> tag
+0436     <span class="keyword">case</span> <span class="string">'loglin'</span>
+0437         isscale = get(ax,<span class="string">'ColorScale'</span>);
+0438         <span class="keyword">switch</span> isscale
+0439             <span class="keyword">case</span> <span class="string">'log'</span>
+0440                 set(ax,<span class="string">'ColorScale'</span>,<span class="string">'lin'</span>,<span class="string">'CLim'</span>,[0 1]);
+0441             <span class="keyword">case</span> <span class="string">'linear'</span>
+0442                 set(ax,<span class="string">'ColorScale'</span>,<span class="string">'log'</span>,<span class="string">'CLim'</span>,[0.01 1]);
+0443         <span class="keyword">end</span>
+0444     <span class="keyword">case</span> <span class="string">'flip'</span>
+0445         direction = get(ax,<span class="string">'Ydir'</span>);
+0446         <span class="keyword">switch</span> direction
+0447             <span class="keyword">case</span> <span class="string">'normal'</span>
+0448                 set(ax,<span class="string">'Ydir'</span>,<span class="string">'reverse'</span>)
+0449             <span class="keyword">case</span> <span class="string">'reverse'</span>
+0450                 set(ax,<span class="string">'Ydir'</span>,<span class="string">'normal'</span>)
+0451         <span class="keyword">end</span>
+0452 <span class="keyword">end</span>
+0453 
+0454 <span class="keyword">end</span>
+0455 
+0456 <span class="comment">%------------- END OF CODE --------------</span>
+0457 
+0458 <span class="comment">%% License:</span>
+0459 <span class="comment">% MIT License</span>
+0460 <span class="comment">%</span>
+0461 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0462 <span class="comment">%</span>
+0463 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0464 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0465 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0466 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0467 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0468 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0469 <span class="comment">%</span>
+0470 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0471 <span class="comment">% copies or substantial portions of the Software.</span>
+0472 <span class="comment">%</span>
+0473 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0474 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0475 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0476 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0477 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0478 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0479 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

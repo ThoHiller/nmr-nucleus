@@ -163,8 +163,8 @@ if isfield(data.import,'NMRMOD')
         
         % the 'header' data
         data.import.NMR.data{c}.datfile = fileID.name;
-        data.import.NMR.data{c}.date = fileID.date;
-        data.import.NMR.data{c}.datenum = fileID.datenum;
+        data.import.NMR.data{c}.date = datestr(addtodate(fileID.datenum,-numel(dL)+i,'minute'));
+        data.import.NMR.data{c}.datenum = addtodate(fileID.datenum,-numel(dL)+i,'minute');
         data.import.NMR.data{c}.bytes = fileID.bytes;
         % the NMR data
         data.import.NMR.data{c}.flag = T1T2;
@@ -210,8 +210,8 @@ if isfield(data.import,'NMRMOD')
         
         % the 'header' data
         data.import.NMR.data{c}.datfile = fileID.name;
-        data.import.NMR.data{c}.date = fileID.date;
-        data.import.NMR.data{c}.datenum = fileID.datenum;
+        data.import.NMR.data{c}.date = datestr(addtodate(fileID.datenum,-numel(iL)+i,'minute'));
+        data.import.NMR.data{c}.datenum = addtodate(fileID.datenum,-numel(iL)+i,'minute');
         data.import.NMR.data{c}.bytes = fileID.bytes;
         % the NMR data
         data.import.NMR.data{c}.flag = T1T2;

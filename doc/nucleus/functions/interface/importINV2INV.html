@@ -281,171 +281,198 @@ This function is called by:
 0208                         savedata.INVdata{i}.results.invstd.invparams = invparams;
 0209                     <span class="keyword">end</span>
 0210                 <span class="keyword">end</span>
-0211             <span class="keyword">end</span>
-0212         <span class="keyword">end</span>
-0213         
-0214         <span class="comment">% update GUI data from session mat-file</span>
-0215         data = savedata.data;
-0216         INVdata = savedata.INVdata;
-0217         
-0218         <span class="comment">% display info text</span>
-0219         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... update GUI data.'</span>);
-0220         <span class="comment">% check if the import path exists on this machine</span>
-0221         isdir_import = dir(data.import.path);
-0222         <span class="comment">% if not replace it with the path the session-file was loaded from</span>
-0223         <span class="keyword">if</span> isempty(isdir_import)
-0224             data.import.path = Sessionpath;
-0225         <span class="keyword">end</span>
-0226         <span class="comment">% update the path info field with &quot;path&quot; (&quot;file&quot;)</span>
-0227         <span class="keyword">if</span> data.import.file &gt; 0
-0228             tmpstr = fullfile(data.import.path,data.import.file);
-0229         <span class="keyword">else</span>
-0230             tmpstr = data.import.path;
-0231         <span class="keyword">end</span>
-0232         <span class="comment">% update GUI data</span>
-0233         setappdata(fig,<span class="string">'data'</span>,data);
-0234         setappdata(fig,<span class="string">'gui'</span>,gui);
-0235         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);        
-0236         
-0237         <span class="comment">% update the ini-file</span>
-0238         gui.myui.inidata.importpath = data.import.path;
-0239         gui = <a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
-0240         setappdata(fig,<span class="string">'gui'</span>,gui);
-0241         
-0242         <span class="keyword">if</span> length(tmpstr)&gt;50
-0243             set(gui.text_handles.data_path,<span class="string">'String'</span>,[<span class="string">'...'</span>,tmpstr(end-50:end)],<span class="keyword">...</span>
-0244                 <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
-0245         <span class="keyword">else</span>
-0246             set(gui.text_handles.data_path,<span class="string">'String'</span>,tmpstr,<span class="keyword">...</span>
-0247                 <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
-0248         <span class="keyword">end</span>
-0249         set(gui.text_handles.data_path,<span class="string">'TooltipString'</span>,tmpstr);
-0250         
-0251         <span class="comment">% update the list of file names</span>
-0252         set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
-0253         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0254         
-0255         <span class="comment">% display info text</span>
-0256         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... update GUI interface.'</span>);
-0257         <span class="comment">% update GUI interface</span>
-0258         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0259         
-0260         <span class="comment">% color the file names where there is an inversion set</span>
-0261         <span class="keyword">for</span> id = 1:size(INVdata,1)
-0262             <span class="keyword">if</span> isstruct(INVdata{id})
-0263                 strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
-0264                 str1 = strL{id};
-0265                 str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
-0266                     sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,<span class="keyword">...</span>
-0267                     str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0268                 strL{id} = str2;
-0269                 set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
-0270             <span class="keyword">end</span>
-0271         <span class="keyword">end</span>
-0272         
-0273         <span class="comment">% display info text</span>
-0274         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... update GUI menus.'</span>);
-0275         <span class="comment">% adjust menu entry for expert mode</span>
-0276         <span class="keyword">switch</span> savedata.data.info.ExpertMode
-0277             <span class="keyword">case</span> <span class="string">'on'</span>
-0278                 set(gui.menu.extra_expert,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0279             <span class="keyword">case</span> <span class="string">'off'</span>
-0280                 set(gui.menu.extra_expert,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0281         <span class="keyword">end</span>
-0282         <a href="../../../nucleus/callbacks/menus/onMenuExpert.html" class="code" title="function onMenuExpert(src,~)">onMenuExpert</a>(gui.menu.extra_expert);
-0283 
-0284         <span class="comment">% adjust menu entry for LSQ solver</span>
-0285         <span class="comment">% first check if we have the optimization toolbox</span>
-0286         <span class="keyword">switch</span> data0.info.has_optim
-0287             <span class="keyword">case</span> <span class="string">'on'</span>
-0288                 <span class="comment">% if yes, set the solver accordingly</span>
-0289                 <span class="keyword">switch</span> savedata.data.info.solver
-0290                     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
-0291                         set(gui.menu.extra_solver_lsqlin,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0292                         <a href="../../../nucleus/callbacks/menus/onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqlin);
-0293                     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
-0294                         set(gui.menu.extra_solver_lsqnonneg,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0295                         <a href="../../../nucleus/callbacks/menus/onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqnonneg);
-0296                 <span class="keyword">end</span>
-0297             <span class="keyword">case</span> <span class="string">'off'</span>
-0298                 <span class="comment">% if not set solver to LSQNONNEG</span>
-0299                 data.info.has_optim = <span class="string">'off'</span>;
-0300                 set(gui.menu.extra_solver_lsqnonneg,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0301                 <a href="../../../nucleus/callbacks/menus/onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqnonneg);
-0302                 set(gui.menu.extra_solver,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-0303         <span class="keyword">end</span>        
-0304         
-0305         <span class="comment">% adjust menu entry for joint inversion</span>
-0306         <span class="keyword">switch</span> savedata.data.info.JointInv
-0307             <span class="keyword">case</span> <span class="string">'on'</span>
-0308                 set(gui.menu.extra_joint,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0309             <span class="keyword">case</span> <span class="string">'off'</span>
-0310                 set(gui.menu.extra_joint,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0311         <span class="keyword">end</span>
-0312         <a href="../../../nucleus/callbacks/menus/onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>(gui.menu.extra_joint);
-0313         <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'NMR'</span>);
-0314         
-0315         <span class="comment">% adjust menu entry for comand line inversion info</span>
-0316         <span class="keyword">switch</span> savedata.data.info.InvInfo
-0317             <span class="keyword">case</span> <span class="string">'on'</span>
-0318                 set(gui.menu.view_invinfo,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0319             <span class="keyword">case</span> <span class="string">'off'</span>
-0320                 set(gui.menu.view_invinfo,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0321         <span class="keyword">end</span>
-0322         <a href="../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>(gui.menu.view_invinfo);
-0323         
-0324         <span class="comment">% adjust menu entry for tool tips</span>
-0325         <span class="keyword">switch</span> savedata.data.info.ToolTips
-0326             <span class="keyword">case</span> <span class="string">'on'</span>
-0327                 set(gui.menu.view_tooltips,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
-0328             <span class="keyword">case</span> <span class="string">'off'</span>
-0329                 set(gui.menu.view_tooltips,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
-0330         <span class="keyword">end</span>
-0331         <a href="../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>(gui.menu.view_tooltips);
-0332         
-0333         <span class="comment">% display info text</span>
-0334         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... show last file.'</span>);
-0335         <span class="comment">% set focus on last file used in previous session</span>
-0336         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,savedata.id);
-0337         <span class="comment">% and simulate click to update all relevant GUI elements</span>
-0338         <a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(gui.listbox_handles.signal);
-0339         
-0340         <span class="comment">% display info text</span>
-0341         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... done.'</span>);        
-0342     <span class="keyword">else</span>
-0343         <span class="comment">% display info text</span>
-0344         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... cancelled.'</span>);
-0345         
-0346         helpdlg({<span class="string">'importINV2INV:'</span>;<span class="keyword">...</span>
-0347             <span class="string">'This seems to be not a valid NUCLEUSinv session file'</span>},<span class="keyword">...</span>
-0348             <span class="string">'No session data found'</span>);
-0349     <span class="keyword">end</span>
-0350 <span class="keyword">end</span>
-0351 
-0352 <span class="comment">%------------- END OF CODE --------------</span>
-0353 
-0354 <span class="comment">%% License:</span>
-0355 <span class="comment">% MIT License</span>
-0356 <span class="comment">%</span>
-0357 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0358 <span class="comment">%</span>
-0359 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0360 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0361 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0362 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0363 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0364 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0365 <span class="comment">%</span>
-0366 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0367 <span class="comment">% copies or substantial portions of the Software.</span>
-0368 <span class="comment">%</span>
-0369 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0370 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0371 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0372 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0373 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0374 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0375 <span class="comment">% SOFTWARE.</span></pre></div>
+0211             <span class="keyword">end</span> <span class="comment">% version &lt; 200</span>
+0212             <span class="keyword">if</span> version_in &lt; 210 <span class="comment">% changes introduced with v.0.2.1</span>
+0213                 <span class="comment">% new 'EchoFlag' info flag</span>
+0214                 savedata.data.info.EchoFlag = data.info.EchoFlag;
+0215                 <span class="keyword">for</span> i = 1:numel(savedata.INVdata)
+0216                     <span class="keyword">if</span> isstruct(savedata.INVdata{i})
+0217                         <span class="keyword">switch</span> savedata.INVdata{i}.invstd.invtype
+0218                             <span class="keyword">case</span> <span class="string">'NNLS'</span>
+0219                                 invparams = savedata.INVdata{i}.results.invstd.invparams;
+0220                                 <span class="keyword">switch</span> invparams.solver
+0221                                     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
+0222                                         <span class="comment">% after version 0.1.12 this &quot;flag&quot;</span>
+0223                                         <span class="comment">% was unfortunately hard-coded</span>
+0224                                         <span class="keyword">if</span> version_in &lt; 112
+0225                                             invparams.EchoFlag = <span class="string">'off'</span>;
+0226                                         <span class="keyword">else</span>
+0227                                             invparams.EchoFlag = <span class="string">'on'</span>;
+0228                                         <span class="keyword">end</span>
+0229                                     <span class="keyword">otherwise</span>
+0230                                         <span class="comment">% nothing to do</span>
+0231                                 <span class="keyword">end</span>
+0232                                 savedata.INVdata{i}.results.invstd.invparams = invparams;
+0233                             <span class="keyword">otherwise</span>
+0234                                 <span class="comment">% nothing to do</span>
+0235                         <span class="keyword">end</span>
+0236                     <span class="keyword">end</span>
+0237                 <span class="keyword">end</span>
+0238             <span class="keyword">end</span> <span class="comment">% version &lt; 210</span>
+0239         <span class="keyword">end</span>
+0240         
+0241         <span class="comment">% update GUI data from session mat-file</span>
+0242         data = savedata.data;
+0243         INVdata = savedata.INVdata;
+0244         
+0245         <span class="comment">% display info text</span>
+0246         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... update GUI data.'</span>);
+0247         <span class="comment">% check if the import path exists on this machine</span>
+0248         isdir_import = dir(data.import.path);
+0249         <span class="comment">% if not replace it with the path the session-file was loaded from</span>
+0250         <span class="keyword">if</span> isempty(isdir_import)
+0251             data.import.path = Sessionpath;
+0252         <span class="keyword">end</span>
+0253         <span class="comment">% update the path info field with &quot;path&quot; (&quot;file&quot;)</span>
+0254         <span class="keyword">if</span> data.import.file &gt; 0
+0255             tmpstr = fullfile(data.import.path,data.import.file);
+0256         <span class="keyword">else</span>
+0257             tmpstr = data.import.path;
+0258         <span class="keyword">end</span>
+0259         <span class="comment">% update GUI data</span>
+0260         setappdata(fig,<span class="string">'data'</span>,data);
+0261         setappdata(fig,<span class="string">'gui'</span>,gui);
+0262         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);        
+0263         
+0264         <span class="comment">% update the ini-file</span>
+0265         gui.myui.inidata.importpath = data.import.path;
+0266         gui = <a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
+0267         setappdata(fig,<span class="string">'gui'</span>,gui);
+0268         
+0269         <span class="keyword">if</span> length(tmpstr)&gt;50
+0270             set(gui.text_handles.data_path,<span class="string">'String'</span>,[<span class="string">'...'</span>,tmpstr(end-50:end)],<span class="keyword">...</span>
+0271                 <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
+0272         <span class="keyword">else</span>
+0273             set(gui.text_handles.data_path,<span class="string">'String'</span>,tmpstr,<span class="keyword">...</span>
+0274                 <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
+0275         <span class="keyword">end</span>
+0276         set(gui.text_handles.data_path,<span class="string">'TooltipString'</span>,tmpstr);
+0277         
+0278         <span class="comment">% update the list of file names</span>
+0279         set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
+0280         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0281         
+0282         <span class="comment">% display info text</span>
+0283         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... update GUI interface.'</span>);
+0284         <span class="comment">% update GUI interface</span>
+0285         <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0286         
+0287         <span class="comment">% color the file names where there is an inversion set</span>
+0288         <span class="keyword">for</span> id = 1:size(INVdata,1)
+0289             <span class="keyword">if</span> isstruct(INVdata{id})
+0290                 strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0291                 str1 = strL{id};
+0292                 str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0293                     sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,<span class="keyword">...</span>
+0294                     str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0295                 strL{id} = str2;
+0296                 set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+0297             <span class="keyword">end</span>
+0298         <span class="keyword">end</span>
+0299         
+0300         <span class="comment">% display info text</span>
+0301         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... update GUI menus.'</span>);
+0302         <span class="comment">% adjust menu entry for expert mode</span>
+0303         <span class="keyword">switch</span> savedata.data.info.ExpertMode
+0304             <span class="keyword">case</span> <span class="string">'on'</span>
+0305                 set(gui.menu.extra_expert,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0306             <span class="keyword">case</span> <span class="string">'off'</span>
+0307                 set(gui.menu.extra_expert,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0308         <span class="keyword">end</span>
+0309         <a href="../../../nucleus/callbacks/menus/onMenuExpert.html" class="code" title="function onMenuExpert(src,~)">onMenuExpert</a>(gui.menu.extra_expert);
+0310 
+0311         <span class="comment">% adjust menu entry for LSQ solver</span>
+0312         <span class="comment">% first check if we have the optimization toolbox</span>
+0313         <span class="keyword">switch</span> data0.info.has_optim
+0314             <span class="keyword">case</span> <span class="string">'on'</span>
+0315                 <span class="comment">% if yes, set the solver accordingly</span>
+0316                 <span class="keyword">switch</span> savedata.data.info.solver
+0317                     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
+0318                         set(gui.menu.extra_solver_lsqlin,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0319                         <a href="../../../nucleus/callbacks/menus/onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqlin);
+0320                     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
+0321                         set(gui.menu.extra_solver_lsqnonneg,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0322                         <a href="../../../nucleus/callbacks/menus/onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqnonneg);
+0323                 <span class="keyword">end</span>
+0324             <span class="keyword">case</span> <span class="string">'off'</span>
+0325                 <span class="comment">% if not set solver to LSQNONNEG</span>
+0326                 data.info.has_optim = <span class="string">'off'</span>;
+0327                 set(gui.menu.extra_solver_lsqnonneg,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0328                 <a href="../../../nucleus/callbacks/menus/onMenuSolver.html" class="code" title="function onMenuSolver(src,~)">onMenuSolver</a>(gui.menu.extra_solver_lsqnonneg);
+0329                 set(gui.menu.extra_solver,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+0330         <span class="keyword">end</span>        
+0331         
+0332         <span class="comment">% adjust menu entry for joint inversion</span>
+0333         <span class="keyword">switch</span> savedata.data.info.JointInv
+0334             <span class="keyword">case</span> <span class="string">'on'</span>
+0335                 set(gui.menu.extra_joint,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0336             <span class="keyword">case</span> <span class="string">'off'</span>
+0337                 set(gui.menu.extra_joint,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0338         <span class="keyword">end</span>
+0339         <a href="../../../nucleus/callbacks/menus/onMenuJointInversion.html" class="code" title="function onMenuJointInversion(src,~)">onMenuJointInversion</a>(gui.menu.extra_joint);
+0340         <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'NMR'</span>);
+0341         
+0342         <span class="comment">% adjust menu entry for comand line inversion info</span>
+0343         <span class="keyword">switch</span> savedata.data.info.InvInfo
+0344             <span class="keyword">case</span> <span class="string">'on'</span>
+0345                 set(gui.menu.view_invinfo,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0346             <span class="keyword">case</span> <span class="string">'off'</span>
+0347                 set(gui.menu.view_invinfo,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0348         <span class="keyword">end</span>
+0349         <a href="../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>(gui.menu.view_invinfo);
+0350         
+0351         <span class="comment">% adjust menu entry for tool tips</span>
+0352         <span class="keyword">switch</span> savedata.data.info.ToolTips
+0353             <span class="keyword">case</span> <span class="string">'on'</span>
+0354                 set(gui.menu.view_tooltips,<span class="string">'Checked'</span>,<span class="string">'off'</span>);
+0355             <span class="keyword">case</span> <span class="string">'off'</span>
+0356                 set(gui.menu.view_tooltips,<span class="string">'Checked'</span>,<span class="string">'on'</span>);
+0357         <span class="keyword">end</span>
+0358         <a href="../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>(gui.menu.view_tooltips);
+0359         
+0360         <span class="comment">% display info text</span>
+0361         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... show last file.'</span>);
+0362         <span class="comment">% set focus on last file used in previous session</span>
+0363         set(gui.listbox_handles.signal,<span class="string">'Value'</span>,savedata.id);
+0364         <span class="comment">% and simulate click to update all relevant GUI elements</span>
+0365         <a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(gui.listbox_handles.signal);
+0366         
+0367         <span class="comment">% display info text</span>
+0368         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... done.'</span>);        
+0369     <span class="keyword">else</span>
+0370         <span class="comment">% display info text</span>
+0371         <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,<span class="string">'Importing GUI session from mat-file ... cancelled.'</span>);
+0372         
+0373         helpdlg({<span class="string">'importINV2INV:'</span>;<span class="keyword">...</span>
+0374             <span class="string">'This seems to be not a valid NUCLEUSinv session file'</span>},<span class="keyword">...</span>
+0375             <span class="string">'No session data found'</span>);
+0376     <span class="keyword">end</span>
+0377 <span class="keyword">end</span>
+0378 
+0379 <span class="comment">%------------- END OF CODE --------------</span>
+0380 
+0381 <span class="comment">%% License:</span>
+0382 <span class="comment">% MIT License</span>
+0383 <span class="comment">%</span>
+0384 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0385 <span class="comment">%</span>
+0386 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0387 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0388 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0389 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0390 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0391 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0392 <span class="comment">%</span>
+0393 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0394 <span class="comment">% copies or substantial portions of the Software.</span>
+0395 <span class="comment">%</span>
+0396 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0397 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0398 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0399 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0400 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0401 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0402 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

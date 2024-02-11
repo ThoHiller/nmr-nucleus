@@ -45,14 +45,16 @@ if strfind(solver,'LSQLIN')
         % menu entry
         set(gui.menu.extra_solver_lsqlin,'Checked','on');
         set(gui.menu.extra_solver_lsqnonneg,'Checked','off');
-        
-        % update the tooltips
+
+        set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
 
 elseif strfind(solver,'LSQNONNEG')
         data.info.solver = 'lsqnonneg';
         % menu entry
         set(gui.menu.extra_solver_lsqlin,'Checked','off');
         set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+
+        set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
 end
 
 % update GUI data

@@ -38,7 +38,7 @@ fig_tag = get(fig,'Tag');
 gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 
-parent = get(src,'Parent');
+% parent = get(src,'Parent');
 label = get(src,'Label');
 onoff = lower(get(src,'Checked'));
 

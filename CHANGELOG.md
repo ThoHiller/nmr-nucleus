@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.1] - 2024-02-11
+
+### Added
+- Added uncertainty data do Excel export in **NUCLEUSinv**
+- Added uncertainty calculation to batch mode in **NUCLEUSinv**
+- Added a new flag to the *Extra* menu of **NUCLEUSinv** that allows to set all relaxation times < *TE/5* to zero when `lsqlin` is used for the RTD inversion
+
+### Changed
+- Changed the default settings for NMR signal calculation in **NUCLEUSmod** (more realistic echo time *TE* of 200µs and the first echo within the time vector is actually *TE* or *TE/2* and not 0)
+
+### Fixed
+- Fixed an issue when exporting data from *UncertView* GUI to **NUCLEUSinv** main GUI
+- Re-factored a few of the uncertainty calculation functions
+- More seamless integration of *UncertView* GUI
+
 ## [0.2.0] - 2024-02-01
 
 ### Added
@@ -200,6 +215,7 @@
 
 Initial Version
 
+[0.2.1]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.2.0...v.0.2.1
 [0.2.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.14...v.0.2.0
 [0.1.14]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.13...v.0.1.14
 [0.1.13]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.12...v.0.1.13

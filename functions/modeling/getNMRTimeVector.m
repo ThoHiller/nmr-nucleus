@@ -97,20 +97,20 @@ switch touse
         t = zeros(N,1);
         switch dorwth
             case 'on'
-                t(2) = TE/2;
+                t(1) = TE/2;
             case 'off'
-                t(2) = TE;
+                t(1) = TE;
         end
-        t(3:end) = t(2) + cumsum(TE.*ones(N-2,1));
+        t(2:end) = t(1) + cumsum(TE.*ones(N-1,1));
     
     % use a maximum time tmax
     case 'tmax'
-        t = 0:TE:tmax+TE;
+        t = TE:TE:tmax;
         switch dorwth
             case 'on'
-                 t = [0 TE/2 TE/2+t(2:end)];
-            case 'off'
-                 t = [0 TE TE+t(2:end)];
+                 t = [TE/2 TE/2+t(1:end)];
+            otherwise
+                % nothing to do
         end       
         dt = abs(t-tmax);
         ind = find(dt==min(dt),1,'last');

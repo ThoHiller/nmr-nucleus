@@ -70,7 +70,7 @@ if isfield(data.import,'NMR')
             data_upd.pressure = data.pressure;
             data = data_upd;
 
-            % if "mono" or "free" inversion is chossen update the internal
+            % if "mono" or "free" inversion is chosen update the internal
             % fixed relaxation times field
             if strcmp(data.invstd.invtype,'mono') ||...
                     strcmp(data.invstd.invtype,'free')
@@ -120,6 +120,9 @@ if isfield(data.import,'NMR')
             
             % take all echoes
             data.process.end = length(data.import.NMR.data{id}.signal);
+
+            % set default number of uncertainty runs
+            data.uncert.N = 10;
             
             % ---
             % special treatments
@@ -203,6 +206,10 @@ if isfield(data.import,'NMR')
         % if the FixedTimeView window is open update it
         if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
             FixedTimeView(gui.menu.extra_fixedtime);
+        end
+        % if the UncertView window is open update it
+        if ~isempty(findobj('Tag','UNCERTVIEW'))
+            UncertView(gui.menu.extra_uncert);
         end
     else
         helpdlg({'onListboxData:','Only choose one data set at a time.'},...

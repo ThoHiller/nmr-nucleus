@@ -1,9 +1,8 @@
-function onMenuViewFigures(src,~)
-%onMenuViewFigures handles the extra menu entries to show additional
-%graphical output
+function onMenuExtraEchoFlag(src,~)
+%onMenuExtraEchoFlag handles the call from the menu that swicth the "EchoFlag"
 %
 % Syntax:
-%       onMenuViewFigures
+%       onMenuExtraEchoFlag
 %
 % Inputs:
 %       src - handle of the calling object
@@ -12,12 +11,11 @@ function onMenuViewFigures(src,~)
 %       none
 %
 % Example:
-%       onMenuViewFigures(src)
+%       onMenuExtraEchoFlag(src,~)
 %
 % Other m-files required:
-%       showExtraGraphics
-%       showFitStatistics
-%       showParameterInfo
+%       NUCLEUSinv_updateInterface
+%       updateStatusInformation
 %
 % Subfunctions:
 %       none
@@ -32,22 +30,34 @@ function onMenuViewFigures(src,~)
 
 %------------- BEGIN CODE --------------
 
-%% label of the calling menu
-label = get(src,'Label');
+%% get GUI handle and data
+fig = findobj('Tag','INV');
+gui = getappdata(fig,'gui');
+data = getappdata(fig,'data');
 
-% chose the corresponding function
-switch label
-    case 'Parameter Info'
-        showParameterInfo;
-    case 'Fit statistics'
-        showFitStatistics;
-    case 'AMP-TLGM-SNR'
-        showExtraGraphics('amp');
-    case 'AMP vs TLGM'
-        showExtraGraphics('ampvst');
-    case 'RTD'    
-        showExtraGraphics('rtd');
+% on / off switch
+onoff = get(src,'Checked');
+
+% deactivate or activate the "EchoFlag"
+switch onoff
+    case 'on' % if it's on, switch it off
+        data.info.EchoFlag = 'off';
+        % menu entry
+        set(gui.menu.extra_lsqlin_echoflag,'Checked','off');
+    case 'off'  % if it's off, switch it on
+        data.info.EchoFlag = 'on';
+        % menu entry
+        set(gui.menu.extra_lsqlin_echoflag,'Checked','on');
 end
+
+% update GUI data
+setappdata(fig,'data',data);
+setappdata(fig,'gui',gui);
+% update interface
+NUCLEUSinv_updateInterface;
+% update status information
+updateStatusInformation(fig);
+updateToolTips;
 
 end
 
@@ -56,7 +66,7 @@ end
 %% License:
 % MIT License
 %
-% Copyright (c) 2018 Thomas Hiller
+% Copyright (c) 2019 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal

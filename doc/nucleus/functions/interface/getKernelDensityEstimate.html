@@ -1,0 +1,171 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of getKernelDensityEstimate</title>
+  <meta name="keywords" content="getKernelDensityEstimate">
+  <meta name="description" content=" computes the one dimensional kernel density estimate">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html interface -->
+<h1>getKernelDensityEstimate
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> computes the one dimensional kernel density estimate</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [f,x] = getKernelDensityEstimate(y) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">getKernelDensityEstimate computes the one dimensional kernel density estimate
+
+ Syntax:
+       [f,x] = getKernelDensityEstimate(y)
+
+ Inputs:
+       y - values / samples
+
+ Outputs:
+       f - density values
+       x - sample points
+
+ Example:
+       [f,x] = getKernelDensityEstimate(y)
+
+ Other m-files required:
+       kde.m
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv, NUCLEUSmod
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="UncertView.html" class="code" title="function UncertView(src,~)">UncertView</a>	 is an extra subGUI to show results of the uncertainty</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [f,x] = getKernelDensityEstimate(y)</a>
+0002 <span class="comment">%getKernelDensityEstimate computes the one dimensional kernel density estimate</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       [f,x] = getKernelDensityEstimate(y)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       y - values / samples</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Outputs:</span>
+0011 <span class="comment">%       f - density values</span>
+0012 <span class="comment">%       x - sample points</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       [f,x] = getKernelDensityEstimate(y)</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       kde.m</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       none</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% MAT-files required:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% See also: NUCLEUSinv, NUCLEUSmod</span>
+0027 <span class="comment">% Author: see AUTHORS.md</span>
+0028 <span class="comment">% email: see AUTHORS.md</span>
+0029 <span class="comment">% License: MIT License (at end)</span>
+0030 
+0031 <span class="comment">%------------- BEGIN CODE --------------</span>
+0032 
+0033 <span class="comment">%% check for Matlab version and Statistics Toolbox</span>
+0034 useinternalKDE = false;
+0035 <span class="comment">% Matlab version</span>
+0036 v = ver(<span class="string">'MATLAB'</span>);
+0037 ind = strfind(v.Version,<span class="string">'.'</span>);
+0038 <span class="comment">% major number</span>
+0039 vMajor = str2double(v.Version(1:ind-1));
+0040 <span class="comment">% minor number</span>
+0041 vMinor = str2double(v.Version(ind+1:end));
+0042 <span class="comment">% check version</span>
+0043 <span class="keyword">if</span> vMajor &gt; 9 || (vMajor == 9 &amp;&amp; vMinor &gt;= 9)
+0044     <span class="keyword">if</span> ~isMATLABReleaseOlderThan(&quot;R2023b&quot;)
+0045         <span class="comment">% use internal 'kde' for versions R2023b and newer</span>
+0046         useinternalKDE = true;
+0047     <span class="keyword">end</span>
+0048 <span class="keyword">end</span>
+0049 
+0050 <span class="comment">% check Statistics Toolbox</span>
+0051 hasStatBox = false;
+0052 Mver = ver;
+0053 <span class="keyword">for</span> i = 1:size(Mver,2)
+0054     <span class="keyword">if</span> strfind(Mver(i).Name,<span class="string">'Statistics'</span>)
+0055         hasStatBox = true;
+0056     <span class="keyword">end</span>
+0057 <span class="keyword">end</span>
+0058 
+0059 <span class="comment">%% get the kernel density estimate</span>
+0060 <span class="keyword">if</span> hasStatBox
+0061     <span class="comment">% Statistics ToolBox</span>
+0062     [f,x] = ksdensity(y);
+0063 <span class="keyword">else</span>
+0064     <span class="keyword">if</span> useinternalKDE
+0065         <span class="comment">% 2023b built-in kde</span>
+0066         [f,x] = kde(y);
+0067     <span class="keyword">else</span>
+0068         <span class="comment">% before 2023b use FEX kde in 'externals' folder</span>
+0069         [~,f,x] = kde(y,numel(y));
+0070     <span class="keyword">end</span>
+0071 <span class="keyword">end</span>
+0072 
+0073 <span class="keyword">end</span>
+0074 
+0075 <span class="comment">%------------- END OF CODE --------------</span>
+0076 
+0077 <span class="comment">%% License:</span>
+0078 <span class="comment">% MIT License</span>
+0079 <span class="comment">%</span>
+0080 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+0081 <span class="comment">%</span>
+0082 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0083 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0084 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0085 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0086 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0087 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0088 <span class="comment">%</span>
+0089 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0090 <span class="comment">% copies or substantial portions of the Software.</span>
+0091 <span class="comment">%</span>
+0092 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0093 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0094 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0095 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0096 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0097 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0098 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

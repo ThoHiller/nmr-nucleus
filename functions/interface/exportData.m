@@ -459,11 +459,59 @@ out(1:size(b3,1),yi:yi-1+size(b3,2)) = b3;
 yi = yi + size(b3,2)+1;
 out(1:size(b4,1),yi:yi-1+size(b4,2)) = b4;
 
+% check for uncertainty data
+hasUncert = false;
+if isfield(INVdata{id}.results.invstd,'uncert')
+    hasUncert = true;
+    uncert = INVdata{id}.results.invstd.uncert;
+    stats = uncert.statistics;
+
+    % first the general statistics
+    header5a = {'uncertainty statistics','',''};
+    header5b = {'RTD bounds','',''};
+    header5c = {'TLGM (mean)','TLGM (std)','TLGM (aad,0)'};
+    header5d = {'TLGM (median)','TLGM (aad,1)',''};
+    header5e = {'E0 (mean)','E0 (std)','E0 (aad,0)'};
+    header5f = {'E0 (median)','E0 (aad,1)',''};
+
+    b5(1,:) = header5a;
+    b5(3,:) = header5b;
+    b5(4,:) = [num2cell(stats.RTD_bounds), {''}];
+    b5(6,:) = header5c;
+    b5(7,:) = num2cell(stats.Tlgm);
+    b5(8,:) = header5d;
+    b5(9,:) = [num2cell(stats.Tlgm_med), {''}];
+    b5(11,:) = header5e;
+    b5(12,:) = num2cell(stats.E0);
+    b5(13,:) = header5f;
+    b5(14,:) = [num2cell(stats.E0_med), {''}];
+
+    % now the uncertainty RTDs
+    header6a = {'uncertainty RTDs',''};
+    header6b = {['relaxation times [',unit,']'],'amplitudes [a.u.]'};
+    nDist = size(uncert.interp_f,1);
+    for id = 1:nDist-1
+        header6a(1,2+id) = {''};
+        header6b(1,2+id) = {'amplitudes [a.u.]'};
+    end
+    b6(1,:) = header6a;
+    b6(2,:) = header6b;
+    b6(3:2+size(tmp4,1),:) = [num2cell(tmp4(:,1)),num2cell(uncert.interp_f')];
+
+    % glue together the output matrix
+    out2(1:size(b5,1),1:size(b5,2)) = b5;
+    yi = size(b5,2)+2;
+    out2(1:size(b6,1),yi:yi-1+size(b6,2)) = b6;
+end
+
 % display info text
 displayStatusText(gui,...
     'Exporting inversion data to Excel-file ...');
 % save to file
 xlswrite(fullfile(spath,sfile),out,'NMRdata','A1');
+if hasUncert
+    xlswrite(fullfile(spath,sfile),out2,'NMRuncertainty','A1');
+end
 
 % remove the first standard excel sheet
 [~,sheets] = xlsfinfo(fullfile(spath,sfile));

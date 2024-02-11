@@ -105,119 +105,170 @@ This function is called by:
 0035 gui = getappdata(fig,<span class="string">'gui'</span>);
 0036 data = getappdata(fig,<span class="string">'data'</span>);
 0037 
-0038 <span class="comment">% default color</span>
-0039 col = gui.myui.colors.axisL;
-0040 
-0041 <span class="comment">%% CUT OFF info</span>
-0042 <span class="comment">% RTD axis</span>
-0043 ax = gui.axes_handles.rtd;
-0044 
-0045 <span class="comment">% time-scale dependent scaling</span>
-0046 <span class="keyword">switch</span> data.process.timescale
-0047     <span class="keyword">case</span> <span class="string">'s'</span>
-0048         CBW = data.param.CBWcutoff/1000;
-0049         BVI = data.param.BVIcutoff/1000;
-0050     <span class="keyword">case</span> <span class="string">'ms'</span>
-0051         CBW = data.param.CBWcutoff;
-0052         BVI = data.param.BVIcutoff;
-0053 <span class="keyword">end</span>
-0054 
-0055 xx = get(ax,<span class="string">'XLim'</span>);
-0056 yy = get(ax,<span class="string">'YLim'</span>);
-0057 line([CBW CBW],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0058     <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
-0059 line([BVI BVI],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0060     <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
-0061 
-0062 <span class="keyword">if</span> CBW &gt; xx(1)
-0063     xx1 = mean([log10(xx(1)) log10(CBW)]);
-0064     text(10^xx1, yy(2)*0.9,<span class="string">'CBW'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
-0065         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0066         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
-0067 <span class="keyword">end</span>
-0068 <span class="keyword">if</span> BVI &gt; xx(1)
-0069     <span class="keyword">if</span> CBW &gt; xx(1)
-0070         xx2 = mean([log10(CBW) log10(BVI)]);
-0071     <span class="keyword">else</span>
-0072         xx2 = mean([log10(xx(1)) log10(BVI)]);
-0073     <span class="keyword">end</span>
-0074     text(10^xx2, yy(2)*0.9,<span class="string">'BVI'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
-0075         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0076         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
-0077 <span class="keyword">end</span>
-0078 <span class="keyword">if</span> BVI &lt; xx(2)
-0079     xx3 = mean([log10(BVI) log10(xx(2))]);
-0080     text(10^xx3, yy(2)*0.9,<span class="string">'BVM'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
-0081         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0082         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
-0083 <span class="keyword">end</span>
-0084 
-0085 <span class="comment">%% diffusion regime info</span>
-0086 <span class="comment">% PSD axis</span>
-0087 ax = gui.axes_handles.psd;
-0088 
-0089 <span class="comment">% surface relaxivity in [m/s]</span>
-0090 rho = data.param.rho/1e6;
-0091 <span class="comment">% diffusion coeff. of water [m^2/s]</span>
-0092 D = 2.1e-9;
-0093 fast = 1*D/rho; <span class="comment">% [m]</span>
-0094 slow = 10*D/rho; <span class="comment">% [m]</span>
-0095 <span class="keyword">switch</span> data.process.timescale
-0096     <span class="keyword">case</span> <span class="string">'ms'</span>
-0097         fast = fast*1e3;
-0098         slow = slow*1e3;
-0099     <span class="keyword">otherwise</span>
-0100         <span class="comment">% nothing to do</span>
-0101 <span class="keyword">end</span>
-0102 
-0103 xx = get(ax,<span class="string">'XLim'</span>);
-0104 yy = get(ax,<span class="string">'YLim'</span>);
-0105 line([fast fast],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0106     <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
-0107 line([slow slow],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0108     <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
-0109 
-0110 <span class="keyword">if</span> fast &gt; xx(1)
-0111     xx2 = mean([log10(xx(1)) log10(fast)]);
-0112     text(10^xx2, yy(2)*0.9,<span class="string">'fast'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
-0113         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0114         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
-0115 <span class="keyword">end</span>
-0116 <span class="keyword">if</span> slow &lt; xx(2)
-0117     xx3 = mean([log10(slow) log10(xx(2))]);
-0118     text(10^xx3, yy(2)*0.9,<span class="string">'slow'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
-0119         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0120         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
-0121 <span class="keyword">end</span>
+0038 <span class="comment">% check for uncertainty data</span>
+0039 hasUncert = false;
+0040 <span class="keyword">if</span> isfield(data,<span class="string">'results'</span>) &amp;&amp; isfield(data.results,<span class="string">'invstd'</span>) &amp;&amp; <span class="keyword">...</span>
+0041         isfield(data.results.invstd,<span class="string">'uncert'</span>)
+0042     hasUncert = true;
+0043     uncert = data.results.invstd.uncert;
+0044 <span class="keyword">end</span>
+0045 
+0046 <span class="comment">% default color</span>
+0047 col = gui.myui.colors.axisL;
+0048 
+0049 <span class="comment">% RTD axis</span>
+0050 ax = gui.axes_handles.rtd;
+0051 
+0052 <span class="keyword">if</span> hasUncert
+0053     <span class="comment">% uncertainty RTD calculation range</span>
+0054     rtd_range = uncert.statistics.RTD_bounds;
+0055     rtd_range0 = data.invstd.time;
+0056     yy = get(ax,<span class="string">'YLim'</span>);
+0057 
+0058     <span class="keyword">if</span> rtd_range(1) &gt; rtd_range0(1)
+0059         line([rtd_range(1) rtd_range(1)],[yy(1) yy(2)],<span class="string">'Color'</span>,[0.25 0.25 0.25],<span class="keyword">...</span>
+0060             <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="keyword">...</span>
+0061             <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0062         text(rtd_range(1), yy(2)*0.5,<span class="string">'uncert stat bounds'</span>,<span class="string">'Color'</span>,[0.25 0.25 0.25],<span class="keyword">...</span>
+0063             <span class="string">'FontSize'</span>,12,<span class="string">'Rotation'</span>,90,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0064             <span class="string">'VerticalAlignment'</span>,<span class="string">'bottom'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
+0065     <span class="keyword">end</span>
+0066 
+0067     <span class="keyword">if</span> rtd_range(2) &lt; rtd_range0(2)
+0068         line([rtd_range(2) rtd_range(2)],[yy(1) yy(2)],<span class="string">'Color'</span>,[0.25 0.25 0.25],<span class="keyword">...</span>
+0069             <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="keyword">...</span>
+0070             <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0071         text(rtd_range(2), yy(2)*0.5,<span class="string">'uncert stat bounds'</span>,<span class="string">'Color'</span>,[0.25 0.25 0.25],<span class="keyword">...</span>
+0072             <span class="string">'FontSize'</span>,12,<span class="string">'Rotation'</span>,90,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0073             <span class="string">'VerticalAlignment'</span>,<span class="string">'top'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
+0074     <span class="keyword">end</span>
+0075 
+0076 <span class="keyword">else</span>
+0077     <span class="comment">% CUT OFF info</span>
+0078     <span class="comment">% time-scale dependent scaling</span>
+0079     <span class="keyword">switch</span> data.process.timescale
+0080         <span class="keyword">case</span> <span class="string">'s'</span>
+0081             CBW = data.param.CBWcutoff/1000;
+0082             BVI = data.param.BVIcutoff/1000;
+0083         <span class="keyword">case</span> <span class="string">'ms'</span>
+0084             CBW = data.param.CBWcutoff;
+0085             BVI = data.param.BVIcutoff;
+0086     <span class="keyword">end</span>
+0087 
+0088     xx = get(ax,<span class="string">'XLim'</span>);
+0089     yy = get(ax,<span class="string">'YLim'</span>);
+0090     line([CBW CBW],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0091         <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0092     line([BVI BVI],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0093         <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0094 
+0095     <span class="keyword">if</span> CBW &gt; xx(1)
+0096         xx1 = mean([log10(xx(1)) log10(CBW)]);
+0097         text(10^xx1, yy(2)*0.9,<span class="string">'CBW'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
+0098             <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0099             <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0100     <span class="keyword">end</span>
+0101     <span class="keyword">if</span> BVI &gt; xx(1)
+0102         <span class="keyword">if</span> CBW &gt; xx(1)
+0103             xx2 = mean([log10(CBW) log10(BVI)]);
+0104         <span class="keyword">else</span>
+0105             xx2 = mean([log10(xx(1)) log10(BVI)]);
+0106         <span class="keyword">end</span>
+0107         text(10^xx2, yy(2)*0.9,<span class="string">'BVI'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
+0108             <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0109             <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0110     <span class="keyword">end</span>
+0111     <span class="keyword">if</span> BVI &lt; xx(2)
+0112         xx3 = mean([log10(BVI) log10(xx(2))]);
+0113         text(10^xx3, yy(2)*0.9,<span class="string">'BVM'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
+0114             <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0115             <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0116     <span class="keyword">end</span>
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="comment">% check for lsqlin &quot;EchoFlag&quot; and plot an info line if available</span>
+0120 <span class="keyword">if</span> strcmp(data.invstd.invtype,<span class="string">'NNLS'</span>) &amp;&amp; <span class="keyword">...</span>
+0121         strcmp(data.results.invstd.invparams.EchoFlag,<span class="string">'on'</span>)
 0122 
-0123 
-0124 
-0125 <span class="keyword">end</span>
+0123     TEmin = data.results.nmrproc.t(1);
+0124     rtd_range0 = data.invstd.time;
+0125     yy = get(ax,<span class="string">'YLim'</span>);
 0126 
-0127 <span class="comment">%------------- END OF CODE --------------</span>
-0128 
-0129 <span class="comment">%% License:</span>
-0130 <span class="comment">% MIT License</span>
-0131 <span class="comment">%</span>
-0132 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0133 <span class="comment">%</span>
-0134 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0135 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0136 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0137 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0138 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0139 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0140 <span class="comment">%</span>
-0141 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0142 <span class="comment">% copies or substantial portions of the Software.</span>
-0143 <span class="comment">%</span>
-0144 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0145 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0146 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0147 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0148 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0149 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0150 <span class="comment">% SOFTWARE.</span></pre></div>
+0127     <span class="keyword">if</span> TEmin/5 &gt; rtd_range0(1)
+0128         line([TEmin/5 TEmin/5],[yy(1) yy(2)],<span class="string">'Color'</span>,gui.myui.colors.RE,<span class="keyword">...</span>
+0129             <span class="string">'LineStyle'</span>,<span class="string">'-.'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="keyword">...</span>
+0130             <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0131         text(TEmin/5, yy(2)*0.5,<span class="string">'RTD&lt;TE/5=0'</span>,<span class="string">'Color'</span>,gui.myui.colors.RE,<span class="keyword">...</span>
+0132             <span class="string">'FontSize'</span>,12,<span class="string">'Rotation'</span>,90,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0133             <span class="string">'VerticalAlignment'</span>,<span class="string">'bottom'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
+0134     <span class="keyword">end</span>
+0135 <span class="keyword">end</span>
+0136 
+0137 
+0138 <span class="comment">% diffusion regime info</span>
+0139 <span class="comment">% PSD axis</span>
+0140 ax = gui.axes_handles.psd;
+0141 
+0142 <span class="comment">% surface relaxivity in [m/s]</span>
+0143 rho = data.param.rho/1e6;
+0144 <span class="comment">% diffusion coeff. of water [m^2/s]</span>
+0145 D = 2.1e-9;
+0146 fast = 1*D/rho; <span class="comment">% [m]</span>
+0147 slow = 10*D/rho; <span class="comment">% [m]</span>
+0148 <span class="keyword">switch</span> data.process.timescale
+0149     <span class="keyword">case</span> <span class="string">'ms'</span>
+0150         fast = fast*1e3;
+0151         slow = slow*1e3;
+0152     <span class="keyword">otherwise</span>
+0153         <span class="comment">% nothing to do</span>
+0154 <span class="keyword">end</span>
+0155 
+0156 xx = get(ax,<span class="string">'XLim'</span>);
+0157 yy = get(ax,<span class="string">'YLim'</span>);
+0158 line([fast fast],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0159     <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0160 line([slow slow],[yy(1) yy(2)],<span class="string">'Color'</span>,col,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0161     <span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>);
+0162 
+0163 <span class="keyword">if</span> fast &gt; xx(1)
+0164     xx2 = mean([log10(xx(1)) log10(fast)]);
+0165     text(10^xx2, yy(2)*0.9,<span class="string">'fast'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
+0166         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0167         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0168 <span class="keyword">end</span>
+0169 <span class="keyword">if</span> slow &lt; xx(2)
+0170     xx3 = mean([log10(slow) log10(xx(2))]);
+0171     text(10^xx3, yy(2)*0.9,<span class="string">'slow'</span>,<span class="string">'Color'</span>,col,<span class="keyword">...</span>
+0172         <span class="string">'FontSize'</span>,16,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0173         <span class="string">'Tag'</span>,<span class="string">'infolines'</span>);
+0174 <span class="keyword">end</span>
+0175 
+0176 <span class="keyword">end</span>
+0177 
+0178 <span class="comment">%------------- END OF CODE --------------</span>
+0179 
+0180 <span class="comment">%% License:</span>
+0181 <span class="comment">% MIT License</span>
+0182 <span class="comment">%</span>
+0183 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0184 <span class="comment">%</span>
+0185 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0186 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0187 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0188 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0189 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0190 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0191 <span class="comment">%</span>
+0192 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0193 <span class="comment">% copies or substantial portions of the Software.</span>
+0194 <span class="comment">%</span>
+0195 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0196 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0197 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0198 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0199 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0200 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0201 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

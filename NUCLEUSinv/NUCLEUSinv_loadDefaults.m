@@ -53,6 +53,8 @@ out.info.ToolTips = 'off';
 out.info.has_optim = 'off';
 out.info.solver = 'lsqnonneg';
 out.info.stat = 'off';
+% LSQLIN Echo flag: RTDs<TE/5=0 (default is off)
+out.info.EchoFlag = 'off';
 
 %% process panel defaults
 % first data sample of the signal

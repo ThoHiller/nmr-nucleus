@@ -49,6 +49,13 @@ if ~isempty(INVdata)
     % make the RUN button a STOP  button
     set(gui.push_handles.invstd_run,'String','STOP','BackGroundColor','r',...
         'UserData',1,'Callback',@onPushStop);
+
+    % check if this run has uncertainty data
+    hasUncert = false;
+    if isfield(data.results.invstd,'uncert')
+        uncertTMP = data.results.invstd.uncert;
+        hasUncert = true;
+    end
     
     % remove temporary data fields
     data = removeInversionFields(data);
@@ -158,6 +165,7 @@ if ~isempty(INVdata)
                     param.lambda = data.invstd.lambda;
                     param.noise = data.results.nmrproc.noise;
                     param.solver = data.info.solver;
+                    param.EchoFlag = data.info.EchoFlag;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
@@ -166,12 +174,12 @@ if ~isempty(INVdata)
                         data.results.nmrproc.s,param);
                     
                 case 'MUMO' % N free distribution inversion
+                    param.nModes = data.invstd.freeDT;
                     param.T1T2 = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.Tb = data.invstd.Tbulk;
                     param.Td = data.invstd.Tdiff;
                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-                    param.regMethod = data.invstd.regtype;
                     param.noise = data.results.nmrproc.noise;
                     param.solver = data.info.solver;
                     param.optim = data.info.has_optim;
@@ -188,21 +196,19 @@ if ~isempty(INVdata)
                     end
                     displayStatusText(gui,infostring);
                     invstd = fitDataMultiModal(data.results.nmrproc.t,...
-                        data.results.nmrproc.s,param,data.invstd.freeDT);
-                    
-                    % estimate uncertainty
-%                     if data.invstd.useUncert
-%                         % original fit parameter
-%                         iparam = param;
-%                         % uncertainty parameter
-%                         uparam.time = data.results.nmrproc.t;
-%                         uparam.signal = data.results.nmrproc.s;
-%                         uparam.uncertMethod = data.invstd.uncertMethod;
-%                         uparam.uncertThresh = data.invstd.uncertThresh;
-%                         uparam.uncertN = data.invstd.uncertN;
-%                         uparam.uncertMax = data.invstd.uncertMax;
-%                         invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
-%                     end
+                        data.results.nmrproc.s,param);
+            end
+
+            % estimate uncertainty
+            if hasUncert
+                % original fit parameter
+                iparam = param;
+                % uncertainty parameter
+                uparam.id = id;
+                uparam.time = data.results.nmrproc.t;
+                uparam.signal = data.results.nmrproc.s;
+                uparam.uncert = uncertTMP.params.uncert;
+                invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
             end
             
             % save inversion results
@@ -265,7 +271,8 @@ if ~isempty(INVdata)
             % remove data from fields not processed
             INVdata{id} = [];
         end
-    end
+    end % id = 1:size(INVdata,1)
+
     % delete wait-bar
     if wbopts.show
         delete(hwb);

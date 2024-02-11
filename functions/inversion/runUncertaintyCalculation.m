@@ -67,7 +67,6 @@ if ~isempty(id) && ~isempty(INVdata) && isstruct(INVdata{id})
     invstd = estimateUncertainty(invtype,invstd,iparam,uparam);
 
     % save updated inversion results
-    invstd.uncert.params = uparam;
     data.results.invstd = invstd;
     INVdata0.results.invstd = invstd;
 
@@ -82,6 +81,10 @@ if ~isempty(id) && ~isempty(INVdata) && isstruct(INVdata{id})
     updatePlotsSignal;
     updatePlotsDistribution;
     updateInfo(gui.plots.SignalPanel);
+    % if the UncertView window is open update it
+    if ~isempty(findobj('Tag','UNCERTVIEW'))
+        UncertView(gui.menu.extra_uncert);
+    end
 else
     helpdlg('Cannot start calculation because there is no suitable data!',...
         'Perform inversion first.');

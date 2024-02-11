@@ -40,163 +40,159 @@ nucleus.data = getappdata(fig,'data');
 nucleus.gui = getappdata(fig,'gui');
 colors = nucleus.gui.myui.colors;
 
-%% proceed if there is data
+hasData = false;
 if isfield(nucleus.data,'results')
-    if isfield(nucleus.data.results,'nmrraw') && isfield(nucleus.data.results,'nmrproc')
-        
-        % check if the figure is already open
-        fig_phase = findobj('Tag','PHASEVIEW');
-        % if not, create it
-        if isempty(fig_phase)
-            % draw the figure on top of NUCLEUSinv
-            fig_phase = figure('Name','NUCLEUSinv - PhaseView',...
-                'NumberTitle','off','ToolBar','none','Tag','PHASEVIEW');
-            pos0 = get(fig,'Position');
-            pos1 = get(fig_phase,'Position');
-            cent(1) = (pos0(1)+pos0(3)/2);
-            cent(2) = (pos0(2)+pos0(4)/2);
-            set(fig_phase,'Position',[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
-            
-            % create the layout
-            gui.main = uix.VBox('Parent',fig_phase,'BackGroundColor',colors.panelBG,'Spacing',5,'Padding',5);
-            gui.row1 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes real
-            gui.row2 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes imag
-            gui.row3 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes SSE
-            gui.row4 = uix.HBox('Parent',gui.main,'BackGroundColor',colors.panelBG,'Spacing',5); % control elements
-            set(gui.main,'Heights',[-1 -1 -1 90]);
-            
-            % all axes
-            gui.axes_handles.real = axes('Parent',gui.row1,...
-                'Color',colors.axisBG,'XColor',colors.axisFG,...
-                'YColor',colors.axisFG);
-            gui.axes_handles.imag = axes('Parent',gui.row2,...
-                'Color',colors.axisBG,'XColor',colors.axisFG,...
-                'YColor',colors.axisFG);
-            gui.axes_handles.sse = axes('Parent',gui.row3,...
-                'Color',colors.axisBG,'XColor',colors.axisFG,...
-                'YColor',colors.axisFG);
-            
-            % 3 horizontal boxes
-            uix.Empty('Parent',gui.row4);
-            gui.vbox1 = uix.VBox('Parent',gui.row4,'BackGroundColor',colors.panelBG,'Spacing',5,'Padding',5); % control elements
-            uix.Empty('Parent',gui.row4);
-            set(gui.row4,'Widths',[-1 -2 -1]);
-            
-            % edit field
-            gui.hbox11 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
-            uix.Empty('Parent',gui.hbox11);
-            gui.edit_phase = uicontrol('Parent',gui.hbox11,...
-                'Style','edit','FontSize',nucleus.gui.myui.fontsize,'Tag','phase',...
-                'String',num2str(0),'BackGroundColor',colors.editBG,...
-                'ForeGroundColor',colors.panelFG,...
-                'Callback',@pv_updatePhase);
-            uix.Empty('Parent',gui.hbox11);
-            set(gui.hbox11,'Widths',[-1 -1 -1]);
-            
-            % slider
-            gui.hbox12 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
-            gui.hbox121 = uix.HBox('Parent',gui.hbox12,'BackGroundColor',colors.panelBG,'Spacing',5);
-            gui.text_down = uicontrol('Parent',gui.hbox121,'Style','text',...
-                'String','down','FontSize',nucleus.gui.myui.fontsize,...
-                'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG,...
-                'HorizontalAlignment','right');
-            gui.slider = uicontrol('Parent',gui.hbox12,'Style','slider',...
-                'Min',-180,'Max',180,'Value',0,'SliderStep',[0.1/360 5/360],...
-                'Callback',@pv_updateSlider);
-            gui.hbox122 = uix.HBox('Parent',gui.hbox12,'BackGroundColor',colors.panelBG,'Spacing',5);
-            gui.text_up = uicontrol('Parent',gui.hbox122,'Style','text',...
-                'String','up','FontSize',nucleus.gui.myui.fontsize,...
-                'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG,...
-                'HorizontalAlignment','left');
-            set(gui.hbox12,'Widths',[-1 -9 -1]);
-            
-            % buttons
-            gui.hbox13 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
-            uix.Empty('Parent',gui.hbox13);
-            gui.push_default = uicontrol('Parent',gui.hbox13,...
-                'Style','pushbutton','FontSize',nucleus.gui.myui.fontsize,'Tag','default',...
-                'String','DEFAULT','Callback',@pv_onPushDefault);
-            uix.Empty('Parent',gui.hbox13);
-            gui.push_save = uicontrol('Parent',gui.hbox13,...
-                'Style','pushbutton','FontSize',nucleus.gui.myui.fontsize,'Tag','save',...
-                'String','KEEP','Callback',@pv_onPushSave);
-            uix.Empty('Parent',gui.hbox13);
-            set(gui.hbox13,'Widths',[-1 -2 -1 -2 -1]);
-            
-            set(gui.vbox1,'Heights',[-1 20 -1]);
-            
-            % Java Hack to adjust vertical alignment of text fields
-            jh = findjobj(gui.text_down);
-            jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-            jh = findjobj(gui.text_up);
-            jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-            
-            % store some main GUI settings
-            gui.myui = nucleus.gui.myui;
-            
-            % save to GUI
-            setappdata(fig_phase,'gui',gui);
-        end
-        % if the figure is already open load the GUI data
-        gui = getappdata(fig_phase,'gui');
-        
-        % clear all axes
-        clearAllAxes(fig_phase);
-        
-        if strcmp(nucleus.data.results.nmrproc.T1T2,'T2')
-            
-            %% get signal to show
-            nmrraw = nucleus.data.results.nmrraw;
-            loglinx = get(nucleus.gui.cm_handles.axes_raw_xaxis,'Label');
-            
-            % axes setting
-            data.loglinx = loglinx;
-            % phase from import-fit
-            data.phase_default = rad2deg(nucleus.data.results.nmrraw.phase);
-            % phase used in PhaseView
-            data.phase = data.phase_default;
-            set(gui.edit_phase,'String',num2str(data.phase));
-            set(gui.slider,'Value',data.phase);
-            % time
-            data.time = nmrraw.t;
-            
-            % original unrotated signal
-            data.signal_raw = nmrraw.s * exp(1i*deg2rad(shift_phase(-data.phase)));
-            % rotated signal
-            data.signal_rot = nmrraw.s;
-            data.s_max = max(real(data.signal_rot));
-            
-            % SSE data
-            beta_range = 0:1:360;
-            SSE = data.signal_raw*exp(1i*deg2rad(beta_range));
-            t0 = zeros(size(SSE));
-            residual_i = t0-imag(SSE);
-            residual_r = t0-real(SSE);
-            sse_i = sum(residual_i.^2,1);
-            sse_r = sum(residual_r.^2,1)*-1;
-            data.beta_range = beta_range;
-            data.sse_i = sse_i;
-            data.sse_r = sse_r;
-            
-            setappdata(fig_phase,'data',data);
-            setappdata(fig_phase,'gui',gui);
-            pv_showSignal(fig_phase);
-        else
-            helpdlg({'function: PhaseView',...
-            'Cannot continue because there is no T2 data!'},...
-            'No T2 data.');
-            delete(fig_phase);
-        end
-        
+    if isfield(nucleus.data.results,'nmrraw') &&...
+            isfield(nucleus.data.results,'nmrproc')
+        hasData = true;
+    end
+end
+
+%% proceed if there is data
+if hasData
+    % check if the figure is already open
+    fig_phase = findobj('Tag','PHASEVIEW');
+    % if not, create it
+    if isempty(fig_phase)
+        % draw the figure on top of NUCLEUSinv
+        fig_phase = figure('Name','NUCLEUSinv - PhaseView',...
+            'NumberTitle','off','ToolBar','none','Tag','PHASEVIEW');
+        pos0 = get(fig,'Position');
+        pos1 = get(fig_phase,'Position');
+        cent(1) = (pos0(1)+pos0(3)/2);
+        cent(2) = (pos0(2)+pos0(4)/2);
+        set(fig_phase,'Position',[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
+
+        % create the layout
+        gui.main = uix.VBox('Parent',fig_phase,'BackGroundColor',colors.panelBG,'Spacing',5,'Padding',5);
+        gui.row1 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes real
+        gui.row2 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes imag
+        gui.row3 = uicontainer('Parent',gui.main,'BackGroundColor',colors.panelBG); % axes SSE
+        gui.row4 = uix.HBox('Parent',gui.main,'BackGroundColor',colors.panelBG,'Spacing',5); % control elements
+        set(gui.main,'Heights',[-1 -1 -1 90]);
+
+        % all axes
+        gui.axes_handles.real = axes('Parent',gui.row1,...
+            'Color',colors.axisBG,'XColor',colors.axisFG,...
+            'YColor',colors.axisFG);
+        gui.axes_handles.imag = axes('Parent',gui.row2,...
+            'Color',colors.axisBG,'XColor',colors.axisFG,...
+            'YColor',colors.axisFG);
+        gui.axes_handles.sse = axes('Parent',gui.row3,...
+            'Color',colors.axisBG,'XColor',colors.axisFG,...
+            'YColor',colors.axisFG);
+
+        % 3 horizontal boxes
+        uix.Empty('Parent',gui.row4);
+        gui.vbox1 = uix.VBox('Parent',gui.row4,'BackGroundColor',colors.panelBG,'Spacing',5,'Padding',5); % control elements
+        uix.Empty('Parent',gui.row4);
+        set(gui.row4,'Widths',[-1 -2 -1]);
+
+        % edit field
+        gui.hbox11 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
+        uix.Empty('Parent',gui.hbox11);
+        gui.edit_phase = uicontrol('Parent',gui.hbox11,...
+            'Style','edit','FontSize',nucleus.gui.myui.fontsize,'Tag','phase',...
+            'String',num2str(0),'BackGroundColor',colors.editBG,...
+            'ForeGroundColor',colors.panelFG,...
+            'Callback',@pv_updatePhase);
+        uix.Empty('Parent',gui.hbox11);
+        set(gui.hbox11,'Widths',[-1 -1 -1]);
+
+        % slider
+        gui.hbox12 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
+        gui.hbox121 = uix.HBox('Parent',gui.hbox12,'BackGroundColor',colors.panelBG,'Spacing',5);
+        gui.text_down = uicontrol('Parent',gui.hbox121,'Style','text',...
+            'String','down','FontSize',nucleus.gui.myui.fontsize,...
+            'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG,...
+            'HorizontalAlignment','right');
+        gui.slider = uicontrol('Parent',gui.hbox12,'Style','slider',...
+            'Min',-180,'Max',180,'Value',0,'SliderStep',[0.1/360 5/360],...
+            'Callback',@pv_updateSlider);
+        gui.hbox122 = uix.HBox('Parent',gui.hbox12,'BackGroundColor',colors.panelBG,'Spacing',5);
+        gui.text_up = uicontrol('Parent',gui.hbox122,'Style','text',...
+            'String','up','FontSize',nucleus.gui.myui.fontsize,...
+            'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG,...
+            'HorizontalAlignment','left');
+        set(gui.hbox12,'Widths',[-1 -9 -1]);
+
+        % buttons
+        gui.hbox13 = uix.HBox('Parent',gui.vbox1,'BackGroundColor',colors.panelBG,'Spacing',5);
+        uix.Empty('Parent',gui.hbox13);
+        gui.push_default = uicontrol('Parent',gui.hbox13,...
+            'Style','pushbutton','FontSize',nucleus.gui.myui.fontsize,'Tag','default',...
+            'String','DEFAULT','Callback',@pv_onPushDefault);
+        uix.Empty('Parent',gui.hbox13);
+        gui.push_save = uicontrol('Parent',gui.hbox13,...
+            'Style','pushbutton','FontSize',nucleus.gui.myui.fontsize,'Tag','save',...
+            'String','KEEP','Callback',@pv_onPushSave);
+        uix.Empty('Parent',gui.hbox13);
+        set(gui.hbox13,'Widths',[-1 -2 -1 -2 -1]);
+
+        set(gui.vbox1,'Heights',[-1 20 -1]);
+
+        % Java Hack to adjust vertical alignment of text fields
+        jh = findjobj(gui.text_down);
+        jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+        jh = findjobj(gui.text_up);
+        jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+
+        % store some main GUI settings
+        gui.myui = nucleus.gui.myui;
+
+        % save to GUI
+        setappdata(fig_phase,'gui',gui);
+    end
+    % if the figure is already open load the GUI data
+    gui = getappdata(fig_phase,'gui');
+
+    % clear all axes
+    clearAllAxes(fig_phase);
+
+    if strcmp(nucleus.data.results.nmrproc.T1T2,'T2')
+
+        %% get signal to show
+        nmrraw = nucleus.data.results.nmrraw;
+        loglinx = get(nucleus.gui.cm_handles.axes_raw_xaxis,'Label');
+
+        % axes setting
+        data.loglinx = loglinx;
+        % phase from import-fit
+        data.phase_default = rad2deg(nucleus.data.results.nmrraw.phase);
+        % phase used in PhaseView
+        data.phase = data.phase_default;
+        set(gui.edit_phase,'String',num2str(data.phase));
+        set(gui.slider,'Value',data.phase);
+        % time
+        data.time = nmrraw.t;
+
+        % original unrotated signal
+        data.signal_raw = nmrraw.s * exp(1i*deg2rad(shift_phase(-data.phase)));
+        % rotated signal
+        data.signal_rot = nmrraw.s;
+        data.s_max = max(real(data.signal_rot));
+
+        % SSE data
+        beta_range = 0:1:360;
+        SSE = data.signal_raw*exp(1i*deg2rad(beta_range));
+        t0 = zeros(size(SSE));
+        residual_i = t0-imag(SSE);
+        residual_r = t0-real(SSE);
+        sse_i = sum(residual_i.^2,1);
+        sse_r = sum(residual_r.^2,1)*-1;
+        data.beta_range = beta_range;
+        data.sse_i = sse_i;
+        data.sse_r = sse_r;
+
+        setappdata(fig_phase,'data',data);
+        setappdata(fig_phase,'gui',gui);
+        pv_showSignal(fig_phase);
     else
         helpdlg({'function: PhaseView',...
-            'Cannot continue because no data loaded or selected!'},...
-            'Load NMR data first.');
+            'Cannot continue because there is no T2 data!'},...
+            'No T2 data.');
+        delete(fig_phase);
     end
-else
-    helpdlg({'function: PhaseView',...
-        'Cannot continue because no data loaded or selected!'},...
-        'Load NMR data first.');
 end
 
 end

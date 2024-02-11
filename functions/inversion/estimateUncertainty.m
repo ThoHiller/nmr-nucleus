@@ -375,6 +375,13 @@ uncert.interp_s_max = max(SINTERP,[],2);
 uncert.interp_f_min = min(TDIST);
 uncert.interp_f_max = max(TDIST);
 
+% uncertainty calculation parameter
+uncert.params = parameter;
+
+% statistics of all uncertainty runs
+uncert.statistics = getUncertaintyStatistics(invstd.T1T2me,TDIST,...
+    [min(invstd.T1T2me) max(invstd.T1T2me)],K0);
+
 invstd.uncert = uncert;
 
 end
@@ -383,7 +390,7 @@ end
 %% License:
 % MIT License
 %
-% Copyright (c) 2022 Thomas Hiller
+% Copyright (c) 2024 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
