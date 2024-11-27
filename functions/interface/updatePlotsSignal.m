@@ -84,7 +84,8 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
                     set(ax,'YScale','log','YLim',[10^(ticks(1)) 10^(ticks(end))],....
                         'YTick',10.^ticks);
                 case 'y-axis -> log' % lin axes
-                    set(ax,'YScale','lin','YLim',[-0.05 max(real(nmrraw.s))*1.05],...
+                    ymin = min([min(real(nmrraw.s))*1.2 -0.05]);
+                    set(ax,'YScale','lin','YLim',[ymin max(real(nmrraw.s))*1.05],...
                         'YTickMode','auto');
             end
         case 'T2'
@@ -122,7 +123,7 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
         line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axI);
         imag_mean = mean(imag(nmrraw.s));
         imag_std = std(imag(nmrraw.s));
-        yticks = [imag_mean-imag_std*2 0 imag_mean+imag_std*2];
+        yticks = [imag_mean-imag_std*2 imag_mean imag_mean+imag_std*2];
         ylim = [imag_mean-imag_std*3 imag_mean+imag_std*3];
         set(axI,'XTickLabel','','YLim',ylim,'YTick',yticks,'YTickLabelMode','auto');
         switch loglinx
@@ -313,15 +314,16 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
     
     % legend
     if isfield(data.results,'invstd')
+        % show the legend
+        lgh = legend(ax,'show');
         switch nmrproc.T1T2
             case 'T1'
-                lgh = legend(ax,'Location','NorthWest',...
-                    'Tag','fitlegend','FontSize',10);
+                set(lgh,'Location','NorthWest');
             case 'T2'
-                lgh = legend(ax,'Location','NorthEast',...
-                    'Tag','fitlegend','FontSize',10);
+                set(lgh,'Location','NorthEast');
         end
-        set(lgh,'TextColor',gui.myui.colors.panelFG);
+        set(lgh,'TextColor',gui.myui.colors.panelFG,'Tag','fitlegend',...
+            'FontSize',10);
     end
     
     % grid

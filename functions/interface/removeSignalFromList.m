@@ -48,6 +48,15 @@ if ~isempty(INVdata)
     data.import.NMR.files(id) = [];
     data.import.NMR.filesShort(id) = [];
     INVdata(id) = [];
+
+    % take care of possible 2D data
+    if isfield(data.import,'T1T2map')
+        data.import.T1T2map.t_recov(id) = [];
+        data.import.NMR.data{end}.time(id) = [];
+        data.import.NMR.data{end}.signal(id) = [];
+        data.import.NMR.data{end}.raw.time(id) = [];
+        data.import.NMR.data{end}.raw.signal(id) = [];
+    end
     
     % empty all axes
     clearAllAxes(fig);

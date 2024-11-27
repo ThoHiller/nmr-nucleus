@@ -38,6 +38,9 @@ if isfield(data,'results')
     if isfield(data.results,'invjoint')
         data.results = rmfield(data.results,'invjoint');
     end
+    if isfield(data.results,'inv2D')
+        data.results = rmfield(data.results,'inv2D');
+    end
     if isfield(data.results,'lcurve')
         data.results = rmfield(data.results,'lcurve');
     end

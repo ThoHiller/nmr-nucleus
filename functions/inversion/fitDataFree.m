@@ -162,6 +162,8 @@ switch parameter.optim
             'MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);        
         switch flag
             case 'T1'
+                % set all start values to 0 (if something is not working as expected, comment it and try again)
+                x0 = zeros(size(lb));
                 [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s,IRfac),...
                     x0,lb,ub,options);
             case 'T2'

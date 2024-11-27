@@ -66,13 +66,15 @@ measurements
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-</ul>
+<li><a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>	 rotateT2phase rotates the complex NMR T2 signal so that the imaginary</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
 <!-- crossreference -->
 
-
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a></li><li><a href="#_sub2" class="code">function [data,pardata] = LoadDataFileLogging(datapath,fname,flag)</a></li></ul>
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_dart(in)</a>
@@ -115,13 +117,13 @@ This function is called by:
 0038 <span class="comment">%------------- BEGIN CODE --------------</span>
 0039 
 0040 <span class="comment">%% start processing the files</span>
-0041 <span class="comment">% load the Matlab mat-file</span>
-0042 data = load(fullfile(in.path,in.name));
-0043 file = dir(fullfile(in.path,in.name));
-0044 
-0045 <span class="keyword">switch</span> in.version
-0046     
-0047     <span class="keyword">case</span> 1
+0041 
+0042 <span class="keyword">switch</span> in.version
+0043     <span class="keyword">case</span> 1
+0044         <span class="comment">% load the Matlab mat-file</span>
+0045         data = load(fullfile(in.path,in.name));
+0046         file = dir(fullfile(in.path,in.name));
+0047 
 0048         <span class="comment">% init stuff</span>
 0049         parData = cell(1,1);
 0050         tmp = cell(1,1);
@@ -129,7 +131,7 @@ This function is called by:
 0052         <span class="keyword">if</span> size(data.se_vector_wc,2) &gt; 1
 0053             <span class="comment">% command line output</span>
 0054             disp([in.name,<span class="string">': importing NMR files ...'</span>]);
-0055             
+0055 
 0056             nmrData = cell(1,size(data.se_vector_wc,2));
 0057             <span class="keyword">for</span> i = 1:size(data.se_vector_wc,2)
 0058                 <span class="comment">% calculate amplitudes from water contents with the</span>
@@ -139,13 +141,13 @@ This function is called by:
 0062                 <span class="keyword">elseif</span> extras.freq(i) &lt;= 4.4e+05 &amp;&amp; data.extras.freq(i) &gt;= 4.2e+05 <span class="comment">% frequency 2</span>
 0063                     se_vector_amp = data.se_vector_wc(:,i)./8.429;
 0064                 <span class="keyword">end</span>
-0065                 
+0065 
 0066                 <span class="comment">% get file statistics</span>
 0067                 nmrData{i}.datfile = file.name;
 0068                 nmrData{i}.date = file.date;
 0069                 nmrData{i}.datenum = file.datenum;
 0070                 nmrData{i}.bytes = file.bytes;
-0071                 
+0071 
 0072                 <span class="comment">% save the NMR data</span>
 0073                 nmrData{i}.flag = <span class="string">'T2'</span>;
 0074                 nmrData{i}.T1IRfac = 1;
@@ -154,14 +156,14 @@ This function is called by:
 0077                 nmrData{i}.raw.time = data.time;
 0078                 nmrData{i}.raw.signal = se_vector_amp;
 0079                 nmrData{i}.phase = data.extras.phase(i);
-0080                 
+0080 
 0081                 <span class="comment">% create parameter data</span>
 0082                 parData{i}.acq_params_Tr = data.acq_params.Tr;
 0083                 parData{i}.depth = data.depth(i);
 0084                 parData{i}.Qs = data.extras.Qs(i);
 0085                 parData{i}.DCbus = data.extras.DC_bus(i);
 0086                 parData{i}.freq = data.extras.freq(i);
-0087                 
+0087 
 0088                 fields = fieldnames(parData{i});
 0089                 <span class="keyword">for</span> j = 1:size(fields,1)
 0090                     tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,<span class="keyword">...</span>
@@ -170,12 +172,12 @@ This function is called by:
 0093                 d{1} = tmp;
 0094                 parData{i}.all = d;
 0095                 clear d tmp
-0096                 
+0096 
 0097                 <span class="comment">% command line output</span>
 0098                 disp([in.name,<span class="string">': importing NMR files '</span>,sprintf(<span class="string">'%03d'</span>,i),<span class="keyword">...</span>
 0099                     <span class="string">' / '</span>,sprintf(<span class="string">'%03d'</span>,size(data.se_vector_wc,2))]);
 0100             <span class="keyword">end</span>
-0101             
+0101 
 0102         <span class="keyword">else</span>
 0103             <span class="comment">% calculate amplitudes from water contents with the</span>
 0104             <span class="comment">% frequency-specific multiplication factors</span>
@@ -184,13 +186,13 @@ This function is called by:
 0107             <span class="keyword">elseif</span> extras.freq &lt;= 4.4e+05 &amp;&amp; extras.freq &gt;= 4.2e+05 <span class="comment">% frequency 2</span>
 0108                 se_vector_amp = data.se_vector_wc./8.429;
 0109             <span class="keyword">end</span>
-0110             
+0110 
 0111             <span class="comment">% get file statistics</span>
 0112             nmrData{1}.datfile = file.name;
 0113             nmrData{1}.date = file.date;
 0114             nmrData{1}.datenum = file.datenum;
 0115             nmrData{1}.bytes = file.bytes;
-0116             
+0116 
 0117             <span class="comment">% save the NMR data</span>
 0118             nmrData{1}.flag = <span class="string">'T2'</span>;
 0119             nmrData{1}.T1IRfac = 1;
@@ -199,14 +201,14 @@ This function is called by:
 0122             nmrData{1}.raw.time = data.time;
 0123             nmrData{1}.raw.signal = se_vector_amp;
 0124             nmrData{1}.phase = data.extras.phase;
-0125             
+0125 
 0126             <span class="comment">% create parameter data</span>
 0127             parData{1}.acq_params_Tr = data.acq_params.Tr;
 0128             parData{1}.depth = data.depth;
 0129             parData{1}.Qs = data.extras.Qs;
 0130             parData{1}.DCbus = data.extras.DC_bus;
 0131             parData{1}.freq = data.extras.freq;
-0132             
+0132 
 0133             fields = fieldnames(parData{1});
 0134             <span class="keyword">for</span> j = 1:size(fields,1)
 0135                 tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,<span class="keyword">...</span>
@@ -215,158 +217,334 @@ This function is called by:
 0138             d{1} = tmp;
 0139             parData{1}.all = d;
 0140         <span class="keyword">end</span>
-0141         
+0141 
 0142     <span class="keyword">case</span> 2
-0143         <span class="comment">% init stuff</span>
-0144         parData = cell(1,size(data.jpd.stack.se,1));
-0145         tmp = cell(1,1);
-0146         <span class="comment">% check, if it is one or multiple depths</span>
-0147         <span class="keyword">if</span> size(data.jpd.stack.se,1) &gt; 1
-0148             <span class="comment">% command line output</span>
-0149             disp([in.name,<span class="string">': importing NMR files ...'</span>]);
-0150             
-0151             nmrData = cell(1,size(data.jpd.stack.se,1));
-0152             <span class="keyword">for</span> i = 1:size(data.jpd.stack.se,1) <span class="comment">% loop over all depths</span>
-0153                 <span class="comment">% get file statistics</span>
-0154                 nmrData{i}.datfile = file.name;
-0155                 nmrData{i}.date = datestr(data.jpd.acq_time(i));
-0156                 nmrData{i}.datenum = data.jpd.acq_time(i);
-0157                 nmrData{i}.bytes = file.bytes;
-0158                 
-0159                 <span class="comment">% save the NMR data</span>
-0160                 nmrData{i}.flag = <span class="string">'T2'</span>;
-0161                 nmrData{i}.T1IRfac = 1;
-0162                 nmrData{i}.time = data.jpd.stack.time(1,1:end)';
-0163                 nmrData{i}.signal = data.jpd.stack.se(i,1:end)';       
-0164                 nmrData{i}.raw.time = data.jpd.stack.time(1,1:end)';
-0165                 nmrData{i}.raw.signal = data.jpd.stack.se(i,1:end)';
-0166                 nmrData{i}.phase = 0;
-0167                 
-0168                 <span class="comment">% create parameter data</span>
-0169                 parData{i}.acq_params_Tr = 4;
-0170                 parData{i}.depth = data.jpd.depth_raw(i);
-0171                 
-0172                 fields = fieldnames(parData{i});
-0173                 <span class="keyword">for</span> j = 1:size(fields,1)
-0174                     tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(i),<span class="string">'}.'</span>,fields{j}]))];
-0175                 <span class="keyword">end</span>
-0176                 d{1} = tmp;
-0177                 parData{i}.all = d;
-0178                 clear d tmp
-0179                 
-0180                 <span class="comment">% command line output</span>
-0181                 disp([in.name,<span class="string">': importing NMR files '</span>,sprintf(<span class="string">'%03d'</span>,i),<span class="keyword">...</span>
-0182                     <span class="string">' / '</span>,sprintf(<span class="string">'%03d'</span>,size(data.jpd.stack.se,1))]);                
-0183             <span class="keyword">end</span>
-0184             
-0185         <span class="keyword">else</span>            
-0186             <span class="comment">% get file statistics</span>
-0187             nmrData{1}.datfile = file.name;
-0188             nmrData{1}.date = file.date;
-0189             nmrData{1}.datenum = file.datenum;
-0190             nmrData{1}.bytes = file.bytes;
-0191             
-0192             <span class="comment">% save the NMR data</span>
-0193             nmrData{1}.flag = <span class="string">'T2'</span>;
-0194             nmrData{1}.T1IRfac = 1;
-0195             nmrData{1}.time = data.jpd.stack.time(1,1:end)';
-0196             nmrData{1}.signal = data.jpd.stack.se(1,1:end)';
-0197             nmrData{1}.raw.time = data.jpd.stack.time(1,1:end)';
-0198             nmrData{1}.raw.signal = data.jpd.stack.se(1,1:end)';
-0199             nmrData{1}.phase = 0;
-0200             
-0201             <span class="comment">% create parameter data</span>
-0202             parData{1}.acq_params_Tr = 4;
-0203             parData{1}.depth = data.jpd.depth_raw(1);
-0204             
-0205             fields = fieldnames(parData{1});
-0206             <span class="keyword">for</span> j = 1:size(fields,1)
-0207                 tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(1),<span class="string">'}.'</span>,fields{j}]))];
-0208             <span class="keyword">end</span>
-0209             d{1} = tmp;
-0210             parData{1}.all = d;            
-0211         <span class="keyword">end</span>
-0212 
-0213     <span class="keyword">case</span> 3 <span class="comment">% University of Vienna</span>
-0214 
-0215         disp([in.name,<span class="string">': importing NMR data ...'</span>]);
+0143         <span class="comment">% load the Matlab mat-file</span>
+0144         data = load(fullfile(in.path,in.name));
+0145         file = dir(fullfile(in.path,in.name));
+0146 
+0147         <span class="comment">% init stuff</span>
+0148         parData = cell(1,size(data.jpd.stack.se,1));
+0149         tmp = cell(1,1);
+0150         <span class="comment">% check, if it is one or multiple depths</span>
+0151         <span class="keyword">if</span> size(data.jpd.stack.se,1) &gt; 1
+0152             <span class="comment">% command line output</span>
+0153             disp([in.name,<span class="string">': importing NMR files ...'</span>]);
+0154 
+0155             nmrData = cell(1,size(data.jpd.stack.se,1));
+0156             <span class="keyword">for</span> i = 1:size(data.jpd.stack.se,1) <span class="comment">% loop over all depths</span>
+0157                 <span class="comment">% get file statistics</span>
+0158                 nmrData{i}.datfile = file.name;
+0159                 nmrData{i}.date = datestr(data.jpd.acq_time(i));
+0160                 nmrData{i}.datenum = data.jpd.acq_time(i);
+0161                 nmrData{i}.bytes = file.bytes;
+0162 
+0163                 <span class="comment">% save the NMR data</span>
+0164                 nmrData{i}.flag = <span class="string">'T2'</span>;
+0165                 nmrData{i}.T1IRfac = 1;
+0166                 nmrData{i}.time = data.jpd.stack.time(1,1:end)';
+0167                 nmrData{i}.signal = data.jpd.stack.se(i,1:end)';
+0168                 nmrData{i}.raw.time = data.jpd.stack.time(1,1:end)';
+0169                 nmrData{i}.raw.signal = data.jpd.stack.se(i,1:end)';
+0170                 nmrData{i}.phase = 0;
+0171 
+0172                 <span class="comment">% create parameter data</span>
+0173                 parData{i}.acq_params_Tr = 4;
+0174                 parData{i}.depth = data.jpd.depth_raw(i);
+0175 
+0176                 fields = fieldnames(parData{i});
+0177                 <span class="keyword">for</span> j = 1:size(fields,1)
+0178                     tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(i),<span class="string">'}.'</span>,fields{j}]))];
+0179                 <span class="keyword">end</span>
+0180                 d{1} = tmp;
+0181                 parData{i}.all = d;
+0182                 clear d tmp
+0183 
+0184                 <span class="comment">% command line output</span>
+0185                 disp([in.name,<span class="string">': importing NMR files '</span>,sprintf(<span class="string">'%03d'</span>,i),<span class="keyword">...</span>
+0186                     <span class="string">' / '</span>,sprintf(<span class="string">'%03d'</span>,size(data.jpd.stack.se,1))]);
+0187             <span class="keyword">end</span>
+0188 
+0189         <span class="keyword">else</span>
+0190             <span class="comment">% get file statistics</span>
+0191             nmrData{1}.datfile = file.name;
+0192             nmrData{1}.date = file.date;
+0193             nmrData{1}.datenum = file.datenum;
+0194             nmrData{1}.bytes = file.bytes;
+0195 
+0196             <span class="comment">% save the NMR data</span>
+0197             nmrData{1}.flag = <span class="string">'T2'</span>;
+0198             nmrData{1}.T1IRfac = 1;
+0199             nmrData{1}.time = data.jpd.stack.time(1,1:end)';
+0200             nmrData{1}.signal = data.jpd.stack.se(1,1:end)';
+0201             nmrData{1}.raw.time = data.jpd.stack.time(1,1:end)';
+0202             nmrData{1}.raw.signal = data.jpd.stack.se(1,1:end)';
+0203             nmrData{1}.phase = 0;
+0204 
+0205             <span class="comment">% create parameter data</span>
+0206             parData{1}.acq_params_Tr = 4;
+0207             parData{1}.depth = data.jpd.depth_raw(1);
+0208 
+0209             fields = fieldnames(parData{1});
+0210             <span class="keyword">for</span> j = 1:size(fields,1)
+0211                 tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(1),<span class="string">'}.'</span>,fields{j}]))];
+0212             <span class="keyword">end</span>
+0213             d{1} = tmp;
+0214             parData{1}.all = d;
+0215         <span class="keyword">end</span>
 0216 
-0217         <span class="comment">% init stuff</span>
-0218         tmp = cell(1,1);
-0219         nmrData = cell(1,numel(data.jpd.depth));
-0220         parData = cell(1,numel(data.jpd.depth));
-0221         
-0222         <span class="keyword">for</span> i = 1:numel(data.jpd.depth) <span class="comment">% loop over all depths</span>
-0223             <span class="comment">% get file statistics</span>
-0224             nmrData{i}.datfile = file.name;
-0225             nmrData{i}.date = file.date;
-0226             nmrData{i}.datenum = file.datenum;
-0227             nmrData{i}.bytes = file.bytes;
+0217     <span class="keyword">case</span> 3 <span class="comment">% University of Vienna</span>
+0218         <span class="comment">% load the Matlab mat-file</span>
+0219         data = load(fullfile(in.path,in.name));
+0220         file = dir(fullfile(in.path,in.name));
+0221 
+0222         disp([in.name,<span class="string">': importing NMR data ...'</span>]);
+0223 
+0224         <span class="comment">% init stuff</span>
+0225         tmp = cell(1,1);
+0226         nmrData = cell(1,numel(data.jpd.depth));
+0227         parData = cell(1,numel(data.jpd.depth));
 0228 
-0229             <span class="comment">% save the NMR data</span>
-0230             nmrData{i}.flag = <span class="string">'T2'</span>;
-0231             nmrData{i}.T1IRfac = 1;
-0232             nmrData{i}.time = data.jpd.freq_stack.time(1,1:end)';
-0233             nmrData{i}.signal = data.jpd.freq_stack.se(i,1:end)';
-0234             nmrData{i}.raw.time = data.jpd.freq_stack.time(1,1:end)';
-0235             nmrData{i}.raw.signal = data.jpd.freq_stack.se(i,1:end)';
-0236             nmrData{i}.phase = 0;
-0237 
-0238             <span class="comment">% create parameter data</span>
-0239             parData{i}.depth = data.jpd.depth(i);
-0240             parData{i}.depth_units = data.jpd.depth_units;
-0241             parData{i}.depth_offset = data.state_proc.depth_offset;
-0242             parData{i}.stack_method = data.state_proc.stack_method;
-0243             parData{i}.phase_method = data.state_proc.phase_method;
-0244             parData{i}.d_avg = data.state_proc.d_avg;
-0245             parData{i}.reg_factor = data.state_proc.reg_factor;
-0246             parData{i}.min_T2 = data.state_proc.min_T2;
-0247             parData{i}.doDCscale = data.state_proc.doDCscale;
-0248 
-0249             fields = fieldnames(parData{i});
-0250             <span class="keyword">for</span> j = 1:size(fields,1)
-0251                 tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(i),<span class="string">'}.'</span>,fields{j}]))];
-0252             <span class="keyword">end</span>
-0253             d{1} = tmp;
-0254             parData{i}.all = d;
-0255             clear d tmp
-0256 
-0257             <span class="comment">% command line output</span>
-0258             disp([in.name,<span class="string">': importing NMR data from depth: '</span>,<span class="keyword">...</span>
-0259                 sprintf(<span class="string">'%3.2f'</span>,data.jpd.depth(i)),<span class="string">' '</span>,data.jpd.depth_units]);
-0260         <span class="keyword">end</span>
-0261 <span class="keyword">end</span>
-0262 
-0263 <span class="comment">% save data to output struct</span>
-0264 out.nmrData = nmrData;
-0265 out.parData = parData;
-0266 
-0267 <span class="keyword">end</span>
+0229         <span class="keyword">for</span> i = 1:numel(data.jpd.depth) <span class="comment">% loop over all depths</span>
+0230             <span class="comment">% get file statistics</span>
+0231             nmrData{i}.datfile = file.name;
+0232             nmrData{i}.date = file.date;
+0233             nmrData{i}.datenum = file.datenum;
+0234             nmrData{i}.bytes = file.bytes;
+0235 
+0236             <span class="comment">% save the NMR data</span>
+0237             nmrData{i}.flag = <span class="string">'T2'</span>;
+0238             nmrData{i}.T1IRfac = 1;
+0239             nmrData{i}.time = data.jpd.freq_stack.time(1,1:end)';
+0240             nmrData{i}.signal = data.jpd.freq_stack.se(i,1:end)';
+0241             nmrData{i}.raw.time = data.jpd.freq_stack.time(1,1:end)';
+0242             nmrData{i}.raw.signal = data.jpd.freq_stack.se(i,1:end)';
+0243             nmrData{i}.phase = 0;
+0244 
+0245             <span class="comment">% create parameter data</span>
+0246             parData{i}.depth = data.jpd.depth(i);
+0247             parData{i}.depth_units = data.jpd.depth_units;
+0248             parData{i}.depth_offset = data.state_proc.depth_offset;
+0249             parData{i}.stack_method = data.state_proc.stack_method;
+0250             parData{i}.phase_method = data.state_proc.phase_method;
+0251             parData{i}.d_avg = data.state_proc.d_avg;
+0252             parData{i}.reg_factor = data.state_proc.reg_factor;
+0253             parData{i}.min_T2 = data.state_proc.min_T2;
+0254             parData{i}.doDCscale = data.state_proc.doDCscale;
+0255 
+0256             fields = fieldnames(parData{i});
+0257             <span class="keyword">for</span> j = 1:size(fields,1)
+0258                 tmp{j,1} = [fields{j},<span class="string">'='</span>,num2str(eval([<span class="string">'parData{'</span>,num2str(i),<span class="string">'}.'</span>,fields{j}]))];
+0259             <span class="keyword">end</span>
+0260             d{1} = tmp;
+0261             parData{i}.all = d;
+0262             clear d tmp
+0263 
+0264             <span class="comment">% command line output</span>
+0265             disp([in.name,<span class="string">': importing NMR data from depth: '</span>,<span class="keyword">...</span>
+0266                 sprintf(<span class="string">'%3.2f'</span>,data.jpd.depth(i)),<span class="string">' '</span>,data.jpd.depth_units]);
+0267         <span class="keyword">end</span>
 0268 
-0269 <span class="comment">%------------- END OF CODE --------------</span>
-0270 
-0271 <span class="comment">%% License:</span>
-0272 <span class="comment">% MIT License</span>
-0273 <span class="comment">%</span>
-0274 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
-0275 <span class="comment">%</span>
-0276 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0277 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0278 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0279 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0280 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0281 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0282 <span class="comment">%</span>
-0283 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0284 <span class="comment">% copies or substantial portions of the Software.</span>
-0285 <span class="comment">%</span>
-0286 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0287 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0288 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0289 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0290 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0291 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0292 <span class="comment">% SOFTWARE.</span></pre></div>
+0269     <span class="keyword">case</span> 4 <span class="comment">% Aarhus T1T2</span>
+0270         <span class="comment">% read the data file</span>
+0271         datafile = dir(fullfile(in.path,in.name));
+0272         [data,parData] = <a href="#_sub1" class="code" title="subfunction [data,pardata] = LoadDataFile(datapath,fname,flag)">LoadDataFile</a>(in.path,in.name,in.T1T2);
+0273 
+0274         <span class="comment">% get file statistics</span>
+0275         nmrData.datfile = datafile.name;
+0276         nmrData.date = datafile.date;
+0277         nmrData.datenum = datafile.datenum;
+0278         nmrData.bytes = datafile.bytes;
+0279 
+0280         <span class="comment">% save the NMR data</span>
+0281         nmrData.flag = data.flag;
+0282         nmrData.T1IRfac = 1;
+0283         nmrData.time = data.time;
+0284         nmrData.signal = data.signal;
+0285         nmrData.raw = data.raw;
+0286         <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
+0287             nmrData.phase = data.phase;
+0288         <span class="keyword">end</span>
+0289 
+0290     <span class="keyword">case</span> 5 <span class="comment">% Dart T2 logging</span>
+0291         <span class="comment">% read the data file</span>
+0292         datafile = dir(fullfile(in.path,in.name));
+0293         [data,parData] = <a href="#_sub2" class="code" title="subfunction [data,pardata] = LoadDataFileLogging(datapath,fname,flag)">LoadDataFileLogging</a>(in.path,in.name,in.T1T2);
+0294 
+0295         nmrData = cell(1,1);
+0296         <span class="keyword">for</span> nn = 1:numel(data)
+0297             <span class="comment">% get file statistics</span>
+0298             nmrData{nn}.datfile = datafile.name;
+0299             nmrData{nn}.date = datafile.date;
+0300             nmrData{nn}.datenum = datafile.datenum;
+0301             nmrData{nn}.bytes = datafile.bytes;
+0302 
+0303             <span class="comment">% save the NMR data</span>
+0304             nmrData{nn}.flag = data{nn}.flag;
+0305             nmrData{nn}.T1IRfac = 1;
+0306             nmrData{nn}.time = data{nn}.time;
+0307             nmrData{nn}.signal = data{nn}.signal;
+0308             nmrData{nn}.raw = data{nn}.raw;
+0309             <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
+0310                 nmrData{nn}.phase = data{nn}.phase;
+0311             <span class="keyword">end</span>
+0312         <span class="keyword">end</span>
+0313 <span class="keyword">end</span>
+0314 
+0315 <span class="comment">% save data to output struct</span>
+0316 out.nmrData = nmrData;
+0317 out.parData = parData;
+0318 
+0319 <span class="keyword">end</span>
+0320 
+0321 <span class="comment">%% load NMR data file</span>
+0322 <a name="_sub1" href="#_subfunctions" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a>
+0323 
+0324 <span class="comment">% importdata is rather slow for row data</span>
+0325 <span class="comment">% A = importdata(fullfile(datapath,fname),'\t');</span>
+0326 
+0327 <span class="comment">% first read the file to get the number of echos</span>
+0328 fid = fopen(fullfile(datapath,fname));
+0329 A0 = textscan(fid,<span class="string">'%f'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0330 fclose(fid);
+0331 <span class="comment">% now read all three lines</span>
+0332 fid = fopen(fullfile(datapath,fname));
+0333 A1 = textscan(fid,<span class="string">'%f'</span>,A0{1}(3));
+0334 A2 = textscan(fid,<span class="string">'%f'</span>,A0{1}(3));
+0335 A3 = textscan(fid,<span class="string">'%f'</span>,A0{1}(3));
+0336 fclose(fid);
+0337 <span class="comment">% and stitch them together</span>
+0338 A = [A1{1}';A2{1}';A3{1}'];
+0339 
+0340 t_echo = A(1,2);
+0341 n_echo = A(1,3);
+0342 freq = A(1,4);
+0343 Nscans = A(1,5);
+0344 t_recov = A(1,57); <span class="comment">% DART</span>
+0345 
+0346 time = t_echo:t_echo:t_echo*n_echo;
+0347 time = time(:);
+0348 re = A(2,1:length(time));
+0349 im = A(3,1:length(time));
+0350 re = re(:);
+0351 im = im(:);
+0352 
+0353 data.flag = flag;
+0354 data.raw.time = time;
+0355 data.raw.signal = complex(re,im);
+0356 [data.signal,data.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(data.raw.signal);
+0357 
+0358 data.time = data.raw.time;
+0359 
+0360 pardata.t_echo = t_echo;
+0361 pardata.n_echo = n_echo;
+0362 pardata.t_recov = t_recov;
+0363 pardata.freq = freq;
+0364 pardata.Nscans = Nscans;
+0365 d{1}{1,1} = [<span class="string">'t_echo = '</span>,num2str(t_echo)];
+0366 d{1}{2,1} = [<span class="string">'n_echo = '</span>,num2str(n_echo)];
+0367 d{1}{3,1} = [<span class="string">'t_recov = '</span>,num2str(t_recov)];
+0368 d{1}{4,1} = [<span class="string">'freq = '</span>,num2str(freq)];
+0369 d{1}{5,1} = [<span class="string">'Nscans = '</span>,num2str(Nscans)];
+0370 pardata.all = d;
+0371 
+0372 <span class="keyword">end</span>
+0373 
+0374 <span class="comment">%% load NMR data file</span>
+0375 <a name="_sub2" href="#_subfunctions" class="code">function [data,pardata] = LoadDataFileLogging(datapath,fname,flag)</a>
+0376 
+0377 <span class="comment">% importdata is rather slow for row data</span>
+0378 <span class="comment">% A = importdata(fullfile(datapath,fname),'\t');</span>
+0379 
+0380 <span class="comment">% first read the file to get the number of echos</span>
+0381 fid = fopen(fullfile(datapath,fname));
+0382 A0 = textscan(fid,<span class="string">'%f'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0383 fclose(fid);
+0384 
+0385 <span class="comment">% get the number of Echos</span>
+0386 n_echo = A0{1}(3);
+0387 N = numel(A0{1});
+0388 <span class="comment">% reshape the data</span>
+0389 A1 = reshape(A0{1},[n_echo N/n_echo]);
+0390 A2 = A1';
+0391 
+0392 data = cell(1,1);
+0393 pardata = cell(1,1);
+0394 <span class="keyword">for</span> nn = 1:size(A2,1)/3
+0395     t_echo = A2(3*nn-2,2);
+0396     n_echo = A2(3*nn-2,3);
+0397     freq = A2(3*nn-2,4);
+0398     Nscans = A2(3*nn-2,5);
+0399     depth = A2(3*nn-2,9);
+0400     t_wait = A2(3*nn-2,14);
+0401     time = t_echo:t_echo:t_echo*n_echo;
+0402     re = A2(3*nn-1,1:length(time));
+0403     im = A2(3*nn,1:length(time));
+0404     time = time(:);
+0405     re = re(:);
+0406     im = im(:);
+0407     data{nn}.flag = flag;
+0408     data{nn}.raw.time = time;
+0409     data{nn}.raw.signal = complex(re,im);
+0410     data{nn}.time = data{nn}.raw.time;
+0411     [data{nn}.signal,data{nn}.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(data{nn}.raw.signal);
+0412 
+0413     pardata{nn}.t_echo = t_echo;
+0414     pardata{nn}.n_echo = n_echo;
+0415     pardata{nn}.freq = freq;
+0416     pardata{nn}.Nscans = Nscans;
+0417     pardata{nn}.depth = depth;
+0418     pardata{nn}.t_wait = t_wait;
+0419     d{1}{1,1} = [<span class="string">'t_echo = '</span>,num2str(t_echo)];
+0420     d{1}{2,1} = [<span class="string">'n_echo = '</span>,num2str(n_echo)];
+0421     d{1}{3,1} = [<span class="string">'freq = '</span>,num2str(freq)];
+0422     d{1}{4,1} = [<span class="string">'Nscans = '</span>,num2str(Nscans)];
+0423     d{1}{5,1} = [<span class="string">'depth = '</span>,num2str(depth)];
+0424     d{1}{6,1} = [<span class="string">'t_wait = '</span>,num2str(t_wait)];
+0425     pardata{nn}.all = d;
+0426 <span class="keyword">end</span>
+0427 
+0428 
+0429 <span class="comment">% figure;</span>
+0430 <span class="comment">% subplot(211);</span>
+0431 <span class="comment">% plot(data{1}.time,real(data{1}.signal),'k'); hold on</span>
+0432 <span class="comment">% plot(data{1}.time,imag(data{1}.signal),'k--','LineWidth',1);</span>
+0433 <span class="comment">% plot(data{3}.time,real(data{3}.signal),'r');</span>
+0434 <span class="comment">% plot(data{3}.time,imag(data{3}.signal),'r--','LineWidth',1);</span>
+0435 <span class="comment">% set(gca,'XScale','log','YScale','lin');</span>
+0436 <span class="comment">% subplot(212);</span>
+0437 <span class="comment">% plot(data{2}.time,real(data{2}.signal),'k'); hold on</span>
+0438 <span class="comment">% plot(data{2}.time,imag(data{2}.signal),'k--','LineWidth',1);</span>
+0439 <span class="comment">% plot(data{4}.time,real(data{4}.signal),'r');</span>
+0440 <span class="comment">% plot(data{4}.time,imag(data{4}.signal),'r--','LineWidth',1);</span>
+0441 <span class="comment">% set(gca,'XScale','log','YScale','lin');</span>
+0442 
+0443 <span class="keyword">end</span>
+0444 
+0445 <span class="comment">%------------- END OF CODE --------------</span>
+0446 
+0447 <span class="comment">%% License:</span>
+0448 <span class="comment">% MIT License</span>
+0449 <span class="comment">%</span>
+0450 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
+0451 <span class="comment">%</span>
+0452 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0453 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0454 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0455 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0456 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0457 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0458 <span class="comment">%</span>
+0459 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0460 <span class="comment">% copies or substantial portions of the Software.</span>
+0461 <span class="comment">%</span>
+0462 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0463 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0464 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0465 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0466 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0467 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0468 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

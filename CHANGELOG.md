@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0] - 2024-11-27
+
+### Added
+- New sub GUI *2DInv* in **NUCLEUSinv** for 2D T1-T2 inversion (works so far for HELIOS, DART and JAVELIN (Vista Clara) and RockCoreAnalyzer (Magritek) data)
+- New import routines in **NUCLEUSinv** for the NMR Dart Logging tool
+- New *Extra* menu entry in **NUCLEUSinv** to find duplicate NMR signals in the file list
+- New fitting options in the *PhaseView* sub GUI of **NUCLEUSinv**
+
+### Changed
+- Unified the appearance along several sub GUIs for consistency
+- Updated the wait bar increments for very long batch runs
+- When *HELIOS* data is imported, the user can now decide if several files should be stacked together
+
+### Fixed
+- Fixed a bug when importing data and the Statistics Toolbox is not available
+
 ## [0.2.1] - 2024-02-11
 
 ### Added
@@ -215,6 +231,7 @@
 
 Initial Version
 
+[0.3.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.2.1...v.0.3.0
 [0.2.1]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.2.0...v.0.2.1
 [0.2.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.14...v.0.2.0
 [0.1.14]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.13...v.0.1.14

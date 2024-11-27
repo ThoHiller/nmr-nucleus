@@ -43,6 +43,12 @@ if isfield(data,'results') && isfield(data.results,'invstd') && ...
     uncert = data.results.invstd.uncert;
 end
 
+% check for 2D data
+is1D = true;
+if isfield(data,'results') && isfield(data.results,'inv2D')
+    is1D = false;
+end
+
 % default color
 col = gui.myui.colors.axisL;
 
@@ -117,7 +123,7 @@ else
 end
 
 % check for lsqlin "EchoFlag" and plot an info line if available
-if strcmp(data.invstd.invtype,'NNLS') && ...
+if is1D && strcmp(data.invstd.invtype,'NNLS') && ...
         strcmp(data.results.invstd.invparams.EchoFlag,'on')
 
     TEmin = data.results.nmrproc.t(1);

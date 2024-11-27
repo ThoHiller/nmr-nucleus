@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of fitData2D</title>
+  <meta name="keywords" content="fitData2D">
+  <meta name="description" content=" is a control routine that fits 2D NMR data;">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>fitData2D
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> is a control routine that fits 2D NMR data;</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function fitdata = fitData2D(data,parameter) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">fitData2D is a control routine that fits 2D NMR data;
+if the Optimization Toolbox is available the user can select LSQLIN,
+otherwise the default built-in LSQNONNEG is used;
+
+ Syntax:
+       fitData2D(data,parameter)
+
+ Inputs:
+       data - struct that holds the NMR signal data
+       parameter - struct that holds settings:
+
+ Outputs:
+       fitdata - struct that holds the inversion results:
+
+ Example:
+       [fitdata] = fitData2D(data,parameter)
+
+ Other m-files required:
+       Optimization Toolbox from Mathworks (optional)
+       applyRegularization2D
+       createKernelMatrix2D
+       getFitErrors
+       getTLogMean2D
+       lsqnonneg
+       lsqlin (optional)
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="applyRegularization2D.html" class="code" title="function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)">applyRegularization2D</a>	</li><li><a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>	 creates a Kernel matrix from signals time vectors "t"</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>	 is an extra subGUI to calculate 2D inversion of T1-T2 data</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function fitdata = fitData2D(data,parameter)</a>
+0002 <span class="comment">%fitData2D is a control routine that fits 2D NMR data;</span>
+0003 <span class="comment">%if the Optimization Toolbox is available the user can select LSQLIN,</span>
+0004 <span class="comment">%otherwise the default built-in LSQNONNEG is used;</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Syntax:</span>
+0007 <span class="comment">%       fitData2D(data,parameter)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Inputs:</span>
+0010 <span class="comment">%       data - struct that holds the NMR signal data</span>
+0011 <span class="comment">%       parameter - struct that holds settings:</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Outputs:</span>
+0014 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Example:</span>
+0017 <span class="comment">%       [fitdata] = fitData2D(data,parameter)</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Other m-files required:</span>
+0020 <span class="comment">%       Optimization Toolbox from Mathworks (optional)</span>
+0021 <span class="comment">%       applyRegularization2D</span>
+0022 <span class="comment">%       createKernelMatrix2D</span>
+0023 <span class="comment">%       getFitErrors</span>
+0024 <span class="comment">%       getTLogMean2D</span>
+0025 <span class="comment">%       lsqnonneg</span>
+0026 <span class="comment">%       lsqlin (optional)</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% Subfunctions:</span>
+0029 <span class="comment">%       none</span>
+0030 <span class="comment">%</span>
+0031 <span class="comment">% MAT-files required:</span>
+0032 <span class="comment">%       none</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% See also:</span>
+0035 <span class="comment">% Author: see AUTHORS.md</span>
+0036 <span class="comment">% email: see AUTHORS.md</span>
+0037 <span class="comment">% License: MIT License (at end)</span>
+0038 
+0039 <span class="comment">%------------- BEGIN CODE --------------</span>
+0040 
+0041 <span class="comment">% get the input parameters</span>
+0042 <span class="comment">% flag = parameter.T1T2;           % T1/T2 switch</span>
+0043 T1IRfac = parameter.T1IRfac;       <span class="comment">% T1 Sat/Inv Recovery factor</span>
+0044 IRtype = parameter.IRtype;         <span class="comment">% T1 IR kernel type</span>
+0045 <span class="comment">% Tb = parameter.Tb;               % bulk relaxation time</span>
+0046 <span class="comment">% Td = parameter.Td;               % diffusion relaxation time</span>
+0047 
+0048 noise = parameter.noise;
+0049 <span class="comment">% get system properties</span>
+0050 D = parameter.D;
+0051 G0 = parameter.G0;
+0052 te = parameter.te;
+0053 
+0054 <span class="comment">% create model space from relaxation time T vectors</span>
+0055 T1min = parameter.T1min;
+0056 T1max = parameter.T1max;
+0057 T1N = parameter.T1N;
+0058 T2min = parameter.T2min;
+0059 T2max = parameter.T2max;
+0060 T2N = parameter.T2N;
+0061 
+0062 T1vec = logspace(log10(T1min),log10(T1max),T1N);
+0063 T2vec = logspace(log10(T2min),log10(T2max),T2N);
+0064 MOD = zeros(numel(T2vec),numel(T1vec));
+0065 
+0066 <span class="comment">% prepare data vector</span>
+0067 Nsignals = numel(data);
+0068 Nechos = numel(data(1).t);
+0069 dat_vec = zeros(Nsignals*Nechos,1);
+0070 <span class="keyword">for</span> n = 1:numel(data)
+0071     <span class="keyword">if</span> n == 1
+0072         dat_vec(1:Nechos,1) = data(n).s;
+0073     <span class="keyword">else</span>
+0074         dat_vec((n-1)*Nechos+1:n*Nechos,1) = data(n).s;
+0075     <span class="keyword">end</span>
+0076 <span class="keyword">end</span>
+0077 
+0078 <span class="comment">% create the Kernel matrix for inversion</span>
+0079 p.G0 = G0;
+0080 p.D = D;
+0081 p.te = te;
+0082 p.T1IRfac = T1IRfac;
+0083 p.IRtype = IRtype;
+0084 [K,indices] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(data,T1vec,T2vec,p);
+0085 
+0086 <span class="comment">% regularization</span>
+0087 order = parameter.orderT1;
+0088 lambda = [parameter.lamT1 parameter.lamT2];
+0089 
+0090 [KK,dat_inp,LT,LD] = <a href="applyRegularization2D.html" class="code" title="function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)">applyRegularization2D</a>(K,order,T2vec,T1vec,indices,dat_vec,lambda);
+0091 
+0092 <span class="keyword">switch</span> parameter.solver
+0093     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
+0094         x0 = zeros(size(KK,2),1);
+0095         lb = zeros(size(KK,2),1);
+0096         ub = ones(size(KK,2),1);
+0097 
+0098         options = optimoptions(<span class="string">'lsqlin'</span>);
+0099         options.Display = parameter.info;
+0100         <span class="comment">% options.OptimalityTolerance = 1e-16;</span>
+0101         <span class="comment">% options.StepTolerance = 1e-16;</span>
+0102         <span class="comment">% options.MaxIterations = 2000;</span>
+0103         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqlin(KK,dat_inp,[],[],[],[],<span class="keyword">...</span>
+0104             lb,ub,x0,options);
+0105 
+0106     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
+0107         options = optimset(<span class="string">'lsqnonneg'</span>);
+0108         options.Display = parameter.info;
+0109         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqnonneg(KK,dat_inp,options);
+0110 <span class="keyword">end</span>
+0111 
+0112 <span class="comment">% global model response (fit)</span>
+0113 s_fit = K * f_vec;
+0114 <span class="comment">% global fit errors</span>
+0115 out_global = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(dat_vec,s_fit,noise);
+0116 <span class="comment">% local fit errors</span>
+0117 <span class="keyword">for</span> n = 1:numel(data)
+0118     data(n).s_fit = s_fit((n-1)*Nechos+1:n*Nechos);
+0119     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(data(n).s,data(n).s_fit,data(n).noise);
+0120     data(n).resnorm = out.resnorm;
+0121     data(n).residual = out.residual;
+0122     data(n).chi2 = out.chi2;
+0123     data(n).rms = out.rms;
+0124 <span class="keyword">end</span>
+0125 
+0126 <span class="comment">% L-curve parameter</span>
+0127 <span class="comment">% model norm |L*x|_2</span>
+0128 xn = norm([LT;LD]*f_vec,2);
+0129 <span class="comment">% residual norm |A*x-b|_2</span>
+0130 rn = norm(out_global.residual,2);
+0131 
+0132 <span class="comment">% create the Kernel matrix for E0</span>
+0133 dat0.t=0;
+0134 dat0.T1=10000;
+0135 [K0,~] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(dat0,T1vec,T2vec,p);
+0136 E0 = K0*f_vec;
+0137 
+0138 <span class="comment">% sort the result</span>
+0139 f_2Dmap = zeros(size(MOD'));
+0140 <span class="keyword">for</span> n = 1:length(T1vec)
+0141     f_2Dmap(n,:) = f_vec(indices.col_1(n):indices.col_end(n));
+0142 <span class="keyword">end</span>
+0143 
+0144 <span class="comment">% get TLGM and TMAX</span>
+0145 [TLGM,TMAX] = <a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(T1vec,T2vec,f_2Dmap);
+0146 
+0147 <span class="comment">% output struct</span>
+0148 fitdata.data = data;
+0149 fitdata.T1vec = T1vec;
+0150 fitdata.T2vec = T2vec;
+0151 fitdata.indices = indices;
+0152 fitdata.f_vec = f_vec;
+0153 fitdata.f_2Dmap = f_2Dmap;
+0154 fitdata.E0 = E0;
+0155 fitdata.T1tlgm = TLGM(1);
+0156 fitdata.T2tlgm = TLGM(2);
+0157 fitdata.T1tmax = TMAX(1);
+0158 fitdata.T2tmax = TMAX(2);
+0159 fitdata.error_global = out_global;
+0160 fitdata.xn = xn;
+0161 fitdata.rn = rn;
+0162 fitdata.solver_out.RESNORM = RESNORM;
+0163 fitdata.solver_out.RESIDUAL = RESIDUAL;
+0164 fitdata.solver_out.EXITFLAG = EXITFLAG;
+0165 fitdata.solver_out.OUTPUT = OUTPUT;
+0166 fitdata.param = parameter;
+0167 <span class="comment">% fitdata.K = K;</span>
+0168 
+0169 <span class="keyword">return</span>
+0170 
+0171 <span class="comment">%------------- END OF CODE --------------</span>
+0172 
+0173 <span class="comment">%% License:</span>
+0174 <span class="comment">% MIT License</span>
+0175 <span class="comment">%</span>
+0176 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0177 <span class="comment">%</span>
+0178 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0179 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0180 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0181 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0182 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0183 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0184 <span class="comment">%</span>
+0185 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0186 <span class="comment">% copies or substantial portions of the Software.</span>
+0187 <span class="comment">%</span>
+0188 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0189 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0190 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0191 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0192 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0193 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0194 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

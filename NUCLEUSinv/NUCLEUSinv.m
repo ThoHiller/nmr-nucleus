@@ -38,8 +38,8 @@ h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.2.1';
-myui.date = '11.02.2024';
+myui.version = '0.3.0';
+myui.date = '27.11.2024';
 myui.author = {'Stephan Costabel','Thomas Hiller'};
 myui.email = 'thomas.hiller[at]bgr.de';
 myui.fontsize = 10;
@@ -68,6 +68,7 @@ data.invstd = defaults.invstd;
 data.uncert = defaults.uncert;
 data.calib = defaults.calib;
 data.invjoint = defaults.invjoint;
+data.inv2D = defaults.inv2D;
 data.pressure = defaults.pressure;
 gui.myui = myui;
 

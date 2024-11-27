@@ -40,6 +40,11 @@ INVdata = getappdata(fig,'INVdata');
 id = get(gui.listbox_handles.signal,'Value');
 
 if ~isempty(id) && ~isempty(INVdata) && isstruct(INVdata{id})
+    % disable the CALC: button to indicate a running calculation
+    set(gui.push_handles.uncert,'String','RUNNING ...',...
+    'BackgroundColor',[0.94 0.94 0.94],...
+    'Enable','inactive'); pause(0.01);
+
     % get original inversion data
     INVdata0 = INVdata{id};
     invstd = INVdata0.results.invstd; % results from original inversion
@@ -65,6 +70,11 @@ if ~isempty(id) && ~isempty(INVdata) && isstruct(INVdata{id})
     uparam.uncert.N = data.uncert.N;
     uparam.uncert.Max = data.uncert.Max;
     invstd = estimateUncertainty(invtype,invstd,iparam,uparam);
+    
+    % enable the CALC. button
+    set(gui.push_handles.uncert,'String','CALC.',...
+    'BackgroundColor','g','Enable','on','Callback',@onPushRun);
+    setappdata(fig,'gui',gui);
 
     % save updated inversion results
     data.results.invstd = invstd;

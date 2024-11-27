@@ -58,6 +58,8 @@ if numel(T) == nT
     out.Tlgm_med = [median(TLGM_tmp) getAAD(TLGM_tmp,1)];
     out.E0 = [mean(E0_tmp) std(E0_tmp) getAAD(E0_tmp,0)];
     out.E0_med = [median(E0_tmp) getAAD(E0_tmp,1)];
+    out.Tlgm_all = TLGM_tmp;
+    out.E0_all = E0_tmp;
 
 else
     helpdlg({'function: getUncertainty Statistics',...

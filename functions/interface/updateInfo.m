@@ -334,7 +334,12 @@ if showit
     switch whichdist
         case 1 % RTD
             if isfield(data,'results')
-                if isfield(data.results,'invstd')
+                % check for 2D data
+                is1D = true;
+                if isfield(data.results,'inv2D')
+                    is1D = false;
+                end
+                if is1D && isfield(data.results,'invstd')
                     nmrproc = data.results.nmrproc;
                     invstd = data.results.invstd;
                     invtype = data.invstd.invtype;
@@ -439,8 +444,7 @@ if showit
                                 ') = ',sprintf('%5.2f',por*BVI*100),' [vol. %]'];
                             info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [vol. %]'];
                             
-                        case {'MUMO'}
-                            
+                        case {'MUMO'}                            
                             % info is a cell array
                             str = [invtype,' ',num2str(data.invstd.freeDT)];
                             info{end+1,1} = str;

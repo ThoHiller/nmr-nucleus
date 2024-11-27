@@ -88,12 +88,15 @@ if showplot
     if isempty(fig_conduct)
         % draw the figure on top of NUCLEUS
         fig_conduct = figure('Name','NUCLEUS - ConductView',...
-            'NumberTitle','off','ToolBar','none','Tag','CONDUCT');
+            'NumberTitle','off','ToolBar','none','Menubar','none','Tag','CONDUCT');
         pos0 = get(fig,'Position');
-        pos1 = get(fig_conduct,'Position');
         cent(1) = (pos0(1)+pos0(3)/2);
         cent(2) = (pos0(2)+pos0(4)/2);
-        set(fig_conduct,'Position',[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
+        set(fig_conduct,'Position',[cent(1)-pos0(3)/3 pos0(2)+22 pos0(3)/1.5 pos0(4)-22]);
+
+        gui.menu.view = uimenu(fig_conduct,'Label','View');
+        gui.menu.view_toolbar = uimenu(gui.menu.view,'Label','Figure Toolbar',...
+        'Callback',@onMenuView);
         
         % create the layout
         gui.main = uix.HBox('Parent',fig_conduct,...

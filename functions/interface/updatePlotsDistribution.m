@@ -42,8 +42,15 @@ set(gui.cm_handles.axes_rtd_uncert,'Enable','off');
 if isfield(data,'results') && isfield(data.results,'nmrproc')
     nmrproc = data.results.nmrproc;
 end
+
+% check for 2D data
+is1D = true;
+if isfield(data.results,'inv2D')
+    is1D = false;
+end
+
 % only continue if there is actual data to show
-if isfield(data,'results') && isfield(data.results,'invstd')
+if isfield(data,'results') && isfield(data.results,'invstd') && is1D
     invstd = data.results.invstd;
 
     if isfield(invstd,'uncert')
@@ -118,7 +125,7 @@ if isfield(data,'results') && isfield(data.results,'invstd')
         case {'LU','NNLS'}
             % scale distribution by porosity
             F0 = invstd.T1T2f;
-            if sum(F0)>0
+            if sum(abs(F0))>0
                 F = (data.invstd.porosity*100).*F0./sum(F0);
                 ylims = [0 max(F)*1.05];
             else

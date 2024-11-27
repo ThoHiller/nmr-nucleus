@@ -191,6 +191,7 @@ if ~isempty(id) && ~isempty(INVdata)
             
             % disable the RUN button to indicate a running inversion
             set(gui.push_handles.invstd_run,'String','RUNNING ...',...
+                'BackgroundColor',[0.9400 0.9400 0.9400],...
                 'Enable','inactive');            
             % switch depending on inversion method
             switch data.invstd.invtype

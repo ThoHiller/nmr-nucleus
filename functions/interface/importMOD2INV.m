@@ -1,5 +1,5 @@
 function importMOD2INV(src)
-%importINV2INV imports data directly from the NUCLEUSmod GUI or and
+%importMOD2INV imports data directly from the NUCLEUSmod GUI or and
 %NUCLEUSmod data file
 %
 % Syntax:
@@ -87,8 +87,8 @@ switch label
                 if isfield(datamod.results,'NMR')
                     % file info
                     fileID.name = 'NUCLEUSmod GUI';
-                    fileID.date = datestr(now);
-                    fileID.datenum = now;
+                    fileID.date = string(datetime("now"));
+                    fileID.datenum = convertTo(datetime("now"),"datenum");
                     fileID.bytes = 0;
                     
                     NMRpath = pwd;

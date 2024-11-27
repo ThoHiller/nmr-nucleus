@@ -41,8 +41,8 @@ h0  = findobj('Tag','MOD');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.2.1';
-myui.date = '11.02.2024';
+myui.version = '0.3.0';
+myui.date = '27.11.2024';
 myui.author = {'Stephan Costabel','Thomas Hiller'};
 myui.email = 'thomas.hiller[at]bgr.de';
 myui.fontsize = 10;
@@ -65,6 +65,7 @@ myui.colors = getColorTheme('MOD','standard');
 data.geometry = defaults.geometry;
 data.pressure = defaults.pressure;
 data.nmr = defaults.nmr;
+data.mod2D = defaults.mod2D;
 gui.myui = myui;
 
 % save the data struct within the GUI

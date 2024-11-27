@@ -72,6 +72,12 @@ switch onoff
             delete(fig_uncert);
         end
         set(gui.menu.extra_uncert,'Enable','off');
+        % check if the figure is already open
+        fig_T1T2map = findobj('Tag','T1T2MAP');
+        if ~isempty(fig_T1T2map)
+            delete(fig_T1T2map);
+        end
+        set(gui.menu.extra_T1T2map,'Enable','off');
         
         % deactivate solver menu and set to default
         onMenuSolver(gui.menu.extra_solver_lsqnonneg);
@@ -109,6 +115,8 @@ switch onoff
         set(gui.menu.extra_fixedtime,'Enable','on');
         % activate Uncertainty View GUI
         set(gui.menu.extra_uncert,'Enable','on');
+        % activate T1T2map GUI
+        set(gui.menu.extra_T1T2map,'Enable','on');
 
         % activate solver menu if optimization toolbox is available
         switch data.info.has_optim

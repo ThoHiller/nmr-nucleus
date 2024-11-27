@@ -1,0 +1,237 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of createKernelMatrix2D</title>
+  <meta name="keywords" content="createKernelMatrix2D">
+  <meta name="description" content=" creates a Kernel matrix from signals time vectors &quot;t&quot;">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>createKernelMatrix2D
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> creates a Kernel matrix from signals time vectors &quot;t&quot;</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">createKernelMatrix2D creates a Kernel matrix from signals time vectors &quot;t&quot;
+and relaxation time vector &quot;T1vec&quot; and &quot;T2vec&quot;
+
+ Syntax:
+       createKernelMatrix2D(dat,T1vec,T2vec,G0,D,te,T1IRfac)
+
+ Inputs:
+       dat - struct holding signal data including time vector &quot;t&quot; in [s]
+       T1vec - relaxation times vector in [s]
+       T2vec - relaxation times vector in [s]
+       p - struct holding optional settings
+           G0 - gradient in [T/m]
+           D - diffusion coefficient [m²/s]
+           te - echo time in [s]
+           Tbulk - Bulk relaxation time in [s]
+           T1IRfac - 1 or 2 (Sat. or Inv. Recovery)
+           IRtype - 1 or 2 (1-2exp() or -exp())
+
+ Outputs:
+       K - Kernel matrix size(length(t),length(T1vec)*length(T2vec))
+       indices - struct holding tile indices
+
+ Example:
+       K = createKernelMatrix(dat,T1,T2,0,2e-9,2e-4,2)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also:
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/Mod2DView.html" class="code" title="function Mod2DView(src,~)">Mod2DView</a>	 is an extra subGUI to calculate 2D forward T1-T2 data</li><li><a href="fitData2D.html" class="code" title="function fitdata = fitData2D(data,parameter)">fitData2D</a>	 is a control routine that fits 2D NMR data;</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)</a>
+0002 <span class="comment">%createKernelMatrix2D creates a Kernel matrix from signals time vectors &quot;t&quot;</span>
+0003 <span class="comment">%and relaxation time vector &quot;T1vec&quot; and &quot;T2vec&quot;</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       createKernelMatrix2D(dat,T1vec,T2vec,G0,D,te,T1IRfac)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       dat - struct holding signal data including time vector &quot;t&quot; in [s]</span>
+0010 <span class="comment">%       T1vec - relaxation times vector in [s]</span>
+0011 <span class="comment">%       T2vec - relaxation times vector in [s]</span>
+0012 <span class="comment">%       p - struct holding optional settings</span>
+0013 <span class="comment">%           G0 - gradient in [T/m]</span>
+0014 <span class="comment">%           D - diffusion coefficient [m²/s]</span>
+0015 <span class="comment">%           te - echo time in [s]</span>
+0016 <span class="comment">%           Tbulk - Bulk relaxation time in [s]</span>
+0017 <span class="comment">%           T1IRfac - 1 or 2 (Sat. or Inv. Recovery)</span>
+0018 <span class="comment">%           IRtype - 1 or 2 (1-2exp() or -exp())</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Outputs:</span>
+0021 <span class="comment">%       K - Kernel matrix size(length(t),length(T1vec)*length(T2vec))</span>
+0022 <span class="comment">%       indices - struct holding tile indices</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Example:</span>
+0025 <span class="comment">%       K = createKernelMatrix(dat,T1,T2,0,2e-9,2e-4,2)</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% Other m-files required:</span>
+0028 <span class="comment">%       none</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% Subfunctions:</span>
+0031 <span class="comment">%       none</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% MAT-files required:</span>
+0034 <span class="comment">%       none</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% See also:</span>
+0037 <span class="comment">% Author: see AUTHORS.md</span>
+0038 <span class="comment">% email: see AUTHORS.md</span>
+0039 <span class="comment">% License: MIT License (at end)</span>
+0040 
+0041 <span class="comment">%------------- BEGIN CODE --------------</span>
+0042 
+0043 <span class="comment">%%</span>
+0044 useTbulk = false;
+0045 <span class="keyword">if</span> isfield(p,<span class="string">'Tbulk'</span>)
+0046     useTbulk = true;
+0047     Tbulk = p.Tbulk;
+0048 <span class="keyword">end</span>
+0049 <span class="keyword">if</span> isfield(p,<span class="string">'G0'</span>)
+0050     G0 = p.G0;
+0051 <span class="keyword">else</span>
+0052     G0 = 0;
+0053 <span class="keyword">end</span>
+0054 <span class="keyword">if</span> isfield(p,<span class="string">'D'</span>)
+0055     D = p.D;
+0056 <span class="keyword">else</span>
+0057     D = 2.025e-09;
+0058 <span class="keyword">end</span>
+0059 <span class="keyword">if</span> isfield(p,<span class="string">'te'</span>)
+0060     te = p.te;
+0061 <span class="keyword">else</span>
+0062     te = 2e-4;
+0063 <span class="keyword">end</span>
+0064 <span class="keyword">if</span> isfield(p,<span class="string">'T1IRfac'</span>)
+0065     T1IRfac = p.T1IRfac;
+0066 <span class="keyword">else</span>
+0067     T1IRfac = 2;
+0068 <span class="keyword">end</span>
+0069 <span class="keyword">if</span> isfield(p,<span class="string">'IRtype'</span>)
+0070     IRtype = p.IRtype;
+0071 <span class="keyword">else</span>
+0072     IRtype = 1;
+0073 <span class="keyword">end</span>
+0074 
+0075 <span class="comment">%% gyromagnetic ratio of hydrogen</span>
+0076 gyro = 0.267*1e9; <span class="comment">% [rad/(T*s)]</span>
+0077 
+0078 <span class="comment">%% how many recovery times?</span>
+0079 num_T1 = length(dat);
+0080 
+0081 <span class="comment">%% init data</span>
+0082 lin_1 = zeros(1,num_T1);
+0083 lin_end = zeros(1,num_T1);
+0084 col_1 = zeros(1,numel(T1vec));
+0085 col_end = zeros(1,numel(T1vec));
+0086 
+0087 <span class="comment">% determine cumulative length of all involved t-vectors</span>
+0088 t_dim = 0;
+0089 <span class="keyword">for</span> nn = 1:num_T1
+0090     lin_1(nn) = 1 + t_dim;
+0091     t_dim = t_dim + length(dat(nn).t);
+0092     lin_end(nn) = t_dim;
+0093 <span class="keyword">end</span>
+0094 K = zeros(t_dim,length(T1vec)*length(T2vec));
+0095 
+0096 <span class="comment">% assemble kernel</span>
+0097 <span class="keyword">for</span> n = 1:numel(T1vec)
+0098     <span class="comment">% determine current tile:</span>
+0099     col_1(n) = (n-1) * length(T2vec) + 1;
+0100     col_end(n) = n * length(T2vec);
+0101     <span class="keyword">for</span> nn = 1:num_T1
+0102         <span class="comment">% time vectors</span>
+0103         tr = repmat(dat(nn).t(:),[1,numel(T2vec)]);
+0104         Tr = repmat(T2vec,[numel(dat(nn).t),1]);
+0105         <span class="comment">% diffusion relaxation rate:</span>
+0106         Tdiff_rate = (D*(gyro*G0*te)^2)/12;
+0107         <span class="comment">% T1 relaxation</span>
+0108         <span class="keyword">if</span> IRtype == 1
+0109             T1loss = (1-T1IRfac*exp(-dat(nn).T1/T1vec(n)));
+0110         <span class="keyword">else</span>
+0111             <span class="comment">% after Hürlimann 2001 JMR</span>
+0112             T1loss = -(exp(-dat(nn).T1/T1vec(n)));
+0113         <span class="keyword">end</span>
+0114         <span class="comment">% kernel</span>
+0115         <span class="keyword">if</span> useTbulk
+0116             K(lin_1(nn):lin_end(nn),col_1(n):col_end(n)) = T1loss*exp(-tr./Tr).*exp(-tr.*Tdiff_rate).*exp(-tr./Tbulk);
+0117         <span class="keyword">else</span>
+0118             K(lin_1(nn):lin_end(nn),col_1(n):col_end(n)) = T1loss*exp(-tr./Tr).*exp(-tr.*Tdiff_rate);
+0119         <span class="keyword">end</span>        
+0120     <span class="keyword">end</span>
+0121 <span class="keyword">end</span>
+0122 
+0123 <span class="comment">% struc holding tile indices</span>
+0124 indices.lin_1 = lin_1;
+0125 indices.lin_end = lin_end;
+0126 indices.col_1 = col_1;
+0127 indices.col_end = col_end;
+0128 
+0129 <span class="keyword">return</span>
+0130 
+0131 <span class="comment">%------------- END OF CODE --------------</span>
+0132 
+0133 <span class="comment">%% License:</span>
+0134 <span class="comment">% MIT License</span>
+0135 <span class="comment">%</span>
+0136 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+0137 <span class="comment">%</span>
+0138 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0139 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0140 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0141 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0142 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0143 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0144 <span class="comment">%</span>
+0145 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0146 <span class="comment">% copies or substantial portions of the Software.</span>
+0147 <span class="comment">%</span>
+0148 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0149 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0150 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0151 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0152 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0153 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0154 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

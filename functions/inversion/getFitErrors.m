@@ -49,7 +49,7 @@ if nargin > 3
 end
 
 %% residuals
-residual = s-sfit;
+residual = sfit-s;
 
 %% L1 norm
 errnorm1 = sum(abs(residual));

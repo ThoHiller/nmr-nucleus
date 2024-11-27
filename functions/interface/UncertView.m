@@ -69,13 +69,19 @@ if hasUncert
         fig_uncert = figure('Name','NUCLEUSinv - RTD Uncertainty',...
             'NumberTitle','off','Resize','on','ToolBar','none',...
             'CloseRequestFcn',@uv_closeme,...
-            'MenuBar','figure','Tag','UNCERTVIEW');
+            'MenuBar','none','Tag','UNCERTVIEW');
         pos0 = get(figh_nucleus,'Position');
         cent(1) = (pos0(1)+pos0(3)/2);
         cent(2) = (pos0(2)+pos0(4)/2);
-        posf = [cent(1)-pos0(3)/3 pos0(2)+22 pos0(3)/1.5 pos0(4)-22];
-        %         posf = [cent(1)-pos0(3)/6 pos0(2)+pos0(4)-140 350 145];
+        % posf = [cent(1)-pos0(3)/3 pos0(2)+22 pos0(3)/1.5 pos0(4)-22];
+        posf = [cent(1)-pos0(3)/2.5 pos0(2)+22 pos0(3)/1.25 pos0(4)-22];
         set(fig_uncert,'Position',posf);
+
+        gui.menu.view = uimenu(fig_uncert,'Label','View');
+        gui.menu.view_toolbar = uimenu(gui.menu.view,'Label','Figure Toolbar',...
+        'Callback',@onMenuView);
+
+        cpanel_w = 175;
 
         % create the main layout
         gui.main = uix.HBox('Parent',fig_uncert,'BackGroundColor',colors.panelBG,...
@@ -85,7 +91,7 @@ if hasUncert
         gui.right = uix.VBox('Parent',gui.main,'BackGroundColor',colors.panelBG,...
             'Spacing',5,'Padding',0); % plots
 
-        set(gui.main,'Widths',[300 -1 ]);
+        set(gui.main,'Widths',[350 -1 ]);
 
         % waitbar indicating the loading of the GUI
         steps = 5;
@@ -126,7 +132,7 @@ if hasUncert
             'Style','popup','String',{'RMS - unbounded','RMS - bounded'},...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'FontSize',myui.fontsize,'Tag','control','Callback',@uv_onPopupMethod);
-        set(gui.panels.control.HBox1,'Widths',[150 -1]);
+        set(gui.panels.control.HBox1,'Widths',[cpanel_w -1]);
         % number of uncertainty models
         gui.panels.control.HBox2 = uix.HBox('Parent',gui.panels.control.VBox,...
             'Spacing',3);        
@@ -139,7 +145,7 @@ if hasUncert
             'Style','edit','String','0','FontSize',myui.fontsize,'Tag','uncertN',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onEditValue);
-        set(gui.panels.control.HBox2,'Widths',[150 -1 -1]);
+        set(gui.panels.control.HBox2,'Widths',[cpanel_w -1 -1]);
         % bound1: chi2 range
         gui.panels.control.HBox3 = uix.HBox('Parent',gui.panels.control.VBox,...
             'Spacing',3);
@@ -157,7 +163,7 @@ if hasUncert
             'Style','edit','String','0','FontSize',myui.fontsize,'Tag','control',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Enable','off','Callback',@uv_onEditValue);
-        set(gui.panels.control.HBox3,'Widths',[150 -1 -1]);
+        set(gui.panels.control.HBox3,'Widths',[cpanel_w -1 -1]);
         % bound2: model norm range
         gui.panels.control.HBox4 = uix.HBox('Parent',gui.panels.control.VBox,...
             'Spacing',3);
@@ -174,45 +180,45 @@ if hasUncert
             'Style','edit','String','0','FontSize',myui.fontsize,'Tag','control',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Enable','off','Callback',@uv_onEditValue);
-        set(gui.panels.control.HBox4,'Widths',[150 -1 -1]);
+        set(gui.panels.control.HBox4,'Widths',[cpanel_w -1 -1]);
         % bound3: threshold
         gui.panels.control.HBox5 = uix.HBox('Parent',gui.panels.control.VBox,...
             'Spacing',3);
         gui.text_handles.uncertThresh = uicontrol('Parent',gui.panels.control.HBox5,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','Threshold');
-        uix.Empty('Parent',gui.panels.control.HBox5);
+            'String','Threshold   |   Max. #tries');
+        % uix.Empty('Parent',gui.panels.control.HBox5);
         tstr = 'Threshold value (0.05 = 5%).';
         gui.edit_handles.uncertThresh = uicontrol('Parent',gui.panels.control.HBox5,...
             'Style','edit','String','0','FontSize',myui.fontsize,'Tag','uncertThresh',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Enable','off','Callback',@uv_onEditValue);
-        set(gui.panels.control.HBox5,'Widths',[150 -1 -1]);
+        % set(gui.panels.control.HBox5,'Widths',[cpanel_w -1 -1]);
         % max tries
-        gui.panels.control.HBox6 = uix.HBox('Parent',gui.panels.control.VBox,...
-            'Spacing',3);
-        gui.text_handles.uncertMax = uicontrol('Parent',gui.panels.control.HBox6,...
-            'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','Max. #tries');
-        uix.Empty('Parent',gui.panels.control.HBox6);
+        % gui.panels.control.HBox6 = uix.HBox('Parent',gui.panels.control.VBox,...
+        %     'Spacing',3);
+        % gui.text_handles.uncertMax = uicontrol('Parent',gui.panels.control.HBox6,...
+        %     'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
+        %     'String','Max. #tries');
+        % uix.Empty('Parent',gui.panels.control.HBox6);
         tstr = 'Maximum number of unsuccesful tries.';
-        gui.edit_handles.uncertMax = uicontrol('Parent',gui.panels.control.HBox6,...
+        gui.edit_handles.uncertMax = uicontrol('Parent',gui.panels.control.HBox5,...
             'Style','edit','String','0','FontSize',myui.fontsize,'Tag','uncertMax',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Enable','off','Callback',@uv_onEditValue);
-        set(gui.panels.control.HBox6,'Widths',[150 -1 -1]);
+        set(gui.panels.control.HBox5,'Widths',[cpanel_w -1 -1]);
         % RUN button
         gui.panels.control.HBox7 = uix.HBox('Parent',gui.panels.control.VBox,...
             'Spacing',3);
-        uix.Empty('Parent',gui.panels.control.HBox7);
+        % uix.Empty('Parent',gui.panels.control.HBox7);
         uix.Empty('Parent',gui.panels.control.HBox7);
         tstr = ['<HTML>RUN uncertainty calculation.<br>',...
             'Regularization is the same as in main NUCLEUSinv GUI.'];
-        gui.push_handles.reset = uicontrol('Parent',gui.panels.control.HBox7,...
-            'String','RUN','FontSize',myui.fontsize,'Tag','process',...
+        gui.push_handles.run = uicontrol('Parent',gui.panels.control.HBox7,...
+            'String','RUN UNCERT. CALC.','FontSize',myui.fontsize,'Tag','process',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'BackGroundColor','g','Callback',@uv_onPushRun);
-        set(gui.panels.control.HBox7,'Widths',[150 -1 -1]);
+        set(gui.panels.control.HBox7,'Widths',[cpanel_w -1]);
 
         % --- process panel ---
         waitbar(2/steps,hwb,'loading GUI elements - process');
@@ -238,7 +244,7 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,'Tag','process',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onEditValue);
-        set(gui.panels.process.HBox1,'Widths',[150 -1 -1]);
+        set(gui.panels.process.HBox1,'Widths',[cpanel_w -1 -1]);
         % model norm range
         gui.panels.process.HBox2 = uix.HBox('Parent',gui.panels.process.VBox,...
             'Spacing',3);
@@ -255,14 +261,14 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,'Tag','process',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onEditValue);
-        set(gui.panels.process.HBox2,'Widths',[150 -1 -1]);
+        set(gui.panels.process.HBox2,'Widths',[cpanel_w -1 -1]);
         % RESET button
         gui.panels.process.HBox3 = uix.HBox('Parent',gui.panels.process.VBox,...
             'Spacing',3);
         uix.Empty('Parent',gui.panels.process.HBox3);
         tstr = 'SEND bounds to recaluclation panel above.';
         gui.push_handles.send = uicontrol('Parent',gui.panels.process.HBox3,...
-            'String','SEND','FontSize',myui.fontsize,'Tag','process',...
+            'String','USE','FontSize',myui.fontsize,'Tag','process',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onPushSend);
         tstr = 'RESET processing bounds and plots.';
@@ -270,7 +276,7 @@ if hasUncert
             'String','RESET','FontSize',myui.fontsize,'Tag','process',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onPushReset);
-        set(gui.panels.process.HBox3,'Widths',[150 -1 -1]);
+        set(gui.panels.process.HBox3,'Widths',[cpanel_w -1 -1]);
 
         % --- RTD panel ---
         waitbar(3/steps,hwb,'loading GUI elements - RTD bounds');
@@ -297,7 +303,7 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,'Tag','rtd',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onEditValue);
-        set(gui.panels.rtd.HBox1,'Widths',[150 -1 -1]);
+        set(gui.panels.rtd.HBox1,'Widths',[cpanel_w -1 -1]);
         % RESET button
         gui.panels.rtd.HBox3 = uix.HBox('Parent',gui.panels.rtd.VBox,...
             'Spacing',3);
@@ -308,7 +314,7 @@ if hasUncert
             'String','RESET','FontSize',myui.fontsize,'Tag','rtd',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onPushReset);
-        set(gui.panels.rtd.HBox3,'Widths',[150 -1 -1]);
+        set(gui.panels.rtd.HBox3,'Widths',[cpanel_w -1 -1]);
 
         % --- Statistics panel ---
         waitbar(4/steps,hwb,'loading GUI elements - statistics');
@@ -322,7 +328,7 @@ if hasUncert
             'Spacing',3);
         gui.text_handles.TLGM = uicontrol('Parent',gui.panels.info.HBox1,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','TLGM            mean | std');
+            'String','TLGM          mean | 2*std');
         tstr = 'MEAN of all TLGM values.';
         gui.edit_handles.TLGM_mean = uicontrol('Parent',gui.panels.info.HBox1,...
             'Style','edit','String','0','FontSize',myui.fontsize,...
@@ -333,25 +339,25 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'BackgroundColor',colors.BoxPRC);
-        set(gui.panels.info.HBox1,'Widths',[150 -1 -1]);
+        set(gui.panels.info.HBox1,'Widths',[cpanel_w -1 -1]);
         % aad TLGM
         gui.panels.info.HBox2 = uix.HBox('Parent',gui.panels.info.VBox,...
             'Spacing',3);
         gui.text_handles.TLGM_aad = uicontrol('Parent',gui.panels.info.HBox2,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','TLGM            aad(mean)');
+            'String','TLGM          2*aad(mean)');
         uix.Empty('Parent',gui.panels.info.HBox2);
         tstr = 'AAD (average absolute deviation from mean) of all TLGM values.';
         gui.edit_handles.TLGM_aad = uicontrol('Parent',gui.panels.info.HBox2,...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Style','edit','String','2','FontSize',myui.fontsize);
-        set(gui.panels.info.HBox2,'Widths',[150 -1 -1]);
+        set(gui.panels.info.HBox2,'Widths',[cpanel_w -1 -1]);
         % median TLGM
         gui.panels.info.HBox3 = uix.HBox('Parent',gui.panels.info.VBox,...
             'Spacing',3);
         gui.text_handles.TLGM_med = uicontrol('Parent',gui.panels.info.HBox3,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','TLGM median | aad(med)');
+            'String','TLGM median | 2*aad(med)');
         tstr = 'MEDIAN of all TLGM values.';
         gui.edit_handles.TLGM_med = uicontrol('Parent',gui.panels.info.HBox3,...
             'Style','edit','String','0','FontSize',myui.fontsize,...
@@ -362,13 +368,13 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'BackgroundColor',colors.BoxCPS);
-        set(gui.panels.info.HBox3,'Widths',[150 -1 -1]);
+        set(gui.panels.info.HBox3,'Widths',[cpanel_w -1 -1]);
         % mean E0
         gui.panels.info.HBox4 = uix.HBox('Parent',gui.panels.info.VBox,...
             'Spacing',3);
         gui.text_handles.E0 = uicontrol('Parent',gui.panels.info.HBox4,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','E0                mean | std');
+            'String','E0              mean | 2*std');
         tstr = 'MEAN of all E0 values.';
         gui.edit_handles.E0_mean = uicontrol('Parent',gui.panels.info.HBox4,...
             'Style','edit','String','0','FontSize',myui.fontsize,...
@@ -379,25 +385,25 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'BackgroundColor',colors.BoxPRC);
-        set(gui.panels.info.HBox4,'Widths',[150 -1 -1]);
+        set(gui.panels.info.HBox4,'Widths',[cpanel_w -1 -1]);
         % aad E0
         gui.panels.info.HBox5 = uix.HBox('Parent',gui.panels.info.VBox,...
             'Spacing',3);
         gui.text_handles.E0_aad = uicontrol('Parent',gui.panels.info.HBox5,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','E0                aad(mean)');
+            'String','E0              2*aad(mean)');
         uix.Empty('Parent',gui.panels.info.HBox5);
         tstr = 'AAD (average absolute deviation from mean) of all E0 values.';
         gui.edit_handles.E0_aad = uicontrol('Parent',gui.panels.info.HBox5,...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Style','edit','String','2','FontSize',myui.fontsize);
-        set(gui.panels.info.HBox5,'Widths',[150 -1 -1]);
+        set(gui.panels.info.HBox5,'Widths',[cpanel_w -1 -1]);
         % median E0
         gui.panels.info.HBox6 = uix.HBox('Parent',gui.panels.info.VBox,...
             'Spacing',3);
         gui.text_handles.E0_med = uicontrol('Parent',gui.panels.info.HBox6,...
             'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
-            'String','E0     median | aad(med)');
+            'String','E0   median | 2*aad(med)');
         tstr = 'MEDIAN of all E0 values.';
         gui.edit_handles.E0_med = uicontrol('Parent',gui.panels.info.HBox6,...
             'Style','edit','String','0','FontSize',myui.fontsize,...
@@ -408,14 +414,21 @@ if hasUncert
             'Style','edit','String','2','FontSize',myui.fontsize,...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'BackgroundColor',colors.BoxCPS);
-        set(gui.panels.info.HBox6,'Widths',[150 -1 -1]);
+        set(gui.panels.info.HBox6,'Widths',[cpanel_w -1 -1]);
 
         % --- update MAIN GUI button ---
+        gui.panels.save.VBox1 = uix.VBox('Parent',gui.left,...
+        'Spacing',3);   
         tstr = 'UPDATE uncertainty data in main NUCLEUSinv GUI.';
-        gui.push_handles.update = uicontrol('Parent',gui.left,...
+        gui.push_handles.update = uicontrol('Parent',gui.panels.save.VBox1,...
             'String','UPDATE MAIN GUI','FontSize',myui.fontsize,'Tag','update',...
             'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
             'Callback',@uv_onPushUpdate);
+        tstr = 'Export current graphics view to Figure.';
+        gui.push_handles.view = uicontrol('Parent',gui.panels.save.VBox1,...
+        'String','VIEW2FIG','FontSize',myui.fontsize,'Tag','view',...
+        'ToolTipString',tstr,'UserData',struct('Tooltipstr',tstr),...
+        'Callback',@uv_onPushView);
 
         % fix text vertical alignment
         jh = findjobj(gui.text_handles.uncertMethod);
@@ -428,8 +441,8 @@ if hasUncert
         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
         jh = findjobj(gui.text_handles.uncertThresh);
         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-        jh = findjobj(gui.text_handles.uncertMax);
-        jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+        % jh = findjobj(gui.text_handles.uncertMax);
+        % jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
         jh = findjobj(gui.text_handles.chi2);
         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
         jh = findjobj(gui.text_handles.mnorm);
@@ -452,7 +465,7 @@ if hasUncert
         % empty space at bottom of left side
         uix.Empty('Parent',gui.left);
         % adjust the heights of all left-column-panels
-        heights = [22 22 22 22 28 -1; 22+7*24+9*3 22+3*24+5*3 22+2*24+4*4 22+6*24+8*3 28 -1];
+        heights = [22 22 22 22 28 -1; 22+6*24+8*3 22+3*24+5*3 22+2*24+4*4 22+6*24+8*3 28*2 -1];
         % panel header is always 22 high
         set(gui.left,'Heights',heights(2,:),...
             'MinimumHeights',[22 22 22 22 28 0]);        
@@ -483,7 +496,7 @@ if hasUncert
             'BackGroundColor',colors.panelBG);
         set(gui.righttop2,'Widths',[-1 -1 ]);
 
-        gui.rightPanel.TabTitles = {'Statistics','Histograms'};
+        gui.rightPanel.TabTitles = {'STATISTICS','HISTOGRAMS'};
         gui.rightPanel.TabWidth = 75;
         gui.rightPanel.TabEnables = {'on','on'};
 
@@ -703,6 +716,10 @@ switch get(src,'Tag')
         data.uv = uv;
 end
 
+% in case of error reactivate the run button
+set(gui.push_handles.run,'String','RUN UNCERT. CALC.',...
+    'BackgroundColor','g','Enable','on','Callback',@uv_onPushRun);
+setappdata(figh,'gui',gui);
 % update GUI data
 setappdata(figh,'data',data);
 % update information
@@ -920,6 +937,11 @@ uv = data.uv;
 invstd = data.results.invstd;
 uncert = invstd.uncert;
 
+% disable the CALC: button to indicate a running calculation
+set(gui.push_handles.run,'String','RUNNING ...',...
+    'BackgroundColor',get(gui.push_handles.update,'BackgroundColor'),...
+    'Enable','off'); pause(0.01);
+
 % original fit parameter
 iparam = invstd.invparams;
 % original uncertainty parameter
@@ -932,6 +954,11 @@ uparam.uncert.mnorm_range = uv.mnorm_range_calc;
 uparam.uncert.N = uv.uncertN;
 uparam.uncert.Max = uv.uncertMax;
 invstd = estimateUncertainty(invstd.invtype,invstd,iparam,uparam);
+
+% enable the CALC. button
+set(gui.push_handles.run,'String','RUN UNCERT. CALC.',...
+    'BackgroundColor','g','Enable','on','Callback',@uv_onPushRun);
+setappdata(figh,'gui',gui);
 
 % save updated inversion results
 invstd.uncert.params = uparam;
@@ -968,6 +995,63 @@ setappdata(figh,'data',data);
 % plot all uncertainty data
 uv_updateInformation(figh);
 beautifyAxes(figh);
+end
+
+%% subfunction to export the current view to a figure
+function uv_onPushView(src,~)
+figh = ancestor(src,'figure','toplevel');
+% local GUI data
+gui = getappdata(figh,'gui');
+
+% opening the export figure
+expfig = figure('Color',gui.myui.colors.panelBG);
+
+% create axes layout depending on view
+switch get(gui.rightPanel,'Selection')
+    case 1
+        % create layout
+        ax1 = subplot(2,2,1,'Parent',expfig);
+        ax2 = subplot(2,2,2,'Parent',expfig);
+        ax3 = subplot(2,2,[3 4],'Parent',expfig);
+        % get positions
+        pos1 = get(ax1,'Position');
+        pos2 = get(ax2,'Position');
+        pos3 = get(ax3,'Position');
+        % delete axes
+        delete(ax1);delete(ax2);delete(ax3);
+        % copy GUI axes
+        ax1 = copyobj(gui.axes12,expfig);
+        ax2 = copyobj(gui.axes11,expfig);
+        ax3 = copyobj(gui.axes2,expfig);
+        % adjust positions
+        set(ax1,'Position',pos1);
+        set(ax2,'Position',pos2);
+        set(ax3,'Position',pos3);
+        % legend
+        legend(ax2,'Location','best');
+    case 2
+        % create layout
+        ax1 = subplot(2,2,1,'Parent',expfig);
+        ax2 = subplot(2,2,2,'Parent',expfig);
+        ax3 = subplot(2,2,[3 4],'Parent',expfig);
+        % get positions
+        pos1 = get(ax1,'Position');
+        pos2 = get(ax2,'Position');
+        pos3 = get(ax3,'Position');
+        % delete axes
+        delete(ax1);delete(ax2);delete(ax3);
+        % copy GUI axes
+        ax1 = copyobj(gui.axes21,expfig);
+        ax2 = copyobj(gui.axes22,expfig);
+        ax3 = copyobj(gui.axes2,expfig);
+        % adjust positions
+        set(ax1,'Position',pos1);
+        set(ax2,'Position',pos2);
+        set(ax3,'Position',pos3);
+        % legend
+        legend(ax2,'Location','best');
+end
+
 end
 
 %% subfunction to update the main NUCLEUSinv GUI
@@ -1163,8 +1247,10 @@ switch uv.colorstyle
         lcolors = [0.5 0.5 0.5];
         tmpchi2 = uncert.chi2_all(in);
         tmpmnorm = uncert.mnorm_all(in);
-        tmpE0 = uncert.interp_E0(in);
-        tmpTlgm = uncert.interp_Tlgm(in);
+        % tmpE0 = uncert.interp_E0(in);
+        % tmpTlgm = uncert.interp_Tlgm(in);
+        tmpE0 = uv.stats.E0_all;
+        tmpTlgm = uv.stats.Tlgm_all;
         clims = [0 1];
     case 'chi2'
         tmp = uncert.chi2_all(in);
@@ -1172,9 +1258,11 @@ switch uv.colorstyle
         lcolors = tmpchi2;
         tmpmnorm = uncert.mnorm_all(in);
         tmpmnorm = tmpmnorm(idx);
-        tmpE0 = uncert.interp_E0(in);
+        % tmpE0 = uncert.interp_E0(in);
+        tmpE0 = uv.stats.E0_all;
         tmpE0 = tmpE0(idx);
-        tmpTlgm = uncert.interp_Tlgm(in);
+        % tmpTlgm = uncert.interp_Tlgm(in);
+        tmpTlgm = uv.stats.Tlgm_all;
         tmpTlgm = tmpTlgm(idx);
         clims = [min(uncert.chi2_all) max(uncert.chi2_all)];
     case 'xn'
@@ -1183,9 +1271,11 @@ switch uv.colorstyle
         lcolors = tmpmnorm;
         tmpchi2 = uncert.chi2_all(in);
         tmpchi2 = tmpchi2(idx);
-        tmpE0 = uncert.interp_E0(in);
+        % tmpE0 = uncert.interp_E0(in);
+        tmpE0 = uv.stats.E0_all;
         tmpE0 = tmpE0(idx);
-        tmpTlgm = uncert.interp_Tlgm(in);
+        % tmpTlgm = uncert.interp_Tlgm(in);
+        tmpTlgm = uv.stats.Tlgm_all;
         tmpTlgm = tmpTlgm(idx);
         clims = [min(uncert.mnorm_all) max(uncert.mnorm_all)];
 end
@@ -1311,7 +1401,7 @@ if plotmethod == 1
     end
 end
 
-% if selcted plot patch
+% if selected plot patch
 if plotmethod > 1
     % what kind of patch is created
     if plotmethod == 2 % mean +- std
@@ -1352,24 +1442,43 @@ ylims(2) = max([ylims(2) max(f_max)*1.05]);
 % plot original solution
 plot(invstd.T1T2me,F,'-','Color',col.FIT,'Parent',gui.axes2);
 
-% -- RTD bounds --
-uv = data.uv;
-line([uv.rtd_range(1) uv.rtd_range(1)],[0 ylims(2)],'Color',[0.25 0.25 0.25],...
-    'LineStyle','-.','LineWidth',2,'Parent',gui.axes2,'Tag','infolines');
-line([uv.rtd_range(2) uv.rtd_range(2)],[0 ylims(2)],'Color',[0.25 0.25 0.25],...
-    'LineStyle','-.','LineWidth',2,'Parent',gui.axes2,'Tag','infolines');
-
-% axes properties:
-ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
-set(gui.axes2,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+% axes properties
+ticks = 10.^(round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me))));
+set(gui.axes2,'XScale','log','XLim',[ticks(1) ticks(end)],'XTick',ticks);
 set(gui.axes2,'YScale','lin','YLim',ylims);
 set(get(gui.axes2,'XLabel'),'String','relaxation time');
 set(get(gui.axes2,'YLabel'),'String','amplitude');
 grid(gui.axes2,'on');
 
+% -- RTD bounds --
+uv = data.uv;
+% line([uv.rtd_range(1) uv.rtd_range(1)],[0 ylims(2)],'Color',[0.25 0.25 0.25],...
+%     'LineStyle','-.','LineWidth',2,'Parent',gui.axes2,'Tag','infolines');
+% line([uv.rtd_range(2) uv.rtd_range(2)],[0 ylims(2)],'Color',[0.25 0.25 0.25],...
+%     'LineStyle','-.','LineWidth',2,'Parent',gui.axes2,'Tag','infolines');
+p_alpha = 0.8;
+if uv.rtd_range(1)>ticks(1)
+    % draw a transparent patch
+    v = [ticks(1) ylims(1); ticks(1) ylims(2);
+        uv.rtd_range(1) ylims(2); uv.rtd_range(1) ylims(1)];
+    f = [1 2 3 4 1];
+    patch('Vertices',v,'Faces',f,'FaceColor','w','FaceAlpha',p_alpha,...
+        'HandleVisibility','off','Tag','infolines','Parent', gui.axes2);
+end
+if uv.rtd_range(2)<ticks(end)
+    % draw a transparent patch
+    v = [ticks(end) ylims(1); ticks(end) ylims(2);
+        uv.rtd_range(2) ylims(2); uv.rtd_range(2) ylims(1)];
+    f = [1 2 3 4 1];
+    patch('Vertices',v,'Faces',f,'FaceColor','w','FaceAlpha',p_alpha,...
+        'HandleVisibility','off','Tag','infolines','Parent', gui.axes2);
+end
+
 % --- Histograms ---
-[f1,xi1] = getKernelDensityEstimate(uncert.interp_E0(in));
-[f2,xi2] = getKernelDensityEstimate(uncert.interp_Tlgm(in));
+% [f1,xi1] = getKernelDensityEstimate(uncert.interp_E0(in));
+% [f2,xi2] = getKernelDensityEstimate(uncert.interp_Tlgm(in));
+[f1,xi1] = getKernelDensityEstimate(uv.stats.E0_all);
+[f2,xi2] = getKernelDensityEstimate(uv.stats.Tlgm_all);
 
 % plot the KDEs
 plot(xi1,f1,'Color',[0.5 0.5 0.5],'DisplayName','KDE','Parent',gui.axes21);

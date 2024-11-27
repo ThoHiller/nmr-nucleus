@@ -3,7 +3,7 @@ function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)
 %and relaxation time vector "T"
 %
 % Syntax:
-% createKernelMatrix(t,T,Tbulk,Tflag,T1IRflag)
+%       createKernelMatrix(t,T,Tbulk,Tflag,T1IRflag)
 %
 % Inputs:
 %       t - signal time vector

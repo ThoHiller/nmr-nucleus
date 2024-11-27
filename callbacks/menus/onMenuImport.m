@@ -54,7 +54,9 @@ switch fig_tag
             case 'NUCLEUSinv'
                 importINV2INV(src);
             case 'NUCLEUSmod'
-                importMOD2INV(src);                
+                importMOD2INV(src);
+            case 'NUCLEUSmod2d'
+                importMOD2D2INV(src);
             case 'Excel'
                 importEXCELdata(src);
             case 'Ascii'

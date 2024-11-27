@@ -9,6 +9,7 @@ function out = LoadNMRData_driver(in)
 %       in.path - data path
 %       in.name - file name (optional)
 %       in.fileformat - varying
+%       in.version - varying (dependent on fileformat)
 %
 % Outputs:
 %       out - output structure
@@ -55,7 +56,7 @@ switch in.fileformat
         out = LoadNMRData_bgrmat(in);
     case 'corelab'
         out = LoadNMRData_corelab(in);
-    case 'dart'
+    case {'dart','dartSeries','dartT2logging'}
         out = LoadNMRData_dart(in);
     case 'field'
         out = LoadNMRData_field(in);
@@ -75,11 +76,14 @@ switch in.fileformat
         out = LoadNMRData_ibac(in);
     case 'pm25'
         out = LoadNMRData_ibac(in);
+    case 'rocaT1T2'
+        out = LoadNMRData_rocaT1T2(in);    
 end
 
 % if an imported T2 signal has no imaginary part, the noise is estimated
 % from an exponential fit
 if ~strcmp(in.fileformat,'heliosCPMG') && ~strcmp(in.fileformat,'heliosSeries')...
+        && ~strcmp(in.fileformat,'dartSeries') && ~strcmp(in.fileformat,'dartT2logging')...
         && (isfield(in,'T1T2') && ~strcmp(in.T1T2,'T1'))
     for i = 1:numel(out.nmrData)
         if isreal(out.nmrData{i}.signal)    

@@ -43,7 +43,7 @@ label = get(src,'Label');
 onoff = lower(get(src,'Checked'));
 
 switch fig_tag
-    
+
     case 'INV'
         switch label
             case 'Tooltips'
@@ -60,7 +60,7 @@ switch fig_tag
                 % update ini-file
                 gui.myui.inidata.tooltips = data.info.ToolTips;
                 gui = makeINIfile(gui,'update');
-                
+
             case 'Figure Toolbar' % switch on/off the default Figure Toolbar
                 switch onoff
                     case 'on' % it it's on, switch it off
@@ -70,7 +70,7 @@ switch fig_tag
                         set(gui.menu.view_toolbar,'Checked','on');
                         viewmenufcn('FigureToolbar');
                 end
-                
+
             case 'INFO fields'
                 switch onoff
                     case 'on' % it it's on, switch it off
@@ -79,7 +79,7 @@ switch fig_tag
                         set(gui.push_handles.info,'String','<');
                 end
                 onPushShowHide(gui.push_handles.info);
-                
+
             case 'CLI Inv. Info'
                 switch onoff
                     case 'on' % it it's on, switch it off
@@ -93,7 +93,20 @@ switch fig_tag
                 gui.myui.inidata.invinfo = data.info.InvInfo;
                 gui = makeINIfile(gui,'update');
         end
-        
+
+    case {'2DINV','PHASEVIEW','UNCERTVIEW','CONDUCT'}
+        switch label
+            case 'Figure Toolbar' % switch on/off the default Figure Toolbar
+                switch onoff
+                    case 'on' % it it's on, switch it off
+                        set(gui.menu.view_toolbar,'Checked','off');
+                        viewmenufcn('FigureToolbar');
+                    case 'off'
+                        set(gui.menu.view_toolbar,'Checked','on');
+                        viewmenufcn('FigureToolbar');
+                end
+        end
+
     case 'MOD'
         switch label
             case 'Tooltips'
@@ -108,6 +121,18 @@ switch fig_tag
                         data.info.ToolTips = 'on';
                 end
             case 'Figure Toolbar'
+                switch onoff
+                    case 'on' % it it's on, switch it off
+                        set(gui.menu.view_toolbar,'Checked','off');
+                        viewmenufcn('FigureToolbar');
+                    case 'off'
+                        set(gui.menu.view_toolbar,'Checked','on');
+                        viewmenufcn('FigureToolbar');
+                end
+        end
+    case '2DMOD'
+        switch label
+            case 'Figure Toolbar' % switch on/off the default Figure Toolbar
                 switch onoff
                     case 'on' % it it's on, switch it off
                         set(gui.menu.view_toolbar,'Checked','off');

@@ -92,6 +92,57 @@ out.nmr.loglinx = 2;
 % use linear y-axes as default (log=1, lin=2)
 out.nmr.logliny = 2;
 
+%% 2D settings
+% system / fluid properties
+% diffusion coefficient [m²/s]
+out.mod2D.prop.D = 2.025e-9;
+% gradient [T/m]
+out.mod2D.prop.G0 = 0;
+% echo time [s]
+out.mod2D.prop.te = 0;
+% bulk relaxation [s]
+out.mod2D.prop.Tbulk = 1e6;
+
+% model space settings
+% 2D type
+out.mod2D.mod.type = 'T1T2';
+% T1 range minimum [s]
+out.mod2D.mod.T1min = 1e-4;
+% T1 range maximum [s]
+out.mod2D.mod.T1max = 10;
+% T1 number of points in range
+out.mod2D.mod.T1N = 151;
+% T2 range minimum [s]
+out.mod2D.mod.T2min = 1e-4;
+% T2 range maximum [s]
+out.mod2D.mod.T2max = 10;
+% T2 number of points in range
+out.mod2D.mod.T2N = 151;
+
+% number of 2D distribution
+out.mod2D.mod.Ndist = 3;
+% center point of 2D distribution
+out.mod2D.mod.mu = [1 1;0.01 0.03;0.5 0.005];
+% covariance matrix of 2D distribution
+out.mod2D.mod.sigma{1} = [0.1 0;0 0.1];
+out.mod2D.mod.sigma{2} = [0.2 0.3;0 0.2];
+out.mod2D.mod.sigma{3} = [0.3 0;0 0.01];
+% amplitude of 2D distribution
+out.mod2D.mod.amp = [1 1 1];
+
+% NMR data
+out.mod2D.nmr.T1IRfac = 2;
+out.mod2D.nmr.IRtype = 1;
+out.mod2D.nmr.T1trmin = 1e-3;
+out.mod2D.nmr.T1trmax = 1;
+out.mod2D.nmr.T1trN = 21;
+out.mod2D.nmr.T2te = 200e-6;
+out.mod2D.nmr.T2teN = 500;
+% noise creation type 'level' or 'SNR'
+out.mod2D.nmr.noisetype = 'level';
+% noise level [0:1] or SNR [-]
+out.mod2D.nmr.noise = 0;
+
 return
 
 %------------- END OF CODE --------------

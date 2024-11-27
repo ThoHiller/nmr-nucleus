@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of onMenuExtraFindDuplicates</title>
+  <meta name="keywords" content="onMenuExtraFindDuplicates">
+  <meta name="description" content=" finds duplicate NMR signals (mostly a HELIOS issue)">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # callbacks --><!-- menu.html menus -->
+<h1>onMenuExtraFindDuplicates
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> finds duplicate NMR signals (mostly a HELIOS issue)</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function onMenuExtraFindDuplicates(src,~) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">onMenuExtraFindDuplicates finds duplicate NMR signals (mostly a HELIOS issue)
+
+ Syntax:
+       onMenuExtraFindDuplicates(src,~)
+
+ Inputs:
+       src - handle of the calling object
+
+ Outputs:
+       none
+
+ Example:
+       onMenuExtraFindDuplicates(src)
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+</ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_createMenus.html" class="code" title="function gui = NUCLEUSinv_createMenus(data,gui)">NUCLEUSinv_createMenus</a>	 creates all GUI menus</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function onMenuExtraFindDuplicates(src,~)</a>
+0002 <span class="comment">%onMenuExtraFindDuplicates finds duplicate NMR signals (mostly a HELIOS issue)</span>
+0003 <span class="comment">%</span>
+0004 <span class="comment">% Syntax:</span>
+0005 <span class="comment">%       onMenuExtraFindDuplicates(src,~)</span>
+0006 <span class="comment">%</span>
+0007 <span class="comment">% Inputs:</span>
+0008 <span class="comment">%       src - handle of the calling object</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Outputs:</span>
+0011 <span class="comment">%       none</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Example:</span>
+0014 <span class="comment">%       onMenuExtraFindDuplicates(src)</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Other m-files required:</span>
+0017 <span class="comment">%       none</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Subfunctions:</span>
+0020 <span class="comment">%       none</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% MAT-files required:</span>
+0023 <span class="comment">%       none</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% See also: NUCLEUSinv</span>
+0026 <span class="comment">% Author: see AUTHORS.md</span>
+0027 <span class="comment">% email: see AUTHORS.md</span>
+0028 <span class="comment">% License: MIT License (at end)</span>
+0029 
+0030 <span class="comment">%------------- BEGIN CODE --------------</span>
+0031 
+0032 <span class="comment">%% get GUI handle and data</span>
+0033 fig = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0034 gui = getappdata(fig,<span class="string">'gui'</span>);
+0035 data = getappdata(fig,<span class="string">'data'</span>);
+0036 INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0037 
+0038 hasData = false;
+0039 <span class="keyword">if</span> isfield(data.import,<span class="string">'NMR'</span>)
+0040     hasData = true;
+0041 <span class="keyword">end</span>
+0042 
+0043 <span class="keyword">if</span> hasData
+0044 
+0045     <span class="comment">%% 1. before we do anything, sort the data by date (time)</span>
+0046     time = zeros(numel(data.import.NMR.filesShort),1);
+0047     timestamp = zeros(numel(data.import.NMR.filesShort),1);
+0048     <span class="keyword">for</span> i = 1:numel(data.import.NMR.filesShort)
+0049         time(i,1) = data.import.NMR.data{i}.datenum;
+0050         timestamp(i,1) = data.import.NMR.para{i}.timestamp;
+0051     <span class="keyword">end</span>
+0052     [~,ix] = sort(time);
+0053     <span class="comment">% now apply changes - resort the imported data</span>
+0054     data.import.NMR.data = {data.import.NMR.data{ix'}}; <span class="comment">%#ok&lt;*CCAT1&gt;</span>
+0055     data.import.NMR.para = {data.import.NMR.para{ix'}};
+0056     data.import.NMR.files = data.import.NMR.files(ix);
+0057     data.import.NMR.filesShort = {data.import.NMR.filesShort{ix'}};
+0058     <span class="comment">% the timestamps can also indicate duplicate signals</span>
+0059     timestamp = timestamp(ix);
+0060     dts = [0; diff(timestamp)];
+0061     <span class="comment">% and resort possible already stored inversion data</span>
+0062     INVdata = {INVdata{ix(:)}}';
+0063     <span class="comment">% update the listbox entries</span>
+0064     shownames = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0065     set(gui.listbox_handles.signal,<span class="string">'String'</span>,{shownames{ix}});
+0066     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0067 
+0068     <span class="comment">%% 2. checking starts at the second signal</span>
+0069     dup_ids = zeros(1,1);
+0070     keep_ids = 1:1:numel(data.import.NMR.data);
+0071     keep_ids = keep_ids(:);
+0072     c = 0;
+0073     <span class="keyword">for</span> i1 = 2:numel(data.import.NMR.data)
+0074 
+0075         s0 = data.import.NMR.data{i1-1}.signal;
+0076         s1 = data.import.NMR.data{i1}.signal;
+0077 
+0078         <span class="keyword">if</span> s0==s1
+0079             c = c + 1;
+0080             dup_ids(c,1) = i1;
+0081             keep_ids(keep_ids == i1) = [];
+0082         <span class="keyword">end</span>
+0083     <span class="keyword">end</span>
+0084     <span class="comment">% if we found something, ask what to do</span>
+0085     <span class="keyword">if</span> sum(dup_ids) &gt; 0
+0086         answer = questdlg(<span class="string">'What to do with the duplicate signals?'</span>,<span class="keyword">...</span>
+0087             <span class="string">'Duplicates Found'</span>,<span class="keyword">...</span>
+0088             <span class="string">'Keep &amp; Mark'</span>,<span class="string">'Delete'</span>,<span class="string">'Nothing'</span>,<span class="string">'Delete'</span>);
+0089         <span class="keyword">switch</span> answer
+0090             <span class="keyword">case</span> <span class="string">'Keep &amp; Mark'</span>
+0091                 shownames = data.import.NMR.filesShort;
+0092                 <span class="keyword">for</span> i1 = 1:numel(dup_ids)
+0093                     shownames{dup_ids(i1)} = [shownames{dup_ids(i1)},<span class="string">'_dup'</span>];
+0094                 <span class="keyword">end</span>
+0095                 data.import.NMR.filesShort = shownames;
+0096                 set(gui.listbox_handles.signal,<span class="string">'String'</span>,shownames);
+0097                 set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0098 
+0099                 msgbox([num2str(numel(dup_ids)),<span class="keyword">...</span>
+0100                     <span class="string">' signals have been marked as duplicate.'</span>]);
+0101 
+0102             <span class="keyword">case</span> <span class="string">'Delete'</span>
+0103                 ix = keep_ids;
+0104                 data.import.NMR.data = {data.import.NMR.data{ix'}}; <span class="comment">%#ok&lt;*CCAT1&gt;</span>
+0105                 data.import.NMR.para = {data.import.NMR.para{ix'}};
+0106                 data.import.NMR.files = data.import.NMR.files(ix);
+0107                 data.import.NMR.filesShort = {data.import.NMR.filesShort{ix'}};
+0108                 <span class="comment">% and resort possible already stored inversion data</span>
+0109                 INVdata = {INVdata{ix(:)}}';
+0110 
+0111                 <span class="comment">% update the listbox entries</span>
+0112                 shownames = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0113                 set(gui.listbox_handles.signal,<span class="string">'String'</span>,{shownames{ix}});
+0114                 set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0115 
+0116                 msgbox([num2str(numel(dup_ids)),<span class="string">' signals have been deleted.'</span>]);
+0117 
+0118             <span class="keyword">case</span> <span class="string">'Nothing'</span>
+0119         <span class="keyword">end</span>
+0120     <span class="keyword">else</span>
+0121         msgbox(<span class="string">'No duplicate signals have been found.'</span>);
+0122     <span class="keyword">end</span>
+0123 
+0124     <span class="comment">% update the GUI data</span>
+0125     setappdata(fig,<span class="string">'data'</span>,data);
+0126     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0127 
+0128 <span class="keyword">else</span>
+0129     helpdlg(<span class="string">'Nothing to do because there is no data loaded!'</span>,<span class="keyword">...</span>
+0130         <span class="string">'onMenuExtraFindDuplicates: Load NMR data first.'</span>);
+0131 <span class="keyword">end</span>
+0132 
+0133 <span class="keyword">end</span>
+0134 
+0135 <span class="comment">%------------- END OF CODE --------------</span>
+0136 
+0137 <span class="comment">%% License:</span>
+0138 <span class="comment">% MIT License</span>
+0139 <span class="comment">%</span>
+0140 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+0141 <span class="comment">%</span>
+0142 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0143 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0144 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0145 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0146 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0147 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0148 <span class="comment">%</span>
+0149 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0150 <span class="comment">% copies or substantial portions of the Software.</span>
+0151 <span class="comment">%</span>
+0152 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0153 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0154 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0155 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0156 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0157 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0158 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

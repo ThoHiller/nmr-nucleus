@@ -4,7 +4,7 @@
 <head>
   <title>Description of PhaseView</title>
   <meta name="keywords" content="PhaseView">
-  <meta name="description" content=" is an extra subGUI to visualize the phase of a T2 signal">
+  <meta name="description" content=" is an extra subGUI to manipulate the phase of a T2 signal">
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
   <meta name="robots" content="index, follow">
@@ -20,13 +20,13 @@
 </h1>
 
 <h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong> is an extra subGUI to visualize the phase of a T2 signal</strong></div>
+<div class="box"><strong> is an extra subGUI to manipulate the phase of a T2 signal</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="box"><strong>function PhaseView(src,~) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre class="comment">PhaseView is an extra subGUI to visualize the phase of a T2 signal
+<div class="fragment"><pre class="comment">PhaseView is an extra subGUI to manipulate the phase of a T2 signal
 
  Syntax:
        PhaseView
@@ -41,15 +41,21 @@
        PhaseView(src,~)
 
  Other m-files required:
-       none
+       onListboxData
+       onMenuView
 
  Subfunctions:
-       pv_onPushDefault
-       pv_onPushSave
-       pv_showSignal
-       pv_updateSlider
-       pv_updatePhase
-       shift_phase
+       getSSR
+       phasefit_fcn
+       pv_onEditValues
+       pv_onPushAngle
+       pv_onPushApply
+       pv_onPushKeep
+       pv_onPushRun
+       pv_onSlider
+       pv_plotSignal
+       pv_plotSSR
+       pv_updateFullDataSet
 
  MAT-files required:
        none
@@ -63,7 +69,7 @@
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li></ul>
+<li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>	 handles the view menu entries</li><li><a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li><li><a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>	 clears an individual axis</li><li><a href="minimizePanel.html" class="code" title="function minimizePanel(src,~)">minimizePanel</a>	 handles the minimization/maximization of all box-panels for</li><li><a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="../../../nucleus/callbacks/menus/onMenuSubGUIs.html" class="code" title="function onMenuSubGUIs(src,~)">onMenuSubGUIs</a>	 handles the extra menu entries to open NUCLEUS sub GUIs</li></ul>
@@ -71,11 +77,11 @@ This function is called by:
 
 <h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="#_sub1" class="code">function pv_onPushDefault(src,~)</a></li><li><a href="#_sub2" class="code">function pv_onPushSave(src,~)</a></li><li><a href="#_sub3" class="code">function pv_showSignal(fig_phase)</a></li><li><a href="#_sub4" class="code">function pv_updateSlider(src,~)</a></li><li><a href="#_sub5" class="code">function pv_updatePhase(src,~)</a></li><li><a href="#_sub6" class="code">function phase = shift_phase(phase)</a></li></ul>
+<li><a href="#_sub1" class="code">function pv_onEditValue(src,~)</a></li><li><a href="#_sub2" class="code">function pv_onPushAngle(src,~)</a></li><li><a href="#_sub3" class="code">function pv_onPushApply(src,~)</a></li><li><a href="#_sub4" class="code">function pv_onPushKeep(src,~)</a></li><li><a href="#_sub5" class="code">function pv_onPushRun(src,~)</a></li><li><a href="#_sub6" class="code">function sse = phasefit_fcn(alpha,s,method)</a></li><li><a href="#_sub7" class="code">function pv_onSlider(src,~)</a></li><li><a href="#_sub8" class="code">function pv_updateFullDataSet(fig_phase)</a></li><li><a href="#_sub9" class="code">function pv_plotSignal(fig_phase)</a></li><li><a href="#_sub10" class="code">function pv_plotSSR(fig_phase)</a></li><li><a href="#_sub11" class="code">function ssr = getSSR(signal)</a></li></ul>
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function PhaseView(src,~)</a>
-0002 <span class="comment">%PhaseView is an extra subGUI to visualize the phase of a T2 signal</span>
+0002 <span class="comment">%PhaseView is an extra subGUI to manipulate the phase of a T2 signal</span>
 0003 <span class="comment">%</span>
 0004 <span class="comment">% Syntax:</span>
 0005 <span class="comment">%       PhaseView</span>
@@ -90,364 +96,857 @@ This function is called by:
 0014 <span class="comment">%       PhaseView(src,~)</span>
 0015 <span class="comment">%</span>
 0016 <span class="comment">% Other m-files required:</span>
-0017 <span class="comment">%       none</span>
-0018 <span class="comment">%</span>
-0019 <span class="comment">% Subfunctions:</span>
-0020 <span class="comment">%       pv_onPushDefault</span>
-0021 <span class="comment">%       pv_onPushSave</span>
-0022 <span class="comment">%       pv_showSignal</span>
-0023 <span class="comment">%       pv_updateSlider</span>
-0024 <span class="comment">%       pv_updatePhase</span>
-0025 <span class="comment">%       shift_phase</span>
-0026 <span class="comment">%</span>
-0027 <span class="comment">% MAT-files required:</span>
-0028 <span class="comment">%       none</span>
-0029 <span class="comment">%</span>
-0030 <span class="comment">% See also: NUCLEUSinv</span>
-0031 <span class="comment">% Author: see AUTHORS.md</span>
-0032 <span class="comment">% email: see AUTHORS.md</span>
-0033 <span class="comment">% License: MIT License (at end)</span>
-0034 
-0035 <span class="comment">%------------- BEGIN CODE --------------</span>
-0036 
-0037 <span class="comment">%% get GUI handle and data</span>
-0038 fig = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-0039 nucleus.data = getappdata(fig,<span class="string">'data'</span>);
-0040 nucleus.gui = getappdata(fig,<span class="string">'gui'</span>);
-0041 colors = nucleus.gui.myui.colors;
+0017 <span class="comment">%       onListboxData</span>
+0018 <span class="comment">%       onMenuView</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       getSSR</span>
+0022 <span class="comment">%       phasefit_fcn</span>
+0023 <span class="comment">%       pv_onEditValues</span>
+0024 <span class="comment">%       pv_onPushAngle</span>
+0025 <span class="comment">%       pv_onPushApply</span>
+0026 <span class="comment">%       pv_onPushKeep</span>
+0027 <span class="comment">%       pv_onPushRun</span>
+0028 <span class="comment">%       pv_onSlider</span>
+0029 <span class="comment">%       pv_plotSignal</span>
+0030 <span class="comment">%       pv_plotSSR</span>
+0031 <span class="comment">%       pv_updateFullDataSet</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% MAT-files required:</span>
+0034 <span class="comment">%       none</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% See also: NUCLEUSinv</span>
+0037 <span class="comment">% Author: see AUTHORS.md</span>
+0038 <span class="comment">% email: see AUTHORS.md</span>
+0039 <span class="comment">% License: MIT License (at end)</span>
+0040 
+0041 <span class="comment">%------------- BEGIN CODE --------------</span>
 0042 
-0043 hasData = false;
-0044 <span class="keyword">if</span> isfield(nucleus.data,<span class="string">'results'</span>)
-0045     <span class="keyword">if</span> isfield(nucleus.data.results,<span class="string">'nmrraw'</span>) &amp;&amp;<span class="keyword">...</span>
-0046             isfield(nucleus.data.results,<span class="string">'nmrproc'</span>)
-0047         hasData = true;
-0048     <span class="keyword">end</span>
-0049 <span class="keyword">end</span>
-0050 
-0051 <span class="comment">%% proceed if there is data</span>
-0052 <span class="keyword">if</span> hasData
-0053     <span class="comment">% check if the figure is already open</span>
-0054     fig_phase = findobj(<span class="string">'Tag'</span>,<span class="string">'PHASEVIEW'</span>);
-0055     <span class="comment">% if not, create it</span>
-0056     <span class="keyword">if</span> isempty(fig_phase)
-0057         <span class="comment">% draw the figure on top of NUCLEUSinv</span>
-0058         fig_phase = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - PhaseView'</span>,<span class="keyword">...</span>
-0059             <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'Tag'</span>,<span class="string">'PHASEVIEW'</span>);
-0060         pos0 = get(fig,<span class="string">'Position'</span>);
-0061         pos1 = get(fig_phase,<span class="string">'Position'</span>);
-0062         cent(1) = (pos0(1)+pos0(3)/2);
-0063         cent(2) = (pos0(2)+pos0(4)/2);
-0064         set(fig_phase,<span class="string">'Position'</span>,[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
-0065 
-0066         <span class="comment">% create the layout</span>
-0067         gui.main = uix.VBox(<span class="string">'Parent'</span>,fig_phase,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5,<span class="string">'Padding'</span>,5);
-0068         gui.row1 = uicontainer(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% axes real</span>
-0069         gui.row2 = uicontainer(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% axes imag</span>
-0070         gui.row3 = uicontainer(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG); <span class="comment">% axes SSE</span>
-0071         gui.row4 = uix.HBox(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5); <span class="comment">% control elements</span>
-0072         set(gui.main,<span class="string">'Heights'</span>,[-1 -1 -1 90]);
+0043 <span class="comment">%% get GUI handle and data</span>
+0044 fig = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0045 nucleus.data = getappdata(fig,<span class="string">'data'</span>);
+0046 nucleus.gui = getappdata(fig,<span class="string">'gui'</span>);
+0047 myui = nucleus.gui.myui;
+0048 colors = nucleus.gui.myui.colors;
+0049 
+0050 hasData = false;
+0051 <span class="keyword">if</span> isfield(nucleus.data,<span class="string">'results'</span>)
+0052     <span class="keyword">if</span> isfield(nucleus.data.results,<span class="string">'nmrraw'</span>) &amp;&amp;<span class="keyword">...</span>
+0053             isfield(nucleus.data.results,<span class="string">'nmrproc'</span>)
+0054         hasData = true;
+0055         ID = get(nucleus.gui.listbox_handles.signal,<span class="string">'value'</span>);
+0056     <span class="keyword">end</span>
+0057 <span class="keyword">end</span>
+0058 
+0059 <span class="comment">%% proceed if there is data</span>
+0060 <span class="keyword">if</span> hasData
+0061     <span class="comment">% check if the figure is already open</span>
+0062     fig_phase = findobj(<span class="string">'Tag'</span>,<span class="string">'PHASEVIEW'</span>);
+0063     <span class="comment">% if not, create it</span>
+0064     <span class="keyword">if</span> isempty(fig_phase)
+0065         <span class="comment">% draw the figure on top of NUCLEUSinv</span>
+0066         fig_phase = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - PhaseView'</span>,<span class="keyword">...</span>
+0067             <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'Resize'</span>,<span class="string">'on'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0068             <span class="string">'Tag'</span>,<span class="string">'PHASEVIEW'</span>,<span class="string">'Menubar'</span>,<span class="string">'none'</span>);
+0069         pos0 = get(fig,<span class="string">'Position'</span>);
+0070         cent(1) = (pos0(1)+pos0(3)/2);
+0071         cent(2) = (pos0(2)+pos0(4)/2);
+0072         set(fig_phase,<span class="string">'Position'</span>,[cent(1)-pos0(3)/3 pos0(2)+22 pos0(3)/1.5 pos0(4)-22]);
 0073 
-0074         <span class="comment">% all axes</span>
-0075         gui.axes_handles.real = axes(<span class="string">'Parent'</span>,gui.row1,<span class="keyword">...</span>
-0076             <span class="string">'Color'</span>,colors.axisBG,<span class="string">'XColor'</span>,colors.axisFG,<span class="keyword">...</span>
-0077             <span class="string">'YColor'</span>,colors.axisFG);
-0078         gui.axes_handles.imag = axes(<span class="string">'Parent'</span>,gui.row2,<span class="keyword">...</span>
-0079             <span class="string">'Color'</span>,colors.axisBG,<span class="string">'XColor'</span>,colors.axisFG,<span class="keyword">...</span>
-0080             <span class="string">'YColor'</span>,colors.axisFG);
-0081         gui.axes_handles.sse = axes(<span class="string">'Parent'</span>,gui.row3,<span class="keyword">...</span>
-0082             <span class="string">'Color'</span>,colors.axisBG,<span class="string">'XColor'</span>,colors.axisFG,<span class="keyword">...</span>
-0083             <span class="string">'YColor'</span>,colors.axisFG);
-0084 
-0085         <span class="comment">% 3 horizontal boxes</span>
-0086         uix.Empty(<span class="string">'Parent'</span>,gui.row4);
-0087         gui.vbox1 = uix.VBox(<span class="string">'Parent'</span>,gui.row4,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5,<span class="string">'Padding'</span>,5); <span class="comment">% control elements</span>
-0088         uix.Empty(<span class="string">'Parent'</span>,gui.row4);
-0089         set(gui.row4,<span class="string">'Widths'</span>,[-1 -2 -1]);
-0090 
-0091         <span class="comment">% edit field</span>
-0092         gui.hbox11 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox1,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
-0093         uix.Empty(<span class="string">'Parent'</span>,gui.hbox11);
-0094         gui.edit_phase = uicontrol(<span class="string">'Parent'</span>,gui.hbox11,<span class="keyword">...</span>
-0095             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'phase'</span>,<span class="keyword">...</span>
-0096             <span class="string">'String'</span>,num2str(0),<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
-0097             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
-0098             <span class="string">'Callback'</span>,@<a href="#_sub5" class="code" title="subfunction pv_updatePhase(src,~)">pv_updatePhase</a>);
-0099         uix.Empty(<span class="string">'Parent'</span>,gui.hbox11);
-0100         set(gui.hbox11,<span class="string">'Widths'</span>,[-1 -1 -1]);
-0101 
-0102         <span class="comment">% slider</span>
-0103         gui.hbox12 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox1,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
-0104         gui.hbox121 = uix.HBox(<span class="string">'Parent'</span>,gui.hbox12,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
-0105         gui.text_down = uicontrol(<span class="string">'Parent'</span>,gui.hbox121,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0106             <span class="string">'String'</span>,<span class="string">'down'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
-0107             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
-0108             <span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>);
-0109         gui.slider = uicontrol(<span class="string">'Parent'</span>,gui.hbox12,<span class="string">'Style'</span>,<span class="string">'slider'</span>,<span class="keyword">...</span>
-0110             <span class="string">'Min'</span>,-180,<span class="string">'Max'</span>,180,<span class="string">'Value'</span>,0,<span class="string">'SliderStep'</span>,[0.1/360 5/360],<span class="keyword">...</span>
-0111             <span class="string">'Callback'</span>,@<a href="#_sub4" class="code" title="subfunction pv_updateSlider(src,~)">pv_updateSlider</a>);
-0112         gui.hbox122 = uix.HBox(<span class="string">'Parent'</span>,gui.hbox12,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
-0113         gui.text_up = uicontrol(<span class="string">'Parent'</span>,gui.hbox122,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
-0114             <span class="string">'String'</span>,<span class="string">'up'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
-0115             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
-0116             <span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>);
-0117         set(gui.hbox12,<span class="string">'Widths'</span>,[-1 -9 -1]);
-0118 
-0119         <span class="comment">% buttons</span>
-0120         gui.hbox13 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox1,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
-0121         uix.Empty(<span class="string">'Parent'</span>,gui.hbox13);
-0122         gui.push_default = uicontrol(<span class="string">'Parent'</span>,gui.hbox13,<span class="keyword">...</span>
-0123             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'default'</span>,<span class="keyword">...</span>
-0124             <span class="string">'String'</span>,<span class="string">'DEFAULT'</span>,<span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction pv_onPushDefault(src,~)">pv_onPushDefault</a>);
-0125         uix.Empty(<span class="string">'Parent'</span>,gui.hbox13);
-0126         gui.push_save = uicontrol(<span class="string">'Parent'</span>,gui.hbox13,<span class="keyword">...</span>
-0127             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'save'</span>,<span class="keyword">...</span>
-0128             <span class="string">'String'</span>,<span class="string">'KEEP'</span>,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction pv_onPushSave(src,~)">pv_onPushSave</a>);
-0129         uix.Empty(<span class="string">'Parent'</span>,gui.hbox13);
-0130         set(gui.hbox13,<span class="string">'Widths'</span>,[-1 -2 -1 -2 -1]);
-0131 
-0132         set(gui.vbox1,<span class="string">'Heights'</span>,[-1 20 -1]);
-0133 
-0134         <span class="comment">% Java Hack to adjust vertical alignment of text fields</span>
-0135         jh = findjobj(gui.text_down);
-0136         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0137         jh = findjobj(gui.text_up);
-0138         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0139 
-0140         <span class="comment">% store some main GUI settings</span>
-0141         gui.myui = nucleus.gui.myui;
-0142 
-0143         <span class="comment">% save to GUI</span>
-0144         setappdata(fig_phase,<span class="string">'gui'</span>,gui);
-0145     <span class="keyword">end</span>
-0146     <span class="comment">% if the figure is already open load the GUI data</span>
-0147     gui = getappdata(fig_phase,<span class="string">'gui'</span>);
-0148 
-0149     <span class="comment">% clear all axes</span>
-0150     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig_phase);
-0151 
-0152     <span class="keyword">if</span> strcmp(nucleus.data.results.nmrproc.T1T2,<span class="string">'T2'</span>)
-0153 
-0154         <span class="comment">%% get signal to show</span>
-0155         nmrraw = nucleus.data.results.nmrraw;
-0156         loglinx = get(nucleus.gui.cm_handles.axes_raw_xaxis,<span class="string">'Label'</span>);
-0157 
-0158         <span class="comment">% axes setting</span>
-0159         data.loglinx = loglinx;
-0160         <span class="comment">% phase from import-fit</span>
-0161         data.phase_default = rad2deg(nucleus.data.results.nmrraw.phase);
-0162         <span class="comment">% phase used in PhaseView</span>
-0163         data.phase = data.phase_default;
-0164         set(gui.edit_phase,<span class="string">'String'</span>,num2str(data.phase));
-0165         set(gui.slider,<span class="string">'Value'</span>,data.phase);
-0166         <span class="comment">% time</span>
-0167         data.time = nmrraw.t;
-0168 
-0169         <span class="comment">% original unrotated signal</span>
-0170         data.signal_raw = nmrraw.s * exp(1i*deg2rad(<a href="#_sub6" class="code" title="subfunction phase = shift_phase(phase)">shift_phase</a>(-data.phase)));
-0171         <span class="comment">% rotated signal</span>
-0172         data.signal_rot = nmrraw.s;
-0173         data.s_max = max(real(data.signal_rot));
-0174 
-0175         <span class="comment">% SSE data</span>
-0176         beta_range = 0:1:360;
-0177         SSE = data.signal_raw*exp(1i*deg2rad(beta_range));
-0178         t0 = zeros(size(SSE));
-0179         residual_i = t0-imag(SSE);
-0180         residual_r = t0-real(SSE);
-0181         sse_i = sum(residual_i.^2,1);
-0182         sse_r = sum(residual_r.^2,1)*-1;
-0183         data.beta_range = beta_range;
-0184         data.sse_i = sse_i;
-0185         data.sse_r = sse_r;
+0074         gui.menu.view = uimenu(fig_phase,<span class="string">'Label'</span>,<span class="string">'View'</span>);
+0075         gui.menu.view_toolbar = uimenu(gui.menu.view,<span class="string">'Label'</span>,<span class="string">'Figure Toolbar'</span>,<span class="keyword">...</span>
+0076         <span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>);
+0077 
+0078         cpanel_w = 150;
+0079         <span class="comment">% phase angle fit range</span>
+0080         data.phase_range = [-180 180];
+0081         <span class="comment">% SSR data</span>
+0082         <span class="comment">% phase angle range to show nice diagram</span>
+0083         data.beta_range = -180:1:180;
+0084         <span class="comment">% echo range to calculate SSR</span>
+0085         data.echo_range = [nucleus.data.process.start nucleus.data.process.end];
+0086 
+0087         <span class="comment">% create the main layout</span>
+0088         gui.main = uix.HBox(<span class="string">'Parent'</span>,fig_phase,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span>
+0089             <span class="string">'Spacing'</span>,5,<span class="string">'Padding'</span>,5,<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0090         gui.left = uix.VBox(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span>
+0091             <span class="string">'Spacing'</span>,5,<span class="string">'Padding'</span>,0); <span class="comment">% controls</span>
+0092         gui.right = uix.VBox(<span class="string">'Parent'</span>,gui.main,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span>
+0093             <span class="string">'Spacing'</span>,5,<span class="string">'Padding'</span>,0); <span class="comment">% plots</span>
+0094 
+0095         set(gui.main,<span class="string">'Widths'</span>,[300 -1 ]);
+0096 
+0097         <span class="comment">% empty space at top of left side</span>
+0098         uix.Empty(<span class="string">'Parent'</span>,gui.left);
+0099 
+0100         <span class="comment">% --- properties panel ---</span>
+0101         <span class="comment">% waitbar(1/steps,hwb,'loading GUI elements - properties');</span>
+0102         gui.panels.prop.main = uix.BoxPanel(<span class="string">'Parent'</span>,gui.left,<span class="keyword">...</span>
+0103             <span class="string">'Title'</span>,<span class="string">'Fit phase angle'</span>,<span class="string">'MinimizeFcn'</span>,@<a href="minimizePanel.html" class="code" title="function minimizePanel(src,~)">minimizePanel</a>,<span class="keyword">...</span>
+0104             <span class="string">'TitleColor'</span>,colors.BoxPRC,<span class="string">'ForegroundColor'</span>,colors.BoxTitle);
+0105         gui.panels.prop.VBox = uix.VBox(<span class="string">'Parent'</span>,gui.panels.prop.main,<span class="keyword">...</span>
+0106             <span class="string">'Spacing'</span>,3,<span class="string">'Padding'</span>,3);
+0107 
+0108         <span class="comment">% first and last echo</span>
+0109         gui.panels.prop.HBox1 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.prop.VBox,<span class="keyword">...</span>
+0110             <span class="string">'Spacing'</span>,3);
+0111         gui.text_handles.first = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox1,<span class="keyword">...</span>
+0112             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0113             <span class="string">'String'</span>,&quot;T2 echoes - first | last&quot;);
+0114         tstr = <span class="string">'Set first / last echo of all T2 signals.'</span>;
+0115         gui.edit_handles.first = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox1,<span class="keyword">...</span>
+0116             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,nucleus.data.process.start),<span class="keyword">...</span>
+0117             <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'first'</span>,<span class="keyword">...</span>
+0118             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0119             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction pv_onEditValue(src,~)">pv_onEditValue</a>);
+0120         gui.edit_handles.last = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox1,<span class="keyword">...</span>
+0121             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,nucleus.data.process.end),<span class="keyword">...</span>
+0122             <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'last'</span>,<span class="keyword">...</span>
+0123             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0124             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction pv_onEditValue(src,~)">pv_onEditValue</a>);
+0125         set(gui.panels.prop.HBox1,<span class="string">'Widths'</span>,[cpanel_w -1 -1]);
+0126 
+0127         <span class="comment">% phase angle range</span>
+0128         gui.panels.prop.HBox2 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.prop.VBox,<span class="keyword">...</span>
+0129             <span class="string">'Spacing'</span>,3);
+0130         gui.text_handles.range = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox2,<span class="keyword">...</span>
+0131             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0132             <span class="string">'String'</span>,&quot;Phase range [-180, 180]&quot;);
+0133         tstr = <span class="string">'Set phase angle range for fitting'</span>;
+0134         gui.edit_handles.range_min = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox2,<span class="keyword">...</span>
+0135             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,-180),<span class="keyword">...</span>
+0136             <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'range_min'</span>,<span class="keyword">...</span>
+0137             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0138             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction pv_onEditValue(src,~)">pv_onEditValue</a>);
+0139         gui.edit_handles.range_max = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox2,<span class="keyword">...</span>
+0140             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,180),<span class="keyword">...</span>
+0141             <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'range_max'</span>,<span class="keyword">...</span>
+0142             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0143             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction pv_onEditValue(src,~)">pv_onEditValue</a>);
+0144         set(gui.panels.prop.HBox2,<span class="string">'Widths'</span>,[cpanel_w -1 -1]);
+0145 
+0146         <span class="comment">% fit method</span>
+0147         gui.panels.prop.HBox3 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.prop.VBox,<span class="keyword">...</span>
+0148             <span class="string">'Spacing'</span>,3);
+0149         gui.text_handles.fitmethod = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox3,<span class="keyword">...</span>
+0150             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0151             <span class="string">'String'</span>,&quot;Phase fit method&quot;);
+0152         tstr = [<span class="string">'&lt;HTML&gt;Choose the phase fitting method.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0153             <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0154             <span class="string">'&lt;b&gt;maxRE minIM&lt;/b&gt; maximize REal part, minimize IMag part.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0155             <span class="string">'&lt;b&gt;maxRE&lt;/b&gt; Only maximize REal part.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0156             <span class="string">'&lt;b&gt;minIM&lt;/b&gt; Only minimize IMag part.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0157             <span class="string">'&lt;b&gt;minIMstd&lt;/b&gt; Only minimize standard deviation of IMag part.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0158             <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0159             <span class="string">'&lt;b&gt;maxRE minIM&lt;/b&gt;&lt;br&gt;'</span>];
+0160         gui.popup_handles.fitmethod = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox3,<span class="keyword">...</span>
+0161             <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,{<span class="string">'maxRE minIM'</span>,<span class="string">'maxRE'</span>,<span class="string">'minIM'</span>,<span class="string">'minIMstd'</span>},<span class="keyword">...</span>
+0162             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0163             <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'control'</span>);
+0164         set(gui.panels.prop.HBox3,<span class="string">'Widths'</span>,[cpanel_w -1]);
+0165 
+0166         <span class="comment">% run fit</span>
+0167         gui.panels.prop.HBox4 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.prop.VBox,<span class="keyword">...</span>
+0168             <span class="string">'Spacing'</span>,3);
+0169         uix.Empty(<span class="string">'Parent'</span>,gui.panels.prop.HBox4);
+0170         tstr = <span class="string">'RUN phase fitting.'</span>;
+0171         gui.push_handles.runfit = uicontrol(<span class="string">'Parent'</span>,gui.panels.prop.HBox4,<span class="keyword">...</span>
+0172             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'RUN phase fit'</span>,<span class="keyword">...</span>
+0173             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0174             <span class="string">'BackGroundColor'</span>,<span class="string">'g'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0175             <span class="string">'Tag'</span>,<span class="string">'control'</span>,<span class="string">'Callback'</span>,@<a href="#_sub5" class="code" title="subfunction pv_onPushRun(src,~)">pv_onPushRun</a>);
+0176         set(gui.panels.prop.HBox4,<span class="string">'Widths'</span>,[cpanel_w -1]);
+0177 
+0178 
+0179         <span class="comment">% --- manual control panel ---</span>
+0180         <span class="comment">% waitbar(1/steps,hwb,'loading GUI elements - properties');</span>
+0181         gui.panels.manual.main = uix.BoxPanel(<span class="string">'Parent'</span>,gui.left,<span class="keyword">...</span>
+0182             <span class="string">'Title'</span>,<span class="string">'Manually set phase angle'</span>,<span class="string">'MinimizeFcn'</span>,@<a href="minimizePanel.html" class="code" title="function minimizePanel(src,~)">minimizePanel</a>,<span class="keyword">...</span>
+0183             <span class="string">'TitleColor'</span>,colors.BoxPRC,<span class="string">'ForegroundColor'</span>,colors.BoxTitle);
+0184         gui.panels.manual.VBox = uix.VBox(<span class="string">'Parent'</span>,gui.panels.manual.main,<span class="keyword">...</span>
+0185             <span class="string">'Spacing'</span>,3,<span class="string">'Padding'</span>,3);
 0186 
-0187         setappdata(fig_phase,<span class="string">'data'</span>,data);
-0188         setappdata(fig_phase,<span class="string">'gui'</span>,gui);
-0189         <a href="#_sub3" class="code" title="subfunction pv_showSignal(fig_phase)">pv_showSignal</a>(fig_phase);
-0190     <span class="keyword">else</span>
-0191         helpdlg({<span class="string">'function: PhaseView'</span>,<span class="keyword">...</span>
-0192             <span class="string">'Cannot continue because there is no T2 data!'</span>},<span class="keyword">...</span>
-0193             <span class="string">'No T2 data.'</span>);
-0194         delete(fig_phase);
-0195     <span class="keyword">end</span>
-0196 <span class="keyword">end</span>
-0197 
-0198 <span class="keyword">end</span>
+0187         <span class="comment">% edit field</span>
+0188         gui.panels.manual.HBox1 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.manual.VBox,<span class="keyword">...</span>
+0189             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,3);
+0190         gui.text_handles.edit_manual = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox1,<span class="keyword">...</span>
+0191             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0192             <span class="string">'String'</span>,&quot;Current phase [deg]&quot;);
+0193         gui.edit_handles.phase = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox1,<span class="keyword">...</span>
+0194             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'phase'</span>,<span class="keyword">...</span>
+0195             <span class="string">'String'</span>,num2str(0),<span class="string">'BackGroundColor'</span>,colors.editBG,<span class="keyword">...</span>
+0196             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0197             <span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction pv_onEditValue(src,~)">pv_onEditValue</a>);
+0198         set(gui.panels.manual.HBox1,<span class="string">'Widths'</span>,[cpanel_w -1]);
 0199 
-0200 <a name="_sub1" href="#_subfunctions" class="code">function pv_onPushDefault(src,~)</a>
-0201 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-0202 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
-0203 data = getappdata(fig_phase,<span class="string">'data'</span>);
-0204 
-0205 data.phase = data.phase_default;
-0206 set(gui.slider,<span class="string">'Value'</span>,data.phase);
-0207 set(gui.edit_phase,<span class="string">'String'</span>,num2str(data.phase));
-0208 
-0209 data.signal_rot = data.signal_raw * exp(1i*deg2rad(<a href="#_sub6" class="code" title="subfunction phase = shift_phase(phase)">shift_phase</a>(data.phase)));
-0210 
-0211 setappdata(fig_phase,<span class="string">'data'</span>,data);
-0212 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
-0213 <a href="#_sub3" class="code" title="subfunction pv_showSignal(fig_phase)">pv_showSignal</a>(fig_phase);
-0214 
-0215 <span class="keyword">end</span>
-0216 
-0217 <a name="_sub2" href="#_subfunctions" class="code">function pv_onPushSave(src,~)</a>
-0218 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-0219 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
-0220 data = getappdata(fig_phase,<span class="string">'data'</span>);
-0221 
-0222 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
-0223 nucleus.data = getappdata(fig,<span class="string">'data'</span>);
-0224 nucleus.gui = getappdata(fig,<span class="string">'gui'</span>);
-0225 
-0226 <span class="comment">% get the selected signal ID</span>
-0227 id = get(nucleus.gui.listbox_handles.signal,<span class="string">'Value'</span>);
-0228 <span class="comment">% update phase</span>
-0229 nucleus.data.import.NMR.data{id}.phase = deg2rad(data.phase);
-0230 nucleus.data.results.nmrraw.phase = deg2rad(data.phase);
-0231 <span class="comment">% update signal</span>
-0232 nucleus.data.import.NMR.data{id}.signal = data.signal_rot;
-0233 nucleus.data.results.nmrraw.s = data.signal_rot;
-0234 
-0235 <span class="comment">% update GUI data</span>
-0236 setappdata(fig,<span class="string">'data'</span>,nucleus.data);
-0237 
-0238 <span class="keyword">end</span>
-0239 
-0240 <a name="_sub3" href="#_subfunctions" class="code">function pv_showSignal(fig_phase)</a>
-0241 data = getappdata(fig_phase,<span class="string">'data'</span>);
-0242 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
-0243 
-0244 <span class="comment">% axes handles</span>
-0245 ax1 = gui.axes_handles.real;
-0246 ax2 = gui.axes_handles.imag;
-0247 ax3 = gui.axes_handles.sse;
-0248 <span class="comment">% clear all axes</span>
-0249 <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig_phase);
-0250 hold(ax1,<span class="string">'on'</span>);
-0251 hold(ax2,<span class="string">'on'</span>);
-0252 hold(ax3,<span class="string">'on'</span>);
-0253 
-0254 plot(data.time,real(data.signal_rot),<span class="string">'Color'</span>,gui.myui.colors.RE,<span class="string">'Parent'</span>,ax1);
-0255 plot(data.time,imag(data.signal_rot),<span class="string">'Color'</span>,gui.myui.colors.IM,<span class="string">'Parent'</span>,ax2);
-0256 
-0257 <span class="keyword">switch</span> data.loglinx
-0258     <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0259         xticks = floor(log10(data.time(1)))-1:1:log10(max(data.time))+1;
-0260         set(ax1,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[data.time(1) max(data.time)],<span class="string">'XTick'</span>,10.^xticks);
-0261         set(ax2,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[data.time(1) max(data.time)],<span class="string">'XTick'</span>,10.^xticks);
-0262     <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0263         set(ax1,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 max(data.time)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-0264         set(ax2,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 max(data.time)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-0265 <span class="keyword">end</span>
-0266 grid(ax1,<span class="string">'on'</span>);
-0267 grid(ax2,<span class="string">'on'</span>);
-0268 
-0269 line(get(ax2,<span class="string">'XLim'</span>),[0 0],<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Color'</span>,gui.myui.colors.axisL,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax2);
-0270 hold(ax2,<span class="string">'off'</span>);
-0271 
-0272 <span class="comment">%residual of current phase angle</span>
-0273 res_r = zeros(size(data.time))-real(data.signal_rot);
-0274 res_i = zeros(size(data.time))-imag(data.signal_rot);
-0275 sse_r = sum(res_r.^2);
-0276 sse_i = sum(res_i.^2);
-0277 
-0278 set(get(ax1,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time'</span>);
-0279 set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Reeal'</span>);
-0280 text(0.975,0.8,[<span class="string">'\Sigma \epsilon^2 = '</span>,sprintf(<span class="string">'%6.5e'</span>,sse_r)],<span class="keyword">...</span>
-0281     <span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'BackgroundColor'</span>,gui.myui.colors.axisBG,<span class="keyword">...</span>
-0282     <span class="string">'Color'</span>,gui.myui.colors.panelFG,<span class="string">'Units'</span>,<span class="string">'normalized'</span>,<span class="keyword">...</span>
-0283     <span class="string">'FontSize'</span>,12,<span class="string">'Parent'</span>,ax1);
-0284 set(get(ax2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time'</span>);
-0285 set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Immag'</span>);
-0286 text(0.975,0.8,[<span class="string">'\Sigma \epsilon^2 = '</span>,sprintf(<span class="string">'%6.5e'</span>,sse_i)],<span class="keyword">...</span>
-0287     <span class="string">'HorizontalAlignment'</span>,<span class="string">'right'</span>,<span class="string">'BackgroundColor'</span>,gui.myui.colors.axisBG,<span class="keyword">...</span>
-0288     <span class="string">'Color'</span>,gui.myui.colors.panelFG,<span class="string">'Units'</span>,<span class="string">'normalized'</span>,<span class="keyword">...</span>
-0289     <span class="string">'FontSize'</span>,12,<span class="string">'Parent'</span>,ax2);
-0290 
-0291 ymin = min([-1.*data.sse_r data.sse_i]);
-0292 ymax = max([-1.*data.sse_r data.sse_i]);
-0293 plot(data.beta_range-180,-1.*data.sse_r,<span class="string">'Color'</span>,gui.myui.colors.RE,<span class="string">'Parent'</span>,ax3);
-0294 plot(data.beta_range-180,data.sse_i,<span class="string">'Color'</span>,gui.myui.colors.IM,<span class="string">'Parent'</span>,ax3);
-0295 line([data.phase data.phase],[ymin ymax],<span class="string">'Color'</span>,gui.myui.colors.axisL,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,ax3)
-0296 lgh = legend(ax3,<span class="string">'\Reeal'</span>,<span class="string">'\Immag'</span>,<span class="string">'\phi'</span>);
-0297 set(lgh,<span class="string">'FontSize'</span>,12,<span class="string">'TextColor'</span>,gui.myui.colors.panelFG);
-0298 
-0299 set(ax3,<span class="string">'XLim'</span>,[-180 180],<span class="string">'XTick'</span>,-180:30:180);
-0300 set(ax3,<span class="string">'YLim'</span>,[ymin ymax]);
-0301 set(get(ax3,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'phase \phi [deg]'</span>);
-0302 set(get(ax3,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\Sigma \epsilon^2'</span>);
-0303 hold(ax3,<span class="string">'off'</span>);
-0304 
-0305 set(ax1,<span class="string">'FontSize'</span>,gui.myui.fontsize);
-0306 set(ax2,<span class="string">'FontSize'</span>,gui.myui.fontsize);
-0307 set(ax3,<span class="string">'FontSize'</span>,gui.myui.fontsize);
-0308 
-0309 set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'FontSize'</span>,16);
-0310 set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'FontSize'</span>,16);
-0311 
-0312 <span class="keyword">end</span>
-0313 
-0314 <a name="_sub4" href="#_subfunctions" class="code">function pv_updateSlider(src,~)</a>
-0315 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-0316 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
-0317 data = getappdata(fig_phase,<span class="string">'data'</span>);
-0318 
-0319 data.phase = get(gui.slider,<span class="string">'Value'</span>);
-0320 set(gui.edit_phase,<span class="string">'String'</span>,num2str(data.phase));
-0321 
-0322 data.signal_rot = data.signal_raw * exp(1i*deg2rad(<a href="#_sub6" class="code" title="subfunction phase = shift_phase(phase)">shift_phase</a>(data.phase)));
+0200         <span class="comment">% slider</span>
+0201         gui.panels.manual.HBox2 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.manual.VBox,<span class="keyword">...</span>
+0202             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,3);
+0203         gui.text_handles.slider_down = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox2,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0204             <span class="string">'String'</span>,<span class="string">'down'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0205             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0206             <span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>);
+0207         gui.slider_handles.slider = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox2,<span class="string">'Style'</span>,<span class="string">'slider'</span>,<span class="keyword">...</span>
+0208             <span class="string">'Min'</span>,-180,<span class="string">'Max'</span>,180,<span class="string">'Value'</span>,0,<span class="string">'SliderStep'</span>,[0.1/360 5/360],<span class="keyword">...</span>
+0209             <span class="string">'Callback'</span>,@<a href="#_sub7" class="code" title="subfunction pv_onSlider(src,~)">pv_onSlider</a>);
+0210         gui.text_handles.slider_up = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox2,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="keyword">...</span>
+0211             <span class="string">'String'</span>,<span class="string">'up'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0212             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0213             <span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>);
+0214         set(gui.panels.manual.HBox2,<span class="string">'Widths'</span>,[-1 -6 -1]);
+0215 
+0216         <span class="comment">% buttons</span>
+0217         gui.panels.manual.HBox3 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.manual.VBox,<span class="keyword">...</span>
+0218             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,3);
+0219         tstr = <span class="string">'Change phase angle by -90°.'</span>;
+0220         gui.push_handles.button_m90 = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox3,<span class="keyword">...</span>
+0221             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'-90'</span>,<span class="keyword">...</span>
+0222             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0223             <span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0224             <span class="string">'Tag'</span>,<span class="string">'button_m90'</span>,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction pv_onPushAngle(src,~)">pv_onPushAngle</a>);
+0225         tstr = <span class="string">'Change phase angle by -45°.'</span>;
+0226         gui.push_handles.button_m45 = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox3,<span class="keyword">...</span>
+0227             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'-45'</span>,<span class="keyword">...</span>
+0228             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0229             <span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0230             <span class="string">'Tag'</span>,<span class="string">'button_m45'</span>,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction pv_onPushAngle(src,~)">pv_onPushAngle</a>);
+0231         tstr = <span class="string">'Change phase angle by +-180°.'</span>;
+0232         gui.push_handles.button_pm180 = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox3,<span class="keyword">...</span>
+0233             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'+-180'</span>,<span class="keyword">...</span>
+0234             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0235             <span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0236             <span class="string">'Tag'</span>,<span class="string">'button_pm180'</span>,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction pv_onPushAngle(src,~)">pv_onPushAngle</a>);
+0237         tstr = <span class="string">'Change phase angle by +45°.'</span>;
+0238         gui.push_handles.button_p45 = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox3,<span class="keyword">...</span>
+0239             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'+45'</span>,<span class="keyword">...</span>
+0240             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0241             <span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0242             <span class="string">'Tag'</span>,<span class="string">'button_p45'</span>,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction pv_onPushAngle(src,~)">pv_onPushAngle</a>);
+0243         tstr = <span class="string">'Change phase angle by +90°.'</span>;
+0244         gui.push_handles.button_p90 = uicontrol(<span class="string">'Parent'</span>,gui.panels.manual.HBox3,<span class="keyword">...</span>
+0245             <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'+90'</span>,<span class="keyword">...</span>
+0246             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0247             <span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0248             <span class="string">'Tag'</span>,<span class="string">'button_p90'</span>,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction pv_onPushAngle(src,~)">pv_onPushAngle</a>);
+0249         set(gui.panels.manual.HBox3,<span class="string">'Widths'</span>,[-1 -1 -1 -1 -1]);
+0250 
+0251         <span class="comment">% --- update MAIN GUI buttons ---</span>
+0252         gui.panels.save.VBox1 = uix.VBox(<span class="string">'Parent'</span>,gui.left,<span class="keyword">...</span>
+0253             <span class="string">'Spacing'</span>,3);
+0254         tstr = <span class="string">'KEEP default phase angle from NUCLEUSinv GUI import.'</span>;
+0255         gui.push_handles.default = uicontrol(<span class="string">'Parent'</span>,gui.panels.save.VBox1,<span class="keyword">...</span>
+0256             <span class="string">'String'</span>,<span class="string">'KEEP default phase angle'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'default'</span>,<span class="keyword">...</span>
+0257             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0258             <span class="string">'Callback'</span>,@<a href="#_sub4" class="code" title="subfunction pv_onPushKeep(src,~)">pv_onPushKeep</a>);
+0259         tstr = <span class="string">'APPLY the current phase angle to the signal in the NUCLEUSinv GUI'</span>;
+0260         gui.push_handles.apply_single = uicontrol(<span class="string">'Parent'</span>,gui.panels.save.VBox1,<span class="keyword">...</span>
+0261             <span class="string">'String'</span>,<span class="string">'APPLY current phase angle'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'apply'</span>,<span class="keyword">...</span>
+0262             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0263             <span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction pv_onPushApply(src,~)">pv_onPushApply</a>);
+0264         tstr = <span class="string">'APPLY the current phase angle to all signals in the NUCLEUSinv GUI'</span>;
+0265         gui.push_handles.apply_all = uicontrol(<span class="string">'Parent'</span>,gui.panels.save.VBox1,<span class="keyword">...</span>
+0266             <span class="string">'String'</span>,<span class="string">'APPLY current phase angle 2 all'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'apply2all'</span>,<span class="keyword">...</span>
+0267             <span class="string">'ToolTipString'</span>,tstr,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0268             <span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction pv_onPushApply(src,~)">pv_onPushApply</a>);
+0269 
+0270         <span class="comment">% Java Hack to adjust vertical alignment of text fields</span>
+0271         jh = findjobj(gui.text_handles.first);
+0272         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0273         jh = findjobj(gui.text_handles.fitmethod);
+0274         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0275         jh = findjobj(gui.text_handles.edit_manual);
+0276         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0277         jh = findjobj(gui.text_handles.slider_down);
+0278         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0279         jh = findjobj(gui.text_handles.slider_up);
+0280         jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
+0281 
+0282         <span class="comment">% empty space at bottom of left side</span>
+0283         uix.Empty(<span class="string">'Parent'</span>,gui.left);
+0284         <span class="comment">% adjust the heights of all left-column-panels</span>
+0285         heights = [-1 22 22 28 -1; -1 22+4*24+6*3 22+3*24+5*3 28*3 -1];
+0286         <span class="comment">% panel header is always 22 high</span>
+0287         set(gui.left,<span class="string">'Heights'</span>,heights(2,:),<span class="keyword">...</span>
+0288             <span class="string">'MinimumHeights'</span>,[0 22 22 28 0]);
+0289 
+0290         <span class="comment">% --- plot boxes ---</span>
+0291         <span class="comment">% -- tab3</span>
+0292         gui.tab = uix.VBoxFlex(<span class="string">'Parent'</span>,gui.right,<span class="keyword">...</span>
+0293             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
+0294         gui.pbox1 = uicontainer(<span class="string">'Parent'</span>,gui.tab,<span class="keyword">...</span>
+0295             <span class="string">'BackGroundColor'</span>,colors.panelBG);
+0296         gui.pbox2 = uicontainer(<span class="string">'Parent'</span>,gui.tab,<span class="keyword">...</span>
+0297             <span class="string">'BackGroundColor'</span>,colors.panelBG);
+0298         gui.pbox3 = uicontainer(<span class="string">'Parent'</span>,gui.tab,<span class="keyword">...</span>
+0299             <span class="string">'BackGroundColor'</span>,colors.panelBG);
+0300         set(gui.tab,<span class="string">'Heights'</span>,[-1 -1 -1]);
+0301 
+0302         <span class="comment">% -- plot axes --</span>
+0303         gui.axes_handles.real = axes(<span class="string">'Parent'</span>,gui.pbox1,<span class="string">'Color'</span>,colors.axisBG,<span class="keyword">...</span>
+0304             <span class="string">'XColor'</span>,colors.axisFG,<span class="string">'YColor'</span>,colors.axisFG,<span class="string">'Box'</span>,<span class="string">'on'</span>);
+0305         gui.axes_handles.imag = axes(<span class="string">'Parent'</span>,gui.pbox2,<span class="string">'Color'</span>,colors.axisBG,<span class="keyword">...</span>
+0306             <span class="string">'XColor'</span>,colors.axisFG,<span class="string">'YColor'</span>,colors.axisFG,<span class="string">'Box'</span>,<span class="string">'on'</span>);
+0307         gui.axes_handles.sse = axes(<span class="string">'Parent'</span>,gui.pbox3,<span class="string">'Color'</span>,colors.axisBG,<span class="keyword">...</span>
+0308             <span class="string">'XColor'</span>,colors.axisFG,<span class="string">'YColor'</span>,colors.axisFG,<span class="string">'Box'</span>,<span class="string">'on'</span>);
+0309 
+0310         <span class="comment">% store some main GUI settings</span>
+0311         gui.myui = nucleus.gui.myui;
+0312 
+0313         <span class="comment">% save to GUI</span>
+0314         setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0315 
+0316         <span class="comment">% make GUI visible</span>
+0317         <span class="comment">% delete(hwb);</span>
+0318         set(gui.main,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0319     <span class="keyword">else</span>
+0320         <span class="comment">% if the figure is already open load the GUI data</span>
+0321         gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0322         data = getappdata(fig_phase,<span class="string">'data'</span>);
 0323 
-0324 setappdata(fig_phase,<span class="string">'data'</span>,data);
-0325 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
-0326 <a href="#_sub3" class="code" title="subfunction pv_showSignal(fig_phase)">pv_showSignal</a>(fig_phase);
-0327 
-0328 <span class="keyword">end</span>
-0329 
-0330 <a name="_sub5" href="#_subfunctions" class="code">function pv_updatePhase(src,~)</a>
-0331 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-0332 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
-0333 data = getappdata(fig_phase,<span class="string">'data'</span>);
-0334 
-0335 data.phase = str2double(get(gui.edit_phase,<span class="string">'String'</span>));
-0336 set(gui.slider,<span class="string">'Value'</span>,data.phase);
-0337 
-0338 data.signal_rot = data.signal_raw * exp(1i*deg2rad(<a href="#_sub6" class="code" title="subfunction phase = shift_phase(phase)">shift_phase</a>(data.phase)));
-0339 
-0340 setappdata(fig_phase,<span class="string">'data'</span>,data);
-0341 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
-0342 <a href="#_sub3" class="code" title="subfunction pv_showSignal(fig_phase)">pv_showSignal</a>(fig_phase);
-0343 
-0344 <span class="keyword">end</span>
-0345 
-0346 <a name="_sub6" href="#_subfunctions" class="code">function phase = shift_phase(phase)</a>
-0347 <span class="comment">% shifts the phase values from [-180,180] to [0,360]</span>
-0348 phase = phase + 180;
-0349 <span class="keyword">end</span>
-0350 
-0351 <span class="comment">%------------- END OF CODE --------------</span>
-0352 
-0353 <span class="comment">%% License:</span>
-0354 <span class="comment">% MIT License</span>
-0355 <span class="comment">%</span>
-0356 <span class="comment">% Copyright (c) 2019 Thomas Hiller</span>
-0357 <span class="comment">%</span>
-0358 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0359 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0360 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0361 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0362 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0363 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0364 <span class="comment">%</span>
-0365 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0366 <span class="comment">% copies or substantial portions of the Software.</span>
-0367 <span class="comment">%</span>
-0368 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0369 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0370 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0371 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0372 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0373 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0374 <span class="comment">% SOFTWARE.</span></pre></div>
+0324         <span class="comment">% echo range to calculate SSR</span>
+0325         <span class="keyword">if</span> data.echo_range(2) &gt; nucleus.data.process.end
+0326             data.echo_range(2) = nucleus.data.process.end;
+0327             set(gui.edit_handles.last,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,data.echo_range(2)));
+0328         <span class="keyword">end</span>
+0329         <span class="comment">% data.echo_range = [nucleus.data.process.start nucleus.data.process.end];</span>
+0330     <span class="keyword">end</span>
+0331     
+0332 
+0333     <span class="comment">% clear all axes</span>
+0334     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig_phase);
+0335 
+0336     <span class="keyword">if</span> strcmp(nucleus.data.results.nmrproc.T1T2,<span class="string">'T2'</span>)
+0337         <span class="comment">% get signal to show</span>
+0338         nmrraw = nucleus.data.results.nmrraw;
+0339         loglinx = get(nucleus.gui.cm_handles.axes_raw_xaxis,<span class="string">'Label'</span>);
+0340 
+0341         <span class="comment">% axes setting</span>
+0342         data.loglinx = loglinx;
+0343         <span class="comment">% phase from import-fit</span>
+0344         data.phase_default = rad2deg(nucleus.data.results.nmrraw.phase);
+0345         <span class="comment">% phase used in PhaseView</span>
+0346         data.phase = data.phase_default;
+0347         set(gui.edit_handles.phase,<span class="string">'String'</span>,num2str(data.phase));
+0348         set(gui.slider_handles.slider,<span class="string">'Value'</span>,data.phase);
+0349         <span class="comment">% time</span>
+0350         data.time = nmrraw.t;
+0351 
+0352         <span class="comment">% original unrotated signal</span>
+0353         data.signal_raw = nmrraw.s * exp(1i*deg2rad(-data.phase));
+0354         <span class="comment">% rotated signal</span>
+0355         data.signal_rot = nmrraw.s;
+0356         data.s_max = max(real(data.signal_rot));        
+0357 
+0358         <span class="comment">% keep original signal</span>
+0359         data.orig_data = nucleus.data.import.NMR.data{ID};
+0360         data.orig_para = nucleus.data.import.NMR.para{ID};
+0361         
+0362         <span class="comment">% update GUI data</span>
+0363         setappdata(fig_phase,<span class="string">'data'</span>,data);
+0364         setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0365         <span class="comment">% calculate SSR</span>
+0366         <a href="#_sub8" class="code" title="subfunction pv_updateFullDataSet(fig_phase)">pv_updateFullDataSet</a>(fig_phase);
+0367         <span class="comment">% update plots</span>
+0368         <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0369         <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0370 
+0371     <span class="keyword">else</span>
+0372         <span class="comment">% close the GUI because the selected signal is not a T2 signal</span>
+0373         helpdlg({<span class="string">'function: PhaseView'</span>,<span class="keyword">...</span>
+0374             <span class="string">'Cannot continue because there is no T2 data!'</span>},<span class="keyword">...</span>
+0375             <span class="string">'No T2 data.'</span>);
+0376         delete(fig_phase);
+0377     <span class="keyword">end</span>
+0378 <span class="keyword">end</span>
+0379 
+0380 <span class="keyword">end</span>
+0381 
+0382 <span class="comment">%% subfunction to update the edit fields</span>
+0383 <a name="_sub1" href="#_subfunctions" class="code">function pv_onEditValue(src,~)</a>
+0384 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0385 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0386 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0387 
+0388 <span class="keyword">switch</span> get(src,<span class="string">'Tag'</span>)
+0389     <span class="keyword">case</span> {<span class="string">'first'</span>,<span class="string">'last'</span>}
+0390         data.echo_range(1) = str2double(get(gui.edit_handles.first,<span class="string">'String'</span>));
+0391         data.echo_range(2) = str2double(get(gui.edit_handles.last,<span class="string">'String'</span>));
+0392         <span class="comment">% update GUI data</span>
+0393         setappdata(fig_phase,<span class="string">'data'</span>,data);
+0394         <a href="#_sub8" class="code" title="subfunction pv_updateFullDataSet(fig_phase)">pv_updateFullDataSet</a>(fig_phase);
+0395         data = getappdata(fig_phase,<span class="string">'data'</span>);
+0396         setappdata(fig_phase,<span class="string">'data'</span>,data);
+0397         <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0398         <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0399     <span class="keyword">case</span> {<span class="string">'range_min'</span>,<span class="string">'range_max'</span>}
+0400         data.phase_range(1) = str2double(get(gui.edit_handles.range_min,<span class="string">'String'</span>));
+0401         data.phase_range(2) = str2double(get(gui.edit_handles.range_max,<span class="string">'String'</span>));
+0402         <span class="comment">% update GUI data</span>
+0403         setappdata(fig_phase,<span class="string">'data'</span>,data);
+0404         <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0405     <span class="keyword">case</span> <span class="string">'phase'</span>
+0406         data.phase = str2double(get(gui.edit_handles.phase,<span class="string">'String'</span>));
+0407         <span class="comment">% update slider</span>
+0408         set(gui.slider_handles.slider,<span class="string">'Value'</span>,data.phase);        
+0409         <span class="comment">% apply new phase</span>
+0410         data.signal_rot = data.signal_raw * exp(1i*deg2rad(data.phase));        
+0411         <span class="comment">% update GUI data</span>
+0412         setappdata(fig_phase,<span class="string">'data'</span>,data);
+0413         setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0414         <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0415         <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0416 <span class="keyword">end</span>
+0417 
+0418 <span class="comment">% update GUI data</span>
+0419 setappdata(fig_phase,<span class="string">'data'</span>,data);
+0420 <span class="keyword">end</span>
+0421 
+0422 <span class="comment">%% subfunction to control the phase angle push buttons</span>
+0423 <a name="_sub2" href="#_subfunctions" class="code">function pv_onPushAngle(src,~)</a>
+0424 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0425 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0426 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0427 
+0428 <span class="comment">% get the angle offset according to the chosen button</span>
+0429 <span class="keyword">switch</span> get(src,<span class="string">'Tag'</span>)
+0430     <span class="keyword">case</span> <span class="string">'button_m90'</span>
+0431         offset = -90;
+0432     <span class="keyword">case</span> <span class="string">'button_m45'</span>
+0433         offset = -45;
+0434     <span class="keyword">case</span> <span class="string">'button_pm180'</span>
+0435         offset = 180;
+0436     <span class="keyword">case</span> <span class="string">'button_p45'</span>
+0437         offset = 45;
+0438     <span class="keyword">case</span> <span class="string">'button_p90'</span>
+0439         offset = 90;
+0440     <span class="keyword">otherwise</span>
+0441         offset = 0;
+0442 <span class="keyword">end</span>
+0443 
+0444 <span class="comment">% map phase into the correct range</span>
+0445 data.phase = -180 + mod((data.phase + offset)+180,360);
+0446 <span class="comment">% update edit field</span>
+0447 set(gui.edit_handles.phase,<span class="string">'String'</span>,num2str(data.phase));
+0448 <span class="comment">% update slider</span>
+0449 set(gui.slider_handles.slider,<span class="string">'Value'</span>,data.phase);
+0450 <span class="comment">% new rotated signal</span>
+0451 data.signal_rot = data.signal_raw * exp(1i*deg2rad(data.phase));
+0452 
+0453 <span class="comment">% update GUI data</span>
+0454 setappdata(fig_phase,<span class="string">'data'</span>,data);
+0455 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0456 <span class="comment">% update plots</span>
+0457 <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0458 <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0459 <span class="keyword">end</span>
+0460 
+0461 <span class="comment">%% subfunction to control the push button to apply the phase angle</span>
+0462 <a name="_sub3" href="#_subfunctions" class="code">function pv_onPushApply(src,~)</a>
+0463 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0464 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0465 
+0466 <span class="comment">% get handle and data of main GUI</span>
+0467 fig = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0468 nucleus.data = getappdata(fig,<span class="string">'data'</span>);
+0469 nucleus.gui = getappdata(fig,<span class="string">'gui'</span>);
+0470 
+0471 <span class="comment">% get selected signal ID from main GUI</span>
+0472 id = get(nucleus.gui.listbox_handles.signal,<span class="string">'Value'</span>);
+0473 
+0474 <span class="keyword">switch</span> get(src,<span class="string">'Tag'</span>)
+0475     <span class="keyword">case</span> <span class="string">'apply'</span>        
+0476         <span class="comment">% update phase</span>
+0477         nucleus.data.import.NMR.data{id}.phase = deg2rad(data.phase);
+0478         nucleus.data.results.nmrraw.phase = deg2rad(data.phase);
+0479         <span class="comment">% update signal</span>
+0480         nucleus.data.import.NMR.data{id}.signal = data.signal_rot;
+0481         nucleus.data.results.nmrraw.s = data.signal_rot;
+0482 
+0483     <span class="keyword">case</span> <span class="string">'apply2all'</span>
+0484         N = numel(nucleus.data.import.NMR.data);
+0485         <span class="keyword">for</span> i1 = 1:N
+0486             <span class="comment">% only proceed if the signal is complex (T2 data)</span>
+0487             <span class="keyword">if</span> ~isreal(nucleus.data.import.NMR.data{i1}.signal)
+0488                 <span class="comment">% original unrotated signal</span>
+0489                 phase_org = rad2deg(nucleus.data.import.NMR.data{i1}.phase);
+0490                 s_raw = nucleus.data.import.NMR.data{i1}.raw.signal;
+0491                 s_raw =  s_raw * exp(1i*deg2rad(-phase_org));
+0492 
+0493                 <span class="comment">% new phase</span>
+0494                 phase_new = data.phase;
+0495                 nucleus.data.import.NMR.data{i1}.phase = deg2rad(phase_new);
+0496                 <span class="comment">% signal with new phase</span>
+0497                 s_new  = s_raw * exp(1i*deg2rad(phase_new));
+0498                 <span class="comment">% update signal</span>
+0499                 nucleus.data.import.NMR.data{i1}.signal = s_new;
+0500                 nucleus.data.import.NMR.data{i1}.raw.signal= s_new;
+0501             <span class="keyword">end</span>
+0502         <span class="keyword">end</span>
+0503         <span class="comment">% check if it is a T1-T2 data set, because then we need to adjust</span>
+0504         <span class="comment">% the merged T1 curve also</span>
+0505         <span class="keyword">if</span> isfield(nucleus.data.import,<span class="string">'T1T2map'</span>)
+0506             <span class="comment">% the last signal is the merged T1 curve</span>
+0507             N = numel(nucleus.data.import.T1T2map.t_recov) + 1;
+0508             
+0509             s_old = nucleus.data.import.NMR.data{N}.signal;
+0510             time = nucleus.data.import.T1T2map.t_recov;
+0511             s_new = zeros(size(s_old));
+0512             <span class="keyword">for</span> i1 = 1:numel(time)
+0513                 s_new(i1) = mean(real(nucleus.data.import.NMR.data{i1}.signal(1:3)));
+0514             <span class="keyword">end</span>
+0515             
+0516             <span class="comment">% estimate noise of the new merged T1 curve</span>
+0517             disp(<span class="string">'NUCLUESinv PhaseView: Estimating noise from exponential fit ...'</span>);
+0518             flag = <span class="string">'T1'</span>;
+0519             param.T1IRfac = nucleus.data.import.NMR.data{N}.T1IRfac;
+0520             param.noise = 0;
+0521             param.optim = <span class="string">'off'</span>;
+0522             param.Tfixed_bool = [0 0 0 0 0];
+0523             param.Tfixed_val = [0 0 0 0 0];
+0524             <span class="keyword">for</span> i1 = 1:5
+0525                 invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(time,s_new,flag,param,i1);
+0526                 <span class="keyword">if</span> i1 == 1
+0527                     noise = invstd.rms;
+0528                 <span class="keyword">else</span>
+0529                     noise = min([noise invstd.rms]);
+0530                 <span class="keyword">end</span>
+0531             <span class="keyword">end</span>
+0532             <span class="comment">% update data</span>
+0533             nucleus.data.import.NMR.data{N}.signal = s_new;
+0534             nucleus.data.import.NMR.data{N}.noise = noise;
+0535             nucleus.data.import.NMR.data{N}.raw.signal = s_new;
+0536         <span class="keyword">end</span>
+0537 <span class="keyword">end</span>
+0538 
+0539 <span class="comment">% update main GUI data</span>
+0540 setappdata(fig,<span class="string">'data'</span>,nucleus.data);
+0541 <span class="comment">% set focus on chosen signal</span>
+0542 set(nucleus.gui.listbox_handles.signal,<span class="string">'Value'</span>,id);
+0543 <a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(nucleus.gui.listbox_handles.signal);
+0544 <span class="keyword">end</span>
+0545 
+0546 <span class="comment">%% subfunction to control the push button to restore the default phase angle</span>
+0547 <a name="_sub4" href="#_subfunctions" class="code">function pv_onPushKeep(src,~)</a>
+0548 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0549 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0550 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0551 
+0552 <span class="comment">% get original pahse</span>
+0553 data.phase = data.phase_default;
+0554 <span class="comment">% update edit field</span>
+0555 set(gui.edit_handles.phase,<span class="string">'String'</span>,num2str(data.phase));
+0556 <span class="comment">% update slider</span>
+0557 set(gui.slider_handles.slider,<span class="string">'Value'</span>,data.phase);
+0558 <span class="comment">% new rotated signal</span>
+0559 data.signal_rot = data.signal_raw * exp(1i*deg2rad(data.phase));
+0560 
+0561 <span class="comment">% update GUI data</span>
+0562 setappdata(fig_phase,<span class="string">'data'</span>,data);
+0563 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0564 <span class="comment">% update plots</span>
+0565 <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0566 <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0567 <span class="keyword">end</span>
+0568 
+0569 <span class="comment">%% subfunction to control the push button to fit the phase angle</span>
+0570 <a name="_sub5" href="#_subfunctions" class="code">function pv_onPushRun(src,~)</a>
+0571 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0572 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0573 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0574 
+0575 <span class="comment">% get signal</span>
+0576 s = data.signal_raw;
+0577 
+0578 <span class="comment">% get signal bounds</span>
+0579 te_start = data.echo_range(1);
+0580 te_end = data.echo_range(2);
+0581 
+0582 <span class="comment">% get fit method</span>
+0583 fitval = get(gui.popup_handles.fitmethod,<span class="string">'Value'</span>);
+0584 fitmethod = get(gui.popup_handles.fitmethod,<span class="string">'String'</span>);
+0585 fitmethod = fitmethod{fitval};
+0586 
+0587 <span class="comment">% get phase angle range</span>
+0588 alpha_range = deg2rad(data.phase_range);
+0589 
+0590 <span class="comment">% optim settings</span>
+0591 options = optimset(<span class="string">'MaxFunEvals'</span>,100,<span class="string">'MaxIter'</span>,100,<span class="string">'TolFun'</span>,1e-6,<span class="string">'TolX'</span>,1e-6);
+0592 <span class="comment">% call fit function</span>
+0593 [alpha,~,~,~] = fminsearchbnd(@(alpha) <a href="#_sub6" class="code" title="subfunction sse = phasefit_fcn(alpha,s,method)">phasefit_fcn</a>(alpha,s(te_start:te_end),fitmethod),<span class="keyword">...</span>
+0594     mean(alpha_range),alpha_range(1),alpha_range(2),options);
+0595 
+0596 <span class="comment">% s_rot is rotated signal</span>
+0597 data.signal_rot = s .* exp(1i*alpha);
+0598 
+0599 <span class="comment">% save new phase</span>
+0600 data.phase = rad2deg(alpha);
+0601 <span class="comment">% update edit field</span>
+0602 set(gui.edit_handles.phase,<span class="string">'String'</span>,num2str(data.phase));
+0603 <span class="comment">% update slider</span>
+0604 set(gui.slider_handles.slider,<span class="string">'Value'</span>,data.phase);
+0605 
+0606 <span class="comment">% update GUI data</span>
+0607 setappdata(fig_phase,<span class="string">'data'</span>,data);
+0608 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0609 <span class="comment">% update plots</span>
+0610 <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0611 <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0612 <span class="keyword">end</span>
+0613 
+0614 <span class="comment">% minimization function</span>
+0615 <a name="_sub6" href="#_subfunctions" class="code">function sse = phasefit_fcn(alpha,s,method)</a>
+0616 <span class="comment">% Inputs:</span>
+0617 <span class="comment">%       alpha - rotation phase angle in [rad]</span>
+0618 <span class="comment">%       s - NMR signal vector (has to be complex!)</span>
+0619 <span class="comment">%       method - &quot;maxRE minIM&quot;, &quot;maxRE&quot;, &quot;minIM&quot; or &quot;minIMstd&quot;</span>
+0620 <span class="comment">%</span>
+0621 <span class="comment">% Outputs:</span>
+0622 <span class="comment">%       sse - sum of squared residuals (option 1 to 3) or</span>
+0623 <span class="comment">%             standard deviation of imag. part (option 4)</span>
+0624 
+0625 s = s(:);
+0626 <span class="keyword">switch</span> method
+0627     <span class="keyword">case</span> <span class="string">'maxRE minIM'</span>
+0628         <span class="comment">% make a vector of zeros</span>
+0629         t0 = zeros(size(s,1),1);
+0630         t0 = t0(:);
+0631         <span class="comment">% s_rot is the rotated signal</span>
+0632         s_rot = s .* exp(1i*alpha);
+0633         <span class="comment">% create residuals</span>
+0634         residuali = t0-imag(s_rot);
+0635         residualr = t0-real(s_rot);
+0636         <span class="comment">% real part times -1 because we seek the maximum</span>
+0637         sse = sum(residuali.^2) + sum(residualr.^2)*-1;
+0638     <span class="keyword">case</span> <span class="string">'maxRE'</span>
+0639         <span class="comment">% make a vector of zeros</span>
+0640         t0 = zeros(size(s,1),1);
+0641         t0 = t0(:);
+0642         <span class="comment">% s_rot is the rotated signal</span>
+0643         s_rot = s .* exp(1i*alpha);
+0644         <span class="comment">% create residuals</span>
+0645         residualr = t0-real(s_rot);
+0646         <span class="comment">% maximum of real part should be maximized</span>
+0647         sse = sum(residualr.^2)*-1;
+0648     <span class="keyword">case</span> <span class="string">'minIM'</span>
+0649         <span class="comment">% make a vector of zeros</span>
+0650         t0 = zeros(size(s,1),1);
+0651         t0 = t0(:);
+0652         <span class="comment">% s_rot is the rotated signal</span>
+0653         s_rot = s .* exp(1i*alpha);
+0654         <span class="comment">% create residuals</span>
+0655         residuali = t0-imag(s_rot);
+0656         <span class="comment">% sse</span>
+0657         sse = sum(residuali.^2);
+0658     <span class="keyword">case</span> <span class="string">'minIMstd'</span>
+0659         <span class="comment">% s_rot is the rotated signal</span>
+0660         s_rot = s .* exp(1i*alpha);
+0661         <span class="comment">% standard deviation of the imaginary part should be minimized</span>
+0662         sse = std(imag(s_rot));
+0663 <span class="keyword">end</span>
+0664 
+0665 <span class="keyword">end</span>
+0666 
+0667 <span class="comment">%% subfunction to control the slider</span>
+0668 <a name="_sub7" href="#_subfunctions" class="code">function pv_onSlider(src,~)</a>
+0669 fig_phase = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0670 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0671 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0672 
+0673 <span class="comment">% new phase angle from slider</span>
+0674 data.phase = get(src,<span class="string">'Value'</span>);
+0675 <span class="comment">% update edit field</span>
+0676 set(gui.edit_handles.phase,<span class="string">'String'</span>,num2str(data.phase));
+0677 <span class="comment">% new rotated signal</span>
+0678 data.signal_rot = data.signal_raw * exp(1i*deg2rad(data.phase));
+0679 
+0680 <span class="comment">% update GUI data</span>
+0681 setappdata(fig_phase,<span class="string">'data'</span>,data);
+0682 setappdata(fig_phase,<span class="string">'gui'</span>,gui);
+0683 <span class="comment">% update signals</span>
+0684 <a href="#_sub9" class="code" title="subfunction pv_plotSignal(fig_phase)">pv_plotSignal</a>(fig_phase);
+0685 <a href="#_sub10" class="code" title="subfunction pv_plotSSR(fig_phase)">pv_plotSSR</a>(fig_phase);
+0686 <span class="keyword">end</span>
+0687 
+0688 <span class="comment">%% subfunction to calculate the full SSE values for a range of phase angles</span>
+0689 <a name="_sub8" href="#_subfunctions" class="code">function pv_updateFullDataSet(fig_phase)</a>
+0690 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0691 
+0692 <span class="comment">% get echo range</span>
+0693 te_start = data.echo_range(1);
+0694 te_end = data.echo_range(2);
+0695 <span class="comment">% get all signals with the desired phase angles</span>
+0696 SSE = data.signal_raw*exp(1i*deg2rad(data.beta_range));
+0697 
+0698 <span class="comment">% get individual SSRs</span>
+0699 sse_r = <a href="#_sub11" class="code" title="subfunction ssr = getSSR(signal)">getSSR</a>(real(SSE(te_start:te_end,:)));
+0700 sse_i = <a href="#_sub11" class="code" title="subfunction ssr = getSSR(signal)">getSSR</a>(imag(SSE(te_start:te_end,:)));
+0701 <span class="comment">% save data</span>
+0702 data.sse_i = sse_i;
+0703 data.sse_r = sse_r;
+0704 
+0705 <span class="comment">% update GUI data</span>
+0706 setappdata(fig_phase,<span class="string">'data'</span>,data);
+0707 <span class="keyword">end</span>
+0708 
+0709 <span class="comment">%% subfunction to plot the REal and IMag signal parts</span>
+0710 <a name="_sub9" href="#_subfunctions" class="code">function pv_plotSignal(fig_phase)</a>
+0711 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0712 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0713 
+0714 <span class="comment">% axes handles</span>
+0715 ax1 = gui.axes_handles.real;
+0716 ax2 = gui.axes_handles.imag;
+0717 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax1);
+0718 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax2);
+0719 
+0720 <span class="comment">% plot Real and IMag part of signal</span>
+0721 plot(data.time,real(data.signal_rot),<span class="string">'Color'</span>,gui.myui.colors.RE,<span class="string">'Parent'</span>,ax1);
+0722 plot(data.time,imag(data.signal_rot),<span class="string">'Color'</span>,gui.myui.colors.IM,<span class="string">'Parent'</span>,ax2);
+0723 
+0724 hold(ax1,<span class="string">'on'</span>);
+0725 hold(ax2,<span class="string">'on'</span>);
+0726 
+0727 <span class="keyword">switch</span> data.loglinx
+0728     <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0729         xticks = floor(log10(data.time(1)))-1:1:log10(max(data.time))+1;
+0730         set([ax1 ax2],<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[data.time(1) max(data.time)],<span class="string">'XTick'</span>,10.^xticks);
+0731     <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0732         set([ax1 ax2],<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 max(data.time)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0733 <span class="keyword">end</span>
+0734 grid([ax1 ax2],<span class="string">'on'</span>);
+0735 
+0736 set([ax1 ax2],<span class="string">'XLim'</span>,[data.orig_data.raw.time(1) data.orig_data.raw.time(end)]);
+0737 set(get(ax1,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'Real Ampl.'</span>);
+0738 set(get(ax2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0739 set(get(ax2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag Ampl.'</span>);
+0740 
+0741 <span class="comment">% get SSR of current signal</span>
+0742 te_start = data.echo_range(1);
+0743 te_end = data.echo_range(2);
+0744 sse_r = <a href="#_sub11" class="code" title="subfunction ssr = getSSR(signal)">getSSR</a>(real(data.signal_rot(te_start:te_end)));
+0745 sse_i = <a href="#_sub11" class="code" title="subfunction ssr = getSSR(signal)">getSSR</a>(imag(data.signal_rot(te_start:te_end)));
+0746 
+0747 set(get(ax1,<span class="string">'Title'</span>),<span class="string">'String'</span>,[<span class="string">'SSR: '</span>,sprintf(<span class="string">'%6.5e'</span>,sse_r)]);
+0748 set(get(ax2,<span class="string">'Title'</span>),<span class="string">'String'</span>,[<span class="string">'SSR: '</span>,sprintf(<span class="string">'%6.5e'</span>,sse_i)]);
+0749 
+0750 <span class="comment">% plot patches to indicate echo range</span>
+0751 p_alpha = 0.8;
+0752 xlims = get(ax1,<span class="string">'XLim'</span>);
+0753 ylims_re = get(ax1,<span class="string">'YLim'</span>);
+0754 ylims_im = get(ax2,<span class="string">'YLim'</span>);
+0755 <span class="keyword">if</span> data.time(te_start)&gt;xlims(1)
+0756     <span class="comment">% draw a transparent patch</span>
+0757     v_re = [xlims(1) ylims_re(1); xlims(1) ylims_re(2);
+0758         data.time(te_start) ylims_re(2); data.time(te_start) ylims_re(1)];
+0759     v_im = [xlims(1) ylims_im(1); xlims(1) ylims_im(2);
+0760         data.time(te_start) ylims_im(2); data.time(te_start) ylims_im(1)];
+0761     f = [1 2 3 4 1];
+0762     patch(<span class="string">'Vertices'</span>,v_re,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+0763         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, ax1);
+0764     patch(<span class="string">'Vertices'</span>,v_im,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+0765         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, ax2);
+0766 <span class="keyword">end</span>
+0767 <span class="keyword">if</span> data.time(te_end)&lt;xlims(2)
+0768     <span class="comment">% draw a transparent patch</span>
+0769     v_re = [xlims(2) ylims_re(1); xlims(2) ylims_re(2);
+0770         data.time(te_end) ylims_re(2); data.time(te_end) ylims_re(1)];
+0771     v_im = [xlims(2) ylims_im(1); xlims(2) ylims_im(2);
+0772         data.time(te_end) ylims_im(2); data.time(te_end) ylims_im(1)];
+0773     f = [1 2 3 4 1];
+0774     patch(<span class="string">'Vertices'</span>,v_re,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+0775         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, ax1);
+0776     patch(<span class="string">'Vertices'</span>,v_im,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+0777         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, ax2);
+0778 <span class="keyword">end</span>
+0779 set(ax1,<span class="string">'YLim'</span>,ylims_re);
+0780 set(ax2,<span class="string">'YLim'</span>,ylims_im);
+0781 set([ax1 ax2],<span class="string">'FontSize'</span>,gui.myui.fontsize);
+0782 hold(ax1,<span class="string">'off'</span>);
+0783 hold(ax2,<span class="string">'off'</span>);
+0784 <span class="keyword">end</span>
+0785 
+0786 <span class="comment">%% subfunction to plot the SSR</span>
+0787 <a name="_sub10" href="#_subfunctions" class="code">function pv_plotSSR(fig_phase)</a>
+0788 data = getappdata(fig_phase,<span class="string">'data'</span>);
+0789 gui = getappdata(fig_phase,<span class="string">'gui'</span>);
+0790 
+0791 <span class="comment">% axes handles</span>
+0792 ax = gui.axes_handles.sse;
+0793 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0794 hold(ax,<span class="string">'on'</span>);
+0795 
+0796 <span class="comment">% plot REal and IMag SSRs</span>
+0797 ymin = min([data.sse_r data.sse_i]);
+0798 ymax = max([data.sse_r data.sse_i]);
+0799 plot(data.beta_range,data.sse_r,<span class="string">'Color'</span>,gui.myui.colors.RE,<span class="string">'Parent'</span>,ax);
+0800 plot(data.beta_range,data.sse_i,<span class="string">'Color'</span>,gui.myui.colors.IM,<span class="string">'Parent'</span>,ax);
+0801 <span class="comment">% indicate current phase angle</span>
+0802 line([data.phase data.phase],[ymin ymax],<span class="string">'Color'</span>,gui.myui.colors.axisL,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,ax)
+0803 lgh = legend(ax,<span class="string">'Real'</span>,<span class="string">'Imag'</span>,<span class="string">'Phase'</span>);
+0804 set(lgh,<span class="string">'TextColor'</span>,gui.myui.colors.panelFG);
+0805 
+0806 <span class="comment">% plot patches to indicate angle range</span>
+0807 p_alpha = 0.8;
+0808 xlims = [-180 180];
+0809 ylims = [ymin ymax];
+0810 <span class="keyword">if</span> data.phase_range(1)&gt;xlims(1)
+0811     <span class="comment">% draw a transparent patch</span>
+0812     v = [xlims(1) ylims(1); xlims(1) ylims(2);
+0813         data.phase_range(1) ylims(2); data.phase_range(1) ylims(1)];
+0814     f = [1 2 3 4 1];
+0815     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+0816         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, ax);
+0817 <span class="keyword">end</span>
+0818 <span class="keyword">if</span> data.phase_range(2)&lt;xlims(2)
+0819     <span class="comment">% draw a transparent patch</span>
+0820     v = [xlims(2) ylims(1); xlims(2) ylims(2);
+0821         data.phase_range(2) ylims(2); data.phase_range(2) ylims(1)];
+0822     f = [1 2 3 4 1];
+0823     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+0824         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, ax);
+0825 <span class="keyword">end</span>
+0826 
+0827 xticks = -180:45:180;
+0828 set(ax,<span class="string">'XLim'</span>,[-180 180],<span class="string">'XTick'</span>,xticks);
+0829 set(ax,<span class="string">'YLim'</span>,[ymin ymax]);
+0830 set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'phase angle [deg]'</span>);
+0831 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'squared sum res. (SSR)'</span>);
+0832 hold(ax,<span class="string">'off'</span>);
+0833 set(ax,<span class="string">'FontSize'</span>,gui.myui.fontsize);
+0834 <span class="keyword">end</span>
+0835 
+0836 <span class="comment">%% subfunction to get the SSR</span>
+0837 <a name="_sub11" href="#_subfunctions" class="code">function ssr = getSSR(signal)</a>
+0838 <span class="comment">% residual of signal</span>
+0839 res = zeros(size(signal))-signal;
+0840 <span class="comment">% sum of squared residuals SSR</span>
+0841 ssr = sum(res.^2);
+0842 <span class="keyword">end</span>
+0843 
+0844 <span class="comment">%------------- END OF CODE --------------</span>
+0845 
+0846 <span class="comment">%% License:</span>
+0847 <span class="comment">% MIT License</span>
+0848 <span class="comment">%</span>
+0849 <span class="comment">% Copyright (c) 2019 Thomas Hiller</span>
+0850 <span class="comment">%</span>
+0851 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0852 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0853 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0854 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0855 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0856 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0857 <span class="comment">%</span>
+0858 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0859 <span class="comment">% copies or substantial portions of the Software.</span>
+0860 <span class="comment">%</span>
+0861 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0862 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0863 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0864 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0865 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0866 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0867 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

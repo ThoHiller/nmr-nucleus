@@ -84,6 +84,16 @@ switch label
                 'Cannot continue because there is no data!'},...
                 'No inversion data.');
         end
+    case '2DInv GUI'
+        if isfield(data.import,'T1T2map')
+            Inv2DView(src);
+        else
+            helpdlg({'function: Inv2DView',...
+                'Cannot continue because there is no data!'},...
+                'No T1T2 data.');
+        end
+    case '2DMod GUI'
+        Mod2DView(src);
 end
 
 end

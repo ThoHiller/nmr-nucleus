@@ -203,6 +203,42 @@ switch fig_tag
                 helpdlg({'function: minimizePanel',...
                     'Something is utterly wrong.'},'Info');
         end
+    case '2DINV'
+        panel_1 = 'Properties';
+        panel_2 = '2D inversion settings';
+        panel_3 = 'Information';
+
+        switch paneltitle
+            case panel_1
+                id = 1;
+            case panel_2
+                id = 2;
+            case panel_3
+                id = 3;
+            otherwise
+                helpdlg({'function: minimizePanel',...
+                    'Something is utterly wrong.'},'Info');
+        end
+
+        switch paneltitle
+            case {panel_1,panel_2,panel_3}
+                % all heights of the left panels
+                heights = get(gui.left,'Heights');
+                % default height of this panel
+                pheight = def_heights(2,id);
+                if isminimized % maximize panel
+                    heights(id) = pheight;
+                    set(gui.left,'Heights',heights);
+                    set(panel,'Minimized',false);
+                else % minimize panel
+                    heights(id) = pheightmin;
+                    set(gui.left,'Heights',heights);
+                    set(panel,'Minimized',true)
+                end
+            otherwise
+                helpdlg({'function: minimizePanel',...
+                    'Something is utterly wrong.'},'Info');
+        end
 end
 % update GUI data
 setappdata(fig,'gui',gui);

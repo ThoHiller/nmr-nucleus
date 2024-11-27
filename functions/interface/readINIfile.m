@@ -39,7 +39,7 @@ inilines = inilines{1};
 %% process lines
 for i = 1:size(inilines,1)
     tmp = char(inilines(i));
-    if ~isempty(strfind(tmp,'='))
+    if contains(tmp,'=')
         ind = strfind(tmp,'=');
         prop = tmp(1:ind-1);
         value = tmp(ind+1:end);

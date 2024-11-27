@@ -1,4 +1,4 @@
-function [s_rot,alpha] = rotateT2phase(s)
+function [s_rot,alpha] = rotateT2phase(s,varargin)
 %rotateT2phase rotateT2phase rotates the complex NMR T2 signal so that the imaginary
 %part is zero.
 %
@@ -31,20 +31,35 @@ function [s_rot,alpha] = rotateT2phase(s)
 
 %------------- BEGIN CODE --------------
 
+%%
+method = 'minReIm';
+if nargin > 1
+    method = varargin{1};
+end
+range = [-pi pi];
+if nargin > 2
+    range = varargin{2};
+end
+
 %% only proceed if signal is complex
 if ~isreal(s)
     % fminsearch options
     options = optimset('MaxFunEvals',100,'MaxIter',100,'TolFun',1e-6,'TolX',1e-6);
     % let fminsearch minimize fun1
-    [alpha,~,~,~] = fminsearch(@(alpha) fun1(alpha,s,'minReIm'),pi/18,options);
+    % method = 'maxRe';
+    % [alpha,~,~,~] = fminsearch(@(alpha) fun1(alpha,s(1:end),method),pi/18,options);
+
+    [alpha,~,~,~] = fminsearchbnd(@(alpha) fun1(alpha,s(1:end),method),...
+                    pi/18,range(1),range(2),options);
     
     % s_rot is the rotated signal
     s_rot = s .* exp(1i*alpha);
     
     % if the real part is negative rotate by 180°
-    if real(s_rot(1)) < 0
-        s_rot = s_rot .* exp(1i*pi);
-    end
+    % if real(s_rot(1)) < 0
+    %     s_rot = s_rot .* exp(1i*pi);
+    %     alpha = alpha + pi;
+    % end
 else
     % do nothing
     s_rot = s;
@@ -71,7 +86,7 @@ switch method
         t0 = zeros(size(s,1),1);
         t0 = t0(:);
         % s_rot is the rotated signal
-        s_rot = s .* exp(1i*alpha);        
+        s_rot = s .* exp(1i*alpha);
         % create residuals
         residuali = t0-imag(s_rot);
         residualr = t0-real(s_rot);

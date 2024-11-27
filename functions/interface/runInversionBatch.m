@@ -255,10 +255,11 @@ if ~isempty(INVdata)
                     waitbar(id / steps,hwb,['processing ...',num2str(id),...
                         ' / ',num2str(steps),' NMR signals']);
                 else
-                    % otherwise only update every 25 signals
+                    % otherwise only show 25 increments of the waitbar
                     % NOTE: Matlab's wait-bar SLOWS DOWN the calculation
                     % MASSIVELY
-                    if id == 1 || mod(id,25) == 0
+                    my_mod = round(size(INVdata,1)/25);
+                    if id == 1 || mod(id,my_mod) == 0
                         waitbar(id / steps,hwb,['processing ...',num2str(id),...
                             ' / ',num2str(steps),' NMR signals']);
                     end

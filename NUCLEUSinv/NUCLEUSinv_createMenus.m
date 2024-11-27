@@ -48,88 +48,108 @@ gui.menu.file_import_lastimport = uimenu(gui.menu.file_import,...
 gui.menu.file_import_lab = uimenu(gui.menu.file_import,...
     'Label','Lab');
 
-% 1.1.1.1 BAM
+% 1.1.1.1 AARHUS
+gui.menu.file_import_lab_aarhus = uimenu(gui.menu.file_import_lab,...
+    'Label','AARHUS');
+% 1.1.1.1.1 AARHUS Dart T1T2
+gui.menu.file_import_lab_aarhus_dartT1T2 = uimenu(gui.menu.file_import_lab_aarhus,...
+    'Label','Dart T1T2','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.1.2 AARHUS Dart T2 logging
+gui.menu.file_import_lab_aarhus_dartT2 = uimenu(gui.menu.file_import_lab_aarhus,...
+    'Label','Dart T2 logging','Tag','Lab','Callback',@onMenuImport);
+
+% 1.1.1.2 BAM
 gui.menu.file_import_lab_bam = uimenu(gui.menu.file_import_lab,...
     'Label','BAM');
-% 1.1.1.1.1 BAM TOM
+% 1.1.1.2.1 BAM TOM
 gui.menu.file_import_lab_bam_tom = uimenu(gui.menu.file_import_lab_bam,...
     'Label','BAM TOM','Tag','Lab','Callback',@onMenuImport);
 
-% 1.1.1.2 BGR
+% 1.1.1.3 BGR
 gui.menu.file_import_lab_bgr = uimenu(gui.menu.file_import_lab,...
     'Label','BGR');
-% 1.1.1.2.1 BGR std
+% 1.1.1.3.1 BGR std
 gui.menu.file_import_lab_bgr_std = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','BGR std','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.2 BGR mat
+% 1.1.1.3.2 BGR mat
 gui.menu.file_import_lab_bgr_mat = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','BGR mat','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.3 Mouse CPMG data, single data subfolders from CPMG
+% 1.1.1.3.3 Mouse CPMG data, single data subfolders from CPMG
 gui.menu.file_import_lab_bgr_mouse_cpmg = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','MouseCPMG','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.4 Mouse plus Lift, all data subfolders from t1test,...
+% 1.1.1.3.4 Mouse plus Lift, all data subfolders from t1test,...
 % cpmgfastautotest, or (old Prospa Versions) cpmgfastauto
 gui.menu.file_import_lab_bgr_mouse_lift = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','MouseLift','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.5 Helios CPMG standard data, single subfolders with individual data files
+% 1.1.1.3.5 Helios CPMG standard data, single subfolders with individual data files
 gui.menu.file_import_lab_bgr_helios_cpmg = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','HeliosCPMG','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.2.6 Helios series of CPMG data, several files of a series in the target
+% 1.1.1.3.6 Helios series of CPMG data, several files of a series in the target
 % folder, as used e.g. for T1 measurements
 gui.menu.file_import_lab_bgr_helios_series = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','HeliosSeries','Tag','Lab','Callback',@onMenuImport);
 
-% 1.1.1.3 LIAG
+% 1.1.1.4 LIAG
 gui.menu.file_import_lab_liag = uimenu(gui.menu.file_import_lab,...
     'Label','LIAG');
-% 1.1.1.3.1 LIAG
+% 1.1.1.4.1 LIAG
 gui.menu.file_import_lab_liag_single = uimenu(gui.menu.file_import_lab_liag,...
     'Label','LIAG single','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.3.2 LIAG
+% 1.1.1.4.2 LIAG
 gui.menu.file_import_lab_liag_project = uimenu(gui.menu.file_import_lab_liag,...
     'Label','LIAG from project','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.3.3 LIAG
+% 1.1.1.4.3 LIAG
 gui.menu.file_import_lab_liag_core = uimenu(gui.menu.file_import_lab_liag,...
     'Label','LIAG core','Tag','Lab','Callback',@onMenuImport);
 
-% 1.1.1.4 RWTH
+% 1.1.1.5 RUTGERS
+gui.menu.file_import_lab_rutgers = uimenu(gui.menu.file_import_lab,...
+    'Label','RUTGERS');
+% 1.1.1.5.1 RUTGERS
+gui.menu.file_import_lab_rutgers_T1T2 = uimenu(gui.menu.file_import_lab_rutgers,...
+    'Label','RoCA T1T2','Tag','Lab','Callback',@onMenuImport);
+
+% 1.1.1.6 RWTH
 gui.menu.file_import_lab_rwth = uimenu(gui.menu.file_import_lab,...
     'Label','RWTH');
-% 1.1.1.4.1 IBAC
+% 1.1.1.6.1 IBAC
 gui.menu.file_import_lab_ibac = uimenu(gui.menu.file_import_lab_rwth,...
     'Label','IBAC');
-% 1.1.1.4.1.1 IBAC
+% 1.1.1.6.1.1 IBAC
 gui.menu.file_import_lab_ibac_pm5 = uimenu(gui.menu.file_import_lab_ibac,...
     'Label','PM5','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.4.1.2 IBAC
+% 1.1.1.6.1.2 IBAC
 gui.menu.file_import_lab_ibac_pm25 = uimenu(gui.menu.file_import_lab_ibac,...
     'Label','PM25','Tag','Lab','Callback',@onMenuImport);
 
-% 1.1.1.4.2 GGE
+% 1.1.1.6.2 GGE
 gui.menu.file_import_lab_gge = uimenu(gui.menu.file_import_lab_rwth,...
     'Label','GGE');
-% 1.1.1.4.2.1 GGE ascii
+% 1.1.1.6.2.1 GGE ascii
 gui.menu.file_import_lab_gge_ascii = uimenu(gui.menu.file_import_lab_gge,...
     'Label','GGE ascii','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.4.2.2 GGE field
+% 1.1.1.6.2.2 GGE field
 gui.menu.file_import_lab_gge_field = uimenu(gui.menu.file_import_lab_gge,...
     'Label','GGE field','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.4.2.3 GGE Dart
+% 1.1.1.6.2.3 GGE Dart
 gui.menu.file_import_lab_gge_dart = uimenu(gui.menu.file_import_lab_gge,...
     'Label','GGE Dart','Tag','Lab','Callback',@onMenuImport);
 
-% 1.1.1.5 OTHER
+% 1.1.1.7 OTHER
 gui.menu.file_import_lab_other = uimenu(gui.menu.file_import_lab,...
     'Label','OTHER');
-% 1.1.1.5.1 CoreLab ascii
+% 1.1.1.7.1 CoreLab ascii
 gui.menu.file_import_lab_corelab = uimenu(gui.menu.file_import_lab_other,...
     'Label','CoreLab ascii','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.5.2 MOUSE
+% 1.1.1.7.2 MOUSE
 gui.menu.file_import_lab_mouse = uimenu(gui.menu.file_import_lab_other,...
     'Label','MOUSE','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.5.3 DART (University of Vienna)
+% 1.1.1.7.3 DART (University of Vienna)
 gui.menu.file_import_lab_dart = uimenu(gui.menu.file_import_lab_other,...
     'Label','DART','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.7.4 DART (incl. Burst echoes)
+gui.menu.file_import_lab_dartburst = uimenu(gui.menu.file_import_lab_other,...
+    'Label','DART (+Burst)','Tag','Lab','Callback',@onMenuImport);
 
 % 1.1.2 Ascii
 gui.menu.file_import_ascii = uimenu(gui.menu.file_import,...
@@ -167,6 +187,9 @@ gui.menu.file_import_nmrmod_file = uimenu(gui.menu.file_import_nmrmod,...
 % 1.1.5.2 NUCLEUSmod from GUI
 gui.menu.file_import_nmrmod_gui = uimenu(gui.menu.file_import_nmrmod,....
     'Label','GUI','Tag','NUCLEUSmod','Callback',@onMenuImport);
+% 1.1.5.3 NUCLEUSmod from 2D GUI
+gui.menu.file_import_nmrmod_gui2d = uimenu(gui.menu.file_import_nmrmod,....
+    'Label','2D GUI','Tag','NUCLEUSmod2d','Callback',@onMenuImport);
 
 % 1.2 Export
 gui.menu.file_export = uimenu(gui.menu.file,...
@@ -318,6 +341,9 @@ gui.menu.extra_fixedtime = uimenu(gui.menu.view,...
 % 2.9 UncertaintyVIEW GUI
 gui.menu.extra_uncert = uimenu(gui.menu.view,...
     'Label','UncertView GUI','Enable','off','Callback',@onMenuSubGUIs);
+% 2.9 2DInv GUI
+gui.menu.extra_T1T2map = uimenu(gui.menu.view,...
+    'Label','2DInv GUI','Enable','off','Callback',@onMenuSubGUIs);
 
 %% 3. Extras
 gui.menu.extra = uimenu(gui.figh,...
@@ -373,6 +399,11 @@ end
 gui.menu.extra_joint_rhobounds = uimenu(gui.menu.extra,...
     'Label','Surface relaxivity bounds','Enable','off',...
     'Callback',@onMenuExtraRhoBounds);
+
+% 3.6 find duplicate data
+gui.menu.extra_find_duplicates = uimenu(gui.menu.extra,...
+    'Label','Find duplicate signals','Enable','on',...
+    'Callback',@onMenuExtraFindDuplicates);
 
 
 %% 4. Color theme

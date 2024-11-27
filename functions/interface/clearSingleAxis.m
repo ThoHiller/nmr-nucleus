@@ -35,6 +35,10 @@ lgh = findobj('Type','legend','Parent',parent);
 if ~isempty(lgh)
     delete(lgh);
 end
+cbh = findobj('Type','colorbar','Parent',parent);
+if ~isempty(cbh)
+    delete(cbh);
+end
 
 %% look for specific tags and clear corresponding objects
 ph = findall(axh,'Tag','SatPoints');
@@ -47,6 +51,7 @@ ph = findall(axh,'Tag','infolines');
 if ~isempty(ph); set(ph,'HandleVisibility','on'); end
 
 %% clear the axis itself
+set(get(axh,'Title'),'String','');
 cla(axh);
 
 end

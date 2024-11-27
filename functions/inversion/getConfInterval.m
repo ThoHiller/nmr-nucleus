@@ -68,7 +68,7 @@ end
 if StatBox == 1
     stud_fac = tinv(1-alpha,deg_free);
 else
-    if deg_free <= 1000
+    if deg_free > 0 && deg_free <= 1000
         stud_fac = getStudentInvCDF(1-alpha,deg_free);
     else
         stud_fac = 1;%NaN;

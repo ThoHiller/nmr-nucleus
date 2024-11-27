@@ -86,6 +86,9 @@ t_echo = A(1,2);
 n_echo = A(1,3);
 freq = A(1,4);
 Nscans = A(1,5);
+t_recov = A(1,9); % HELIOS
+t_rep = A(1,14); % HELIOS
+timestamp = A(1,42); % HELIOS
 
 time = t_echo:t_echo:t_echo*n_echo;
 time = time(:);
@@ -97,18 +100,27 @@ im = im(:);
 data.flag = flag;
 data.raw.time = time;
 data.raw.signal = complex(re,im);
-[data.signal,data.phase] = rotateT2phase(data.raw.signal);
+% the HELIOS phase is generally around 140°, hence we give a range for
+% finding the optimal phase angle
+[data.signal,data.phase] = rotateT2phase(data.raw.signal,'stdIm',...
+    [deg2rad(140-25) deg2rad(140+25)]);
 
 data.time = data.raw.time;
+data.raw.signal = data.signal;
 
 pardata.t_echo = t_echo;
 pardata.n_echo = n_echo;
+pardata.t_recov = t_recov;
+pardata.t_rep = t_rep;
 pardata.freq = freq;
 pardata.Nscans = Nscans;
+pardata.timestamp = timestamp;
 d{1}{1,1} = ['t_echo = ',num2str(t_echo)];
 d{1}{2,1} = ['n_echo = ',num2str(n_echo)];
-d{1}{3,1} = ['freq = ',num2str(freq)];
-d{1}{4,1} = ['Nscans = ',num2str(Nscans)];
+d{1}{3,1} = ['t_recov = ',num2str(t_recov)];
+d{1}{4,1} = ['t_rep = ',num2str(t_rep)];
+d{1}{5,1} = ['freq = ',num2str(freq)];
+d{1}{6,1} = ['Nscans = ',num2str(Nscans)];
 pardata.all = d;
 
 end

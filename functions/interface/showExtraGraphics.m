@@ -225,6 +225,8 @@ if foundINV
             hold(ax1,'on');
             switch data.invstd.invtype
                 case 'mono'
+                    % init dummy Ex (for plotting)
+                    Ex = E0;
                     errorbar(xval,E0,E0_er,'o','Color',col.FIT,'Parent',ax1,...
                         'DisplayName','E0');
                 case 'free'
@@ -269,6 +271,8 @@ if foundINV
             hold(ax2,'on');
             switch data.invstd.invtype
                 case 'mono'
+                    % init dummy Tx (for plotting)
+                    Tx = T;
                     errorbar(xval,T,T_er,'o','Color',col.FIT,'DisplayName','T0','Parent',ax2);
                     set(get(ax2,'YLabel'),'String',['T [',timescale,']']);
                 case 'free'

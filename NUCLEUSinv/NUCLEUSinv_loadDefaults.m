@@ -195,6 +195,65 @@ out.pressure.unit = 'Pa';
 % corresponding scale factors - 1 | 1e-3 | 1e-6 | 1e-5
 out.pressure.unitfac = 1;
 
+%% 2D inversion GUI settings
+% system / fluid properties
+% diffusion coefficient [m²/s]
+out.inv2D.prop.D = 2.025e-9;
+% gradient [T/m]
+out.inv2D.prop.G0 = 0;
+% echo time [s]
+out.inv2D.prop.te = 200e-6;
+% start echo
+out.inv2D.prop.first = 1;
+% last echo
+out.inv2D.prop.last = 1;
+
+% inversion settings
+% IR/SR factor
+out.inv2D.inv.T1IRfac = 2;
+% IR kernel type (1 or 2)
+out.inv2D.inv.IRtype = 1;
+% T1 range minimum [s]
+out.inv2D.inv.T1min = 1e-4;
+% T1 range maximum [s]
+out.inv2D.inv.T1max = 10;
+% T1 number of points in range
+out.inv2D.inv.T1N = 51;
+% T2 range minimum [s]
+out.inv2D.inv.T2min = 1e-4;
+% T2 range maximum [s]
+out.inv2D.inv.T2max = 10;
+% T2 number of points in range
+out.inv2D.inv.T2N = 51;
+% T1 regularization parameter lambda
+out.inv2D.inv.T1lambda = 5;
+% T1 order of smoothness constraint
+out.inv2D.inv.T1order = 1;
+% T2 regularization parameter lambda
+out.inv2D.inv.T2lambda = 2;
+% T2 order of smoothness constraint
+out.inv2D.inv.T2order = 1;
+
+% information settings / properties
+% T1 minimum [s]
+out.inv2D.info.T1min = 1e-3;
+% T1 maximum [s]
+out.inv2D.info.T1max = 1;
+% T2 minimum [s]
+out.inv2D.info.T2min = 1e-3;
+% T2 minimum [s]
+out.inv2D.info.T2max = 1;
+% initial amplitude E0 [a.u.]
+out.inv2D.info.E0 = 0;
+% T1 log mean time
+out.inv2D.info.T1tlgm = 0;
+% T2 log mean time
+out.inv2D.info.T2tlgm = 0;
+% T1 maximum time
+out.inv2D.info.T1tmax = 0;
+% T2 maximum time
+out.inv2D.info.T2tmax = 0;
+
 return
 
 %------------- END OF CODE --------------

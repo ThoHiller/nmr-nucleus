@@ -38,11 +38,9 @@ fig_tag = get(fig,'Tag');
 
 % get the label of the context menu
 label = get(src,'Label');
-% get the tag of the context menu
-tag = get(src,'Tag');
 
 % change the label depending on the current status
-if ~isempty(strfind(label,'log')) % current axis is lin -> switch to log
+if contains(label,'log') % current axis is lin -> switch to log
     label = strrep(label,'log','lin');
 else % current axis is log -> switch to lin
     label = strrep(label,'lin','log');    

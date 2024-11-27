@@ -32,7 +32,7 @@ function chi2 = getChi2(signal,fit,noise)
 %------------- BEGIN CODE --------------
 
 %% residual
-residual = signal - fit;
+residual = fit-signal;
 
 %% chi2
 % sqrt(sum(N.^2)) = norm(N) (if N is a vector)
