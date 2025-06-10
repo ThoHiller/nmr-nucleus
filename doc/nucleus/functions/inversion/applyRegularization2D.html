@@ -23,35 +23,40 @@
 <div class="box"><strong></strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong>function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda) </strong></div>
+<div class="box"><strong>function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre class="comment">applyRegularization applies a manual regularization to the kernel matrix K
+<div class="fragment"><pre class="comment">applyRegularization applies regularization procedures from the
+Regularization toolbox from P. Hansen -- for all methods (except &quot;manual&quot;)
+the regularization parameter lambda is determined by different criteria
+and using a SVD
 
  Syntax:
-       applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)
+       applyRegularization(K,g,LT2,LT1,lambda_in,flag,order,noise_level)
 
  Inputs:
        K - Kernel matrix
-       order - smoothness constraint: '0', '1' or '2' for both dimensions
-               the same so far
-       Tvec - relaxation time vector: here T2
-       Dvec - diffusion / relaxation time vector: here T1
-       indices - struct holding tile indices
-       dat_vec - signal vector
-       lambda - 1x2 vector holding lambda for both dimensions
+       g - signal
+       LT,LD - smoothness constraint matrices
+       lambda_in - regularization parameter
+       flag - flag for regularization method:
+              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',
+       order - smoothness constraint: '0', '1' or '2'
+       noise_level - noise level for 'discrep' method (discrepancy principle)
 
  Outputs:
        Kreg - expanded (regularized) Kernel matrix
-       dat_inp - expanded signal vector
-       L - smoothness matrix regarding T dim
-       LD - smoothness matrix regarding D dim
+       lambda - determined lambda
 
  Example:
-       [Kreg,dat_inp,~,~] = applyRegularization2D(K,order,T2vec,T1vec,indices,dat_vec,lambda)
+       [Kr,lam] = applyRegularization(K,s,LT2,LT1,lambda_in,flag,Lorder,noise)
 
  Other m-files required:
-       get_l (from Regularization toolbox)
+       Regularization Toolbox
+       csvd
+       cgsvd
+       gcv
+       discrep
 
  Subfunctions:
        none
@@ -77,109 +82,137 @@ This function is called by:
 
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)</a>
-0002 <span class="comment">%applyRegularization applies a manual regularization to the kernel matrix K</span>
-0003 <span class="comment">%</span>
-0004 <span class="comment">% Syntax:</span>
-0005 <span class="comment">%       applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)</span>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level)</a>
+0002 <span class="comment">%applyRegularization applies regularization procedures from the</span>
+0003 <span class="comment">%Regularization toolbox from P. Hansen -- for all methods (except &quot;manual&quot;)</span>
+0004 <span class="comment">%the regularization parameter lambda is determined by different criteria</span>
+0005 <span class="comment">%and using a SVD</span>
 0006 <span class="comment">%</span>
-0007 <span class="comment">% Inputs:</span>
-0008 <span class="comment">%       K - Kernel matrix</span>
-0009 <span class="comment">%       order - smoothness constraint: '0', '1' or '2' for both dimensions</span>
-0010 <span class="comment">%               the same so far</span>
-0011 <span class="comment">%       Tvec - relaxation time vector: here T2</span>
-0012 <span class="comment">%       Dvec - diffusion / relaxation time vector: here T1</span>
-0013 <span class="comment">%       indices - struct holding tile indices</span>
-0014 <span class="comment">%       dat_vec - signal vector</span>
-0015 <span class="comment">%       lambda - 1x2 vector holding lambda for both dimensions</span>
-0016 <span class="comment">%</span>
-0017 <span class="comment">% Outputs:</span>
-0018 <span class="comment">%       Kreg - expanded (regularized) Kernel matrix</span>
-0019 <span class="comment">%       dat_inp - expanded signal vector</span>
-0020 <span class="comment">%       L - smoothness matrix regarding T dim</span>
-0021 <span class="comment">%       LD - smoothness matrix regarding D dim</span>
-0022 <span class="comment">%</span>
-0023 <span class="comment">% Example:</span>
-0024 <span class="comment">%       [Kreg,dat_inp,~,~] = applyRegularization2D(K,order,T2vec,T1vec,indices,dat_vec,lambda)</span>
-0025 <span class="comment">%</span>
-0026 <span class="comment">% Other m-files required:</span>
-0027 <span class="comment">%       get_l (from Regularization toolbox)</span>
-0028 <span class="comment">%</span>
-0029 <span class="comment">% Subfunctions:</span>
-0030 <span class="comment">%       none</span>
-0031 <span class="comment">%</span>
-0032 <span class="comment">% MAT-files required:</span>
-0033 <span class="comment">%       none</span>
-0034 <span class="comment">%</span>
-0035 <span class="comment">% See also:</span>
-0036 <span class="comment">% Author: see AUTHORS.md</span>
-0037 <span class="comment">% email: see AUTHORS.md</span>
-0038 <span class="comment">% License: MIT License (at end)</span>
-0039 
-0040 <span class="comment">%------------- BEGIN CODE --------------</span>
-0041 
-0042 <span class="comment">%% get lambda values</span>
-0043 lamT = lambda(2); <span class="comment">% T2</span>
-0044 lamD = lambda(1); <span class="comment">% T1</span>
-0045 
-0046 <span class="comment">%% get column indices</span>
-0047 col_end = indices.col_end;
-0048 
-0049 <span class="comment">% get first smoothness matrix</span>
-0050 L = get_l(length(Tvec)*length(Dvec),order);
-0051 
-0052 <span class="comment">% regularization along first dimension, normally Tvec (here T2)</span>
-0053 <span class="comment">% loop necessary to correct the transitions among the tiles</span>
-0054 <span class="keyword">for</span> n = 1:length(Dvec)-1
-0055         L(col_end(n)-order+1:col_end(n),col_end(n)+1:col_end(n)+order) = zeros(order);  
-0056 <span class="keyword">end</span>
-0057 <span class="comment">% first expanded kernel matrix</span>
-0058 KregT = [K;lamT * L];
-0059 
-0060 <span class="comment">% regularization along second dimension, normally D (here T1)</span>
-0061 LD = zeros(size(L,1)-order*length(Tvec),size(L,2));
-0062 <span class="keyword">for</span> no = 1:order + 1
-0063     <span class="keyword">for</span> n = 1:size(LD,2) - (order) * length(Tvec)
-0064          LD(n,n+(no-1)*length(Tvec)) = L(1,no); 
-0065     <span class="keyword">end</span>
-0066 <span class="keyword">end</span>
-0067 <span class="comment">% final expanded kernel matrix</span>
-0068 Kreg = [KregT;lamD * LD];
-0069 
-0070 <span class="comment">% expanded data vector</span>
-0071 dat_inp = dat_vec;
-0072 dat_inp(length(dat_vec)+1:length(dat_vec)+size(L,1)+size(LD,1),1) = 0;
-0073 
-0074 <span class="keyword">return</span>
-0075 
-0076 <span class="comment">%------------- END OF CODE --------------</span>
-0077 
-0078 <span class="comment">%% License:</span>
-0079 <span class="comment">% MIT License</span>
-0080 <span class="comment">%</span>
-0081 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
-0082 <span class="comment">%</span>
-0083 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0084 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0085 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0086 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0087 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0088 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0089 <span class="comment">%</span>
-0090 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0091 <span class="comment">% copies or substantial portions of the Software.</span>
-0092 <span class="comment">%</span>
-0093 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0094 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0095 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0096 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0097 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0098 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0099 <span class="comment">% SOFTWARE.</span>
+0007 <span class="comment">% Syntax:</span>
+0008 <span class="comment">%       applyRegularization(K,g,LT2,LT1,lambda_in,flag,order,noise_level)</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Inputs:</span>
+0011 <span class="comment">%       K - Kernel matrix</span>
+0012 <span class="comment">%       g - signal</span>
+0013 <span class="comment">%       LT,LD - smoothness constraint matrices</span>
+0014 <span class="comment">%       lambda_in - regularization parameter</span>
+0015 <span class="comment">%       flag - flag for regularization method:</span>
+0016 <span class="comment">%              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',</span>
+0017 <span class="comment">%       order - smoothness constraint: '0', '1' or '2'</span>
+0018 <span class="comment">%       noise_level - noise level for 'discrep' method (discrepancy principle)</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Outputs:</span>
+0021 <span class="comment">%       Kreg - expanded (regularized) Kernel matrix</span>
+0022 <span class="comment">%       lambda - determined lambda</span>
+0023 <span class="comment">%</span>
+0024 <span class="comment">% Example:</span>
+0025 <span class="comment">%       [Kr,lam] = applyRegularization(K,s,LT2,LT1,lambda_in,flag,Lorder,noise)</span>
+0026 <span class="comment">%</span>
+0027 <span class="comment">% Other m-files required:</span>
+0028 <span class="comment">%       Regularization Toolbox</span>
+0029 <span class="comment">%       csvd</span>
+0030 <span class="comment">%       cgsvd</span>
+0031 <span class="comment">%       gcv</span>
+0032 <span class="comment">%       discrep</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% Subfunctions:</span>
+0035 <span class="comment">%       none</span>
+0036 <span class="comment">%</span>
+0037 <span class="comment">% MAT-files required:</span>
+0038 <span class="comment">%       none</span>
+0039 <span class="comment">%</span>
+0040 <span class="comment">% See also:</span>
+0041 <span class="comment">% Author: see AUTHORS.md</span>
+0042 <span class="comment">% email: see AUTHORS.md</span>
+0043 <span class="comment">% License: MIT License (at end)</span>
+0044 
+0045 <span class="comment">%------------- BEGIN CODE --------------</span>
+0046 
+0047 <span class="comment">% combined smoothness matrix</span>
+0048 L = [LT;LD];
+0049 
+0050 <span class="keyword">switch</span> flag
+0051     <span class="keyword">case</span> <span class="string">'manual'</span>
+0052         Kreg = [K;lambda_in(1)*LT;lambda_in(2)*LD];
+0053         lambda = lambda_in;
+0054 
+0055     <span class="keyword">case</span> {<span class="string">'gcv_tikh'</span>,<span class="string">'gcv_trunc'</span>,<span class="string">'gcv_damp'</span>}
+0056         <span class="keyword">try</span>
+0057             <span class="keyword">if</span> order == 0
+0058                 [U,s,~] = csvd(K);
+0059             <span class="keyword">else</span>
+0060                 [U,s,~,~,~] = cgsvd(K,L);
+0061             <span class="keyword">end</span>
+0062             <span class="keyword">switch</span> flag
+0063                 <span class="keyword">case</span> <span class="string">'gcv_tikh'</span>
+0064                     [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);
+0065                 <span class="keyword">case</span> <span class="string">'gcv_trunc'</span>
+0066                     [lambda,~,~] = gcv(U,s,g,<span class="string">'tsvd'</span>,0);
+0067                 <span class="keyword">case</span> <span class="string">'gcv_damp'</span>
+0068                     [lambda,~,~] = gcv(U,s,g,<span class="string">'dsvd'</span>,0);
+0069             <span class="keyword">end</span>
+0070             Kreg = [K;lambda*L];
+0071         <span class="keyword">catch</span> ME
+0072             <span class="comment">% show error message in case cgsvd fails</span>
+0073             errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0074                 <span class="string">'Regul. Box: cgsvd.m failed!'</span>;<span class="string">'Increase #gates or decrease model space.'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
+0075             errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
+0076             lambda = 1;
+0077             Kreg = [K;lambda*L];
+0078         <span class="keyword">end</span>
+0079 
+0080     <span class="keyword">case</span> <span class="string">'discrep'</span>
+0081         delta = sqrt(length(g))*noise_level;
+0082         <span class="keyword">try</span>
+0083             <span class="keyword">if</span> order == 0
+0084                 [U,s,V] = csvd(K);
+0085                 [~,lambda] = discrep(U,s,V,g,delta);
+0086             <span class="keyword">else</span>
+0087                 [U,s,X,~,~] = cgsvd(K,L);
+0088                 [~,lambda] = discrep(U,s,X,g,delta);
+0089             <span class="keyword">end</span>
+0090             Kreg = [K;lambda*L];
+0091         <span class="keyword">catch</span> ME
+0092             <span class="comment">% show error message in case discrep fails</span>
+0093             errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0094                 <span class="string">'Regul. Box: discrep.m failed!'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
+0095             errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
+0096             lambda = 1;
+0097             Kreg = [K;lambda*L];
+0098         <span class="keyword">end</span>
+0099 <span class="keyword">end</span>
 0100 
-0101 
-0102         
-0103</pre></div>
+0101 <span class="comment">% the GUI needs two lambda values</span>
+0102 <span class="keyword">if</span> numel(lambda) == 1
+0103     lambda(2) = lambda(1);
+0104 <span class="keyword">end</span>
+0105 
+0106 <span class="keyword">return</span>
+0107 
+0108 <span class="comment">%------------- END OF CODE --------------</span>
+0109 
+0110 <span class="comment">%% License:</span>
+0111 <span class="comment">% MIT License</span>
+0112 <span class="comment">%</span>
+0113 <span class="comment">% Copyright (c) 2025 Thomas Hiller</span>
+0114 <span class="comment">%</span>
+0115 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0116 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0117 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0118 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0119 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0120 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0121 <span class="comment">%</span>
+0122 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0123 <span class="comment">% copies or substantial portions of the Software.</span>
+0124 <span class="comment">%</span>
+0125 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0126 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0127 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0128 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0129 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0130 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0131 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

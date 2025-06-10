@@ -1,0 +1,296 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of runLcurveIterative</title>
+  <meta name="keywords" content="runLcurveIterative">
+  <meta name="description" content=" performs an iterative L-curve calculation. This routine">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html inversion -->
+<h1>runLcurveIterative
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> performs an iterative L-curve calculation. This routine</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = runLcurveIterative(lparam,iparam,gui) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">runLcurveIterative performs an iterative L-curve calculation. This routine
+uses the iterative L-curve approach described in Cultrera, 2020, IOP
+SciNotes, Vol. 1 (No. 2) 025004, https://doi.org/10.1088/2633-1357/abad0d
+
+ Syntax:
+       out = runLcurveIterative(lparam,iparam,gui)
+
+ Inputs:
+       lparam - struct with l-curve settings
+       iparam - struct with inversion settings
+       gui - main NUCLEUS gui struct
+
+ Outputs:
+       out - struct holding output data
+
+ Example:
+       out = runLcurveIterative(lparam,iparam,gui)
+
+ Other m-files required:
+       displayStatusText
+
+ Subfunctions:
+       none
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>	 shows status information either in the GUI or on the</li><li><a href="getMengerCurvature.html" class="code" title="function C = getMengerCurvature(PP)">getMengerCurvature</a>	</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="../../../nucleus/functions/interface/runInversionStd.html" class="code" title="function runInversionStd">runInversionStd</a>	 controls the standard inversion process to invert a</li><li><a href="../../../nucleus/functions/interface/subGUIs/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>	 is an extra subGUI to calculate 2D inversion of T1-T2 data</li></ul>
+<!-- crossreference -->
+
+
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = runLcurveIterative(lparam,iparam,gui)</a>
+0002 <span class="comment">%runLcurveIterative performs an iterative L-curve calculation. This routine</span>
+0003 <span class="comment">%uses the iterative L-curve approach described in Cultrera, 2020, IOP</span>
+0004 <span class="comment">%SciNotes, Vol. 1 (No. 2) 025004, https://doi.org/10.1088/2633-1357/abad0d</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Syntax:</span>
+0007 <span class="comment">%       out = runLcurveIterative(lparam,iparam,gui)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Inputs:</span>
+0010 <span class="comment">%       lparam - struct with l-curve settings</span>
+0011 <span class="comment">%       iparam - struct with inversion settings</span>
+0012 <span class="comment">%       gui - main NUCLEUS gui struct</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Outputs:</span>
+0015 <span class="comment">%       out - struct holding output data</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Example:</span>
+0018 <span class="comment">%       out = runLcurveIterative(lparam,iparam,gui)</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Other m-files required:</span>
+0021 <span class="comment">%       displayStatusText</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% Subfunctions:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% MAT-files required:</span>
+0027 <span class="comment">%       none</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% See also: NUCLEUSinv</span>
+0030 <span class="comment">% Author: see AUTHORS.md</span>
+0031 <span class="comment">% email: see AUTHORS.md</span>
+0032 <span class="comment">% License: MIT License (at end)</span>
+0033 
+0034 <span class="comment">%------------- BEGIN CODE --------------</span>
+0035 
+0036 <span class="comment">% status bar information</span>
+0037 infostring = <span class="string">'L-curve calculation ... '</span>;
+0038 <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0039 
+0040 <span class="comment">% init lambda1 and lambda4</span>
+0041 l1 = lparam.lambda_range(1);
+0042 l4 = lparam.lambda_range(2);
+0043 <span class="comment">% termination threshold</span>
+0044 epsilon = 0.01;
+0045 <span class="comment">% define golden ratio phi</span>
+0046 phi = (1+sqrt(5))/2;
+0047 <span class="comment">% get lambda2 and lambda3</span>
+0048 l2 = 10^((log10(l4)+phi*log10(l1))/(1+phi));
+0049 l3 = 10^(log10(l1)+(log10(l4)-log10(l2)));
+0050 
+0051 <span class="comment">% first four lambda values</span>
+0052 lam = [l1 l2 l3 l4];
+0053 CHI2 = zeros(size(lam));
+0054 XN = zeros(size(lam));
+0055 RN = zeros(size(lam));
+0056 
+0057 <span class="keyword">for</span> i = 1:length(lam)
+0058     <span class="keyword">switch</span> lparam.dim
+0059         <span class="keyword">case</span> 1
+0060             iparam.lambda = lam(i);
+0061             invdata = lparam.func(lparam.t,lparam.s,iparam);           
+0062         <span class="keyword">case</span> 2
+0063             iparam.lamT1 = lparam.lambdaFactor*lam(i);
+0064             iparam.lamT2 = lam(i);
+0065             invdata = lparam.func(lparam.data,iparam);
+0066     <span class="keyword">end</span>
+0067     <span class="comment">% output data</span>
+0068     CHI2(i) = invdata.chi2;
+0069     RN(i) = invdata.rn;
+0070     XN(i) = invdata.xn;
+0071 <span class="keyword">end</span>
+0072 
+0073 <span class="comment">% temporarily store them</span>
+0074 lc.lambda = lam;
+0075 lc.RMS = CHI2;
+0076 lc.RN = RN;
+0077 lc.XN = XN;
+0078 
+0079 P(:,1) = RN;
+0080 P(:,2) = XN;
+0081 
+0082 <span class="comment">% start iterating</span>
+0083 keep_running = true;
+0084 count = 0;
+0085 <span class="keyword">while</span> keep_running
+0086 
+0087     <span class="comment">% calculate curvature</span>
+0088     C2 = <a href="getMengerCurvature.html" class="code" title="function C = getMengerCurvature(PP)">getMengerCurvature</a>(P(1:3,:));
+0089     C3 = <a href="getMengerCurvature.html" class="code" title="function C = getMengerCurvature(PP)">getMengerCurvature</a>(P(2:4,:));
+0090 
+0091     <span class="keyword">if</span> C3 &lt;= 0
+0092         <span class="comment">% disp('C3 &lt; 0');</span>
+0093         c3smaller0 = true;
+0094         <span class="keyword">while</span> c3smaller0
+0095             count = count + 1;
+0096             lam(4) = lam(3);
+0097             P(4,:) = P(3,:);
+0098             lam(3) = lam(2);
+0099             P(3,:) = P(2,:);
+0100             lam(2) = 10^((log10(lam(4))+phi*log10(lam(1)))/(1+phi));
+0101             <span class="keyword">switch</span> lparam.dim
+0102                 <span class="keyword">case</span> 1
+0103                     iparam.lambda = lam(2);
+0104                     invdata = lparam.func(lparam.t,lparam.s,iparam);
+0105                 <span class="keyword">case</span> 2
+0106                     iparam.lamT1 = lparam.lambdaFactor*lam(i);
+0107                     iparam.lamT2 = lam(i);
+0108                     invdata = lparam.func(lparam.data,iparam);
+0109             <span class="keyword">end</span>
+0110             <span class="comment">% output data</span>
+0111             P(2,1) = invdata.rn;
+0112             P(2,2) = invdata.xn;
+0113             C3 = <a href="getMengerCurvature.html" class="code" title="function C = getMengerCurvature(PP)">getMengerCurvature</a>(P(2:4,:));
+0114             <span class="comment">% disp(['C3 iter:', num2str(C3)]);</span>
+0115             lc.lambda = [lc.lambda lam(2)];
+0116             lc.RMS = [lc.RMS invdata.chi2];
+0117             lc.RN = [lc.RN invdata.rn];
+0118             lc.XN = [lc.XN invdata.xn];
+0119 
+0120             <span class="keyword">if</span> C3 &gt; 0
+0121                 c3smaller0 = false;
+0122             <span class="keyword">end</span>
+0123         <span class="keyword">end</span>
+0124     <span class="keyword">end</span>
+0125 
+0126     <span class="keyword">if</span> C2 &gt; C3
+0127         <span class="comment">% disp('C2 &gt; C3');</span>
+0128         lam_opt = lam(2);
+0129         lam(4) = lam(3);
+0130         P(4,:) = P(3,:);
+0131         lam(3) = lam(2);
+0132         P(3,:) = P(2,:);
+0133         lam(2) = 10^((log10(lam(4))+phi*log10(lam(1)))/(1+phi));
+0134         <span class="keyword">switch</span> lparam.dim
+0135             <span class="keyword">case</span> 1
+0136                 iparam.lambda = lam(2);
+0137                 invdata = lparam.func(lparam.t,lparam.s,iparam);
+0138             <span class="keyword">case</span> 2
+0139                 iparam.lamT1 = lparam.lambdaFactor*lam(2);
+0140                 iparam.lamT2 = lam(2);
+0141                 invdata = lparam.func(lparam.data,iparam);
+0142         <span class="keyword">end</span>
+0143         <span class="comment">% output data</span>
+0144         P(2,1) = invdata.rn;
+0145         P(2,2) = invdata.xn;
+0146         lc.lambda = [lc.lambda lam(2)];
+0147         lc.RMS = [lc.RMS invdata.chi2];
+0148         lc.RN = [lc.RN invdata.rn];
+0149         lc.XN = [lc.XN invdata.xn];
+0150     <span class="keyword">else</span>
+0151         <span class="comment">% disp('C2 &lt; C3');</span>
+0152         lam_opt = lam(3);
+0153         lam(1) = lam(2);
+0154         P(1,:) = P(2,:);
+0155         lam(2) = lam(3);
+0156         P(2,:) = P(3,:);
+0157         lam(3) = 10^(log10(lam(1))+(log10(lam(4))-log10(lam(2))));
+0158         <span class="keyword">switch</span> lparam.dim
+0159             <span class="keyword">case</span> 1
+0160                 iparam.lambda = lam(3);
+0161                 invdata = lparam.func(lparam.t,lparam.s,iparam);
+0162             <span class="keyword">case</span> 2
+0163                 iparam.lamT1 = lparam.lambdaFactor*lam(3);
+0164                 iparam.lamT2 = lam(3);
+0165                 invdata = lparam.func(lparam.data,iparam);
+0166         <span class="keyword">end</span>
+0167         <span class="comment">% output data</span>
+0168         P(3,1) = invdata.rn;
+0169         P(3,2) = invdata.xn;
+0170         lc.lambda = [lc.lambda lam(3)];
+0171         lc.RMS = [lc.RMS invdata.chi2];
+0172         lc.RN = [lc.RN invdata.rn];
+0173         lc.XN = [lc.XN invdata.xn];
+0174     <span class="keyword">end</span>
+0175     count = count + 1;
+0176 
+0177     <span class="comment">% GUI feedback</span>
+0178     <a href="../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">' iteration: '</span>,<span class="keyword">...</span>
+0179         num2str(count),<span class="string">' lambda opt: '</span>,num2str(lam_opt)]);
+0180 
+0181     <span class="comment">% check epsilon</span>
+0182     <span class="keyword">if</span> (lam(4)-lam(1))/lam(4) &lt; epsilon
+0183         keep_running = false;
+0184     <span class="keyword">end</span>
+0185 <span class="keyword">end</span>
+0186 
+0187 [~,ix] = sort(lc.lambda);
+0188 <span class="comment">% get optimal lambda index within sorted lambda values</span>
+0189 out.index = find(ix==numel(lc.lambda));
+0190 out.lambda = lc.lambda(ix);
+0191 out.RMS = lc.RMS(ix);
+0192 out.RN = lc.RN(ix);
+0193 out.XN = lc.XN(ix);
+0194 
+0195 <span class="keyword">end</span>
+0196 
+0197 <span class="comment">%------------- END OF CODE --------------</span>
+0198 
+0199 <span class="comment">%% License:</span>
+0200 <span class="comment">% MIT License</span>
+0201 <span class="comment">%</span>
+0202 <span class="comment">% Copyright (c) 2025 Thomas Hiller</span>
+0203 <span class="comment">%</span>
+0204 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0205 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0206 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0207 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0208 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0209 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0210 <span class="comment">%</span>
+0211 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0212 <span class="comment">% copies or substantial portions of the Software.</span>
+0213 <span class="comment">%</span>
+0214 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0215 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0216 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0217 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0218 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0219 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0220 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

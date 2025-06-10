@@ -86,6 +86,26 @@ switch iparam.T1T2
         time0 = [0 1e-6 time(1)/10 time(1)/5 time(1)/3 time(1)/2 time'];
         K0f = createKernelMatrix(time0,invstd.T1T2me',iparam.Tb,...
             iparam.Td,'T2',iparam.T1IRfac);
+        
+        if parameter.isgated
+            time_raw = parameter.raw.t;
+            K_raw = createKernelMatrix(time_raw,invstd.T1T2me',iparam.Tb,...
+                iparam.Td,'T2',iparam.T1IRfac);
+            % the original ungated fit
+            sig1_raw = K_raw*invstd.T1T2f;
+        end
+end
+
+% the original fit
+sig1 = invstd.fit_s;
+% create some random noise based on original noise
+% noise = invstd.rms;
+noise = invstd.invparams.noise;
+if parameter.isgated && isfield(invstd.invparams,'W')
+   % W0 = invstd.invparams.W;
+   % create N vector (echoes per gate)
+   % N = (noise./diag(W0)).^2;
+   nmrproc = parameter.raw.nmrproc;
 end
 
 %% there are four different methods implemented
@@ -106,10 +126,22 @@ switch uncertMethod
         chi2_all = zeros(uncertN,1);
         % calculate uncertainty models
         for count = 1:uncertN
-            % the original fit
-            sig1 = invstd.fit_s;
-            % create some random noise based on original fit RMS
-            [signalN,~] = addNoiseToSignal(sig1,0,invstd.rms);
+            % create new noisy signal
+            if parameter.isgated
+                % first a new ungated signal with noise
+                [signalN_raw,~] = addNoiseToSignal(sig1_raw,0,noise);
+                % now gate the new signal again
+                tmp = applyGatesToSignal(time_raw,signalN_raw,'type',nmrproc.gatetype,...
+                    'Ng',min([numel(signalN_raw) 300]),'Ne',nmrproc.Nechoes);
+
+                % e = noise1 ./ sqrt(N);
+                % W = diag(e);
+                % iparam.noise = noise1;
+                % iparam.W = W;
+                signalN = tmp(:,2);
+            else
+                [signalN,~] = addNoiseToSignal(sig1,0,noise);
+            end
 
             % calculate solution
             switch invtype
@@ -158,11 +190,23 @@ switch uncertMethod
         rnorm_all = zeros(uncertN,1);
         chi2_all = zeros(uncertN,1);
         % calculate uncertainty models
-        while count < uncertN
-            % the original fit
-            sig1 = invstd.fit_s;
-            % create some random noise based on original fit RMS
-            [signalN,~] = addNoiseToSignal(sig1,0,invstd.rms);
+        while count < uncertN            
+            % create new noisy signal
+            if parameter.isgated
+                % first a new ungated signal with noise
+                [signalN_raw,~] = addNoiseToSignal(sig1_raw,0,noise);
+                % now gate the new signal again
+                tmp = applyGatesToSignal(time_raw,signalN_raw,'type',nmrproc.gatetype,...
+                    'Ng',min([numel(signalN_raw) 300]),'Ne',nmrproc.Nechoes);
+
+                % e = noise1 ./ sqrt(N);
+                % W = diag(e);
+                % iparam.noise = noise1;
+                % iparam.W = W;
+                signalN = tmp(:,2);
+            else
+                [signalN,~] = addNoiseToSignal(sig1,0,noise);
+            end
             % calculate solution
             switch invtype
                 case 'LU'

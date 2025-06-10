@@ -224,24 +224,6 @@ gui.edit_handles.amp3 = uicontrol('Parent',gui.panels.geometry.HBox8,...
     'Tag','geometry_modes','Enable','off','Callback',@onEditValue);
 set(gui.panels.geometry.HBox8,'Widths',[200 -1 -1 -1]);
 
-%% Java Hack to adjust vertical alignment of text fields
-jh = findjobj(gui.text_handles.geometry_type);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.angles);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.singlepsd);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.modesN);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.psd_range);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.mode1);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.mode2);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.mode3);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-
 return
 
 %------------- END OF CODE --------------

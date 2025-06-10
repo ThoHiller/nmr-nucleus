@@ -31,7 +31,6 @@ function showFitStatistics
 
 %% get GUI handle and data
 fig = findobj('Tag','INV');
-fig_tag = get(fig,'Tag');
 data = getappdata(fig,'data');
 maingui = getappdata(fig,'gui');
 colors = maingui.myui.colors;
@@ -48,7 +47,6 @@ if isfield(data,'results')
             fig_stat = figure('Name','NUCLEUSinv - Fit Statistics',...
                 'NumberTitle','off','ToolBar','none','Tag','FITSTATS');
             pos0 = get(fig,'Position');
-            pos1 = get(fig_stat,'Position');
             cent(1) = (pos0(1)+pos0(3)/2);
             cent(2) = (pos0(2)+pos0(4)/2);
             set(fig_stat,'Position',[cent(1)-pos0(3)/3 pos0(2) pos0(3)/1.5 pos0(4)]);
@@ -93,7 +91,7 @@ if isfield(data,'results')
             set(gui.box2,'Heights',[-1 -1 -1 -1 -1 -1 -1 -1]);
             
             gui.text11 = uicontrol('Parent',gui.row31,'Style','text',...
-                'String',[char(hex2dec('03BC')),'(',char(hex2dec('2111')),'mag)'],...
+                'String','mean(Imag)',...
                 'FontSize',maingui.myui.fontsize+4,'HorizontalAlignment','right',...
                 'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG);
             gui.text12 = uicontrol('Parent',gui.row31,'Style','edit','String','',...
@@ -101,7 +99,7 @@ if isfield(data,'results')
                 'ForeGroundColor',colors.panelFG);
             
             gui.text21 = uicontrol('Parent',gui.row32,'Style','text',...
-                'String',[char(hex2dec('03BC')),'(',char(hex2dec('03B5')),')'],...
+                'String','mean(residual)',...
                 'FontSize',maingui.myui.fontsize+4,'HorizontalAlignment','right',...
                 'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG);
             gui.text22 = uicontrol('Parent',gui.row32,'Style','edit','String','',...
@@ -109,7 +107,7 @@ if isfield(data,'results')
                 'ForeGroundColor',colors.panelFG);
             
             gui.text31 = uicontrol('Parent',gui.row33,'Style','text',...
-                'String',[char(hex2dec('03C3')),'(',char(hex2dec('2111')),'mag)'],...
+                'String','std(Imag)',...
                 'FontSize',maingui.myui.fontsize+4,'HorizontalAlignment','right',...
                 'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG);
             gui.text32 = uicontrol('Parent',gui.row33,'Style','edit','String','',...
@@ -117,7 +115,7 @@ if isfield(data,'results')
                 'ForeGroundColor',colors.panelFG);
             
             gui.text41 = uicontrol('Parent',gui.row34,'Style','text',...
-                'String',[char(hex2dec('03C3')),'(',char(hex2dec('03B5')),')'],...
+                'String','std(residual)',...
                 'FontSize',maingui.myui.fontsize+4,'HorizontalAlignment','right',...
                 'BackGroundColor',colors.panelBG,'ForeGroundColor',colors.panelFG);
             gui.text42 = uicontrol('Parent',gui.row34,'Style','edit','String','',...
@@ -164,7 +162,6 @@ if isfield(data,'results')
         hold(ax3,'on');
         
         %% gather the fit statistics for the current inversion
-        text = cell(1,1);
         nmrraw = data.results.nmrraw;
         nmrproc = data.results.nmrproc;
         if isfield(data.results,'invstd')
@@ -188,14 +185,16 @@ if isfield(data,'results')
                 case 'x-axis -> log' % lin axes
                     set(ax1,'XScale','lin','XLim',xlims);
             end
-            set(get(ax1,'YLabel'),'String','\Immag');
+            set(get(ax1,'YLabel'),'String','Imag');
             grid(ax1,'on');
             
             % draw first histogram
             min1 = mean(imag(nmrraw.s))-5*std(imag(nmrraw.s));
             max1 = mean(imag(nmrraw.s))+5*std(imag(nmrraw.s));
             bins1 = linspace(min1,max1,100);
-            n1 = hist(imag(nmrraw.s),bins1);
+            % the "0" is a nasty hack because Matlab does not like the old
+            % "hist" function anymore
+            n1 = [0 histcounts(imag(nmrraw.s),bins1)];
             n1 = n1./trapz(bins1,n1);
             stairs(bins1,n1,'Color',maingui.myui.colors.IM,'LineWidth',1.5,'Parent',ax3);
             hold(ax3,'on');
@@ -204,9 +203,9 @@ if isfield(data,'results')
                 'color','g','LineStyle','--','Parent',ax3);
             
             lgdc = lgdc + 1;
-            lgdstr{lgdc} = '\Immag';
+            lgdstr{lgdc} = 'Imag';
             lgdc = lgdc + 1;
-            lgdstr{lgdc} = '\mu(\Immag)';
+            lgdstr{lgdc} = 'mean(Imag)';
             
             % update the text fields
             set(gui.text12,'String',sprintf('%5.4e',imag_mean));
@@ -216,17 +215,19 @@ if isfield(data,'results')
         if isfield(data.results,'invstd')
             % plot residuals
             if nmrproc.noise > 0
-                plot(nmrproc.t,invstd.residual./nmrproc.e,'Parent',ax2);
+                plot(nmrproc.t,invstd.residual./nmrproc.e,'Color',colors.RE,'Parent',ax2);
                 % get statistics
                 residual = invstd.residual./nmrproc.e;
                 err_mean = mean(residual);
                 err_std = std(residual);
+                ylabel2 = {'noise','weighted','residual'};
             else
-                plot(nmrproc.t,invstd.residual,'Parent',ax2);
+                plot(nmrproc.t,invstd.residual,'Color',colors.RE,'Parent',ax2);
                 % get statistics
                 residual = invstd.residual;
                 err_mean = mean(residual);
                 err_std = std(residual);
+                ylabel2 = 'residual';
             end
             xlims = get(maingui.axes_handles.proc,'XLim');
             line(xlims,[0 0],'LineStyle','--','Color',colors.axisL,'Parent',ax2);
@@ -255,12 +256,13 @@ if isfield(data,'results')
                     set(ax2,'XScale','lin','XLim',xlims);
             end
             set(get(ax2,'XLabel'),'String','time [s]')
-            set(get(ax2,'YLabel'),'String','\epsilon');
+            set(get(ax2,'YLabel'),'String',ylabel2);
             grid(ax2,'on');
             
             % update the text fields
             set(gui.text22,'String',sprintf('%5.4e',err_mean));
-            set(gui.text42,'String',sprintf('%5.4e',err_std));
+            % set(gui.text42,'String',sprintf('%5.4e',err_std));
+            set(gui.text42,'String',sprintf('%5.4e',std(invstd.residual)));
             if nmrproc.noise > 0
                 if isfield(invstd,'chi2')
                     set(gui.text52,'String',sprintf('%5.3f',invstd.chi2));
@@ -276,22 +278,24 @@ if isfield(data,'results')
             min2 = mean(invstd.residual)-5*std(invstd.residual);
             max2 = mean(invstd.residual)+5*std(invstd.residual);
             bins2 = linspace(min2,max2,100);
-            n2 = hist(invstd.residual,bins2);
+            % the "0" is a nasty hack because Matlab does not like the old
+            % "hist" function anymore
+            n2 = [0 histcounts(invstd.residual,bins2)];
             n2 = n2./trapz(bins2,n2);
-            stairs(bins2,n2,'LineWidth',1.5,'Parent',ax3);
+            stairs(bins2,n2,'LineWidth',1.5,'Color',colors.RE,'Parent',ax3);
             line([mean(invstd.residual) mean(invstd.residual)],[0 max(n2)],...
                 'color','b','LineStyle','--','Parent',ax3);
-            set(get(ax3,'XLabel'),'String','\Immag & \epsilon');
+            set(get(ax3,'XLabel'),'String','Imag | residual');
             set(get(ax3,'YLabel'),'String','count');
             grid(ax3,'on');
             
             lgdc = lgdc + 1;
-            lgdstr{lgdc} = '\epsilon';
+            lgdstr{lgdc} = 'residual';
             lgdc = lgdc + 1;
-            lgdstr{lgdc} = '\mu(\epsilon)';
+            lgdstr{lgdc} = 'mean(residual)';
         end
         lgh = legend(ax3,lgdstr);
-        set(lgh,'FontSize',12,'TextColor',colors.panelFG);
+        set(lgh,'FontSize',10,'TextColor',colors.panelFG);
         
         set(ax1,'FontSize',maingui.myui.fontsize);
         set(ax2,'FontSize',maingui.myui.fontsize);

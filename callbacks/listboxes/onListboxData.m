@@ -106,11 +106,12 @@ if isfield(data.import,'NMR')
                     data.process.start = 1;
                 case 'T2'
                     switch data.import.fileformat
-                        case {'dart','excel','field','helios','mouse','NMRMOD'}
+                        case {'dart','excel','field','helios','mouse','mrsd','NMRMOD'}
                             data.process.gatetype = 'raw';
                             data.process.start = 1;
                         otherwise
                             % standard T2
+                            data.process.isgated = true;
                             data.process.gatetype = 'log';
                             data.process.start = 1;
                     end
@@ -169,6 +170,7 @@ if isfield(data.import,'NMR')
            
             % process the NMR data
             processNMRDataControl(fig,id);
+            data = getappdata(fig,'data');
              % update interface
             NUCLEUSinv_updateInterface;
             
@@ -189,10 +191,29 @@ if isfield(data.import,'NMR')
         % set(gui.plots.SignalPanel,'Selection',1);
         % set(gui.plots.DistPanel,'Selection',1);
         
+        if isfield(data,'results')
+            switch data.results.nmrproc.T1T2
+                case 'T1'
+                    switch data.results.nmrproc.T1IRfac
+                        case 1
+                            set(gui.cm_handles.data_list_T1_SR,'Checked','on');
+                            set(gui.cm_handles.data_list_T1_IR,'Checked','off');
+                        case 2
+                            set(gui.cm_handles.data_list_T1_SR,'Checked','off');
+                            set(gui.cm_handles.data_list_T1_IR,'Checked','on');
+                    end
+                case 'T2'
+                    set(gui.cm_handles.data_list_T1_SR,'Checked','off');
+                    set(gui.cm_handles.data_list_T1_IR,'Checked','off');
+            end
+        end
+        
         % reset all RUN buttons
         set(gui.push_handles.invstd_run,'String','<HTML><u>R</u>UN',...
             'BackgroundColor','g','Enable','on','Callback',@onPushRun);
-        set(gui.push_handles.uncert,'String','CALC.',...
+        % set(gui.push_handles.invstd_run_batch,'String','RUN BATCH',...
+        %     'BackgroundColor','g','Enable','on','Callback',@onPushRun);
+        set(gui.push_handles.uncert,'String','RUN UNCERT',...
             'BackgroundColor','g','Enable','on','Callback',@onPushRun);
         set(gui.push_handles.invjoint_run,'String','<HTML><u>R</u>UN',...
             'BackgroundColor','g','Enable','on','Callback',@onPushRun);

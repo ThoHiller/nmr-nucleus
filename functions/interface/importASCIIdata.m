@@ -104,6 +104,30 @@ if sum(ASCIIpath) > 0
             else
                 tmp_data = tmp;
             end
+
+            if ifile == 1
+                % at first run ask some parameters
+                % time unit
+                answer = questdlg('What is the time unit?', ...
+                'ASCII import', ...
+                'µs','ms','s','µs');
+                switch answer
+                    case 'µs'
+                        t_fac = 1e-6;
+                    case 'ms'
+                        t_fac = 1e-3;
+                    case 's'
+                        t_fac = 1;
+                end
+                % time column
+                cols = 1:size(tmp_data,2);
+                cols_c = cell(1,1);
+                for i1 = 1:numel(cols)
+                    cols_c{i1} = num2str(i1);
+                end
+                [ind_time,~] = listdlg('PromptString','Time Column:',...
+                'SelectionMode','single','ListString',cols_c);
+            end
             
             % the individual file names
             c = c + 1;
@@ -121,58 +145,83 @@ if sum(ASCIIpath) > 0
             
             % the NMR data
             data.import.NMR.data{c}.flag = T1T2;
-            data.import.NMR.data{c}.time = tmp_data(:,1);
+            data.import.NMR.data{c}.time = t_fac.*tmp_data(:,ind_time);
             % switch between T1 and T2 data
             switch T1T2
                 case 'T1'
-                    data.import.NMR.data{c}.signal = tmp_data(:,2);
+                    data.import.NMR.data{c}.signal = tmp_data(:,ind_time+1);
                     data.import.NMR.data{c}.phase = 0;
 
-                    % try saturation recovery first
+                    % try saturation recovery (SR) first
                     param.T1IRfac = 1;
                     param.noise = 0;
-                    param.optim = 'off';
+                    param.optim = data.info.has_optim;
                     param.Tfixed_bool = [0 0 0 0 0];
                     param.Tfixed_val = [0 0 0 0 0];
-                    invstd1 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
-                        data.import.NMR.data{c}.flag,param,5);
+                    noise1 = zeros(5,2);
+                    for i1 = 1:5
+                        invstd1 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                        data.import.NMR.data{c}.flag,param,i1);
+                        noise1(i1,1) = i1;
+                        noise1(i1,2) = invstd1.rms;
+                    end                    
 
-                    % now inversion recovery
+                    % now inversion recovery (IR)
                     param.T1IRfac = 2;
                     param.noise = 0;
-                    param.optim = 'off';
+                    param.optim = data.info.has_optim;
                     param.Tfixed_bool = [0 0 0 0 0];
                     param.Tfixed_val = [0 0 0 0 0];
-                    invstd2 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
-                        data.import.NMR.data{c}.flag,param,5);
-
-                    % compare the residuals
-                    if invstd1.resnorm < invstd2.resnorm
-                        % data is possibly saturation recovery
-                        invstd = invstd1;
-                        T1IRfac = 1;
-                    else
-                        % data is possibly inversion recovery
-                        invstd = invstd2;
-                        T1IRfac = 2;
+                    noise2 = zeros(5,2);
+                    for i1 = 1:5
+                        invstd2 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                        data.import.NMR.data{c}.flag,param,i1);
+                        noise2(i1,1) = i1;
+                        noise2(i1,2) = invstd2.rms;
                     end
+
+                    [idr,~] = find(isnan(noise1));
+                    noise1(idr,:) = [];
+                    [idr,~] = find(isnan(noise2));
+                    noise2(idr,:) = [];
+
+                    [idr1,~] = find(noise1(:,2)==min(noise1(:,2)));
+                    [idr2,~] = find(noise2(:,2)==min(noise2(:,2)));
+
+                    if noise1(idr1,2) < noise2(idr2,2)
+                        % data is possibly SR
+                        T1IRfac = 1;
+                        nExp = noise1(idr1,1);
+                    else
+                        % data is possibly IR
+                        T1IRfac = 2;
+                        nExp = noise2(idr2,1);
+                    end
+                    param.T1IRfac = T1IRfac;
+                    param.noise = 0;
+                    param.optim = data.info.has_optim;
+                    param.Tfixed_bool = [0 0 0 0 0];
+                    param.Tfixed_val = [0 0 0 0 0];
+                    invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
+                        data.import.NMR.data{c}.flag,param,nExp);
+
                     % save the "dummy" RMS as noise estimate
                     data.import.NMR.data{c}.noise = invstd.rms;
                 case 'T2'
                     T1IRfac = 1;
-                    if size(tmp_data,2)>2
-                        tmp_signal = complex(tmp_data(:,2),tmp_data(:,3));
+                    if size(tmp_data,2)>=ind_time+2
+                        tmp_signal = complex(tmp_data(:,ind_time+1),tmp_data(:,ind_time+2));
                         [tmp_signal,tmp_phase] = rotateT2phase(tmp_signal);
                         data.import.NMR.data{c}.signal = tmp_signal;
                         data.import.NMR.data{c}.phase = tmp_phase;
                     else
-                        data.import.NMR.data{c}.signal = tmp_data(:,2);
+                        data.import.NMR.data{c}.signal = tmp_data(:,ind_time+1);
                         data.import.NMR.data{c}.phase = 0;
 
                         % noise estimate
                         param.T1IRfac = 1;
                         param.noise = 0;
-                        param.optim = 'off';
+                        param.optim = data.info.has_optim;
                         param.Tfixed_bool = [0 0 0 0 0];
                         param.Tfixed_val = [0 0 0 0 0];
                         invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...

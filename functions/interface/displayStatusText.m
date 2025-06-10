@@ -34,7 +34,7 @@ function displayStatusText(gui,string)
 %% display status / info text
 if isstruct(gui)
     set(gui.textStatus,'String',string);
-    pause(0.001);
+    pause(0.01);
 else
     disp(string);
 end

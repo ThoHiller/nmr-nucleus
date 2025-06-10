@@ -40,11 +40,19 @@ fig_tag = get(fig,'Tag');
 % switch depending on the calling figure
 switch fig_tag
     case 'INV'
+        gui = getappdata(fig,'gui');
         tag = get(src,'Tag');
         % switch depending on inversion method
         switch tag
             case 'std'
-                runInversionStd;
+                switch get(gui.check_handles.invstd_batch,'Value')
+                    case 0
+                        runInversionStd;
+                    case 1
+                        runInversionBatch;
+                end
+             case 'stdbatch'
+                runInversionBatch;
             case 'joint'
                 runInversionJoint;
             case 'uncert'

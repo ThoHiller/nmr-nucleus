@@ -74,7 +74,7 @@ This function is called by:
 
 <h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="#_sub1" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a></li><li><a href="#_sub2" class="code">function [data,pardata] = LoadDataFileLogging(datapath,fname,flag)</a></li></ul>
+<li><a href="#_sub1" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a></li><li><a href="#_sub2" class="code">function out = parseHeader(head)</a></li></ul>
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_dart(in)</a>
@@ -345,206 +345,172 @@ This function is called by:
 0266                 sprintf(<span class="string">'%3.2f'</span>,data.jpd.depth(i)),<span class="string">' '</span>,data.jpd.depth_units]);
 0267         <span class="keyword">end</span>
 0268 
-0269     <span class="keyword">case</span> 4 <span class="comment">% Aarhus T1T2</span>
+0269     <span class="keyword">case</span> {4, 5} <span class="comment">% Dart jrd file</span>
 0270         <span class="comment">% read the data file</span>
 0271         datafile = dir(fullfile(in.path,in.name));
 0272         [data,parData] = <a href="#_sub1" class="code" title="subfunction [data,pardata] = LoadDataFile(datapath,fname,flag)">LoadDataFile</a>(in.path,in.name,in.T1T2);
 0273 
-0274         <span class="comment">% get file statistics</span>
-0275         nmrData.datfile = datafile.name;
-0276         nmrData.date = datafile.date;
-0277         nmrData.datenum = datafile.datenum;
-0278         nmrData.bytes = datafile.bytes;
-0279 
-0280         <span class="comment">% save the NMR data</span>
-0281         nmrData.flag = data.flag;
-0282         nmrData.T1IRfac = 1;
-0283         nmrData.time = data.time;
-0284         nmrData.signal = data.signal;
-0285         nmrData.raw = data.raw;
-0286         <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
-0287             nmrData.phase = data.phase;
-0288         <span class="keyword">end</span>
-0289 
-0290     <span class="keyword">case</span> 5 <span class="comment">% Dart T2 logging</span>
-0291         <span class="comment">% read the data file</span>
-0292         datafile = dir(fullfile(in.path,in.name));
-0293         [data,parData] = <a href="#_sub2" class="code" title="subfunction [data,pardata] = LoadDataFileLogging(datapath,fname,flag)">LoadDataFileLogging</a>(in.path,in.name,in.T1T2);
-0294 
-0295         nmrData = cell(1,1);
-0296         <span class="keyword">for</span> nn = 1:numel(data)
-0297             <span class="comment">% get file statistics</span>
-0298             nmrData{nn}.datfile = datafile.name;
-0299             nmrData{nn}.date = datafile.date;
-0300             nmrData{nn}.datenum = datafile.datenum;
-0301             nmrData{nn}.bytes = datafile.bytes;
-0302 
-0303             <span class="comment">% save the NMR data</span>
-0304             nmrData{nn}.flag = data{nn}.flag;
-0305             nmrData{nn}.T1IRfac = 1;
-0306             nmrData{nn}.time = data{nn}.time;
-0307             nmrData{nn}.signal = data{nn}.signal;
-0308             nmrData{nn}.raw = data{nn}.raw;
-0309             <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
-0310                 nmrData{nn}.phase = data{nn}.phase;
-0311             <span class="keyword">end</span>
-0312         <span class="keyword">end</span>
-0313 <span class="keyword">end</span>
-0314 
-0315 <span class="comment">% save data to output struct</span>
-0316 out.nmrData = nmrData;
-0317 out.parData = parData;
+0274         nmrData = cell(1,1);
+0275         <span class="keyword">for</span> nn = 1:numel(data)
+0276             <span class="comment">% get file statistics</span>
+0277             nmrData{nn}.datfile = datafile.name;
+0278             nmrData{nn}.date = datafile.date;
+0279             nmrData{nn}.datenum = datafile.datenum;
+0280             nmrData{nn}.bytes = datafile.bytes;
+0281 
+0282             <span class="comment">% save the NMR data</span>
+0283             nmrData{nn}.flag = data{nn}.flag;
+0284             nmrData{nn}.T1IRfac = 1;
+0285             nmrData{nn}.time = data{nn}.time;
+0286             nmrData{nn}.signal = data{nn}.signal;
+0287             nmrData{nn}.raw = data{nn}.raw;
+0288             <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
+0289                 nmrData{nn}.phase = data{nn}.phase;
+0290             <span class="keyword">end</span>
+0291         <span class="keyword">end</span>
+0292         <span class="comment">% make some checks (burst &amp; freq)</span>
+0293         <span class="keyword">if</span> numel(parData)==1
+0294             out.hasburst = 0;
+0295             out.Nfreq = 1;
+0296         <span class="keyword">elseif</span> numel(parData)==2
+0297             <span class="keyword">if</span> parData{1}.freqK ~= parData{2}.freqK
+0298                 out.hasburst = 0;
+0299                 out.Nfreq = 2;
+0300             <span class="keyword">end</span>
+0301         <span class="keyword">elseif</span> numel(parData)==4
+0302             out.hasburst = 1;
+0303             out.Nfreq = 2;
+0304         <span class="keyword">end</span>
+0305 <span class="keyword">end</span>
+0306 
+0307 <span class="comment">% save data to output struct</span>
+0308 out.nmrData = nmrData;
+0309 out.parData = parData;
+0310 
+0311 <span class="keyword">end</span>
+0312 
+0313 <span class="comment">%% load NMR data file</span>
+0314 <a name="_sub1" href="#_subfunctions" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a>
+0315 
+0316 <span class="comment">% importdata is rather slow for row data</span>
+0317 <span class="comment">% A = importdata(fullfile(datapath,fname),'\t');</span>
 0318 
-0319 <span class="keyword">end</span>
-0320 
-0321 <span class="comment">%% load NMR data file</span>
-0322 <a name="_sub1" href="#_subfunctions" class="code">function [data,pardata] = LoadDataFile(datapath,fname,flag)</a>
-0323 
-0324 <span class="comment">% importdata is rather slow for row data</span>
-0325 <span class="comment">% A = importdata(fullfile(datapath,fname),'\t');</span>
-0326 
-0327 <span class="comment">% first read the file to get the number of echos</span>
-0328 fid = fopen(fullfile(datapath,fname));
-0329 A0 = textscan(fid,<span class="string">'%f'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
-0330 fclose(fid);
-0331 <span class="comment">% now read all three lines</span>
-0332 fid = fopen(fullfile(datapath,fname));
-0333 A1 = textscan(fid,<span class="string">'%f'</span>,A0{1}(3));
-0334 A2 = textscan(fid,<span class="string">'%f'</span>,A0{1}(3));
-0335 A3 = textscan(fid,<span class="string">'%f'</span>,A0{1}(3));
-0336 fclose(fid);
-0337 <span class="comment">% and stitch them together</span>
-0338 A = [A1{1}';A2{1}';A3{1}'];
-0339 
-0340 t_echo = A(1,2);
-0341 n_echo = A(1,3);
-0342 freq = A(1,4);
-0343 Nscans = A(1,5);
-0344 t_recov = A(1,57); <span class="comment">% DART</span>
-0345 
-0346 time = t_echo:t_echo:t_echo*n_echo;
-0347 time = time(:);
-0348 re = A(2,1:length(time));
-0349 im = A(3,1:length(time));
-0350 re = re(:);
-0351 im = im(:);
-0352 
-0353 data.flag = flag;
-0354 data.raw.time = time;
-0355 data.raw.signal = complex(re,im);
-0356 [data.signal,data.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(data.raw.signal);
-0357 
-0358 data.time = data.raw.time;
+0319 <span class="comment">% faster import</span>
+0320 fid = fopen(fullfile(datapath,fname),<span class="string">'r'</span>);
+0321 A0 = textscan(fid,<span class="string">'%f'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0322 fclose(fid);
+0323 N = A0{1}(3);
+0324 L = numel(A0{1})/N;
+0325 A = A0{1}; 
+0326 A = reshape(A,[N L]);
+0327 A = A';
+0328 clear A0 N L
+0329 
+0330 data = cell(1,1);
+0331 pardata = cell(1,1);
+0332 c = 0;
+0333 <span class="comment">% data always comes in three lines</span>
+0334 <span class="keyword">for</span> nn = 1:size(A,1)/3
+0335     header = A(3*nn-2,:);
+0336     out = <a href="#_sub2" class="code" title="subfunction out = parseHeader(head)">parseHeader</a>(header);
+0337     
+0338     <span class="comment">% only import non-reference data</span>
+0339     <span class="keyword">if</span> out.ref_flag == 0
+0340         c = c + 1;
+0341         <span class="comment">% create time vector</span>
+0342         time = out.t_echo:out.t_echo:out.t_echo*out.n_echo;
+0343         <span class="comment">% create raw signal</span>
+0344         re = A(3*nn-1,1:length(time));
+0345         im = A(3*nn,1:length(time));
+0346         time = time(:);
+0347         re = re(:);
+0348         im = im(:);
+0349         data{c}.flag = flag;
+0350         data{c}.raw.time = time;
+0351         data{c}.raw.signal = complex(re,im);
+0352         data{c}.time = data{c}.raw.time;
+0353         <span class="comment">% phase rotate raw signal</span>
+0354         [data{c}.signal,data{c}.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(data{c}.raw.signal);
+0355         <span class="comment">% save parameter from header</span>
+0356         pardata{c} = out;
+0357     <span class="keyword">end</span>
+0358 <span class="keyword">end</span>
 0359 
-0360 pardata.t_echo = t_echo;
-0361 pardata.n_echo = n_echo;
-0362 pardata.t_recov = t_recov;
-0363 pardata.freq = freq;
-0364 pardata.Nscans = Nscans;
-0365 d{1}{1,1} = [<span class="string">'t_echo = '</span>,num2str(t_echo)];
-0366 d{1}{2,1} = [<span class="string">'n_echo = '</span>,num2str(n_echo)];
-0367 d{1}{3,1} = [<span class="string">'t_recov = '</span>,num2str(t_recov)];
-0368 d{1}{4,1} = [<span class="string">'freq = '</span>,num2str(freq)];
-0369 d{1}{5,1} = [<span class="string">'Nscans = '</span>,num2str(Nscans)];
-0370 pardata.all = d;
-0371 
-0372 <span class="keyword">end</span>
-0373 
-0374 <span class="comment">%% load NMR data file</span>
-0375 <a name="_sub2" href="#_subfunctions" class="code">function [data,pardata] = LoadDataFileLogging(datapath,fname,flag)</a>
-0376 
-0377 <span class="comment">% importdata is rather slow for row data</span>
-0378 <span class="comment">% A = importdata(fullfile(datapath,fname),'\t');</span>
-0379 
-0380 <span class="comment">% first read the file to get the number of echos</span>
-0381 fid = fopen(fullfile(datapath,fname));
-0382 A0 = textscan(fid,<span class="string">'%f'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
-0383 fclose(fid);
-0384 
-0385 <span class="comment">% get the number of Echos</span>
-0386 n_echo = A0{1}(3);
-0387 N = numel(A0{1});
-0388 <span class="comment">% reshape the data</span>
-0389 A1 = reshape(A0{1},[n_echo N/n_echo]);
-0390 A2 = A1';
-0391 
-0392 data = cell(1,1);
-0393 pardata = cell(1,1);
-0394 <span class="keyword">for</span> nn = 1:size(A2,1)/3
-0395     t_echo = A2(3*nn-2,2);
-0396     n_echo = A2(3*nn-2,3);
-0397     freq = A2(3*nn-2,4);
-0398     Nscans = A2(3*nn-2,5);
-0399     depth = A2(3*nn-2,9);
-0400     t_wait = A2(3*nn-2,14);
-0401     time = t_echo:t_echo:t_echo*n_echo;
-0402     re = A2(3*nn-1,1:length(time));
-0403     im = A2(3*nn,1:length(time));
-0404     time = time(:);
-0405     re = re(:);
-0406     im = im(:);
-0407     data{nn}.flag = flag;
-0408     data{nn}.raw.time = time;
-0409     data{nn}.raw.signal = complex(re,im);
-0410     data{nn}.time = data{nn}.raw.time;
-0411     [data{nn}.signal,data{nn}.phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(data{nn}.raw.signal);
+0360 <span class="keyword">end</span>
+0361 
+0362 <span class="comment">%% parse header line</span>
+0363 <a name="_sub2" href="#_subfunctions" class="code">function out = parseHeader(head)</a>
+0364 
+0365 out.t_echo = head(2);
+0366 out.n_echo = head(3);
+0367 out.t_wait = head(14);
+0368 out.Nscans = head(5);
+0369 out.freq_index = head(28);
+0370 out.freq = head(4);
+0371 out.freqK = round(head(4)/1000);
+0372 out.collect_type = head(52);
+0373 out.t_diff = head(56);
+0374 out.t_recov = head(57);
+0375 out.ref_flag = head(53);
+0376 out.unix_time = head(42);
+0377 out.tex = head(1);
+0378 out.Q = head(7);
+0379 out.Q_calib = head(24);
+0380 out.depth = head(9);
+0381 out.stick_up_height = head(15);
+0382 out.sensor_offset = head(19);
+0383 out.echo_phase_shift = head(22);
+0384 out.E1_sclae = head(25);
+0385 out.MF_amp = head(26);
+0386 out.LV_phase = head(27);
+0387 out.acqu_plat = head(33);
+0388 out.acqu_soft_maj = head(34);
+0389 out.acqu_soft_min = head(35);
+0390 out.temp = head(39);
+0391 out.clock = head(41);
+0392 <span class="comment">% 0=m; 1=feet; 2=monitoring; 3=tex scan</span>
+0393 out.depth_units = head(44);
+0394 out.device = head(50);
+0395 out.fpga_ver = head(51);
+0396 out.tool_length_up = head(54);
+0397 out.tool_lemgth_low = head(55);
+0398 out.coil_offset_low = head(58);
+0399 
+0400 fn = fieldnames(out);
+0401 nfields = numel(fn);
+0402 
+0403 d = cell(1,1);
+0404 <span class="keyword">for</span> n = 1:nfields
+0405     d{n,1} = [fn{n},<span class="string">'='</span>,num2str(out.(fn{n}))];
+0406 <span class="keyword">end</span>
+0407 out.all{1} = d;
+0408 
+0409 <span class="keyword">end</span>
+0410 
+0411 <span class="comment">%------------- END OF CODE --------------</span>
 0412 
-0413     pardata{nn}.t_echo = t_echo;
-0414     pardata{nn}.n_echo = n_echo;
-0415     pardata{nn}.freq = freq;
-0416     pardata{nn}.Nscans = Nscans;
-0417     pardata{nn}.depth = depth;
-0418     pardata{nn}.t_wait = t_wait;
-0419     d{1}{1,1} = [<span class="string">'t_echo = '</span>,num2str(t_echo)];
-0420     d{1}{2,1} = [<span class="string">'n_echo = '</span>,num2str(n_echo)];
-0421     d{1}{3,1} = [<span class="string">'freq = '</span>,num2str(freq)];
-0422     d{1}{4,1} = [<span class="string">'Nscans = '</span>,num2str(Nscans)];
-0423     d{1}{5,1} = [<span class="string">'depth = '</span>,num2str(depth)];
-0424     d{1}{6,1} = [<span class="string">'t_wait = '</span>,num2str(t_wait)];
-0425     pardata{nn}.all = d;
-0426 <span class="keyword">end</span>
-0427 
-0428 
-0429 <span class="comment">% figure;</span>
-0430 <span class="comment">% subplot(211);</span>
-0431 <span class="comment">% plot(data{1}.time,real(data{1}.signal),'k'); hold on</span>
-0432 <span class="comment">% plot(data{1}.time,imag(data{1}.signal),'k--','LineWidth',1);</span>
-0433 <span class="comment">% plot(data{3}.time,real(data{3}.signal),'r');</span>
-0434 <span class="comment">% plot(data{3}.time,imag(data{3}.signal),'r--','LineWidth',1);</span>
-0435 <span class="comment">% set(gca,'XScale','log','YScale','lin');</span>
-0436 <span class="comment">% subplot(212);</span>
-0437 <span class="comment">% plot(data{2}.time,real(data{2}.signal),'k'); hold on</span>
-0438 <span class="comment">% plot(data{2}.time,imag(data{2}.signal),'k--','LineWidth',1);</span>
-0439 <span class="comment">% plot(data{4}.time,real(data{4}.signal),'r');</span>
-0440 <span class="comment">% plot(data{4}.time,imag(data{4}.signal),'r--','LineWidth',1);</span>
-0441 <span class="comment">% set(gca,'XScale','log','YScale','lin');</span>
-0442 
-0443 <span class="keyword">end</span>
-0444 
-0445 <span class="comment">%------------- END OF CODE --------------</span>
-0446 
-0447 <span class="comment">%% License:</span>
-0448 <span class="comment">% MIT License</span>
-0449 <span class="comment">%</span>
-0450 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
-0451 <span class="comment">%</span>
-0452 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0453 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0454 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0455 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0456 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0457 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0458 <span class="comment">%</span>
-0459 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0460 <span class="comment">% copies or substantial portions of the Software.</span>
-0461 <span class="comment">%</span>
-0462 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0463 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0464 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0465 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0466 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0467 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0468 <span class="comment">% SOFTWARE.</span></pre></div>
+0413 <span class="comment">%% License:</span>
+0414 <span class="comment">% MIT License</span>
+0415 <span class="comment">%</span>
+0416 <span class="comment">% Copyright (c) 2020 Thomas Hiller</span>
+0417 <span class="comment">%</span>
+0418 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0419 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0420 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0421 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0422 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0423 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0424 <span class="comment">%</span>
+0425 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0426 <span class="comment">% copies or substantial portions of the Software.</span>
+0427 <span class="comment">%</span>
+0428 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0429 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0430 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0431 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0432 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0433 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0434 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

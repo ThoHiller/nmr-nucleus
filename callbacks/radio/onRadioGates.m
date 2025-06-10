@@ -55,24 +55,21 @@ if ~isempty(id)
         case 'log'
             data.process.isgated = true;
             data.process.gatetype = 'log';
-            lambdaFAK = 100;
-            
+
         case 'lin'
             data.process.isgated = true;
             data.process.gatetype = 'lin';
-            lambdaFAK = 100;
             
         case 'none'
             data.process.gatetype = 'raw';
-            lambdaFAK = 1;
     end
     
     % set the lambda range when L-curve is the regularization method
     if strcmp(data.invstd.regtype,'lcurve')
-        data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
+        data.invstd.lambdaR = data.invstd.lambdaRinit;
     end
     if strcmp(data.invjoint.regtype,'lcurve')
-        data.invjoint.lambdaR = data.invjoint.lambdaRinit./lambdaFAK;
+        data.invjoint.lambdaR = data.invjoint.lambdaRinit;
     end
     
     % update GUI data

@@ -165,20 +165,6 @@ gui.table_handles.pressure_table = uitable('Parent',gui.panels.cps.HBox5,...
     'UIContextMenu',gui.cm_handles.select,'UserData',struct('Tooltipstr',tstr),...
     'CellEditCallback',@onEditCPSTable,'RowName','numbered','FontSize',myui.fontsize);
 
-%% Java Hack to adjust vertical alignment of text fields
-jh = findjobj(gui.text_handles.sigma);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.theta);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.loglin );
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.units );
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.press_range);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.press_RUN);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-
 return
 
 %------------- END OF CODE --------------

@@ -40,7 +40,7 @@ data = getappdata(fig,'data');
 solver = get(src,'Label');
 
 % switch solver
-if strfind(solver,'LSQLIN')
+if contains(solver,'LSQLIN')
         data.info.solver = 'lsqlin';
         % menu entry
         set(gui.menu.extra_solver_lsqlin,'Checked','on');
@@ -48,12 +48,14 @@ if strfind(solver,'LSQLIN')
 
         set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
 
-elseif strfind(solver,'LSQNONNEG')
+elseif contains(solver,'LSQNONNEG')
         data.info.solver = 'lsqnonneg';
         % menu entry
         set(gui.menu.extra_solver_lsqlin,'Checked','off');
         set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
-
+        
+        data.info.EchoFlag = 'off';
+        set(gui.menu.extra_lsqlin_echoflag,'Checked','off');
         set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
 end
 

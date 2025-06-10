@@ -96,11 +96,7 @@ switch invtype
                         
                     case 6 % l-curve
                         data.invstd.regtype  = 'lcurve';
-                        lambdaFAK = 1;
-                        if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
-                            lambdaFAK = 100;
-                        end
-                        data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
+                        data.invstd.lambdaR = data.invstd.lambdaRinit;
                         clearSingleAxis(gui.axes_handles.rtd);
                         clearSingleAxis(gui.axes_handles.psd);
                 end
@@ -109,11 +105,7 @@ switch invtype
                 switch value % different regularization options/methods
                     case 1 % manual
                         data.invstd.regtype = 'manual';
-                        lambdaFAK = 1;
-                        if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
-                            lambdaFAK = 100;
-                        end
-                        data.invstd.lambda = 1/lambdaFAK;
+                        data.invstd.lambda = 1;
                         % if there is an optimal lambda from the L-curve
                         % use it
                         if isfield(data,'results') && ...
@@ -123,11 +115,7 @@ switch invtype
                         end                    
                     case 2 % l-curve
                         data.invstd.regtype  = 'lcurve';
-                        lambdaFAK = 1;
-                        if strcmp(data.process.gatetype,'log') || strcmp(data.process.gatetype,'lin')
-                            lambdaFAK = 100;
-                        end
-                        data.invstd.lambdaR = data.invstd.lambdaRinit./lambdaFAK;
+                        data.invstd.lambdaR = data.invstd.lambdaRinit;
                         clearSingleAxis(gui.axes_handles.rtd);
                         clearSingleAxis(gui.axes_handles.psd);
                 end

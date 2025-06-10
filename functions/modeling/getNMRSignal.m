@@ -7,7 +7,8 @@ function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)
 %
 % Inputs:
 %       nmr - structure containing fields:
-%           t   : time vector [s]
+%           t1  : T1 time vector [s]
+%           t2  : T2 time vector [s]
 %           Tb  : bulk relaxation time [s]
 %           Td  : diffusion relaxation time [s]
 %           rho : surface relaxivity [m/s]
@@ -49,13 +50,14 @@ function nmr = getNMRSignal(nmr,type,SatData,psdData,wbopts)
 
 %% allocate the output NMR signals:
 % T1 and T2 for imbibition / drainage
-EiT1 = zeros(size(SatData.Sifull,1),numel(nmr.t));
-EiT2 = zeros(size(SatData.Sifull,1),numel(nmr.t));
-EdT1 = zeros(size(SatData.Sdfull,1),numel(nmr.t));
-EdT2 = zeros(size(SatData.Sdfull,1),numel(nmr.t));
+EiT1 = zeros(size(SatData.Sifull,1),numel(nmr.t1));
+EiT2 = zeros(size(SatData.Sifull,1),numel(nmr.t2));
+EdT1 = zeros(size(SatData.Sdfull,1),numel(nmr.t1));
+EdT2 = zeros(size(SatData.Sdfull,1),numel(nmr.t2));
 
 % get general parameters
-t = nmr.t;
+t1 = nmr.t1;
+t2 = nmr.t2;
 Tb = nmr.Tb;
 Td = nmr.Td;
 rho = nmr.rho;
@@ -87,16 +89,19 @@ switch type
         
         % for all pressure steps
         for p = 1:numel(SatData.pressure)
-            % for all time steps
-            for j = 1:length(t)
+            % for all recovery times
+            for j = 1:length(t1)
                 EiT1(p,j) = sum(SatData.Si(p,:) .* psdData.psd .* ...
-                    (1-exp(-t(j) .* (1./Td+1./Tb+rho.*SVi(p,:)) )));
-                EiT2(p,j) = sum(SatData.Si(p,:) .* psdData.psd .* ...
-                    exp(-t(j) .* (1./Td+1./Tb+rho.*SVi(p,:)) ) );
+                    (1-exp(-t1(j) .* (1./Td+1./Tb+rho.*SVi(p,:)) )));
                 EdT1(p,j) = sum(SatData.Sd(p,:) .* psdData.psd .* ...
-                    (1-exp(-t(j) .* (1./Td+1./Tb+rho.*SVd(p,:)) )));
+                    (1-exp(-t1(j) .* (1./Td+1./Tb+rho.*SVd(p,:)) )));
+            end
+            % for all T2 times
+            for j = 1:length(t2)
+                EiT2(p,j) = sum(SatData.Si(p,:) .* psdData.psd .* ...
+                    exp(-t2(j) .* (1./Td+1./Tb+rho.*SVi(p,:)) ) );
                 EdT2(p,j) = sum(SatData.Sd(p,:) .* psdData.psd .* ...
-                    exp(-t(j) .* (1./Td+1./Tb+rho.*SVd(p,:)) ) );
+                    exp(-t2(j) .* (1./Td+1./Tb+rho.*SVd(p,:)) ) );
             end
             if wbopts.show
                 waitbar(p / steps,hwb,['processing ... ',num2str(p),' / ',...
@@ -132,39 +137,39 @@ switch type
             end
             
             % temporary NMR signals
-            sigiT1 = zeros(size(SVi,1),numel(t));
-            sigiT2 = zeros(size(SVi,1),numel(t));
-            sigdT1 = zeros(size(SVd,1),numel(t));
-            sigdT2 = zeros(size(SVd,1),numel(t));
+            sigiT1 = zeros(size(SVi,1),numel(t1));
+            sigiT2 = zeros(size(SVi,1),numel(t2));
+            sigdT1 = zeros(size(SVd,1),numel(t1));
+            sigdT2 = zeros(size(SVd,1),numel(t2));
             
             % for all pore sizes
             for j = 1:numel(psdData.r)                
                 % --- imbibition ---
                 if SatData.isfullsati(p,j) == 1 % if fully saturated -> Ampl = 1
-                    sigiT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) ));
-                    sigiT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVi(j,1)) );
+                    sigiT1(j,:) = (1-exp(-t1 .* (1./Td + 1./Tb + rho.*SVi(j,1)) ));
+                    sigiT2(j,:) =    exp(-t2 .* (1./Td + 1./Tb + rho.*SVi(j,1)) );
                 else
                     % partially saturated pore -> account for corners
                     for jj = 1:Ncorners
                         Ampl = Aai(j,jj) / SatData.A0(j);
-                        sigiT1(j,:) = sigiT1(j,:) + (Ampl * (1-exp(-t .* ...
+                        sigiT1(j,:) = sigiT1(j,:) + (Ampl * (1-exp(-t1 .* ...
                             (1./Td + 1./Tb + rho.*SVi(j,jj)))) );
-                        sigiT2(j,:) = sigiT2(j,:) + (Ampl *    exp(-t .* ...
+                        sigiT2(j,:) = sigiT2(j,:) + (Ampl *    exp(-t2 .* ...
                             (1./Td + 1./Tb + rho.*SVi(j,jj)))  );
                     end
                 end
                 
                 % --- drainage ---
                 if SatData.isfullsatd(p,j) == 1 % if fully saturated -> Ampl = 1
-                    sigdT1(j,:) = (1-exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) ));
-                    sigdT2(j,:) =    exp(-t .* (1./Td + 1./Tb + rho.*SVd(j,1)) );
+                    sigdT1(j,:) = (1-exp(-t1 .* (1./Td + 1./Tb + rho.*SVd(j,1)) ));
+                    sigdT2(j,:) =    exp(-t2 .* (1./Td + 1./Tb + rho.*SVd(j,1)) );
                 else
                     % partially saturated pore -> account for corners
                     for jj = 1:Ncorners
                         Ampl = Aad(j,jj) / SatData.A0(j);
-                        sigdT1(j,:) = sigdT1(j,:) + (Ampl * (1-exp(-t .* ...
+                        sigdT1(j,:) = sigdT1(j,:) + (Ampl * (1-exp(-t1 .* ...
                             (1./Td + 1./Tb + rho.*SVd(j,jj)))) );
-                        sigdT2(j,:) = sigdT2(j,:) + (Ampl *    exp(-t .* ...
+                        sigdT2(j,:) = sigdT2(j,:) + (Ampl *    exp(-t2 .* ...
                             (1./Td + 1./Tb + rho.*SVd(j,jj)))  );
                     end
                 end

@@ -266,31 +266,10 @@ switch in.version
                 sprintf('%3.2f',data.jpd.depth(i)),' ',data.jpd.depth_units]);
         end
 
-    case 4 % Aarhus T1T2
+    case {4, 5} % Dart jrd file
         % read the data file
         datafile = dir(fullfile(in.path,in.name));
         [data,parData] = LoadDataFile(in.path,in.name,in.T1T2);
-
-        % get file statistics
-        nmrData.datfile = datafile.name;
-        nmrData.date = datafile.date;
-        nmrData.datenum = datafile.datenum;
-        nmrData.bytes = datafile.bytes;
-
-        % save the NMR data
-        nmrData.flag = data.flag;
-        nmrData.T1IRfac = 1;
-        nmrData.time = data.time;
-        nmrData.signal = data.signal;
-        nmrData.raw = data.raw;
-        if strcmp(in.T1T2,'T2')
-            nmrData.phase = data.phase;
-        end
-
-    case 5 % Dart T2 logging
-        % read the data file
-        datafile = dir(fullfile(in.path,in.name));
-        [data,parData] = LoadDataFileLogging(in.path,in.name,in.T1T2);
 
         nmrData = cell(1,1);
         for nn = 1:numel(data)
@@ -310,6 +289,19 @@ switch in.version
                 nmrData{nn}.phase = data{nn}.phase;
             end
         end
+        % make some checks (burst & freq)
+        if numel(parData)==1
+            out.hasburst = 0;
+            out.Nfreq = 1;
+        elseif numel(parData)==2
+            if parData{1}.freqK ~= parData{2}.freqK
+                out.hasburst = 0;
+                out.Nfreq = 2;
+            end
+        elseif numel(parData)==4
+            out.hasburst = 1;
+            out.Nfreq = 2;
+        end
 end
 
 % save data to output struct
@@ -324,121 +316,95 @@ function [data,pardata] = LoadDataFile(datapath,fname,flag)
 % importdata is rather slow for row data
 % A = importdata(fullfile(datapath,fname),'\t');
 
-% first read the file to get the number of echos
-fid = fopen(fullfile(datapath,fname));
+% faster import
+fid = fopen(fullfile(datapath,fname),'r');
 A0 = textscan(fid,'%f','Delimiter','\n');
 fclose(fid);
-% now read all three lines
-fid = fopen(fullfile(datapath,fname));
-A1 = textscan(fid,'%f',A0{1}(3));
-A2 = textscan(fid,'%f',A0{1}(3));
-A3 = textscan(fid,'%f',A0{1}(3));
-fclose(fid);
-% and stitch them together
-A = [A1{1}';A2{1}';A3{1}'];
-
-t_echo = A(1,2);
-n_echo = A(1,3);
-freq = A(1,4);
-Nscans = A(1,5);
-t_recov = A(1,57); % DART
-
-time = t_echo:t_echo:t_echo*n_echo;
-time = time(:);
-re = A(2,1:length(time));
-im = A(3,1:length(time));
-re = re(:);
-im = im(:);
-
-data.flag = flag;
-data.raw.time = time;
-data.raw.signal = complex(re,im);
-[data.signal,data.phase] = rotateT2phase(data.raw.signal);
-
-data.time = data.raw.time;
-
-pardata.t_echo = t_echo;
-pardata.n_echo = n_echo;
-pardata.t_recov = t_recov;
-pardata.freq = freq;
-pardata.Nscans = Nscans;
-d{1}{1,1} = ['t_echo = ',num2str(t_echo)];
-d{1}{2,1} = ['n_echo = ',num2str(n_echo)];
-d{1}{3,1} = ['t_recov = ',num2str(t_recov)];
-d{1}{4,1} = ['freq = ',num2str(freq)];
-d{1}{5,1} = ['Nscans = ',num2str(Nscans)];
-pardata.all = d;
-
-end
-
-%% load NMR data file
-function [data,pardata] = LoadDataFileLogging(datapath,fname,flag)
-
-% importdata is rather slow for row data
-% A = importdata(fullfile(datapath,fname),'\t');
-
-% first read the file to get the number of echos
-fid = fopen(fullfile(datapath,fname));
-A0 = textscan(fid,'%f','Delimiter','\n');
-fclose(fid);
-
-% get the number of Echos
-n_echo = A0{1}(3);
-N = numel(A0{1});
-% reshape the data
-A1 = reshape(A0{1},[n_echo N/n_echo]);
-A2 = A1';
+N = A0{1}(3);
+L = numel(A0{1})/N;
+A = A0{1}; 
+A = reshape(A,[N L]);
+A = A';
+clear A0 N L
 
 data = cell(1,1);
 pardata = cell(1,1);
-for nn = 1:size(A2,1)/3
-    t_echo = A2(3*nn-2,2);
-    n_echo = A2(3*nn-2,3);
-    freq = A2(3*nn-2,4);
-    Nscans = A2(3*nn-2,5);
-    depth = A2(3*nn-2,9);
-    t_wait = A2(3*nn-2,14);
-    time = t_echo:t_echo:t_echo*n_echo;
-    re = A2(3*nn-1,1:length(time));
-    im = A2(3*nn,1:length(time));
-    time = time(:);
-    re = re(:);
-    im = im(:);
-    data{nn}.flag = flag;
-    data{nn}.raw.time = time;
-    data{nn}.raw.signal = complex(re,im);
-    data{nn}.time = data{nn}.raw.time;
-    [data{nn}.signal,data{nn}.phase] = rotateT2phase(data{nn}.raw.signal);
-
-    pardata{nn}.t_echo = t_echo;
-    pardata{nn}.n_echo = n_echo;
-    pardata{nn}.freq = freq;
-    pardata{nn}.Nscans = Nscans;
-    pardata{nn}.depth = depth;
-    pardata{nn}.t_wait = t_wait;
-    d{1}{1,1} = ['t_echo = ',num2str(t_echo)];
-    d{1}{2,1} = ['n_echo = ',num2str(n_echo)];
-    d{1}{3,1} = ['freq = ',num2str(freq)];
-    d{1}{4,1} = ['Nscans = ',num2str(Nscans)];
-    d{1}{5,1} = ['depth = ',num2str(depth)];
-    d{1}{6,1} = ['t_wait = ',num2str(t_wait)];
-    pardata{nn}.all = d;
+c = 0;
+% data always comes in three lines
+for nn = 1:size(A,1)/3
+    header = A(3*nn-2,:);
+    out = parseHeader(header);
+    
+    % only import non-reference data
+    if out.ref_flag == 0
+        c = c + 1;
+        % create time vector
+        time = out.t_echo:out.t_echo:out.t_echo*out.n_echo;
+        % create raw signal
+        re = A(3*nn-1,1:length(time));
+        im = A(3*nn,1:length(time));
+        time = time(:);
+        re = re(:);
+        im = im(:);
+        data{c}.flag = flag;
+        data{c}.raw.time = time;
+        data{c}.raw.signal = complex(re,im);
+        data{c}.time = data{c}.raw.time;
+        % phase rotate raw signal
+        [data{c}.signal,data{c}.phase] = rotateT2phase(data{c}.raw.signal);
+        % save parameter from header
+        pardata{c} = out;
+    end
 end
 
+end
 
-% figure;
-% subplot(211);
-% plot(data{1}.time,real(data{1}.signal),'k'); hold on
-% plot(data{1}.time,imag(data{1}.signal),'k--','LineWidth',1);
-% plot(data{3}.time,real(data{3}.signal),'r');
-% plot(data{3}.time,imag(data{3}.signal),'r--','LineWidth',1);
-% set(gca,'XScale','log','YScale','lin');
-% subplot(212);
-% plot(data{2}.time,real(data{2}.signal),'k'); hold on
-% plot(data{2}.time,imag(data{2}.signal),'k--','LineWidth',1);
-% plot(data{4}.time,real(data{4}.signal),'r');
-% plot(data{4}.time,imag(data{4}.signal),'r--','LineWidth',1);
-% set(gca,'XScale','log','YScale','lin');
+%% parse header line
+function out = parseHeader(head)
+
+out.t_echo = head(2);
+out.n_echo = head(3);
+out.t_wait = head(14);
+out.Nscans = head(5);
+out.freq_index = head(28);
+out.freq = head(4);
+out.freqK = round(head(4)/1000);
+out.collect_type = head(52);
+out.t_diff = head(56);
+out.t_recov = head(57);
+out.ref_flag = head(53);
+out.unix_time = head(42);
+out.tex = head(1);
+out.Q = head(7);
+out.Q_calib = head(24);
+out.depth = head(9);
+out.stick_up_height = head(15);
+out.sensor_offset = head(19);
+out.echo_phase_shift = head(22);
+out.E1_sclae = head(25);
+out.MF_amp = head(26);
+out.LV_phase = head(27);
+out.acqu_plat = head(33);
+out.acqu_soft_maj = head(34);
+out.acqu_soft_min = head(35);
+out.temp = head(39);
+out.clock = head(41);
+% 0=m; 1=feet; 2=monitoring; 3=tex scan
+out.depth_units = head(44);
+out.device = head(50);
+out.fpga_ver = head(51);
+out.tool_length_up = head(54);
+out.tool_lemgth_low = head(55);
+out.coil_offset_low = head(58);
+
+fn = fieldnames(out);
+nfields = numel(fn);
+
+d = cell(1,1);
+for n = 1:nfields
+    d{n,1} = [fn{n},'=',num2str(out.(fn{n}))];
+end
+out.all{1} = d;
 
 end
 

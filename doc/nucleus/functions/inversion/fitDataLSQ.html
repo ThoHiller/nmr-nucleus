@@ -192,187 +192,169 @@ This function is called by:
 0078 time = time(:);
 0079 signal = signal(:);
 0080 
-0081 <span class="comment">% get the maximum value of the signal to scale the signal for the inversion</span>
-0082 <span class="comment">% to 1</span>
-0083 maxS = max(signal);
+0081 <span class="comment">% temporary variables</span>
+0082 t = time;
+0083 g = signal;
 0084 
-0085 <span class="comment">% temporary variables</span>
-0086 t = time;
-0087 g = signal./maxS;
-0088 
-0089 <span class="comment">% get the input parameters</span>
-0090 flag = parameter.T1T2;           <span class="comment">% T1/T2 switch</span>
-0091 T1IRfac = parameter.T1IRfac;     <span class="comment">% T1 Sat/Inv Recovery factor</span>
-0092 Tb = parameter.Tb;               <span class="comment">% bulk relaxation time</span>
-0093 Td = parameter.Td;               <span class="comment">% diffusion relaxation time</span>
-0094 tstart = parameter.Tint(1);      <span class="comment">% log10 value</span>
-0095 tend = parameter.Tint(2);        <span class="comment">% log10 value</span>
-0096 N = parameter.Tint(3);           <span class="comment">% N per decade</span>
-0097 regMethod = parameter.regMethod; <span class="comment">% regularization method</span>
-0098 order = parameter.Lorder;        <span class="comment">% smoothness constraint</span>
-0099 lambda = parameter.lambda;       <span class="comment">% regularization parameter</span>
-0100 noise = parameter.noise;         <span class="comment">% noise</span>
-0101 
-0102 <span class="comment">% create the relaxation time vector</span>
-0103 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0104 
-0105 <span class="comment">% create the Kernel matrix for inversion</span>
-0106 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
-0107 
-0108 <span class="keyword">if</span> strcmp(parameter.solver,<span class="string">'lsqlin'</span>)
-0109     <span class="keyword">if</span> isfield(parameter,<span class="string">'bounds'</span>)
-0110         f0 = parameter.bounds.f0;
-0111         f0_lb = parameter.bounds.lb;
-0112         f0_ub = parameter.bounds.ub;
-0113     <span class="keyword">else</span>
-0114         <span class="comment">% initial T2 amplitudes</span>
-0115         f0 = zeros(size(T1T2me));
-0116         f0_lb = f0;
-0117         f0_ub = 1.5*max(g)*ones(size(T1T2me));
-0118         <span class="comment">% switch certain RTs to 0</span>
-0119         <span class="keyword">if</span> strcmp(parameter.EchoFlag,<span class="string">'on'</span>)
-0120             <span class="keyword">switch</span> flag
-0121                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0122                     <span class="comment">% T1 measurements: cut everything &gt; 5*time of last</span>
-0123                     <span class="comment">% point in SR-curve</span>
-0124                     f0_ub(T1T2me &gt; 5*time(end)) = 0;
-0125                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0126                     <span class="comment">% T2 measurements: cut everything &lt; first considered</span>
-0127                     <span class="comment">% echo to zero</span>
-0128                     f0_ub(T1T2me &lt; time(1)/5) = 0;
-0129             <span class="keyword">end</span>
-0130         <span class="keyword">end</span>
-0131     <span class="keyword">end</span>
-0132 <span class="keyword">end</span>
-0133 
-0134 <span class="comment">% derivative matrix</span>
-0135 L = get_l(length(T1T2me),order);
-0136 
-0137 <span class="comment">% scale the noise and error matrix W accordingly</span>
-0138 noise = noise./maxS;
-0139 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0140     e = diag(parameter.W);
-0141     e = e./maxS;
-0142     W = diag(e);
-0143 <span class="keyword">end</span>
-0144 
-0145 <span class="comment">% apply error weight matrix</span>
-0146 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0147     g = W*g;
-0148     K = W*K;
-0149 <span class="keyword">end</span>
-0150 
-0151 <span class="comment">% extend K and apply regularization</span>
-0152 <span class="comment">% 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'</span>
-0153 [KK,lambda_out] = <a href="applyRegularization.html" class="code" title="function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)">applyRegularization</a>(K,g,L,lambda,regMethod,order,noise);
-0154 
-0155 <span class="comment">% extend g accordingly</span>
-0156 gg = g;
-0157 gg(length(g)+1:length(g)+size(L,1),1) = 0;
-0158 
-0159 <span class="keyword">switch</span> parameter.solver
-0160     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
-0161         options = optimoptions(<span class="string">'lsqlin'</span>);
-0162         options.Display = parameter.info;
-0163         options.OptimalityTolerance = 1e-16;
-0164         options.StepTolerance = 1e-16;
-0165 <span class="comment">%         options.MaxIterations = 2000;</span>
-0166         <span class="keyword">if</span> isfield(parameter,<span class="string">'bounds'</span>)
-0167             [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],<span class="keyword">...</span>
-0168                 f0_lb,f0_ub,f0,options);
-0169         <span class="keyword">else</span>
-0170             [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],<span class="keyword">...</span>
-0171                 f0_lb,f0_ub,[],options);
-0172         <span class="keyword">end</span>
-0173     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
-0174         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'TolX'</span>,1e-12);
-0175         [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
-0176 <span class="keyword">end</span>
-0177 
-0178 <span class="comment">% rescale f so that the sum(f) = unscaled E0</span>
-0179 f = (f.*maxS);
-0180 
-0181 <span class="comment">% the 'inverted' signal</span>
-0182 gg_fit = KK*f;
-0183 <span class="comment">% cut off the end which was needed for regularization</span>
-0184 s_fit = gg_fit(1:length(t),1);
-0185 
-0186 <span class="comment">% get residuals and error measures</span>
-0187 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0188     <span class="comment">% normalize the fit because the signal was error weighted for the</span>
-0189     <span class="comment">% inversion</span>
-0190     e = diag(W);
-0191     einv = 1./e;
-0192     Winv = diag(einv);
-0193     s_fit = Winv * s_fit;
-0194     
-0195     <span class="comment">% because signal and s_fit are unscaled the initial values for noise</span>
-0196     <span class="comment">% and W are used to get the error estimates</span>
-0197     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise,parameter.W);
-0198 <span class="keyword">else</span>
-0199     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise);
-0200 <span class="keyword">end</span>
-0201 
-0202 <span class="comment">% L-curve parameter</span>
-0203 <span class="comment">% model norm |L*x|_2</span>
-0204 xn = norm(L*f,2);
-0205 <span class="comment">% residual norm |A*x-b|_2</span>
-0206 rn = norm(out.residual,2);
-0207 
-0208 <span class="comment">% get &quot;initial&quot; value E0</span>
-0209 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
-0210     K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
-0211 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
-0212     K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
-0213 <span class="keyword">end</span>
-0214 E0 = K0*f;
-0215 
-0216 <span class="comment">% output struct</span>
-0217 fitdata.fit_t = time(:);
-0218 fitdata.fit_s = s_fit(:);
-0219 fitdata.T1T2me = T1T2me(:);
-0220 fitdata.T1T2f = f(:);
-0221 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
-0222 fitdata.E0 = E0;
-0223 fitdata.ciE0 = NaN;
-0224 fitdata.resnorm = out.resnorm;
-0225 fitdata.residual = out.residual;
-0226 fitdata.chi2 = out.chi2;
-0227 fitdata.rms = out.rms;
-0228 fitdata.lambda_out = lambda_out;
-0229 fitdata.KK = KK;
-0230 fitdata.L = L;
-0231 fitdata.xn = xn;
-0232 fitdata.rn = rn;
-0233 fitdata.invtype = <span class="string">'NNLS'</span>;
-0234 fitdata.invparams = parameter;
-0235 
-0236 <span class="keyword">return</span>
-0237 
-0238 <span class="comment">%------------- END OF CODE --------------</span>
-0239 
-0240 <span class="comment">%% License:</span>
-0241 <span class="comment">% MIT License</span>
-0242 <span class="comment">%</span>
-0243 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0244 <span class="comment">%</span>
-0245 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0246 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0247 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0248 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0249 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0250 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0251 <span class="comment">%</span>
-0252 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0253 <span class="comment">% copies or substantial portions of the Software.</span>
-0254 <span class="comment">%</span>
-0255 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0256 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0257 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0258 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0259 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0260 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0261 <span class="comment">% SOFTWARE.</span></pre></div>
+0085 <span class="comment">% get the input parameters</span>
+0086 flag = parameter.T1T2;           <span class="comment">% T1/T2 switch</span>
+0087 T1IRfac = parameter.T1IRfac;     <span class="comment">% T1 Sat/Inv Recovery factor</span>
+0088 Tb = parameter.Tb;               <span class="comment">% bulk relaxation time</span>
+0089 Td = parameter.Td;               <span class="comment">% diffusion relaxation time</span>
+0090 tstart = parameter.Tint(1);      <span class="comment">% log10 value</span>
+0091 tend = parameter.Tint(2);        <span class="comment">% log10 value</span>
+0092 N = parameter.Tint(3);           <span class="comment">% N per decade</span>
+0093 regMethod = parameter.regMethod; <span class="comment">% regularization method</span>
+0094 order = parameter.Lorder;        <span class="comment">% smoothness constraint</span>
+0095 lambda = parameter.lambda;       <span class="comment">% regularization parameter</span>
+0096 noise = parameter.noise;         <span class="comment">% noise</span>
+0097 
+0098 <span class="comment">% create the relaxation time vector</span>
+0099 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
+0100 
+0101 <span class="comment">% create the Kernel matrix for inversion</span>
+0102 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0103 
+0104 <span class="comment">% set bounds, if applicable</span>
+0105 <span class="keyword">if</span> strcmp(parameter.solver,<span class="string">'lsqlin'</span>)
+0106     <span class="keyword">if</span> isfield(parameter,<span class="string">'bounds'</span>)
+0107         f0 = parameter.bounds.f0;
+0108         f0_lb = parameter.bounds.lb;
+0109         f0_ub = parameter.bounds.ub;
+0110     <span class="keyword">else</span>
+0111         <span class="comment">% initial amplitudes</span>
+0112         f0 = zeros(size(T1T2me));
+0113         f0_lb = f0;
+0114         f0_ub = 1.5*max(g)*ones(size(T1T2me));
+0115         <span class="comment">% force certain RTs to 0 (switch in EXTRA menu)</span>
+0116         <span class="keyword">if</span> strcmp(parameter.EchoFlag,<span class="string">'on'</span>)
+0117             <span class="comment">% force everything smaller than the smallest TE/5 (or TR/5 in</span>
+0118             <span class="comment">% case of T1) to 0</span>
+0119             f0_ub(T1T2me &lt; time(1)/5) = 0;
+0120         <span class="keyword">end</span>
+0121     <span class="keyword">end</span>
+0122 <span class="keyword">end</span>
+0123 
+0124 <span class="comment">% derivative (smoothness) matrix</span>
+0125 L = get_l(length(T1T2me),order);
+0126 
+0127 <span class="comment">% if data is gated, apply error weight matrix</span>
+0128 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0129     e = 1./diag(parameter.W);
+0130     W = diag(e);
+0131     g = W*g;
+0132     K = W*K;
+0133 <span class="keyword">end</span>
+0134 
+0135 <span class="comment">% scale everything between [0,1]</span>
+0136 maxS = max(g);
+0137 g = g./maxS;
+0138 K = K./maxS;
+0139 
+0140 <span class="comment">% extend K and apply regularization</span>
+0141 <span class="comment">% 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'</span>
+0142 [KK,lambda_out] = <a href="applyRegularization.html" class="code" title="function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)">applyRegularization</a>(K,g,L,lambda,regMethod,order,noise./maxS);
+0143 
+0144 <span class="comment">% extend g accordingly</span>
+0145 gg = g;
+0146 gg(length(g)+1:length(g)+size(L,1),1) = 0;
+0147 
+0148 <span class="comment">% solve LSE depending on the chosen solver</span>
+0149 <span class="keyword">switch</span> parameter.solver
+0150     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
+0151         options = optimoptions(<span class="string">'lsqlin'</span>);
+0152         options.Display = parameter.info;
+0153         options.OptimalityTolerance = 1e-16;
+0154         options.StepTolerance = 1e-16;
+0155         [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
+0156 
+0157     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
+0158         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'TolX'</span>,1e-12);
+0159         [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
+0160 <span class="keyword">end</span>
+0161 
+0162 <span class="comment">% rescale f so that the sum(f) = unscaled E0</span>
+0163 <span class="comment">% f = (f.*maxS);</span>
+0164 
+0165 <span class="comment">% get the 'inverted' signal from the rescaled RTD</span>
+0166 gg_fit = KK*(f.*maxS);
+0167 <span class="comment">% cut off the end which was needed for regularization</span>
+0168 s_fit = gg_fit(1:length(t),1);
+0169 
+0170 <span class="comment">% get residuals and error measures</span>
+0171 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0172     <span class="comment">% rescale the fit because the input signal was error weighted for the</span>
+0173     <span class="comment">% inversion</span>
+0174     s_fit = parameter.W * s_fit;
+0175     
+0176     <span class="comment">% because signal and s_fit are now no longer error weighted, the</span>
+0177     <span class="comment">% initial values for noise and W are used to get the error estimates</span>
+0178     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
+0179 <span class="keyword">else</span>
+0180     <span class="comment">% if data is not gated, use global noise estimate</span>
+0181     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
+0182 <span class="keyword">end</span>
+0183 
+0184 <span class="comment">% L-curve parameters</span>
+0185 <span class="comment">% model norm |L*x|_2</span>
+0186 xn = norm(L*f,2);
+0187 <span class="comment">% residual norm |A*x-b|_2</span>
+0188 rn = norm(out.residual,2);
+0189 
+0190 <span class="comment">% get &quot;initial&quot; value E0</span>
+0191 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
+0192     K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+0193 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
+0194     K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
+0195 <span class="keyword">end</span>
+0196 E0 = K0*f;
+0197 
+0198 <span class="comment">% output struct</span>
+0199 fitdata.fit_t = time(:);
+0200 fitdata.fit_s = s_fit(:);
+0201 fitdata.T1T2me = T1T2me(:);
+0202 fitdata.T1T2f = f(:);
+0203 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
+0204 fitdata.E0 = E0;
+0205 fitdata.ciE0 = NaN;
+0206 fitdata.resnorm = out.resnorm;
+0207 fitdata.residual = out.residual;
+0208 fitdata.chi2 = out.chi2;
+0209 fitdata.rms = out.rms;
+0210 fitdata.lambda_out = lambda_out;
+0211 fitdata.KK = KK;
+0212 fitdata.L = L;
+0213 fitdata.xn = xn;
+0214 fitdata.rn = rn;
+0215 fitdata.invtype = <span class="string">'NNLS'</span>;
+0216 fitdata.invparams = parameter;
+0217 
+0218 <span class="keyword">return</span>
+0219 
+0220 <span class="comment">%------------- END OF CODE --------------</span>
+0221 
+0222 <span class="comment">%% License:</span>
+0223 <span class="comment">% MIT License</span>
+0224 <span class="comment">%</span>
+0225 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0226 <span class="comment">%</span>
+0227 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0228 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0229 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0230 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0231 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0232 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0233 <span class="comment">%</span>
+0234 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0235 <span class="comment">% copies or substantial portions of the Software.</span>
+0236 <span class="comment">%</span>
+0237 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0238 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0239 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0240 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0241 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0242 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0243 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

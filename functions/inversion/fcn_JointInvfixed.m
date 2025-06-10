@@ -163,8 +163,10 @@ end
 
 %% weighting
 if isfield(iparam,'W')
-    g = iparam.W*g';
-    XX = iparam.W*XX;
+    e = 1./diag(iparam.W);
+    W = diag(e);
+    g = W*g';
+    XX = W*XX;
     g = g';
 end
 

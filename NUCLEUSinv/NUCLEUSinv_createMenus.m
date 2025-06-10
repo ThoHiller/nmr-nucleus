@@ -52,11 +52,8 @@ gui.menu.file_import_lab = uimenu(gui.menu.file_import,...
 gui.menu.file_import_lab_aarhus = uimenu(gui.menu.file_import_lab,...
     'Label','AARHUS');
 % 1.1.1.1.1 AARHUS Dart T1T2
-gui.menu.file_import_lab_aarhus_dartT1T2 = uimenu(gui.menu.file_import_lab_aarhus,...
-    'Label','Dart T1T2','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.1.2 AARHUS Dart T2 logging
-gui.menu.file_import_lab_aarhus_dartT2 = uimenu(gui.menu.file_import_lab_aarhus,...
-    'Label','Dart T2 logging','Tag','Lab','Callback',@onMenuImport);
+gui.menu.file_import_lab_aarhus_dart = uimenu(gui.menu.file_import_lab_aarhus,...
+    'Label','Dart (jrd)','Tag','Lab','Callback',@onMenuImport);
 
 % 1.1.1.2 BAM
 gui.menu.file_import_lab_bam = uimenu(gui.menu.file_import_lab,...
@@ -81,10 +78,13 @@ gui.menu.file_import_lab_bgr_mouse_cpmg = uimenu(gui.menu.file_import_lab_bgr,..
 % cpmgfastautotest, or (old Prospa Versions) cpmgfastauto
 gui.menu.file_import_lab_bgr_mouse_lift = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','MouseLift','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.3.5 Helios CPMG standard data, single subfolders with individual data files
+% 1.1.1.3.5 Mouse T1T2maps
+gui.menu.file_import_lab_bgr_mouse_T1T2 = uimenu(gui.menu.file_import_lab_bgr,...
+    'Label','MouseT1T2','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.3.6 Helios CPMG standard data, single subfolders with individual data files
 gui.menu.file_import_lab_bgr_helios_cpmg = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','HeliosCPMG','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.3.6 Helios series of CPMG data, several files of a series in the target
+% 1.1.1.3.7 Helios series of CPMG data, several files of a series in the target
 % folder, as used e.g. for T1 measurements
 gui.menu.file_import_lab_bgr_helios_series = uimenu(gui.menu.file_import_lab_bgr,...
     'Label','HeliosSeries','Tag','Lab','Callback',@onMenuImport);
@@ -147,9 +147,9 @@ gui.menu.file_import_lab_mouse = uimenu(gui.menu.file_import_lab_other,...
 % 1.1.1.7.3 DART (University of Vienna)
 gui.menu.file_import_lab_dart = uimenu(gui.menu.file_import_lab_other,...
     'Label','DART','Tag','Lab','Callback',@onMenuImport);
-% 1.1.1.7.4 DART (incl. Burst echoes)
-gui.menu.file_import_lab_dartburst = uimenu(gui.menu.file_import_lab_other,...
-    'Label','DART (+Burst)','Tag','Lab','Callback',@onMenuImport);
+% 1.1.1.7.4 MRSmatlab
+gui.menu.file_import_lab_mrsmatlab = uimenu(gui.menu.file_import_lab_other,...
+    'Label','MRSMatlab (FIT)','Tag','Lab','Callback',@onMenuImport);
 
 % 1.1.2 Ascii
 gui.menu.file_import_ascii = uimenu(gui.menu.file_import,...
@@ -258,11 +258,20 @@ gui.menu.file_export_graphicstiff = uimenu(gui.menu.file_export_graphics,...
 gui.menu.file_export_graphicseps = uimenu(gui.menu.file_export_graphics,...
     'Label','EPS','Callback',@onMenuExportGraphics);
 
-% 1.3 Restart
+% 1.3 Sort
+gui.menu.file_sort = uimenu(gui.menu.file,'Label','Sort Files','Separator','on');
+% 1.3.1 Sort by name
+gui.menu.file_sort_by_name = uimenu(gui.menu.file_sort,'Label','by name','Callback',@onMenuSort);
+% 1.3.2 Sort by date
+gui.menu.file_sort_by_date = uimenu(gui.menu.file_sort,'Label','by date','Callback',@onMenuSort);
+% 1.3.3 flip list
+gui.menu.file_sort_flip = uimenu(gui.menu.file_sort,'Label','flip list','Callback',@onMenuSort);
+
+% 1.4 Restart
 gui.menu.file_restart = uimenu(gui.menu.file,...
     'Label','Restart','Separator','on','Callback',@onMenuRestartQuit);
 
-% 1.4 Quit
+% 1.5 Quit
 gui.menu.file_quit = uimenu(gui.menu.file,...
     'Label','Quit','Callback',@onMenuRestartQuit);
 
@@ -306,27 +315,32 @@ gui.menu.extra_graphics_parinfo = uimenu(gui.menu.extra_graphics,...
 % 2.5.2 fit statistics
 gui.menu.extra_graphics_stats = uimenu(gui.menu.extra_graphics,...
     'Label','Fit statistics','Callback',@onMenuViewFigures);
+% 2.5.3 amplitude over time
+gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
+    'Label','AMP-TLGM-SNR','Callback',@onMenuViewFigures);
+% 2.5.4 amplitude vs tlgm
+gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
+    'Label','AMP vs TLGM','Callback',@onMenuViewFigures);
+% 2.5.5 relaxation time distributions
+gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
+    'Label','RTDs');
+% 2.5.5.1 relaxation time distributions as 3d cube
+gui.menu.extra_graphics_rtd_1 = uimenu(gui.menu.extra_graphics_rtd,...
+    'Label','3D cube','Callback',@onMenuViewFigures);
+% 2.5.5.2 relaxation time distributions as surface plot
+gui.menu.extra_graphics_rtd_2 = uimenu(gui.menu.extra_graphics_rtd,...
+    'Label','Surface plot','Callback',@onMenuViewFigures);
+
 switch gui.myui.inidata.expertmode
     case 'on'
-        % 2.5.3 amplitude over time
-        gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP-TLGM-SNR','Callback',@onMenuViewFigures);
-        % 2.5.4 amplitude vs tlgm
-        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP vs TLGM','Callback',@onMenuViewFigures);
-        % 2.5.5 relaxation time distribution over time
-        gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
-            'Label','RTD','Callback',@onMenuViewFigures);
+        % nothing to do
     case 'off'
         % 2.5.3 amplitude over time
-        gui.menu.extra_graphics_amp = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP-TLGM-SNR','Enable','off','Callback',@onMenuViewFigures);
+        set(gui.menu.extra_graphics_amp,'Enable','off');
         % 2.5.4 amplitude vs tlgm
-        gui.menu.extra_graphics_amp2 = uimenu(gui.menu.extra_graphics,...
-            'Label','AMP vs TLGM','Enable','off','Callback',@onMenuViewFigures);
-        % 2.5.5 relaxation time distribution over time
-        gui.menu.extra_graphics_rtd = uimenu(gui.menu.extra_graphics,...
-            'Label','RTD','Enable','off','Callback',@onMenuViewFigures);   
+        set(gui.menu.extra_graphics_amp2,'Enable','off');
+        % 2.5.5 relaxation time distributions
+        set(gui.menu.extra_graphics_rtd,'Enable','off');
 end
 
 % 2.6 PhaseView GUI
@@ -341,7 +355,7 @@ gui.menu.extra_fixedtime = uimenu(gui.menu.view,...
 % 2.9 UncertaintyVIEW GUI
 gui.menu.extra_uncert = uimenu(gui.menu.view,...
     'Label','UncertView GUI','Enable','off','Callback',@onMenuSubGUIs);
-% 2.9 2DInv GUI
+% 2.10 2DInv GUI
 gui.menu.extra_T1T2map = uimenu(gui.menu.view,...
     'Label','2DInv GUI','Enable','off','Callback',@onMenuSubGUIs);
 
@@ -360,31 +374,72 @@ switch gui.myui.inidata.expertmode
 end
 
 % 3.2 optimization toolbox (on/off)
+gui.menu.extra_solver = uimenu(gui.menu.extra,'Label','LSQ Solver');
+gui.menu.extra_solver_lsqlin = uimenu(gui.menu.extra_solver,...
+    'Label','LSQLIN (Optim. TB)','Checked','on','Callback',@onMenuSolver);
+gui.menu.extra_solver_lsqnonneg = uimenu(gui.menu.extra_solver,...
+    'Label','LSQNONNEG','Callback',@onMenuSolver);
+switch data.info.has_optim
+    case 'on'
+        set(gui.menu.extra_solver_lsqlin,'Checked','on');
+        set(gui.menu.extra_solver_lsqnonneg,'Checked','off');
+    case 'off'
+        set(gui.menu.extra_solver_lsqlin,'Checked','off');
+        set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+end
+
 switch gui.myui.inidata.expertmode
     case 'on'
         switch data.info.has_optim
             case 'on'
-                gui.menu.extra_solver = uimenu(gui.menu.extra,...
-                    'Label','LSQ Solver','Enable','on');
+                set(gui.menu.extra_solver,'Enable','on');
             case 'off'
-                gui.menu.extra_solver = uimenu(gui.menu.extra,...
-                    'Label','LSQ Solver','Enable','off');
+                set(gui.menu.extra_solver,'Enable','off');
         end        
     case 'off'
-        gui.menu.extra_solver = uimenu(gui.menu.extra,...
-            'Label','LSQ Solver','Enable','off');
+        set(gui.menu.extra_solver,'Enable','off');
 end
-gui.menu.extra_solver_lsqlin = uimenu(gui.menu.extra_solver,...
-    'Label','LSQLIN (Optim. TB)','Callback',@onMenuSolver);
-gui.menu.extra_solver_lsqnonneg = uimenu(gui.menu.extra_solver,...
-    'Label','LSQNONNEG (default)','Checked','on','Callback',@onMenuSolver);
 
 % 3.3 flag for LSQLIN option to set RTs smaller than min(TE)/5 to 0
 gui.menu.extra_lsqlin_echoflag = uimenu(gui.menu.extra,...
-    'Label','RTD<TE/5=0','Enable','off',...
-    'Callback',@onMenuExtraEchoFlag);
+    'Label','RTD<TE/5=0','Callback',@onMenuExtraEchoFlag);
+switch gui.myui.inidata.expertmode
+    case 'on'
+        switch data.info.has_optim
+            case 'on'
+                set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
+            case 'off'
+                set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
+        end        
+    case 'off'
+        set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
+end
 
-% 3.4 joint inversion (on/off)
+% L-curve method
+gui.menu.extra_lcurve = uimenu(gui.menu.extra,'Label','L-curve method');
+gui.menu.extra_lcurve_iter = uimenu(gui.menu.extra_lcurve,...
+    'Label','Iterative','Checked','on','Callback',@onMenuLcurve);
+gui.menu.extra_lcurve_discrete = uimenu(gui.menu.extra_lcurve,...
+    'Label','Discrete','Callback',@onMenuLcurve);
+switch gui.myui.inidata.expertmode
+    case 'on'
+        set(gui.menu.extra_lcurve,'Enable','on');
+    case 'off'
+        set(gui.menu.extra_lcurve,'Enable','off');
+end
+
+% 3.4 - 3.6 batch processing
+gui.menu.extra_batch_run = uimenu(gui.menu.extra,...
+    'Label','Batch Inversion: RUN','Separator','on',...
+    'Tag','run','Callback',@onMenuBatch);
+gui.menu.extra_batch_clear = uimenu(gui.menu.extra,...
+    'Label','Batch Inversion: CLEAR',...
+    'Tag','clear','Callback',@onMenuBatch);
+gui.menu.extra_batch_save = uimenu(gui.menu.extra,...
+    'Label','Batch Inversion: SAVE',...
+    'Tag','save','Callback',@onMenuBatch);
+
+% 3.7 joint inversion (on/off)
 gui.menu.extra_joint = uimenu(gui.menu.extra,...
     'Label','Joint Inversion','Checked','off','Separator','on',...
     'Callback',@onMenuJointInversion);
@@ -395,15 +450,25 @@ switch gui.myui.inidata.expertmode
         set(gui.menu.extra_joint,'Enable','off');
 end
 
-% 3.5 set inversion bounds for surface relaxivity rho
+% 3.8 set inversion bounds for surface relaxivity rho
 gui.menu.extra_joint_rhobounds = uimenu(gui.menu.extra,...
     'Label','Surface relaxivity bounds','Enable','off',...
     'Callback',@onMenuExtraRhoBounds);
 
-% 3.6 find duplicate data
+% 3.9 find duplicate data
 gui.menu.extra_find_duplicates = uimenu(gui.menu.extra,...
     'Label','Find duplicate signals','Enable','on',...
     'Callback',@onMenuExtraFindDuplicates);
+
+% 3.10 use RMS as noise estimate (e.g. for T1 data)
+gui.menu.extra_rms_noise_estimate = uimenu(gui.menu.extra,...
+    'Label','Use RMS as noise estimate','Enable','on',...
+    'Callback',@onMenuExtraNoiseFromRMS);
+
+% 3.11 create z-vector for (e.g. for HELIOS series)
+gui.menu.extra_create_z_vec = uimenu(gui.menu.extra,...
+    'Label','Create z-slice vector','Enable','on',...
+    'Callback',@onMenuExtraZvector);
 
 
 %% 4. Color theme

@@ -17,13 +17,15 @@ function out = LoadNMRData_rocaT1T2(in)
 %       out.nmrData - NMR data
 %
 % Example:
-%       out = LoadNMRData_helios(in)
+%       out = LoadNMRData_rocaT1T2(in)
 %
 % Other m-files required:
 %       fixParameterString
+%       rotateT2phase
 %
 % Subfunctions:
 %       LoadDataFile
+%       LoadParameterFile
 %
 % MAT-files required:
 %       none

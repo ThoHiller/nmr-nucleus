@@ -38,6 +38,24 @@ fig_tag = get(fig,'Tag');
 label = get(src,'Label');
 % close the figure
 close(fig);
+
+% close subGUIS
+if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
+    close(findobj('Tag','FIXEDTIMEVIEW'));
+end
+if ~isempty(findobj('Tag','PHASEVIEW'))
+    close(findobj('Tag','PHASEVIEW'));
+end
+if ~isempty(findobj('Tag','UNCERTVIEW'))
+    close(findobj('Tag','UNCERTVIEW'));
+end
+if ~isempty(findobj('Tag','2DINV'))
+    close(findobj('Tag','2DINV'));
+end
+if ~isempty(findobj('Tag','2DMOD'))
+    close(findobj('Tag','2DMOD'));
+end
+
 % and restart if necessary
 if strcmp(label,'Restart')    
     switch fig_tag        

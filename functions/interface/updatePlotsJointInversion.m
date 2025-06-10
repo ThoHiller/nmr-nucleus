@@ -46,7 +46,7 @@ if isfield(data,'results') && isfield(data.results,'invjoint')
     nmr = invjoint.idata.nmr;
     levels = invjoint.levels;
     iGEOM = invjoint.iGEOM;
-    iSAT = invjoint.iSAT;
+    % iSAT = invjoint.iSAT;
     pSAT = invjoint.pSAT;
     SatImbDrain = invjoint.iparam.SatImbDrain;
     
@@ -251,8 +251,8 @@ if isfield(data,'results') && isfield(data.results,'invjoint')
             % y-limits
             set(ax,'YScale','lin','YLim',[0 ylim*1.05]);
             % y-label
-            if isfield(data.import,'NMRMOD')
-                set(get(ax,'YLabel'),'String','water content [vol. %]');
+            if data.invstd.porosity == 1
+                set(get(ax,'YLabel'),'String','amplitudes [-]');
             else
                 set(get(ax,'YLabel'),'String','water content [vol. %]');
             end
@@ -276,7 +276,12 @@ if isfield(data,'results') && isfield(data.results,'invjoint')
             % y-limits
             set(ax,'YScale','lin','YLim',[0 ylim*1.05]);
             % y-label
-            set(get(ax,'YLabel'),'String','cumulative water content [vol. %]'); 
+            if data.invstd.porosity == 1
+                set(get(ax,'YLabel'),'String','cumulative amplitudes [-]');
+            else
+                set(get(ax,'YLabel'),'String','cumulative water content [vol. %]'); 
+            end
+            
     end
     
     % x-limits

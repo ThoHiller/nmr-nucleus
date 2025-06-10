@@ -832,7 +832,7 @@ switch regtype
         set(gui.edit_handles.invstd_lambda_min,'Enable','on','String',num2str(lambdaR(1)));
         set(gui.edit_handles.invstd_lambda_max,'Enable','on','String',num2str(lambdaR(2)));
         set(gui.edit_handles.invstd_NlambdaR,'Enable','on','String',num2str(NlambdaR));
-        gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
+        gui.plots.DistPanel.TabTitles = {'L-CURVE','X²','PSD (joint)'};
         
     case {'gcv_tikh','gcv_trunc','gcv_damp','discrep'}        
         set(gui.edit_handles.invstd_lambda_min,'Enable','off','String',num2str(lambda));
@@ -852,7 +852,7 @@ switch regtype
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','off');
                 set(gui.edit_handles.invjoint_lambda_max,'Enable','off');
                 set(gui.edit_handles.invjoint_NlambdaR,'Enable','off');
-                gui.plots.DistPanel.TabTitles = {'L-CURVE','RMS','PSD (joint)'};
+                gui.plots.DistPanel.TabTitles = {'L-CURVE','X²','PSD (joint)'};
 
             otherwise                
                 set(gui.edit_handles.invjoint_lambda_min,'Enable','off');

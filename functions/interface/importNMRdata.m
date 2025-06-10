@@ -30,7 +30,7 @@ function importNMRdata(src)
 %       importDataLIAG
 %       importDataLIAGproject
 %       importDataMouse
-%       importDataHelios 
+%       importDataHelios
 %       loadGUIParameters
 %       loadGUIrawdata
 %
@@ -54,12 +54,10 @@ data = getappdata(fig,'data');
 try
     % check what import format is chosen
     label = get(src,'Label');
-    
+
     % set file format for later use
-    if strcmp(label,'Dart T1T2')
-        data.import.fileformat = 'dartSeries';
-    elseif strcmp(label,'Dart T2 logging')
-        data.import.fileformat = 'dartT2logging';    
+    if strcmp(label,'Dart (jrd)')
+        data.import.fileformat = 'dartjrd';
     elseif strcmp(label,'BAM TOM')
         data.import.fileformat = 'bamtom';
     elseif strcmp(label,'BGR mat')
@@ -70,8 +68,6 @@ try
         data.import.fileformat = 'corelab';
     elseif strcmp(label,'DART')
         data.import.fileformat = 'dart';
-    elseif strcmp(label,'DART (+Burst)')
-        data.import.fileformat = 'dartT2logging';    
     elseif strcmp(label,'GGE ascii')
         data.import.fileformat = 'rwth';
     elseif strcmp(label,'GGE field')
@@ -81,7 +77,7 @@ try
     elseif strcmp(label,'HeliosCPMG')
         data.import.fileformat = 'heliosCPMG';
     elseif strcmp(label,'HeliosSeries')
-        data.import.fileformat = 'heliosSeries';    
+        data.import.fileformat = 'heliosSeries';
     elseif strcmp(label,'LIAG core')
         data.import.fileformat = 'liag';
     elseif strcmp(label,'LIAG from project')
@@ -96,6 +92,10 @@ try
         data.import.fileformat = 'MouseCPMG';
     elseif strcmp(label,'MouseLift')
         data.import.fileformat = 'MouseLift';
+    elseif strcmp(label,'MouseT1T2')
+        data.import.fileformat = 'MouseT1T2';
+    elseif strcmp(label,'MRSMatlab (FIT)')
+        data.import.fileformat = 'mrsd';
     elseif strcmp(label,'PM5')
         data.import.fileformat = 'pm5';
     elseif strcmp(label,'PM25')
@@ -105,22 +105,22 @@ try
     else
         helpdlg('Something is utterly wrong.','onMenuImport: Choose again.');
     end
-    
+
     % remove info field if any
     ih = findobj('Tag','inv_info');
     if ~isempty(ih); delete(ih); end
-    
+
     % depending on the import format get the corresponding path / file
     [NMRpath,NMRfile] = getNMRPathFile(label,data.import);
-    
+
     % only continue if user didn't cancel
     if sum([NMRpath NMRfile]) > 0
         %  remove old fields and data
         data = cleanupGUIData(data);
-        
+
         % check for mat-file with GUI rawdata and import data
         isfile = dir(fullfile(NMRpath,'NUCLEUSinv_raw.mat'));
-        
+
         % if there is no raw-file import from folder/file
         if isempty(isfile)
             % import data
@@ -145,15 +145,12 @@ try
                     data.import.file = NMRfile;
                     data.import.version = 3;
                     [data,gui] = importDataDart(data,gui);
-                case 'DART (+Burst)'
-                    data.import.file = NMRfile;
-                    [data,gui] = importDataDartT2logging(data,gui,1);    
                 case 'MOUSE'
                     [data,gui] = importDataMouse(data,gui);
                 case 'LIAG single'
                     [data,gui] = importDataLIAG(data,gui);
                 case 'LIAG core'
-                    [data,gui] = importDataLIAGcore(data,gui);    
+                    [data,gui] = importDataLIAGcore(data,gui);
                 case {'LIAG from project','LIAG last project'}
                     [data,gui] = importDataLIAGproject(data,gui);
                     % make the Petro Panel visible as default
@@ -170,6 +167,8 @@ try
                     [data,gui] = importDataMouseCPMG(data,gui);
                 case 'MouseLift'
                     [data,gui] = importDataBGRlift(data,gui);
+                case 'MouseT1T2'
+                    [data,gui] = importDataBGRMouseT1T2(data,gui);
                 case 'HeliosCPMG'
                     data.import.file = NMRfile;
                     [data,gui] = importDataHeliosCPMG(data,gui);
@@ -179,15 +178,15 @@ try
                 case {'PM5','PM25'}
                     data.import.file = NMRfile;
                     [data,gui] = importDataIBAC(data,gui);
-                case 'Dart T1T2'
+                case 'Dart (jrd)'
                     data.import.file = NMRfile;
                     [data,gui] = importDataDartSeries(data,gui);
-                case 'Dart T2 logging'
-                    data.import.file = NMRfile;
-                    [data,gui] = importDataDartT2logging(data,gui,0);
                 case 'RoCA T1T2'
                     data.import.file = NMRfile;
-                    [data,gui] = importDataRoCAT1T2(data,gui);     
+                    [data,gui] = importDataRoCAT1T2(data,gui);
+                case 'MRSMatlab (FIT)'
+                    data.import.file = NMRfile;
+                    [data,gui] = importDataMRSMatlab(data,gui);
             end
             displayStatusText(gui,'Reading NMR Data ... done');
         else
@@ -196,7 +195,7 @@ try
             data = loadGUIrawdata(data,NMRpath,NMRfile);
             displayStatusText(gui,'Importing NMR raw data from mat-file ... done');
         end
-        
+
         % update the path info field with "NMRpath" ("NMRfile")
         if NMRfile > 0
             tmpstr = fullfile(NMRpath,NMRfile);
@@ -211,30 +210,30 @@ try
                 'HorizontalAlignment','left');
         end
         set(gui.text_handles.data_path,'TooltipString',tmpstr);
-        
+
         % update the ini-file
         gui.myui.inidata.importpath = data.import.path;
         gui = makeINIfile(gui,'update');
-        
+
         % update the list of file names
         set(gui.listbox_handles.signal,'String',data.import.NMR.filesShort);
         set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);
-        
+
         % create a global INVdata struct for every file in the list
         if isstruct(getappdata(fig,'INVdata'))
             setappdata(fig,'INVdata',[]);
         end
         INVdata = cell(length(data.import.NMR.filesShort),1);
         setappdata(fig,'INVdata',INVdata);
-        
+
         % clear all axes
         clearAllAxes(gui.figh);
-        
+
         % update GUI data and interface
         setappdata(fig,'data',data);
         setappdata(fig,'gui',gui);
         enableGUIelements('NMR');
-        
+
         % special treatment of LIAG projects
         switch label
             case {'LIAG from project','LIAG last project'}
@@ -247,7 +246,7 @@ try
                     calib = load(fullfile(cpath,isfile.name),'calib');
                     INVdata{id} = calib.calib;
                     data.calib = INVdata{id}.calib;
-                    data.import.LIAG.Tbulk = INVdata{id}.results.invstd.T2;
+                    data.import.LIAG.Tbulk = data.calib.Tbulk;%INVdata{id}.results.invstd.T2;
                     setappdata(fig,'INVdata',INVdata);
                     setappdata(fig,'data',data);
                     % color the list entry
@@ -263,13 +262,24 @@ try
         end
         % update GUI interface
         NUCLEUSinv_updateInterface;
+        % if the 2D window is open, update it
+        if ~isempty(findobj('Tag','2DINV'))
+            % but only if there is 2D data loaded
+            if isfield(data.import,'T1T2map')
+                Inv2DView(gui.menu.extra_T1T2map);
+            else
+                helpdlg({'function: importNMRdata',...
+                    'Careful: 2D GUI is open but 1D data set was imported'},...
+                    'Import Notification');
+            end
+        end
     end
-    
+
 catch ME
     % show error message in case import fails
     errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
         'Check File Format settings.'};
-    errordlg(errmsg,'importNMRdata: Error!');    
+    errordlg(errmsg,'importNMRdata: Error!');
 end
 
 end
@@ -283,8 +293,8 @@ NMRfile = -1;
 switch label
     case {'BAM TOM','BGR std','CoreLab ascii','GGE ascii','GGE field',...
             'HeliosCPMG','HeliosSeries','LIAG core','LIAG single',...
-            'MOUSE','MouseCPMG','MouseLift','PM25','Dart T1T2','Dart T2 logging',...
-            'DART (+Burst)','RoCA T1T2'}
+            'MOUSE','MouseCPMG','MouseLift','MouseT1T2','PM25','Dart (jrd)',...
+            'RoCA T1T2'}
         % if there is already a data folder present we start from here
         if isfield(import,'path')
             NMRpath = uigetdir(import.path,'Choose Data Path');
@@ -328,6 +338,17 @@ switch label
             [pathstr,~,~] = fileparts(here);
             [NMRfile,NMRpath] = uigetfile(pathstr,'Choose Data file');
         end
+    case 'MRSMatlab (FIT)'
+        % if there is already a data folder present we start from here
+        if isfield(import,'path')
+            [NMRfile,NMRpath] = uigetfile('*.mrsd','Choose mrsd Data file',import.path);
+        else
+            % otherwise we start at the current working dircetory
+            % 'foldername' hold s the name of the choosen data path
+            here = mfilename('fullpath');
+            [pathstr,~,~] = fileparts(here);
+            [NMRfile,NMRpath] = uigetfile('*.mrsd','mrsd Choose Data file',pathstr);
+        end
     case 'PM5'
         % if there is already a data folder present we start from here
         if isfield(import,'path')
@@ -339,7 +360,7 @@ switch label
             [pathstr,~,~] = fileparts(here);
             NMRpath = uigetdir(pathstr,'Choose PM5 Data Path');
         end
-        
+
         % check if there are multiple inf-files available
         % if yes -> choose one
         inffiles = dir(fullfile(NMRpath,'*.inf'));
@@ -347,7 +368,7 @@ switch label
             [NMRfile,NMRpath] = uigetfile(fullfile(NMRpath,'*.inf'),...
                 'Choose INF file');
         elseif numel(inffiles) == 1
-            NMRfile = inffiles.name;            
+            NMRfile = inffiles.name;
         end
 end
 
@@ -371,16 +392,16 @@ if ~isempty(csv_t2path)
         in.path = fullfile(data.import.path,'CPMG',csv_t2path(i).name);
         in.fileformat = data.import.fileformat;
         out = LoadNMRData_driver(in);
-        
+
         for j = 1:size(out.nmrData,2)
             % the individual file names
             c = c + 1;
             fnames(c).parfile = 'acqu.par';
             fnames(c).datafile = out.nmrData{j}.datfile;
             fnames(c).T2specfile = '';
-            
+
             shownames{c} = ['T2_',csv_t2path(i).name,'_',fnames(c).datafile];
-            
+
             % the NMR data
             % here we fix the time scale from [ms] to [s]
             if max(out.nmrData{j}.time) > 100
@@ -424,12 +445,12 @@ for j = 1:size(out.nmrData,2)
     fnames(c).parfile = '';
     fnames(c).datafile = data.import.file;
     fnames(c).T2specfile = '';
-    
+
     shownames{c} = out.parData{j}.file;
-    
+
     data.import.NMR.data{c} = out.nmrData{j};
     data.import.NMR.para{c} = out.parData{j};
-    
+
     if isfield(out,'pressData')
         % convert hPa to Pa
         table{c,1} = true;
@@ -466,16 +487,16 @@ checkT1T2 = data.import.path(ind(end-1)+1:ind(end)-1);
 if strcmp(checkT1T2,'t1test')
     in.T1T2 = 'T1';
 elseif strcmp(checkT1T2,'T1auto')
-    in.T1T2 = 'T1'; 
+    in.T1T2 = 'T1';
 elseif strcmp(checkT1T2,'cpmgfastautotest')
-    in.T1T2 = 'T2'; 
+    in.T1T2 = 'T2';
 elseif strcmp(checkT1T2,'cpmgfastauto')
-    in.T1T2 = 'T2'; 
+    in.T1T2 = 'T2';
 else
     disp('Please chose an original Prospa folder for Mouse Lift data!');
 end
 
-% % there should be folders with integer values in their names 
+% % there should be folders with integer values in their names
 % t1t2path = data.import.path;
 
 fnames = struct;
@@ -485,28 +506,28 @@ shownames = cell(1,1);
 
 c = 0;
 if ~isempty(data.import.path)
-%    for i = 1:size(t1t2path,1)
-        in.path = data.import.path;
-        in.fileformat = data.import.fileformat;
-        out = LoadNMRData_driver(in);
-        
-        for j = 1:size(out.nmrData,2)
-            % the individual file names
-            c = c + 1;
-            fnames(c).parfile = 'acq.par';
-            fnames(c).datafile = out.nmrData{j}.datfile;
-            
-            shownames{c} = [in.T1T2,'_',fnames(c).datafile];
-            
-            % the NMR data
-            % here we fix the time scale from [ms] to [s]
-            if max(out.nmrData{j}.time) > 100
-                out.nmrData{j}.time = out.nmrData{j}.time/1000;
-                out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
-            end
-            data.import.NMR.data{c} = out.nmrData{j};
-            data.import.NMR.para{c} = out.parData;
+    %    for i = 1:size(t1t2path,1)
+    in.path = data.import.path;
+    in.fileformat = data.import.fileformat;
+    out = LoadNMRData_driver(in);
+
+    for j = 1:size(out.nmrData,2)
+        % the individual file names
+        c = c + 1;
+        fnames(c).parfile = 'acq.par';
+        fnames(c).datafile = out.nmrData{j}.datfile;
+
+        shownames{c} = [in.T1T2,'_',fnames(c).datafile];
+
+        % the NMR data
+        % here we fix the time scale from [ms] to [s]
+        if max(out.nmrData{j}.time) > 100
+            out.nmrData{j}.time = out.nmrData{j}.time/1000;
+            out.nmrData{j}.raw.time = out.nmrData{j}.raw.time/1000;
         end
+        data.import.NMR.data{c} = out.nmrData{j};
+        data.import.NMR.para{c} = out.parData;
+    end
 else
     helpdlg('No data folders in the given directory.','onMenuImport: No data.');
 end
@@ -536,11 +557,11 @@ checkT1T2 = data.import.path(ind(end)+1:end);
 if strcmp(checkT1T2,'t1test')
     in.T1T2 = 'T1';
 elseif strcmp(checkT1T2,'T1auto')
-    in.T1T2 = 'T1'; 
+    in.T1T2 = 'T1';
 elseif strcmp(checkT1T2,'cpmgfastautotest')
-    in.T1T2 = 'T2'; 
+    in.T1T2 = 'T2';
 elseif strcmp(checkT1T2,'cpmgfastauto')
-    in.T1T2 = 'T2'; 
+    in.T1T2 = 'T2';
 else
     helpdlg('No original data folder','onMenuImport: No data.');
 end
@@ -553,7 +574,7 @@ switch answer
         % if stacking ask for stack-rotate-order
         answer = questdlg('Select stack-rotate-order:',...
             'Select order', ...
-        	'stack-rotate (default)','rotate-stack','Cancel','stack-rotate (default)');
+            'stack-rotate (default)','rotate-stack','Cancel','stack-rotate (default)');
         switch answer
             case 'stack-rotate'
                 StackFirst = true;
@@ -616,7 +637,7 @@ if ~isempty(indx)
                 data.import.NMR.data{c}.signal = signal;
                 data.import.NMR.data{c}.raw.signal = signal;
             end
-            
+
             % parameter data
             data.import.NMR.para{c} = out.parData;
         else
@@ -651,6 +672,163 @@ data.import.NMR.filesShort = shownames;
 end
 
 %%
+function [data,gui] = importDataBGRMouseT1T2(data,gui)
+
+% first ask the user if it is a series of T1 measurements or one T1T2map
+answer = questdlg('Is this a series of T1 measurements or one T1-T2 map?', ...
+    'Mouse T1T2 import','T1 series','T1-T2 map','T1-T2 map');
+switch answer
+    case 'T1 series'
+        is_T1 = true;
+    case 'T1-T2 map'
+        is_T1 = false;
+    otherwise
+        is_T1 = false;
+end
+
+% there should be some folders with names ...
+% ... similar to the data filenames inside them
+datpath = dir(data.import.path);
+datpath = datpath(~ismember({datpath.name},{'.','..'}));
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+% ask the user for the amount of T2 echoes to sum for the T1 curve
+prompt = {'Enter T2 #echos for one T1 point'};
+dlgtitle = 'How many T2 echos';
+fieldsize = [1 45];
+if is_T1
+    definput = {'30'};
+else
+    definput = {'3'};
+end
+answer = inputdlg(prompt,dlgtitle,fieldsize,definput);
+Nechos = str2double(answer{1});
+
+if is_T1
+    % load a series of T1-T2 data and extract only the T1 curves
+    c = 0;
+    if ~isempty(datpath)
+        content = datpath;
+        for j = 1:size(content,1)
+            in.T1T2 = 'T2';
+            in.name = 'data2D.dat';
+            in.path = fullfile(data.import.path,content(j).name);
+            in.fileformat = data.import.fileformat;
+            in.importflag = 'T1';
+            in.Nechos = Nechos;
+            out = LoadNMRData_driver(in);
+
+            for j1 = 1:numel(out.nmrData)
+                % the individual file names
+                c = c + 1;
+                fnames(c).parfile = 'acqu.par';
+                fnames(c).datafile = out.nmrData{j1}.datfile;
+                fnames(c).T2specfile = '';
+
+                shownames{c} = ['T1_',content(j).name];
+
+                data.import.NMR.data{c} = out.nmrData{j1};
+                data.import.NMR.para{c} = out.parData;
+            end
+
+        end
+    end
+else
+    % load a single T1-T2 data set
+    c = 0;
+    if ~isempty(datpath)
+        content = datpath;
+        for j = 1:size(content,1)
+            if strcmp(content(j).name,'data2D.dat')
+                in.T1T2 = 'T2';
+                in.name = content(j).name;
+                in.path = fullfile(data.import.path);
+                in.fileformat = data.import.fileformat;
+                in.importflag = 'T1T2map';
+                out = LoadNMRData_driver(in);
+
+                for j1 = 1:numel(out.nmrData)
+                    % the individual file names
+                    c = c + 1;
+                    fnames(c).parfile = 'acqu.par';
+                    fnames(c).datafile = out.nmrData{j1}.datfile;
+                    fnames(c).T2specfile = '';
+
+                    shownames{c} = ['T2_',content(j).name,'_',sprintf('%03d',j1)];
+
+                    data.import.NMR.data{c} = out.nmrData{j1};
+                    data.import.NMR.para{c} = out.parData;
+                end
+            end
+        end
+
+        % save the recovery time vector for later use
+        t_recov = out.parData.T1Axis;
+        t2 = out.parData.T2Axis;
+        t2N = numel(t2);
+        data.import.T1T2map.t_recov = t_recov(:);
+        data.import.T1T2map.t1N = numel(t_recov);
+        data.import.T1T2map.t2 = t2;
+        data.import.T1T2map.t2N = t2N;
+
+        % add the stacked signal to the data
+        flag = 'T1';
+        time = data.import.T1T2map.t_recov;
+        signal = zeros(numel(data.import.NMR.data),1);
+        for i1 = 1:numel(data.import.NMR.data)
+            signal(i1) = mean(real(data.import.NMR.data{i1}.signal(1:Nechos)));
+        end
+
+        disp('NUCLUESinv import: Estimating noise from exponential fit ...');
+        param.T1IRfac = 1;
+        param.noise = 0;
+        param.optim = 'off';
+        param.Tfixed_bool = [0 0 0 0 0];
+        param.Tfixed_val = [0 0 0 0 0];
+        for i1 = 1:5
+            invstd = fitDataFree(time,signal,flag,param,i1);
+            if i1 == 1
+                noise = invstd.rms;
+            else
+                noise = min([noise invstd.rms]);
+            end
+        end
+        disp('NUCLUESinv import: done.')
+
+        % finally create a new "import" data set
+        data_new = data.import.NMR.data(1);
+        para_new = data.import.NMR.para(1);
+
+        data_new{1}.flag = flag;
+        data_new{1}.T1IRfac = param.T1IRfac;
+        data_new{1}.time = time;
+        data_new{1}.signal = signal;
+        data_new{1}.noise = noise;
+        data_new{1}.raw.time = time;
+        data_new{1}.raw.signal = signal;
+
+        data.import.NMR.data{c+1} = data_new{1};
+        data.import.NMR.para{c+1} = para_new{1};
+        fnames(c+1).datafile = 'T1_merged.dat';
+        shownames{c+1} = 'T1_merged';
+        % set global echo time
+        data.inv2D.prop.te = data.import.NMR.para{1}.echoTime/1e6; % [s]
+        % set T1 SR/IR factor
+        data.inv2D.inv.T1IRfac = 1; % PM25 Mouse does SR
+    end
+
+end
+
+% update the global data structure
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
+end
+
+%%
 function [data,gui] = importDataHeliosCPMG(data,gui)
 
 % first check the subpaths
@@ -668,7 +846,7 @@ c = 0;
 if ~isempty(datpath)
     for i = 1:size(datpath,1)
         % does datpath.name points to a folder?
-        if datpath(i).isdir    
+        if datpath(i).isdir
             % check if datpath.name includes regular Helios data files
             content = dir([data.import.path,filesep,datpath(i).name]);
             content = content(~ismember({content.name},{'.','..'}));
@@ -709,8 +887,8 @@ function [data,gui] = importDataHeliosSeries(data,gui)
 % first ask the user if it is pure T2 data or T2 data belonging to a T1
 % measurement to generate T1-T2 maps
 answer = questdlg('Is this series a T1 measurement or pure T2?', ...
-	'HELIOS import', ...
-	'T1','T2','T2');
+    'HELIOS import', ...
+    'T1','T2','T2');
 switch answer
     case 'T1'
         is_T1 = true;
@@ -752,6 +930,8 @@ datpath = datpath(~ismember([datpath.isdir],true));
 datpath = datpath(contains({datpath.name},'.hrd'));
 % remove reference hrd-files
 datpath = datpath(~contains({datpath.name},'_ref.hrd'));
+% remove duplicate hrd-files
+datpath = datpath(~contains({datpath.name},'.dup'));
 
 fnames = struct;
 % shownames is just a dummy to hold all data file names that
@@ -790,7 +970,7 @@ if ~isempty(datpath)
             t_recov(c,2) = out.nmrData.phase;
         end
     end
-    
+
     % in case of T1 data, use the phase of the signal with the longest
     % recovery time to rotate the other signals
     if is_T1
@@ -823,21 +1003,22 @@ if ~isempty(datpath)
 
         % save the recovery time vector for later use
         data.import.T1T2map.t_recov = t_s(:,1)/1000;
+        data.import.T1T2map.t1N = numel(data.import.T1T2map.t_recov);
         data.import.T1T2map.t2 = t2;
         data.import.T1T2map.t2N = t2N;
 
         % ask if the single measurements should be "stacked" to one T1
         % curve
-        answer = questdlg('Do you want a single T1 curve or T1-T2 2D Inversion?', ...
-        	'HELIOS import', ...
-        	'single T1','2D Inv','2D Inv');
+        answer = questdlg('Do you want a single T1 curve or a T1-T2 map?', ...
+            'HELIOS import', ...
+            'single T1','T1-T2 map','T1-T2 map');
         switch answer
             case 'single T1'
                 singleT1 = true;
-            case '2D Inv'
+            case 'T1-T2 map'
                 singleT1 = false;
         end
-        
+
         if singleT1
             % ask how many T2-echos should be stacked together to one T1
             % point
@@ -847,7 +1028,7 @@ if ~isempty(datpath)
             definput = {'3'};
             answer = inputdlg(prompt,dlgtitle,fieldsize,definput);
             Nechos = str2double(answer{1});
-            
+
             flag = 'T1';
             time = data.import.T1T2map.t_recov;
             signal = zeros(numel(data.import.NMR.data),1);
@@ -858,7 +1039,7 @@ if ~isempty(datpath)
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = 2;
             param.noise = 0;
-            param.optim = 'off';
+            param.optim = data.info.has_optim;
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5
@@ -870,10 +1051,11 @@ if ~isempty(datpath)
                 end
             end
             disp('NUCLUESinv import: done.')
-            
+
             % finally create a new "import" data set
             data_new = data.import.NMR.data(1);
             para_new = data.import.NMR.para(1);
+            % remove the 2D data
             data.import = rmfield(data.import,'T1T2map');
 
             data_new{1}.flag = flag;
@@ -882,10 +1064,14 @@ if ~isempty(datpath)
             data_new{1}.signal = signal;
             data_new{1}.noise = noise;
             data_new{1}.raw.time = time;
-            data_new{1}.raw.signal = signal;            
+            data_new{1}.raw.signal = signal;
+
+            % use the last sub folder as name
+            pn = regexp(datpath(1).folder, filesep, 'split');
 
             fnames = fnames(1);
             shownames = shownames(1);
+            shownames{1} = [pn{end},'_T1_merged'];
 
             data.import.NMR.data = data_new;
             data.import.NMR.para = para_new;
@@ -904,7 +1090,7 @@ if ~isempty(datpath)
             for i1 = 1:numel(data.import.NMR.data)
                 signal(i1) = mean(real(data.import.NMR.data{i1}.signal(1:Nechos)));
             end
-            
+
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = 2;
             param.noise = 0;
@@ -970,7 +1156,7 @@ if ~isempty(datpath)
                 % stack up files
                 tmp_signal = tmp_signal + data.import.NMR.data{i1}.signal;
                 % check if stack count is reached
-                if mod(i1,nstacks)==0                   
+                if mod(i1,nstacks)==0
                     % current stack has finished
                     c = c + 1;
                     % save data
@@ -984,7 +1170,7 @@ if ~isempty(datpath)
 
                     fnamesnew(c) = fnames(i1);
                     shownamesnew{c} = [shownames{i1},'_',num2str(nstacks)];
-                    
+
                     % reset the tmp_signal to zero
                     tmp_signal = zeros(size(data.import.NMR.data{1}.signal));
                 end
@@ -1008,17 +1194,20 @@ end
 function [data,gui] = importDataDartSeries(data,gui)
 
 % first ask the user if it is pure T2 data or T2 data belonging to a T1
-% measurement to generate T1-T2 maps
-answer = questdlg('Is this series a T1 measurement or pure T2?', ...
-	'DART import', ...
-	'T1','T2','T2');
+% measurement to generate a T1 signal or a T1-T2 map
+answer = questdlg('What kind of data you want to import?', ...
+    'DART import', ...
+    'single T1','T1-T2 map','T2 (log)','T2 (log)');
 switch answer
-    case 'T1'
+    case 'single T1'
         is_T1 = true;
-    case 'T2'
-        is_T1 = false;
+        singleT1 = true;
+    case 'T1-T2 map'
+        is_T1 = true;
+        singleT1 = false;
     otherwise
         is_T1 = false;
+        singleT1 = false;
 end
 
 % now check the subpaths
@@ -1034,42 +1223,111 @@ fnames = struct;
 % will be shown in the listbox
 shownames = cell(1,1);
 
+useburst = 0;
+stackfreq = 1;
 c = 0;
 if ~isempty(datpath)
     content = datpath;
     if is_T1
         t_recov = zeros(1,2);
+    else
+        depth = zeros(1,1);
     end
     for j = 1:size(content,1)
         if strcmp(content(j).name(end-3:end),'.jrd')
+            c = c + 1;
+
             in.T1T2 = 'T2';
             in.name = content(j).name;
             in.path = fullfile(data.import.path);
             in.fileformat = data.import.fileformat;
             in.version = 4;
             out = LoadNMRData_driver(in);
-            % the individual file names
-            c = c + 1;
-            fnames(c).parfile = '';
-            fnames(c).datafile = out.nmrData.datfile;
-            fnames(c).T2specfile = '';
-            if is_T1
-                shownames{c} = content(j).name;
-            else
-                shownames{c} = ['T2_',content(j).name];
+            
+            % ask for burst usage and frequency stacking
+            if c == 1 & out.hasburst == 1
+                answer = questdlg('Do you want to use the burst?', ...
+                'DART import', ...
+                'Yes','No','Yes');
+                switch answer
+                    case 'Yes'
+                        useburst = 1;
+                    otherwise
+                        useburst = 0;
+                end
+            end
+            if c == 1 & out.Nfreq > 1
+                answer = questdlg('Do you want to stack frequencies?', ...
+                'DART import', ...
+                'F1 only','F2 only','F1+F2','F1+F2');
+                switch answer
+                    case 'F1 only'
+                        stackfreq = 1;
+                    case 'F2 only'
+                        stackfreq = 2;
+                    case 'F1+F2'
+                        stackfreq = 3;
+                end
             end
 
-            data.import.NMR.data{c} = out.nmrData;
-            data.import.NMR.para{c} = out.parData;
+            if useburst
+                for i1 = 1:numel(out.nmrData)/2
+                    sig = real(out.nmrData{i1}.signal);
+                    burst = real(out.nmrData{i1+out.Nfreq}.signal);
+                    
+                    burst_echoes = out.parData{i1+out.Nfreq}.n_echo;
+                    ms = mean(sig(2:burst_echoes));
+                    mb = mean(burst(2:burst_echoes));
+
+                    burst_shift = complex(burst+(ms-mb),imag(out.nmrData{i1+out.Nfreq}.signal));
+                    out.nmrData{i1}.signal(1:burst_echoes) = burst_shift;
+                    out.nmrData{i1}.raw.signal = out.nmrData{i1}.signal;
+                end
+            end
+
+            if stackfreq == 1
+                fnames(c).parfile = '';
+                fnames(c).datafile = out.nmrData{1}.datfile;
+                fnames(c).T2specfile = '';
+                shownames{c} = content(j).name;
+                data.import.NMR.data{c} = out.nmrData{1};
+                data.import.NMR.para{c} = out.parData{1};
+
+            elseif stackfreq == 2
+                fnames(c).parfile = '';
+                fnames(c).datafile = out.nmrData{2}.datfile;
+                fnames(c).T2specfile = '';
+                shownames{c} = content(j).name;
+                data.import.NMR.data{c} = out.nmrData{2};
+                data.import.NMR.para{c} = out.parData{2};
+
+            elseif stackfreq == 3
+                fnames(c).parfile = '';
+                fnames(c).datafile = out.nmrData{1}.datfile;
+                fnames(c).T2specfile = '';
+                shownames{c} = content(j).name;
+
+                tmp1 = out.nmrData{1};
+                tmp2 = out.nmrData{2};
+                signal = (tmp1.signal + tmp2.signal)./2;
+                
+                out.nmrData{1}.signal = signal;
+                out.nmrData{1}.raw.signal = signal;
+                data.import.NMR.data{c} = out.nmrData{1};
+                data.import.NMR.para{c} = out.parData{1};
+            end            
 
             % collect recovery times in case of T1 data set
             if is_T1
-                t_recov(c,1) = out.parData.t_recov;
-                t_recov(c,2) = out.nmrData.phase;
+                t_recov(c,1) = out.parData{1}.t_recov;
+                t_recov(c,2) = out.nmrData{1}.phase;
+            else
+                % try to collect depth values
+                depth(c,1) = data.import.NMR.para{c}.depth;
             end
         end
     end
-    
+
     % in case if T1 data, use the phase of the signal with the longest
     % recovery time to rotate the other signals
     if is_T1
@@ -1101,54 +1359,43 @@ if ~isempty(datpath)
 
         % save the recovery time vector for later use
         data.import.T1T2map.t_recov = t_s(:,1)/1000;
+        data.import.T1T2map.t1N = numel(data.import.T1T2map.t_recov);
         data.import.T1T2map.t2 = t2;
         data.import.T1T2map.t2N = t2N;
 
-        % ask if the single measurements should be "stacked" to one T1
-        % curve
-        answer = questdlg('Do you want a single T1 curve or T1-T2 2D Inversion?', ...
-        	'DART import', ...
-        	'single T1','2D Inv','2D Inv');
-        switch answer
-            case 'single T1'
-                singleT1 = true;
-            case '2D Inv'
-                singleT1 = false;
-        end
-        
-        if singleT1
-            % ask how many T2-echos should be stacked together to one T1
-            % point
-            prompt = {'Enter T2 #echos for one T1 point'};
-            dlgtitle = 'How many T2 echos';
-            fieldsize = [1 45];
-            definput = {'3'};
-            answer = inputdlg(prompt,dlgtitle,fieldsize,definput);
-            Nechos = str2double(answer{1});
-            
-            flag = 'T1';
-            time = data.import.T1T2map.t_recov;
-            signal = zeros(numel(data.import.NMR.data),1);
-            for i1 = 1:numel(data.import.NMR.data)
-                signal(i1) = mean(real(data.import.NMR.data{i1}.signal(1:Nechos)));
-            end
+        % ask how many T2-echos should be stacked together to one T1
+        % point
+        prompt = {'Enter T2 #echos for one T1 point for the merged T1 curve'};
+        dlgtitle = 'How many T2 echos';
+        fieldsize = [1 45];
+        definput = {'3'};
+        answer = inputdlg(prompt,dlgtitle,fieldsize,definput);
+        Nechos = str2double(answer{1});
 
-            disp('NUCLUESinv import: Estimating noise from exponential fit ...');
-            param.T1IRfac = 1;
-            param.noise = 0;
-            param.optim = 'off';
-            param.Tfixed_bool = [0 0 0 0 0];
-            param.Tfixed_val = [0 0 0 0 0];
-            for i1 = 1:5
-                invstd = fitDataFree(time,signal,flag,param,i1);
-                if i1 == 1
-                    noise = invstd.rms;
-                else
-                    noise = min([noise invstd.rms]);
-                end
+        flag = 'T1';
+        time = data.import.T1T2map.t_recov;
+        signal = zeros(numel(data.import.NMR.data),1);
+        for i1 = 1:numel(data.import.NMR.data)
+            signal(i1) = mean(real(data.import.NMR.data{i1}.signal(1:Nechos)));
+        end
+
+        disp('NUCLUESinv import: Estimating noise from exponential fit ...');
+        param.T1IRfac = 1;
+        param.noise = 0;
+        param.optim = 'off';
+        param.Tfixed_bool = [0 0 0 0 0];
+        param.Tfixed_val = [0 0 0 0 0];
+        for i1 = 1:5
+            invstd = fitDataFree(time,signal,flag,param,i1);
+            if i1 == 1
+                noise = invstd.rms;
+            else
+                noise = min([noise invstd.rms]);
             end
-            disp('NUCLUESinv import: done.')
-            
+        end
+        disp('NUCLUESinv import: done.')
+
+        if singleT1
             % finally create a new "import" data set
             data_new = data.import.NMR.data(1);
             para_new = data.import.NMR.para(1);
@@ -1160,45 +1407,14 @@ if ~isempty(datpath)
             data_new{1}.signal = signal;
             data_new{1}.noise = noise;
             data_new{1}.raw.time = time;
-            data_new{1}.raw.signal = signal;            
+            data_new{1}.raw.signal = signal;
 
             fnames = fnames(1);
-            shownames = shownames(1);
+            shownames = {'T1_merged'};
 
             data.import.NMR.data = data_new;
             data.import.NMR.para = para_new;
         else
-            prompt = {'Enter T2 #echos for one T1 point for the merged T1 curve'};
-            dlgtitle = 'How many T2 echos';
-            fieldsize = [1 45];
-            definput = {'3'};
-            answer = inputdlg(prompt,dlgtitle,fieldsize,definput);
-            Nechos = str2double(answer{1});
-
-            % add the stacked signal to the data
-            flag = 'T1';
-            time = data.import.T1T2map.t_recov;
-            signal = zeros(numel(data.import.NMR.data),1);
-            for i1 = 1:numel(data.import.NMR.data)
-                signal(i1) = mean(real(data.import.NMR.data{i1}.signal(1:Nechos)));
-            end
-            
-            disp('NUCLUESinv import: Estimating noise from exponential fit ...');
-            param.T1IRfac = 1;
-            param.noise = 0;
-            param.optim = 'off';
-            param.Tfixed_bool = [0 0 0 0 0];
-            param.Tfixed_val = [0 0 0 0 0];
-            for i1 = 1:5
-                invstd = fitDataFree(time,signal,flag,param,i1);
-                if i1 == 1
-                    noise = invstd.rms;
-                else
-                    noise = min([noise invstd.rms]);
-                end
-            end
-            disp('NUCLUESinv import: done.')
-
             % finally create a new "import" data set
             data_new = data.import.NMR.data(1);
             para_new = data.import.NMR.para(1);
@@ -1220,135 +1436,14 @@ if ~isempty(datpath)
             % set T1 SR/IR factor
             data.inv2D.inv.T1IRfac = 1; % Dart default
         end
-    end
-end
-
-% update the global data structure
-data.import.NMR.files = fnames;
-data.import.NMR.filesShort = shownames;
-
-end
-
-%%
-function [data,gui] = importDataDartT2logging(data,gui,useburst)
-
-% now check the subpaths
-% there should be some folders with names ...
-% ... similar to the data filenames inside them
-datpath = dir(data.import.path);
-datpath = datpath(~ismember({datpath.name},{'.','..'}));
-% remove any subfolder within the data directory
-datpath = datpath(~ismember([datpath.isdir],true));
-
-fnames = struct;
-% shownames is just a dummy to hold all data file names that
-% will be shown in the listbox
-shownames = cell(1,1);
-
-c = 0;
-if ~isempty(datpath)
-    content = datpath;
-    for j = 1:size(content,1)
-        in.T1T2 = 'T2';
-        in.name = content(j).name;
-        in.path = fullfile(data.import.path);
-        in.fileformat = data.import.fileformat;
-        in.version = 5;
-        out = LoadNMRData_driver(in);
-
-        if useburst
-            for nn = 1:2
-                % get normal and burst signal
-                idN = nn;
-                idB = idN+2;
-
-                % add both signals to the data
-                c = c + 1;
-                fnames(c).parfile = '';
-                fnames(c).datafile = out.nmrData{idN}.datfile;
-                fnames(c).T2specfile = '';
-                if out.parData{nn}.freq/1e3 < 450
-                    % 433 kHz
-                    shownames{c} = ['433kHz_',content(j).name];
-                else
-                    % 486 kHz
-                    shownames{c} = ['486kHz_',content(j).name];
-                end
-                data.import.NMR.data{c} = out.nmrData{idN};
-                data.import.NMR.para{c} = out.parData{idN};
-
-                c = c + 1;
-                fnames(c).parfile = '';
-                fnames(c).datafile = out.nmrData{idB}.datfile;
-                fnames(c).T2specfile = '';
-                if out.parData{nn}.freq/1e3 < 450
-                    % 433 kHz
-                    shownames{c} = ['433kHz_',content(j).name,'_burst'];
-                else
-                    % 486 kHz
-                    shownames{c} = ['486kHz_',content(j).name,'_burst'];
-                end
-                data.import.NMR.data{c} = out.nmrData{idB};
-                data.import.NMR.para{c} = out.parData{idB};
-
-                % 1. fit both T2 signals mono-exponentially
-                time0 = data.import.NMR.data{c-1}.time;
-                signal = data.import.NMR.data{c-1}.signal;
-                param.T1IRfac = 1;
-                param.noise = std(imag(signal));
-                param.optim = 'off';
-                param.Tfixed_bool = [0 0 0 0 0];
-                param.Tfixed_val = [0 0 0 0 0];
-                invstd0 = fitDataFree(time0,real(signal),'T2',param,1);
-
-                time1 = data.import.NMR.data{c}.time;
-                signal = data.import.NMR.data{c}.signal;
-                param.T1IRfac = 1;
-                param.noise = std(imag(signal));
-                param.optim = 'off';
-                param.Tfixed_bool = [0 0 0 0 0];
-                param.Tfixed_val = [0 0 0 0 0];
-                invstd1 = fitDataFree(time1,real(signal),'T2',param,1);
-
-                % now assemble a dummy T1 curve
-                t = [1e-4 data.import.NMR.para{c}.t_wait data.import.NMR.para{c-1}.t_wait];
-                s = [0 invstd1.E0 invstd0.E0];
-                % finally create a new "import" data set
-                data_new = data.import.NMR.data(c);
-                para_new = data.import.NMR.para(c);
-
-                data_new{1}.flag = 'T1';
-                data_new{1}.T1IRfac = 1;
-                data_new{1}.time = t;
-                data_new{1}.signal = s;
-                data_new{1}.noise = 0;
-                data_new{1}.raw.time = t;
-                data_new{1}.raw.signal = s;
-                
-                c = c + 1;
-                data.import.NMR.data{c} = data_new{1};
-                data.import.NMR.para{c} = para_new{1};
-                fnames(c).datafile = 'T1_merged.dat';
-                shownames{c} = [shownames{c-1}(1:end-5),'T1_merged'];
-            end
-        else
-            for nn = 1:2
-                % the individual file names
-                c = c + 1;
-                fnames(c).parfile = '';
-                fnames(c).datafile = out.nmrData{nn}.datfile;
-                fnames(c).T2specfile = '';
-                if out.parData{nn}.freq/1e3 < 450
-                    % 433 kHz
-                    shownames{c} = ['433kHz_',content(j).name];
-                else
-                    % 486 kHz
-                    shownames{c} = ['486kHz_',content(j).name];
-                end
-
-                data.import.NMR.data{c} = out.nmrData{nn};
-                data.import.NMR.para{c} = out.parData{nn};
-            end
+    else
+        % T2 data
+        data.import.BAM.use_z = true;
+        data.import.BAM.z_unit = 'm';
+        data.import.BAM.zslice = depth - data.import.NMR.para{1}.stick_up_height;
+        for i1 = 1:numel(shownames)
+            tmp = shownames{i1};
+            shownames{i1} = ['z:',sprintf('%05.2f',depth(i1)),'m ',tmp];
         end
     end
 end
@@ -1380,9 +1475,9 @@ for j = 1:size(out.nmrData,2)
     fnames(c).parfile = '';
     fnames(c).datafile = data.import.file;
     fnames(c).T2specfile = '';
-    
+
     shownames{c} = ['depth_',sprintf('%04.3f',out.parData{j}.depth)];
-    
+
     % the NMR data
     % here we fix the time scale from [ms] to [s]
     if max(out.nmrData{j}.time) > 100
@@ -1445,9 +1540,10 @@ if ~isempty(datpath)
     t2N = numel(t2);
     t_recov = logspace(log10(out.parData.minTau),log10(out.parData.maxTau),out.parData.tauSteps);
     data.import.T1T2map.t_recov = t_recov(:)./1e3; % to [s]
+    data.import.T1T2map.t1N = numel(data.import.T1T2map.t_recov);
     data.import.T1T2map.t2 = t2;
     data.import.T1T2map.t2N = t2N;
-    
+
     % add the stacked signal to the data
     Nechos = 1;
     flag = 'T1';
@@ -1498,7 +1594,6 @@ end
 % update the global data structure
 data.import.NMR.files = fnames;
 data.import.NMR.filesShort = shownames;
-
 end
 
 %%
@@ -1522,7 +1617,7 @@ for i = 1:size(filenames,1)
     in.name = filenames(i).name(1:ind-1);
     in.fileformat = data.import.fileformat;
     out = LoadNMRData_driver(in);
-    
+
     for j = 1:size(out.nmrData,2)
         % the individual file names
         c = c + 1;
@@ -1534,7 +1629,7 @@ for i = 1:size(filenames,1)
             fnames(c).T2specfile = '';
         end
         shownames{c} = fnames(c).datafile;
-        
+
         % the NMR data
         % here we fix the time scale from [ms] to [s]
         if max(out.nmrData{j}.time) > 100
@@ -1550,7 +1645,7 @@ switch data.import.fileformat
     case 'bamtom'
         nslices = out.parData.nSlices;
         ncsvfiles = numel(fnames);
-        
+
         % check for background file ("Leermessung")
         has_bg = false;
         for i = 1:numel(fnames)
@@ -1560,16 +1655,16 @@ switch data.import.fileformat
                 break;
             end
         end
-        
+
         if has_bg
             % background data set
             bg = data.import.NMR.data{index_bg};
-            
+
             % vector of indices of the files that get corrected
             ind_files = 1:1:ncsvfiles;
             ind_files(ind_files==index_bg) = [];
-            
-            for i = ind_files                
+
+            for i = ind_files
                 % subtract the background signal
                 s = data.import.NMR.data{i}.signal;
                 s_bg = bg.signal;
@@ -1582,9 +1677,9 @@ switch data.import.fileformat
                 end
                 s = complex(real(s)-real(tmp_s),imag(s)-imag(tmp_s));
                 % update original data set
-                data.import.NMR.data{i}.signal = s;                
+                data.import.NMR.data{i}.signal = s;
             end
-            
+
             % check if the number of slices is equal to the number of files
             % (excluding the background file)
             if nslices == numel(ind_files)
@@ -1605,7 +1700,6 @@ switch data.import.fileformat
                 data.import.BAM.use_z = false;
                 data.import.BAM.zslice = 1:1:max([numel(ind_files) 1]);
             end
-            
         else
             if nslices == ncsvfiles
                 % create z-vector
@@ -1623,7 +1717,8 @@ switch data.import.fileformat
                 data.import.BAM.use_z = false;
                 data.import.BAM.zslice = 1:1:ncsvfiles;
             end
-        end    
+        end
+        data.import.BAM.z_unit = 'µm';
 end
 
 % update the global data structure
@@ -1651,9 +1746,9 @@ for j = 1:size(out.nmrData,2)
     fnames(c).parfile = 'acqu.par';
     fnames(c).datafile = out.nmrData{j}.datfile;
     fnames(c).T2specfile = '';
-    
+
     shownames{c} = fnames(c).datafile;
-    
+
     % the NMR data
     % here we fix the time scale to [s] if neccessary
     TE = out.parData.echoTime; % [µs]
@@ -1771,7 +1866,7 @@ for c = 1:numel(levels)
     fnames(c).parfile = 'acqu.par';
     fnames(c).datafile = nmrDataTMP{idx(c)}.nmrData{1}.datfile;
     fnames(c).T2specfile = '';
-    
+
     shownames{c} = fnames(c).datafile;
     tmp = shownames{c};
     if isposFile
@@ -1780,7 +1875,7 @@ for c = 1:numel(levels)
         shownames{c} = [tmp,' level:',sprintf('%d',levels(c))];
     end
     out = nmrDataTMP{idx(c)};
-    
+
     % the NMR data
     % here we fix the time scale to [s] if neccessary
     TE = out.parData.echoTime; % [µs]
@@ -1860,7 +1955,7 @@ if ~isempty(indx)
     else
         dataVol = 1;
     end
-    
+
     % 2a) background file #1
     backgroundFile1 = SampleParameter.backgroundFile;
     if isempty(backgroundFile1)
@@ -1889,7 +1984,7 @@ if ~isempty(indx)
         backgroundFile1 = '';
     end
     backVol = 1;
-    
+
     % 2b) calibration file
     c = 0;
     if isfield(SampleParameter,'calibrationFile0')
@@ -1908,10 +2003,10 @@ if ~isempty(indx)
         c = c + 1;
         calibrationFiles{c} = SampleParameter.calibrationFile3;
     end
-    
+
     % find the non-empty one
     ind = ismember(calibrationFiles,{''});
-    % there are three possibilities: 0, 1 and more than 1 calib. files    
+    % there are three possibilities: 0, 1 and more than 1 calib. files
     calibrationFiles(ind) = [];
     if isempty(calibrationFiles)
         cnames = {subdirs.name};
@@ -1923,7 +2018,7 @@ if ~isempty(indx)
             calibrationFiles = cnames{indc};
         else
             calibrationFiles = '';
-        end        
+        end
     else
         % if there are more than one let the user select the correct one
         if numel(calibrationFiles) > 1
@@ -1948,7 +2043,7 @@ if ~isempty(indx)
         calibrationpath = '';
         calibrationFiles = '';
     end
-    
+
     if ~isempty(calibrationpath)
         [SampleParameterC] = loadGUIParameters(calibrationpath,'SampleParameters.par');
         if isfield(SampleParameterC,'sampleVolume')
@@ -1956,7 +2051,7 @@ if ~isempty(indx)
         else
             calibVol = 1;
         end
-        
+
         % 2a) background file #2
         backgroundFile2 = SampleParameterC.backgroundFile;
         if isempty(backgroundFile2)
@@ -1969,7 +2064,7 @@ if ~isempty(indx)
                 backgroundFile2 = bnames{indb};
             else
                 backgroundFile2 = '';
-            end  
+            end
         end
         if ~isempty(backgroundFile2)
             ind = strfind(backgroundFile2,filesep);
@@ -1989,7 +2084,7 @@ if ~isempty(indx)
         backgroundpath2 = '';
         backgroundFile2 = '';
     end
-    
+
     % 3) now load the data
     workpaths = {datapath,calibrationpath,backgroundpath1,backgroundpath2};
     workfiles = {fnames{indx},[calibrationFiles,' - calibration'],...
@@ -2011,8 +2106,8 @@ if ~isempty(indx)
                 out{i} = LoadNMRData_driver(in);
             end
         end
-    end    
-    
+    end
+
     if isempty(backgroundpath1)
         ref1 = struct;
     else
@@ -2022,7 +2117,7 @@ if ~isempty(indx)
         ref1.s = background1.nmrData{1}.signal;
         [ref1.s,~] = rotateT2phase(ref1.s);
     end
-    
+
     if isempty(backgroundpath2)
         ref2 = struct;
     else
@@ -2032,23 +2127,23 @@ if ~isempty(indx)
         ref2.s = background2.nmrData{1}.signal;
         [ref2.s,~] = rotateT2phase(ref2.s);
     end
-    
+
     workpaths = workpaths(keep);
     workfiles = workfiles(keep);
     out = out(keep);
-    
+
     ffnames = struct;
     % shownames is just a dummy to hold all data file names that
     % will be shown in the listbox
     shownames = cell(1,1);
-    
+
     for i = 1:count
         ffnames(i).parfile = 'acqu.par';
         ffnames(i).datafile = workfiles{i};
         ffnames(i).T2specfile = '';
-        
+
         shownames{i} = ffnames(i).datafile;
-        
+
         % the NMR data
         % here we fix the time scale to [s] if neccessary
         TE = out{i}.parData.echoTime; % [µs]
@@ -2059,13 +2154,13 @@ if ~isempty(indx)
         elseif out{i}.nmrData{1}.time(1)== TE
             % change [µs] to [s] -> very unlikely
             out{i}.nmrData{1}.time = out{i}.nmrData{1}.time/1e6;
-        out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1e6;
+            out{i}.nmrData{1}.raw.time = out{i}.nmrData{1}.raw.time/1e6;
         end
-        
+
         data.import.NMR.data{i} = out{i}.nmrData{1};
         data.import.NMR.para{i} = out{i}.parData;
         data.import.NMR.para{i}.SampleParameter = SampleParameter;
-        
+
         % subtract the background signal
         s = data.import.NMR.data{i}.signal;
         if i==1 && isfield(ref1,'s')
@@ -2088,10 +2183,10 @@ if ~isempty(indx)
                 tmp_r(1:numel(ref2.s)) = ref2.s;
             end
             s = complex(real(s)-real(tmp_r),imag(s)-imag(tmp_r));
-        end        
+        end
         data.import.NMR.data{i}.signal = s;
         data.import.NMR.data{i}.raw.signal = s;
-        
+
         if ~isempty(strfind(workfiles{i},' - background'))
             data.import.LIAG.sampleVol(i) = backVol;
         elseif ~isempty(strfind(workfiles{i},' - calibration'))
@@ -2108,7 +2203,7 @@ if ~isempty(indx)
     data.import.LIAG.calibrationpath = calibrationpath;
     data.import.LIAG.backgroundpath1 = backgroundpath1;
     data.import.LIAG.backgroundpath2 = backgroundpath2;
-    
+
     % update the global data structure
     data.import.NMR.files = ffnames;
     data.import.NMR.filesShort = shownames;
@@ -2135,9 +2230,9 @@ for j = 1:size(out.nmrData,2)
     fnames(c).parfile = 'acq.par';
     fnames(c).datafile = out.nmrData{j}.datfile;
     fnames(c).T2specfile = '';
-    
+
     shownames{c} = ['T2_',fnames(c).datafile];
-    
+
     % the NMR data
     % here we fix the time scale from [ms] to [s]
     if max(out.nmrData{j}.time) > 100
@@ -2151,6 +2246,88 @@ end
 % update the global data structure
 data.import.NMR.files = fnames;
 data.import.NMR.filesShort = shownames;
+
+end
+
+%%
+function [data,gui] = importDataMRSMatlab(data,gui)
+
+in.path = fullfile(data.import.path);
+in.name = data.import.file;
+in.fileformat = data.import.fileformat;
+out = LoadNMRData_driver(in);
+
+fnames = struct;
+% shownames is just a dummy to hold all data file names that
+% will be shown in the listbox
+shownames = cell(1,1);
+
+c = 0;
+for j = 1:size(out.nmrData,2)
+    % the individual file names
+    c = c + 1;
+    fnames(c).parfile = '';
+    fnames(c).datafile = data.import.file;
+    fnames(c).T2specfile = '';
+
+    shownames{c} = out.parData{j}.file;
+
+    data.import.NMR.data{c} = out.nmrData{j};
+    data.import.NMR.para{c} = out.parData{j};
+end
+
+data.import.MRSMATLAB.q = out.q;
+data.import.NMR.files = fnames;
+data.import.NMR.filesShort = shownames;
+
+answer = questdlg('Stack all or stack individually', ...
+    'MRSD import', ...
+    'all','individual','none','none');
+
+switch answer
+    case 'all'
+        s = zeros(size(data.import.NMR.data{1}.signal));
+        for c = 1:numel(data.import.NMR.data)
+            s = s + data.import.NMR.data{c}.signal;
+        end
+        s = s./numel(data.import.NMR.data);
+
+    case 'individual'
+        [indx,~] = listdlg('PromptString','Select pulse moments:',...
+            'SelectionMode','multi',...
+            'ListString',shownames);
+
+        if ~isempty(indx)
+            s = zeros(size(data.import.NMR.data{1}.signal));
+            for c = indx
+                s = s + data.import.NMR.data{c}.signal;
+            end
+            s = s./numel(indx);
+        end
+end
+
+switch answer
+    case {'all','individual'}
+        tmpdata = data.import.NMR.data{1};
+        tmpdata.signal = s;
+        tmpdata.raw.signal = s;
+
+        data.import.NMR.data = cell(1,1);
+        data.import.NMR.data{1} = tmpdata;
+
+        tmppar = data.import.NMR.para{1};
+        data.import.NMR.para = cell(1,1);
+        data.import.NMR.para{1} = tmppar;
+
+        fnames = fnames(1);
+        shownames = cell(1,1);
+        shownames{1} = fnames.datafile;
+
+        data.import.NMR.files = fnames;
+        data.import.NMR.filesShort = shownames;
+    otherwise
+        % nothing to do
+end
 
 end
 
@@ -2177,7 +2354,7 @@ for j = 1:size(out.nmrData,2)
     fnames(c).parfile = out.parData.parfile;
     fnames(c).datafile = out.nmrData{j}.datfile;
     fnames(c).T2specfile = '';
-    
+
     shownames{c} = [fnames(c).datafile];
 
     data.import.NMR.data{c} = out.nmrData{j};
@@ -2220,7 +2397,7 @@ data = struct;
 for i = 1:size(d{1},1)
     str = char(d{1}(i));
     str = fixParameterString(str);
-    eval(['data.',str,';']); %#ok<EVLDOT> 
+    eval(['data.',str,';']); %#ok<EVLDOT>
 end
 
 end

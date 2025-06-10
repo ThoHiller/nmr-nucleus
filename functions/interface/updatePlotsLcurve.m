@@ -38,7 +38,6 @@ data = getappdata(fig,'data');
 col = gui.myui.colors;
 
 % get data
-nmrraw = data.results.nmrraw;
 nmrproc = data.results.nmrproc;
 if isfield(data.results,'lcurve')
     lc = data.results.lcurve;
@@ -51,7 +50,7 @@ hold(ax,'on');
 set(gui.cm_handles.axes_rtd_view,'Enable','off');
 
 loglog(lc.RN,lc.XN,'o-','Color',col.RE,'Parent',ax);
-loglog(lc.RN(lc.index),lc.XN(lc.index),'r+','Parent',ax);
+loglog(lc.RN(lc.index),lc.XN(lc.index),'rx','MarkerSize',10,'Parent',ax);
 % limits
 set(ax,'XScale','log','XLim',[min(lc.RN)*0.95 max(lc.RN)*1.05]);
 set(ax,'YScale','log','YLim',[min(lc.XN)*0.95 max(lc.XN)*1.05]);
@@ -59,19 +58,20 @@ set(ax,'YScale','log','YLim',[min(lc.XN)*0.95 max(lc.XN)*1.05]);
 set(get(ax,'XLabel'),'String','residual norm |Gm-d|_{2}');
 set(get(ax,'YLabel'),'String','model norm |Lm|_{2}');
 text(10^mean(log10(get(ax,'XLim'))),10^mean(log10(get(ax,'YLim'))),...
-    ['\lambda=',sprintf('%4.3e',lc.lambda(lc.index))],'Parent',ax,'FontSize',12);
+    ['\lambda_{\rm opt} = ',sprintf('%4.3e',lc.lambda(lc.index))],...
+    'BackgroundColor','w','FontSize',12,'Parent',ax);
 % grid
 grid(ax,'on');
 
 
-%% RMS
+%% CHI2
 ax = gui.axes_handles.psd;
 clearSingleAxis(ax);
 hold(ax,'on');
 set(gui.cm_handles.axes_psd_view,'Enable','off');
 
-loglog(lc.lambda,lc.RMS,'o-','Color',col.RE,'Parent',ax);
-loglog(lc.lambda(lc.index),lc.RMS(lc.index),'r+','Parent',ax);
+semilogx(lc.lambda,lc.RMS,'o-','Color',col.RE,'Parent',ax);
+semilogx(lc.lambda(lc.index),lc.RMS(lc.index),'rx','MarkerSize',10,'Parent',ax);
 % limits
 ticks = log10(min(lc.lambda)):1:log10(max(lc.lambda));
 set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],...
@@ -79,20 +79,19 @@ set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],...
 
 % noise level
 if nmrproc.noise > 0
-    line(get(ax,'XLim'),[nmrproc.noise nmrproc.noise],'LineStyle','--',...
+    line(get(ax,'XLim'),[1 1],'LineStyle','--',...
         'Color',[0.5 0.5 0.5],'Parent',ax);
-    text(10^(ticks(end)),nmrproc.noise*1.1,'noise level  ','FontSize',11,...
-        'HorizontalAlignment','right','Parent',ax);
-    set(ax,'YScale','log','YLim',[min([min(lc.RMS) nmrproc.noise])*0.75 max(lc.RMS)*1.1]);
+    set(ax,'YScale','lin','YLim',[0 max(lc.RMS)*1.1]);
 else
-    set(ax,'YScale','log','YLim',[min(lc.RMS)*0.75 max(lc.RMS)*1.1]);
+    set(ax,'YScale','lin','YLim',[0 max(lc.RMS)*1.1]);
 end
 
 % labels
 set(get(ax,'XLabel'),'String','regularization parameter \lambda');
-set(get(ax,'YLabel'),'String','RMS');
-text(10^mean(log10(get(ax,'XLim'))),10^mean(log10(get(ax,'YLim'))),...
-    ['\lambda=',sprintf('%4.3e',lc.lambda(lc.index))],'Parent',ax,'FontSize',12);
+set(get(ax,'YLabel'),'String','\chi^2');
+text(10^mean(log10(get(ax,'XLim'))),mean((get(ax,'YLim'))),...
+    ['\lambda_{\rm opt} = ',sprintf('%4.3e',lc.lambda(lc.index))],...
+    'BackgroundColor','w','FontSize',12,'Parent',ax);
 % grid
 grid(ax,'on');
 

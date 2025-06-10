@@ -317,26 +317,6 @@ gui.table_handles.invjoint_table = uitable('Parent',gui.panels.invjoint.VBox2,..
     'ColumnName',{'use','p [Pa]','S [-]','D / I'},...
     'RowName','','Enable','off');
 
-%% Java Hack to adjust vertical alignment of text fields
-jh = findjobj(gui.text_handles.invjoint_InvType);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_radii);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_InvTypeOpt);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_Lorder);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_lambda);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_geometry_type);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_angles);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_startvalues);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invjoint_run);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-
 %% Java Hacks work only on "visible" objects
 % set focus on CPS sub panel
 set(gui.panels.invjoint.TabSettings,'Visible','off');

@@ -177,18 +177,6 @@ gui.edit_handles.invstd_porosity = uicontrol('Parent',gui.panels.petro.HBox5,...
     'Tag','invstd_porosity','Enable','off','Callback',@onEditValue);
 set(gui.panels.petro.HBox5,'Widths',[200 -1 -1]);
 
-%% Java Hack to adjust vertical alignment of text fields
-jh = findjobj(gui.text_handles.petro_Tbulk);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.petro_rho);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.petro_CBW);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.petro_calibVol);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.petro_sampVol);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-
 return
 
 %------------- END OF CODE --------------

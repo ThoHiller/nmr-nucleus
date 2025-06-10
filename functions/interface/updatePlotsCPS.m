@@ -75,7 +75,8 @@ if isfield(data.results,'SAT')
     set(get(ax,'XLabel'),'String',xlstring);
     set(get(ax,'YLabel'),'String','saturation [-]');
     lgh = legend(ax,'drain','imb','Location','best');
-    set(lgh,'TextColor',colors.panelFG,'Color',colors.axisBG);
+    set(lgh,'EdgeColor',colors.axisFG,'TextColor',colors.panelFG,...
+        'Color',colors.axisBG);
     % update GUI data
     setappdata(fig,'gui',gui);
     % now add the saturation level points on the curves

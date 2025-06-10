@@ -86,7 +86,7 @@ set(gui.plots.Signal.RawTab,'Heights',[-4 -1]);
 % now the actual axes 1
 gui.axes_handles.raw = axes('Parent',gui.plots.Signal.Raw.box1,'Box','on');
 set(get(gui.axes_handles.raw,'XLabel'),'String','time [s]');
-set(get(gui.axes_handles.raw,'YLabel'),'String','\Reeal');
+set(get(gui.axes_handles.raw,'YLabel'),'String','real(amplitude) [a.u.]');
 % the axes has a context menu
 gui.cm_handles.axes_raw = uicontextmenu(gui.figh);
 gui.cm_handles.axes_raw_xaxis = uimenu(gui.cm_handles.axes_raw,...
@@ -100,7 +100,7 @@ set(gui.axes_handles.raw,'UIContextMenu',gui.cm_handles.axes_raw);
 % now the actual axes 2
 gui.axes_handles.imag = axes('Parent',gui.plots.Signal.Raw.box2,'Box','on');
 set(get(gui.axes_handles.imag,'XLabel'),'String','');
-set(get(gui.axes_handles.imag,'YLabel'),'String','\Immag');
+set(get(gui.axes_handles.imag,'YLabel'),'String',{'noise','weighted','imag'});
 set(gui.axes_handles.imag,'XTickLabel','');
 set(gui.axes_handles.imag,'YTickLabel','');
 
@@ -145,7 +145,7 @@ gui.plots.Dist.RTD.box = uicontainer('Parent',gui.plots.Dist.RTDTab);
 % now the actual axes
 gui.axes_handles.rtd = axes('Parent',gui.plots.Dist.RTD.box,'Box','on');
 set(get(gui.axes_handles.rtd ,'XLabel'),'String','relaxation time [s]');
-set(get(gui.axes_handles.rtd ,'YLabel'),'String','water content [vol. %]');
+set(get(gui.axes_handles.rtd ,'YLabel'),'String','amplitudes [-]');
 % the axes has a context menu
 gui.cm_handles.axes_rtd = uicontextmenu(gui.figh);
 gui.cm_handles.axes_rtd_view = uimenu(gui.cm_handles.axes_rtd,...
@@ -169,7 +169,7 @@ gui.plots.Dist.PSD.box = uicontainer('Parent',gui.plots.Dist.PSDTab);
 % now the actual axes
 gui.axes_handles.psd = axes('Parent',gui.plots.Dist.PSD.box,'Box','on');
 set(get(gui.axes_handles.psd,'XLabel'),'String','equiv. pore size [m]');
-set(get(gui.axes_handles.psd,'YLabel'),'String','water content [vol. %]');
+set(get(gui.axes_handles.psd,'YLabel'),'String','amplitudes [-]');
 % the axes has a context menu
 gui.cm_handles.axes_psd = uicontextmenu(gui.figh);
 gui.cm_handles.axes_psd_view = uimenu(gui.cm_handles.axes_psd,...
@@ -186,7 +186,7 @@ gui.plots.Dist.PSDJ.box = uicontainer('Parent',gui.plots.Dist.PSDJTab);
 % now the actual axes
 gui.axes_handles.psdj = axes('Parent',gui.plots.Dist.PSDJ.box,'Box','on');
 set(get(gui.axes_handles.psdj,'XLabel'),'String','equiv. pore size [m]');
-set(get(gui.axes_handles.psdj,'YLabel'),'String','water content [vol. %]');
+set(get(gui.axes_handles.psdj,'YLabel'),'String','amplitudes [-]');
 % the axes has a context menu
 gui.cm_handles.axes_psdj = uicontextmenu(gui.figh);
 gui.cm_handles.axes_psdj_view = uimenu(gui.cm_handles.axes_psdj,...

@@ -104,157 +104,174 @@ This function is called by:
 0034 gui.panels.nmr.VBox = uix.VBox(<span class="string">'Parent'</span>,gui.panels.nmr.main,<span class="keyword">...</span>
 0035     <span class="string">'Spacing'</span>,3,<span class="string">'Padding'</span>,3);
 0036 
-0037 <span class="comment">% Tbulk &amp; Tdiff</span>
+0037 <span class="comment">% Tbulk &amp; Tdiff &amp; surface relaxivity rho</span>
 0038 gui.panels.nmr.HBox1 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.nmr.VBox,<span class="keyword">...</span>
 0039     <span class="string">'Spacing'</span>,3);
-0040 <span class="comment">% surface relaxivity rho &amp; echo time TE &amp; number of echos</span>
+0040 <span class="comment">% T1 recovery times min, max and number of recov times</span>
 0041 gui.panels.nmr.HBox2 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.nmr.VBox,<span class="keyword">...</span>
 0042     <span class="string">'Spacing'</span>,3);
-0043 <span class="comment">% RUN button</span>
+0043 <span class="comment">% T2 echo time TE &amp; number of echos</span>
 0044 gui.panels.nmr.HBox3 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.nmr.VBox,<span class="keyword">...</span>
 0045     <span class="string">'Spacing'</span>,3);
-0046 <span class="comment">% noise &amp; porosity</span>
+0046 <span class="comment">% RUN button</span>
 0047 gui.panels.nmr.HBox4 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.nmr.VBox,<span class="keyword">...</span>
 0048     <span class="string">'Spacing'</span>,3);
-0049 
-0050 <span class="comment">%% Tbulk &amp; Tdiff</span>
-0051 gui.text_handles.Tbulk = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
-0052     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0053     <span class="string">'String'</span>,<span class="string">'Tbulk [s]  |  Tdiff [s]'</span>);
-0054 tstr = [<span class="string">'&lt;HTML&gt;Bulk relaxation time in [s].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0055     <span class="string">'1/T = 1/Ts + 1/&lt;b&gt;Tb&lt;/b&gt; + 1/Td&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0056     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0057     <span class="string">'&lt;b&gt;2&lt;/b&gt;&lt;br&gt;'</span>];
-0058 gui.edit_handles.Tbulk = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
-0059     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.Tbulk),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0060     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.Tbulk 1 1]),<span class="keyword">...</span>
-0061     <span class="string">'Tag'</span>,<span class="string">'nmr_Tbulk'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0062 tstr = [<span class="string">'&lt;HTML&gt;Diffusion relaxation time in [s].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0063     <span class="string">'1/T = 1/Ts + 1/Tb + 1/&lt;b&gt;Td&lt;/b&gt;&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0064     <span class="string">'&lt;b&gt;Td&lt;/b&gt; can be caluclated by&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0065     <span class="string">'&lt;b&gt;Td&lt;/b&gt; = 12 / (D*('</span>,char(hex2dec(<span class="string">'03B3'</span>)),<span class="string">'*G*TE)&lt;sup&gt;2&lt;/sup&gt; )&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0066     <span class="string">'with&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0067     <span class="string">'D = diffusion coefficent of water&lt;br&gt;'</span>,<span class="keyword">...</span>
-0068     char(hex2dec(<span class="string">'03B3'</span>)),<span class="string">' = gyromagnetic ratio of hydrogen&lt;br&gt;'</span>,<span class="keyword">...</span>
-0069     <span class="string">'G = magnetic gradient&lt;br&gt;'</span>,<span class="keyword">...</span>
-0070     <span class="string">'TE = echo time&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0071     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0072     <span class="string">'&lt;b&gt;1e6&lt;/b&gt; (so that 1/&lt;b&gt;Td&lt;/b&gt; is ignored)&lt;br&gt;'</span>];
-0073 gui.edit_handles.Tdiff = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
-0074     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.Tdiff),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0075     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.Tdiff 1 1]),<span class="keyword">...</span>
-0076     <span class="string">'Tag'</span>,<span class="string">'nmr_Tdiff'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0077 set(gui.panels.nmr.HBox1,<span class="string">'Widths'</span>,[200 -1 -1]);
-0078 
-0079 <span class="comment">%% surface relaxivity rho &amp; echo time TE &amp; number of echoes</span>
-0080 gui.text_handles.rho = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
-0081     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0082     <span class="string">'String'</span>,[char(hex2dec(<span class="string">'03C1'</span>)),<span class="string">' [µm/s]  |  TE [µs]  |  # echoes'</span>]);
-0083 tstr = [<span class="string">'&lt;HTML&gt;Surface relaxivity in [µm/s].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0084     <span class="string">'1/Ts = &lt;b&gt;rho&lt;/b&gt;*S/V = &lt;b&gt;rho&lt;/b&gt;*a/R.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0085     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0086     <span class="string">'&lt;b&gt;10&lt;/b&gt;&lt;br&gt;'</span>];
-0087 gui.edit_handles.rho = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
-0088     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.rho),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0089     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.rho 1 1]),<span class="keyword">...</span>
-0090     <span class="string">'Tag'</span>,<span class="string">'nmr_rho'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0091 tstr = [<span class="string">'&lt;HTML&gt;Echo time TE in [µs].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0092     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0093     <span class="string">'&lt;b&gt;1000&lt;/b&gt;&lt;br&gt;'</span>];
-0094 gui.edit_handles.TE = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
-0095     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.TE),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0096     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.TE 1 1]),<span class="keyword">...</span>
-0097     <span class="string">'Tag'</span>,<span class="string">'nmr_TE'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0098 tstr = [<span class="string">'&lt;HTML&gt;Number of echoes.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0099     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0100     <span class="string">'&lt;b&gt;1001&lt;/b&gt;&lt;br&gt;'</span>];
-0101 gui.edit_handles.echosN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
-0102     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.echosN),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0103     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.echosN 1 1]),<span class="keyword">...</span>
-0104     <span class="string">'Tag'</span>,<span class="string">'nmr_echosN'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0105 set(gui.panels.nmr.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
-0106 
-0107 <span class="comment">%% RUN button</span>
-0108 gui.text_handles.nmr_RUN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox3,<span class="keyword">...</span>
-0109     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0110     <span class="string">'String'</span>,<span class="string">'calculate NMR'</span>);
-0111 gui.push_handles.nmr_RUN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox3,<span class="keyword">...</span>
-0112     <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'RUN'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'nmr'</span>,<span class="keyword">...</span>
-0113     <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
-0114 set(gui.panels.nmr.HBox3,<span class="string">'Widths'</span>,[200 -1]);
-0115 
-0116 <span class="comment">%% noise &amp; porosity</span>
-0117 tstr = [<span class="string">'&lt;HTML&gt;NMR data noise method.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0118     <span class="string">'A noise level will be used globally for all NMR signals.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0119     <span class="string">'A signal-to-ratio will be used individually on every single NMR signal.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0120     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0121     <span class="string">'&lt;b&gt;noise level&lt;/b&gt; or &lt;b&gt;SNR&lt;/b&gt; &lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0122     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0123     <span class="string">'&lt;b&gt;noise level&lt;/b&gt; &lt;br&gt;'</span>];
-0124 gui.popup_handles.noisetype = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox4,<span class="keyword">...</span>
-0125     <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,{<span class="string">'noise level'</span>,<span class="string">'SNR'</span>},<span class="keyword">...</span>
-0126     <span class="string">'Value'</span>,1,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
-0127     <span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/popup/onPopupNMRNoiseType.html" class="code" title="function onPopupNMRNoiseType(src,~)">onPopupNMRNoiseType</a>);
-0128 tstr = [<span class="string">'&lt;HTML&gt;NMR data noise.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0129     <span class="string">'&lt;u&gt;Hint:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0130     <span class="string">'You do not need to press RUN to add noise to the NMR signals.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0131     <span class="string">'The raw NMR signals are stored internally and the noise is&lt;br&gt;'</span>,<span class="keyword">...</span>
-0132     <span class="string">'applied instantaneously.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0133     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0134     <span class="string">'&lt;b&gt;0&lt;/b&gt;&lt;br&gt;'</span>];
-0135 gui.edit_handles.noise = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox4,<span class="keyword">...</span>
-0136     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.noise),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0137     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.noise 1 1]),<span class="keyword">...</span>
-0138     <span class="string">'Tag'</span>,<span class="string">'nmr_noise'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0139 gui.text_handles.porosity = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox4,<span class="keyword">...</span>
-0140     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
-0141     <span class="string">'String'</span>,<span class="string">'porosity'</span>);
-0142 tstr = [<span class="string">'&lt;HTML&gt;Porosity value in the range [0, 1].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0143     <span class="string">'&lt;u&gt;Note:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
-0144     <span class="string">'This value is applied only as a scaling factor to the NMR amplitudes.&lt;br&gt;'</span>,<span class="keyword">...</span>
-0145     <span class="string">'Hence, saturation becomes water content.'</span>];
-0146 gui.edit_handles.porosity = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox4,<span class="keyword">...</span>
-0147     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.porosity),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
-0148     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.porosity 1 1]),<span class="keyword">...</span>
-0149     <span class="string">'Tag'</span>,<span class="string">'nmr_porosity'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
-0150 set(gui.panels.nmr.HBox4,<span class="string">'Widths'</span>,[100 -1 100 -1]);
-0151 
-0152 <span class="comment">%% Java Hack to adjust vertical alignment of text fields</span>
-0153 jh = findjobj(gui.text_handles.Tbulk);
-0154 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0155 jh = findjobj(gui.text_handles.rho);
-0156 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0157 jh = findjobj(gui.text_handles.nmr_RUN);
-0158 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0159 jh = findjobj(gui.text_handles.porosity);
-0160 jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-0161 
-0162 <span class="keyword">return</span>
-0163 
-0164 <span class="comment">%------------- END OF CODE --------------</span>
-0165 
-0166 <span class="comment">%% License:</span>
-0167 <span class="comment">% MIT License</span>
-0168 <span class="comment">%</span>
-0169 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0170 <span class="comment">%</span>
-0171 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0172 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0173 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0174 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0175 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0176 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0177 <span class="comment">%</span>
-0178 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0179 <span class="comment">% copies or substantial portions of the Software.</span>
-0180 <span class="comment">%</span>
-0181 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0182 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0183 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0184 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0185 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0186 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0187 <span class="comment">% SOFTWARE.</span></pre></div>
+0049 <span class="comment">% noise &amp; porosity</span>
+0050 gui.panels.nmr.HBox5 = uix.HBox(<span class="string">'Parent'</span>,gui.panels.nmr.VBox,<span class="keyword">...</span>
+0051     <span class="string">'Spacing'</span>,3);
+0052 
+0053 <span class="comment">%% Tbulk &amp; Tdiff &amp; surface relaxivity rho</span>
+0054 gui.text_handles.Tbulk = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
+0055     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0056     <span class="string">'String'</span>,[<span class="string">'Tbulk [s]  |  Tdiff [s] | '</span>,char(hex2dec(<span class="string">'03C1'</span>)),<span class="string">' [µm/s]'</span>]);
+0057 tstr = [<span class="string">'&lt;HTML&gt;Bulk relaxation time in [s].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0058     <span class="string">'1/T = 1/Ts + 1/&lt;b&gt;Tb&lt;/b&gt; + 1/Td&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0059     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0060     <span class="string">'&lt;b&gt;2&lt;/b&gt;&lt;br&gt;'</span>];
+0061 gui.edit_handles.Tbulk = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
+0062     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.Tbulk),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0063     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.Tbulk 1 1]),<span class="keyword">...</span>
+0064     <span class="string">'Tag'</span>,<span class="string">'nmr_Tbulk'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0065 tstr = [<span class="string">'&lt;HTML&gt;Diffusion relaxation time in [s].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0066     <span class="string">'1/T = 1/Ts + 1/Tb + 1/&lt;b&gt;Td&lt;/b&gt;&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0067     <span class="string">'&lt;b&gt;Td&lt;/b&gt; can be caluclated by&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0068     <span class="string">'&lt;b&gt;Td&lt;/b&gt; = 12 / (D*('</span>,char(hex2dec(<span class="string">'03B3'</span>)),<span class="string">'*G*TE)&lt;sup&gt;2&lt;/sup&gt; )&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0069     <span class="string">'with&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0070     <span class="string">'D = diffusion coefficent of water&lt;br&gt;'</span>,<span class="keyword">...</span>
+0071     char(hex2dec(<span class="string">'03B3'</span>)),<span class="string">' = gyromagnetic ratio of hydrogen&lt;br&gt;'</span>,<span class="keyword">...</span>
+0072     <span class="string">'G = magnetic gradient&lt;br&gt;'</span>,<span class="keyword">...</span>
+0073     <span class="string">'TE = echo time&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0074     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0075     <span class="string">'&lt;b&gt;1e6&lt;/b&gt; (so that 1/&lt;b&gt;Td&lt;/b&gt; is ignored)&lt;br&gt;'</span>];
+0076 gui.edit_handles.Tdiff = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
+0077     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.Tdiff),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0078     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.Tdiff 1 1]),<span class="keyword">...</span>
+0079     <span class="string">'Tag'</span>,<span class="string">'nmr_Tdiff'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0080 tstr = [<span class="string">'&lt;HTML&gt;Surface relaxivity in [µm/s].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0081     <span class="string">'1/Ts = &lt;b&gt;rho&lt;/b&gt;*S/V = &lt;b&gt;rho&lt;/b&gt;*a/R.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0082     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0083     <span class="string">'&lt;b&gt;10&lt;/b&gt;&lt;br&gt;'</span>];
+0084 gui.edit_handles.rho = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox1,<span class="keyword">...</span>
+0085     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.rho),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0086     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.rho 1 1]),<span class="keyword">...</span>
+0087     <span class="string">'Tag'</span>,<span class="string">'nmr_rho'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0088 set(gui.panels.nmr.HBox1,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
+0089 
+0090 <span class="comment">%% T1 recovery time min, max, number of recov times</span>
+0091 gui.text_handles.t1 = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
+0092     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0093     <span class="string">'String'</span>,<span class="string">'T1 recov [s] -  min | max | #'</span>);
+0094 tstr = &quot;&quot;;
+0095 gui.edit_handles.T1rmin = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
+0096     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%5.4f'</span>,data.nmr.T1rmin),<span class="keyword">...</span>
+0097     <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'nmr_T1rmin'</span>,<span class="string">'ToolTipString'</span>,tstr,<span class="keyword">...</span>
+0098     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.T1rmin 1 1]),<span class="keyword">...</span>
+0099     <span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0100 tstr = &quot;&quot;;
+0101 gui.edit_handles.T1rmax = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
+0102     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,data.nmr.T1rmax),<span class="keyword">...</span>
+0103     <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'nmr_T1rmax'</span>,<span class="string">'ToolTipString'</span>,tstr,<span class="keyword">...</span>
+0104     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.T1rmax 1 1]),<span class="keyword">...</span>
+0105     <span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0106 tstr = &quot;&quot;;
+0107 gui.edit_handles.T1rN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox2,<span class="keyword">...</span>
+0108     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,sprintf(<span class="string">'%d'</span>,data.nmr.T1rN),<span class="keyword">...</span>
+0109     <span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'nmr_T1rN'</span>,<span class="string">'ToolTipString'</span>,tstr,<span class="keyword">...</span>
+0110     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.T1rN 1 1]),<span class="keyword">...</span>
+0111     <span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0112 set(gui.panels.nmr.HBox2,<span class="string">'Widths'</span>,[200 -1 -1 -1]);
+0113 
+0114 <span class="comment">%% T2 echo time TE &amp; number of echoes</span>
+0115 gui.text_handles.t2 = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox3,<span class="keyword">...</span>
+0116     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0117     <span class="string">'String'</span>,<span class="string">'T2 echo time TE [µs]  |  # echoes'</span>);
+0118 tstr = [<span class="string">'&lt;HTML&gt;Echo time TE in [µs].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0119     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0120     <span class="string">'&lt;b&gt;1000&lt;/b&gt;&lt;br&gt;'</span>];
+0121 gui.edit_handles.TE = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox3,<span class="keyword">...</span>
+0122     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.TE),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0123     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.TE 1 1]),<span class="keyword">...</span>
+0124     <span class="string">'Tag'</span>,<span class="string">'nmr_TE'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0125 tstr = [<span class="string">'&lt;HTML&gt;Number of echoes.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0126     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0127     <span class="string">'&lt;b&gt;1001&lt;/b&gt;&lt;br&gt;'</span>];
+0128 gui.edit_handles.echosN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox3,<span class="keyword">...</span>
+0129     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.echosN),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0130     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.echosN 1 1]),<span class="keyword">...</span>
+0131     <span class="string">'Tag'</span>,<span class="string">'nmr_echosN'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0132 set(gui.panels.nmr.HBox3,<span class="string">'Widths'</span>,[200 -1 -1]);
+0133 
+0134 <span class="comment">%% RUN button</span>
+0135 gui.text_handles.nmr_RUN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox4,<span class="keyword">...</span>
+0136     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0137     <span class="string">'String'</span>,<span class="string">'calculate NMR signals'</span>);
+0138 gui.push_handles.nmr_RUN = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox4,<span class="keyword">...</span>
+0139     <span class="string">'Style'</span>,<span class="string">'pushbutton'</span>,<span class="string">'String'</span>,<span class="string">'RUN'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'Tag'</span>,<span class="string">'nmr'</span>,<span class="keyword">...</span>
+0140     <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
+0141 set(gui.panels.nmr.HBox4,<span class="string">'Widths'</span>,[200 -1]);
+0142 
+0143 <span class="comment">%% noise &amp; porosity</span>
+0144 tstr = [<span class="string">'&lt;HTML&gt;NMR data noise method.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0145     <span class="string">'A noise level will be used globally for all NMR signals.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0146     <span class="string">'A signal-to-ratio will be used individually on every single NMR signal.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0147     <span class="string">'&lt;u&gt;Available options:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0148     <span class="string">'&lt;b&gt;noise level&lt;/b&gt; or &lt;b&gt;SNR&lt;/b&gt; &lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0149     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0150     <span class="string">'&lt;b&gt;noise level&lt;/b&gt; &lt;br&gt;'</span>];
+0151 gui.popup_handles.noisetype = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox5,<span class="keyword">...</span>
+0152     <span class="string">'Style'</span>,<span class="string">'popup'</span>,<span class="string">'String'</span>,{<span class="string">'noise level'</span>,<span class="string">'SNR'</span>},<span class="keyword">...</span>
+0153     <span class="string">'Value'</span>,1,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr),<span class="keyword">...</span>
+0154     <span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/popup/onPopupNMRNoiseType.html" class="code" title="function onPopupNMRNoiseType(src,~)">onPopupNMRNoiseType</a>);
+0155 tstr = [<span class="string">'&lt;HTML&gt;NMR data noise.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0156     <span class="string">'&lt;u&gt;Hint:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0157     <span class="string">'You do not need to press RUN to add noise to the NMR signals.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0158     <span class="string">'The raw NMR signals are stored internally and the noise is&lt;br&gt;'</span>,<span class="keyword">...</span>
+0159     <span class="string">'applied instantaneously.&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0160     <span class="string">'&lt;u&gt;Default value:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0161     <span class="string">'&lt;b&gt;0.01&lt;/b&gt;&lt;br&gt;'</span>];
+0162 gui.edit_handles.noise = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox5,<span class="keyword">...</span>
+0163     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.noise),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0164     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.noise 1 1]),<span class="keyword">...</span>
+0165     <span class="string">'Tag'</span>,<span class="string">'nmr_noise'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0166 gui.text_handles.porosity = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox5,<span class="keyword">...</span>
+0167     <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0168     <span class="string">'String'</span>,<span class="string">'porosity'</span>);
+0169 tstr = [<span class="string">'&lt;HTML&gt;Porosity value in the range [0, 1].&lt;br&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0170     <span class="string">'&lt;u&gt;Note:&lt;/u&gt;&lt;br&gt;'</span>,<span class="keyword">...</span>
+0171     <span class="string">'This value is applied only as a scaling factor to the NMR amplitudes.&lt;br&gt;'</span>,<span class="keyword">...</span>
+0172     <span class="string">'Hence, saturation becomes water content.'</span>];
+0173 gui.edit_handles.porosity = uicontrol(<span class="string">'Parent'</span>,gui.panels.nmr.HBox5,<span class="keyword">...</span>
+0174     <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(data.nmr.porosity),<span class="string">'FontSize'</span>,myui.fontsize,<span class="keyword">...</span>
+0175     <span class="string">'UserData'</span>,struct(<span class="string">'Tooltipstr'</span>,tstr,<span class="string">'defaults'</span>,[data.nmr.porosity 1 1]),<span class="keyword">...</span>
+0176     <span class="string">'Tag'</span>,<span class="string">'nmr_porosity'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../nucleus/callbacks/edits/onEditValue.html" class="code" title="function onEditValue(src,~)">onEditValue</a>);
+0177 set(gui.panels.nmr.HBox5,<span class="string">'Widths'</span>,[100 -1 100 -1]);
+0178 
+0179 <span class="keyword">return</span>
+0180 
+0181 <span class="comment">%------------- END OF CODE --------------</span>
+0182 
+0183 <span class="comment">%% License:</span>
+0184 <span class="comment">% MIT License</span>
+0185 <span class="comment">%</span>
+0186 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0187 <span class="comment">%</span>
+0188 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0189 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0190 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0191 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0192 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0193 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0194 <span class="comment">%</span>
+0195 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0196 <span class="comment">% copies or substantial portions of the Software.</span>
+0197 <span class="comment">%</span>
+0198 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0199 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0200 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0201 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0202 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0203 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0204 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

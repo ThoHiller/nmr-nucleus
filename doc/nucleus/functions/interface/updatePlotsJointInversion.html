@@ -63,7 +63,7 @@ This function calls:
 <li><a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>	 can be used to globally change the general appearance of axes</li><li><a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>	 clears an individual axis</li><li><a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>	 exports graphics from both GUIs into various formats</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/callbacks/contextmenus/onContextAxisLogLin.html" class="code" title="function onContextAxisLogLin(src,~)">onContextAxisLogLin</a>	 changes the label of an axis context menu which allows to</li><li><a href="../../../nucleus/callbacks/contextmenus/onContextPlotsPSDJ.html" class="code" title="function onContextPlotsPSDJ(src,~)">onContextPlotsPSDJ</a>	 checks the label of the distribution axis context menu</li><li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="changeColorTheme.html" class="code" title="function changeColorTheme(fig_tag,th)">changeColorTheme</a>	 changes the color theme of the calling figure</li><li><a href="runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li></ul>
+<li><a href="../../../nucleus/callbacks/contextmenus/onContextAxisLogLin.html" class="code" title="function onContextAxisLogLin(src,~)">onContextAxisLogLin</a>	 changes the label of an axis context menu which allows to</li><li><a href="../../../nucleus/callbacks/contextmenus/onContextPlotsPSDJ.html" class="code" title="function onContextPlotsPSDJ(src,~)">onContextPlotsPSDJ</a>	 checks the label of the distribution axis context menu</li><li><a href="../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>	 handles the calls from the context menu of the data</li><li><a href="runInversionJoint.html" class="code" title="function runInversionJoint">runInversionJoint</a>	 controls the joint inversion process to infer a pore size</li></ul>
 <!-- crossreference -->
 
 
@@ -117,7 +117,7 @@ This function is called by:
 0046     nmr = invjoint.idata.nmr;
 0047     levels = invjoint.levels;
 0048     iGEOM = invjoint.iGEOM;
-0049     iSAT = invjoint.iSAT;
+0049     <span class="comment">% iSAT = invjoint.iSAT;</span>
 0050     pSAT = invjoint.pSAT;
 0051     SatImbDrain = invjoint.iparam.SatImbDrain;
 0052     
@@ -322,8 +322,8 @@ This function is called by:
 0251             <span class="comment">% y-limits</span>
 0252             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 ylim*1.05]);
 0253             <span class="comment">% y-label</span>
-0254             <span class="keyword">if</span> isfield(data.import,<span class="string">'NMRMOD'</span>)
-0255                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [vol. %]'</span>);
+0254             <span class="keyword">if</span> data.invstd.porosity == 1
+0255                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitudes [-]'</span>);
 0256             <span class="keyword">else</span>
 0257                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [vol. %]'</span>);
 0258             <span class="keyword">end</span>
@@ -347,134 +347,139 @@ This function is called by:
 0276             <span class="comment">% y-limits</span>
 0277             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 ylim*1.05]);
 0278             <span class="comment">% y-label</span>
-0279             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative water content [vol. %]'</span>); 
-0280     <span class="keyword">end</span>
-0281     
-0282     <span class="comment">% x-limits</span>
-0283     ticks = round(log10(min(iGEOM.radius)) :1: log10(max(iGEOM.radius)));
-0284     set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
-0285     <span class="comment">% x-label</span>
-0286     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0287     
-0288     <span class="comment">% legend</span>
-0289     lgh = legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="string">'Tag'</span>,<span class="string">'psdjlegend'</span>);
-0290     set(lgh,<span class="string">'FontSize'</span>,10,<span class="string">'TextColor'</span>,col.panelFG);
-0291     <span class="comment">% grid</span>
-0292     grid(ax,<span class="string">'on'</span>);
-0293     
-0294     <span class="comment">%% CPS data plot</span>
-0295     ax = gui.axes_handles.cps;
-0296     ph = findall(ax,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
-0297     <span class="keyword">if</span> ~isempty(ph)
-0298         set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
-0299         delete(ph);
-0300     <span class="keyword">end</span>
-0301     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
-0302     hold(ax,<span class="string">'on'</span>);
-0303     
-0304     plotpress = pSAT.pressure .* data.pressure.unitfac;
-0305     xlstring = [<span class="string">'pressure ['</span>,data.pressure.unit,<span class="string">']'</span>];
-0306     
-0307     <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0308         WRCfac = data.invstd.porosity*100;
-0309     <span class="keyword">else</span>
-0310         WRCfac = 1;
-0311     <span class="keyword">end</span>
-0312     
-0313     plot(plotpress,WRCfac.*pSAT.Sdfull,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0314     plot(plotpress,WRCfac.*pSAT.Sifull,<span class="string">'--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0315     
-0316     <span class="comment">% special treatment if there is NUCLEUSmod data</span>
-0317     <span class="keyword">if</span> isfield(data.import,<span class="string">'NMRMOD'</span>)
-0318         modp = data.import.NMRMOD.p .* data.pressure.unitfac;
-0319         modSd = data.import.NMRMOD.Sd;
-0320         modSi = data.import.NMRMOD.Si;
-0321         plot(modp,WRCfac.*modSd,<span class="string">'k-'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax);
-0322         plot(modp,WRCfac.*modSi,<span class="string">'k--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax);
-0323         lgdstr = {<span class="string">'fit_{drain}'</span>,<span class="string">'fit_{imb}'</span>,<span class="string">'model_{drain}'</span>,<span class="string">'model_{imb}'</span>};
-0324     <span class="keyword">else</span>
-0325         lgdstr = {<span class="string">'fit_{drain}'</span>,<span class="string">'fit_{imb}'</span>};
-0326     <span class="keyword">end</span>
-0327     
-0328     <span class="comment">% plot the individual levels</span>
-0329     <span class="keyword">for</span> i = 1:numel(levels)
-0330         p = invjoint.p0(levels(i)).*data.pressure.unitfac;
-0331         S = WRCfac.*invjoint.S0(levels(i));
-0332         <span class="keyword">switch</span> SatImbDrain(i)
-0333             <span class="keyword">case</span> <span class="string">'D'</span>
-0334                 plot(p,S,<span class="string">'s'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0335                     <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
-0336             <span class="keyword">case</span> <span class="string">'I'</span>
-0337                 plot(p,S,<span class="string">'o'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
-0338                     <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
-0339         <span class="keyword">end</span>
-0340     <span class="keyword">end</span>
-0341     
-0342     <span class="comment">% x-limits</span>
-0343     set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-0344     xticks = log10(plotpress(1)):1:log10(plotpress(end));
-0345     set(ax,<span class="string">'XLim'</span>,[plotpress(1) plotpress(end)],<span class="string">'XTick'</span>,10.^xticks);
-0346     <span class="comment">% y-limits</span>
-0347     <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0348         set(ax,<span class="string">'YLim'</span>,[-WRCfac/10 WRCfac.*1.1],<span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
-0349     <span class="keyword">else</span>
-0350         set(ax,<span class="string">'YLim'</span>,[-0.1 1.1],<span class="string">'YTick'</span>,linspace(0,1,5));
-0351     <span class="keyword">end</span>
-0352     <span class="comment">% labels</span>
-0353     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0354     <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0355         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [vol. %]'</span>);
-0356     <span class="keyword">else</span>
-0357         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'saturation [-]'</span>);
-0358     <span class="keyword">end</span>
-0359     <span class="comment">% legend</span>
-0360     lgh = legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="string">'Tag'</span>,<span class="string">'cpslegend'</span>);
-0361     set(lgh,<span class="string">'FontSize'</span>,10,<span class="string">'TextColor'</span>,col.panelFG);
-0362     <span class="comment">% grid</span>
-0363     grid(ax,<span class="string">'on'</span>);
-0364     
-0365     <span class="comment">%% finalize</span>
-0366     <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(fig);
-0367     <span class="comment">% update GUI data</span>
-0368     setappdata(fig,<span class="string">'data'</span>,data);
-0369     setappdata(fig,<span class="string">'gui'</span>,gui);
-0370 <span class="keyword">else</span>
-0371     <span class="comment">% if not, clear old data in the joint PSD and CPS axes</span>
-0372     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psdj);
-0373     ph = findall(gui.axes_handles.cps,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
-0374     <span class="keyword">if</span> ~isempty(ph)
-0375         set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
-0376         delete(ph);
-0377     <span class="keyword">end</span>
-0378     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
-0379 <span class="keyword">end</span>
-0380 
-0381 <span class="keyword">end</span>
-0382 
-0383 <span class="comment">%------------- END OF CODE --------------</span>
-0384 
-0385 <span class="comment">%% License:</span>
-0386 <span class="comment">% MIT License</span>
-0387 <span class="comment">%</span>
-0388 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0389 <span class="comment">%</span>
-0390 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0391 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0392 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0393 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0394 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0395 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0396 <span class="comment">%</span>
-0397 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0398 <span class="comment">% copies or substantial portions of the Software.</span>
-0399 <span class="comment">%</span>
-0400 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0401 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0402 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0403 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0404 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0405 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0406 <span class="comment">% SOFTWARE.</span></pre></div>
+0279             <span class="keyword">if</span> data.invstd.porosity == 1
+0280                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative amplitudes [-]'</span>);
+0281             <span class="keyword">else</span>
+0282                 set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'cumulative water content [vol. %]'</span>); 
+0283             <span class="keyword">end</span>
+0284             
+0285     <span class="keyword">end</span>
+0286     
+0287     <span class="comment">% x-limits</span>
+0288     ticks = round(log10(min(iGEOM.radius)) :1: log10(max(iGEOM.radius)));
+0289     set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
+0290     <span class="comment">% x-label</span>
+0291     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0292     
+0293     <span class="comment">% legend</span>
+0294     lgh = legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="string">'Tag'</span>,<span class="string">'psdjlegend'</span>);
+0295     set(lgh,<span class="string">'FontSize'</span>,10,<span class="string">'TextColor'</span>,col.panelFG);
+0296     <span class="comment">% grid</span>
+0297     grid(ax,<span class="string">'on'</span>);
+0298     
+0299     <span class="comment">%% CPS data plot</span>
+0300     ax = gui.axes_handles.cps;
+0301     ph = findall(ax,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0302     <span class="keyword">if</span> ~isempty(ph)
+0303         set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
+0304         delete(ph);
+0305     <span class="keyword">end</span>
+0306     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0307     hold(ax,<span class="string">'on'</span>);
+0308     
+0309     plotpress = pSAT.pressure .* data.pressure.unitfac;
+0310     xlstring = [<span class="string">'pressure ['</span>,data.pressure.unit,<span class="string">']'</span>];
+0311     
+0312     <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0313         WRCfac = data.invstd.porosity*100;
+0314     <span class="keyword">else</span>
+0315         WRCfac = 1;
+0316     <span class="keyword">end</span>
+0317     
+0318     plot(plotpress,WRCfac.*pSAT.Sdfull,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0319     plot(plotpress,WRCfac.*pSAT.Sifull,<span class="string">'--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0320     
+0321     <span class="comment">% special treatment if there is NUCLEUSmod data</span>
+0322     <span class="keyword">if</span> isfield(data.import,<span class="string">'NMRMOD'</span>)
+0323         modp = data.import.NMRMOD.p .* data.pressure.unitfac;
+0324         modSd = data.import.NMRMOD.Sd;
+0325         modSi = data.import.NMRMOD.Si;
+0326         plot(modp,WRCfac.*modSd,<span class="string">'k-'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax);
+0327         plot(modp,WRCfac.*modSi,<span class="string">'k--'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,ax);
+0328         lgdstr = {<span class="string">'fit_{drain}'</span>,<span class="string">'fit_{imb}'</span>,<span class="string">'model_{drain}'</span>,<span class="string">'model_{imb}'</span>};
+0329     <span class="keyword">else</span>
+0330         lgdstr = {<span class="string">'fit_{drain}'</span>,<span class="string">'fit_{imb}'</span>};
+0331     <span class="keyword">end</span>
+0332     
+0333     <span class="comment">% plot the individual levels</span>
+0334     <span class="keyword">for</span> i = 1:numel(levels)
+0335         p = invjoint.p0(levels(i)).*data.pressure.unitfac;
+0336         S = WRCfac.*invjoint.S0(levels(i));
+0337         <span class="keyword">switch</span> SatImbDrain(i)
+0338             <span class="keyword">case</span> <span class="string">'D'</span>
+0339                 plot(p,S,<span class="string">'s'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0340                     <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0341             <span class="keyword">case</span> <span class="string">'I'</span>
+0342                 plot(p,S,<span class="string">'o'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax,<span class="keyword">...</span>
+0343                     <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0344         <span class="keyword">end</span>
+0345     <span class="keyword">end</span>
+0346     
+0347     <span class="comment">% x-limits</span>
+0348     set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+0349     xticks = log10(plotpress(1)):1:log10(plotpress(end));
+0350     set(ax,<span class="string">'XLim'</span>,[plotpress(1) plotpress(end)],<span class="string">'XTick'</span>,10.^xticks);
+0351     <span class="comment">% y-limits</span>
+0352     <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0353         set(ax,<span class="string">'YLim'</span>,[-WRCfac/10 WRCfac.*1.1],<span class="string">'YTickMode'</span>,<span class="string">'auto'</span>);
+0354     <span class="keyword">else</span>
+0355         set(ax,<span class="string">'YLim'</span>,[-0.1 1.1],<span class="string">'YTick'</span>,linspace(0,1,5));
+0356     <span class="keyword">end</span>
+0357     <span class="comment">% labels</span>
+0358     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0359     <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0360         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [vol. %]'</span>);
+0361     <span class="keyword">else</span>
+0362         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'saturation [-]'</span>);
+0363     <span class="keyword">end</span>
+0364     <span class="comment">% legend</span>
+0365     lgh = legend(ax,lgdstr,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>,<span class="string">'Tag'</span>,<span class="string">'cpslegend'</span>);
+0366     set(lgh,<span class="string">'FontSize'</span>,10,<span class="string">'TextColor'</span>,col.panelFG);
+0367     <span class="comment">% grid</span>
+0368     grid(ax,<span class="string">'on'</span>);
+0369     
+0370     <span class="comment">%% finalize</span>
+0371     <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(fig);
+0372     <span class="comment">% update GUI data</span>
+0373     setappdata(fig,<span class="string">'data'</span>,data);
+0374     setappdata(fig,<span class="string">'gui'</span>,gui);
+0375 <span class="keyword">else</span>
+0376     <span class="comment">% if not, clear old data in the joint PSD and CPS axes</span>
+0377     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psdj);
+0378     ph = findall(gui.axes_handles.cps,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0379     <span class="keyword">if</span> ~isempty(ph)
+0380         set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
+0381         delete(ph);
+0382     <span class="keyword">end</span>
+0383     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
+0384 <span class="keyword">end</span>
+0385 
+0386 <span class="keyword">end</span>
+0387 
+0388 <span class="comment">%------------- END OF CODE --------------</span>
+0389 
+0390 <span class="comment">%% License:</span>
+0391 <span class="comment">% MIT License</span>
+0392 <span class="comment">%</span>
+0393 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0394 <span class="comment">%</span>
+0395 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0396 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0397 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0398 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0399 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0400 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0401 <span class="comment">%</span>
+0402 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0403 <span class="comment">% copies or substantial portions of the Software.</span>
+0404 <span class="comment">%</span>
+0405 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0406 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0407 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0408 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0409 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0410 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0411 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

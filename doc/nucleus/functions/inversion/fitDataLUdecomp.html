@@ -168,135 +168,128 @@ This function is called by:
 0066 time = time(:);
 0067 signal = signal(:);
 0068 
-0069 <span class="comment">% get the maximum value of the signal to scale the signal for the inversion</span>
-0070 <span class="comment">% to 1</span>
-0071 maxS = max(signal);
+0069 <span class="comment">% temporary variables</span>
+0070 t = time;
+0071 g = signal;
 0072 
-0073 <span class="comment">% temporary variables</span>
-0074 t = time;
-0075 g = signal./maxS;
-0076 
-0077 <span class="comment">% get the input parameters</span>
-0078 flag = parameter.T1T2;       <span class="comment">% T1/T2 switch</span>
-0079 T1IRfac = parameter.T1IRfac; <span class="comment">% T1 Sat/Inv Recovery factor</span>
-0080 Tb = parameter.Tb;           <span class="comment">% bulk relaxation time</span>
-0081 Td = parameter.Td;           <span class="comment">% diffusion relaxation time</span>
-0082 tstart = parameter.Tint(1);  <span class="comment">% log10 value</span>
-0083 tend = parameter.Tint(2);    <span class="comment">% log10 value</span>
-0084 N = parameter.Tint(3);       <span class="comment">% N per decade</span>
-0085 order = parameter.Lorder;    <span class="comment">% smoothness constraint</span>
-0086 lambda = parameter.lambda;   <span class="comment">% regularization parameter</span>
-0087 noise = parameter.noise;     <span class="comment">% noise</span>
-0088 
-0089 <span class="comment">% create the relaxation time vector</span>
-0090 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0091 
-0092 <span class="comment">% create the Kernel matrix</span>
-0093 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
-0094 
-0095 <span class="comment">% calculate reg matrix H</span>
-0096 m  = length(T1T2me);
-0097 B = get_l(m,order);
-0098 H = B'*B;
-0099 
-0100 <span class="comment">% scale the noise and error matrix W accordingly</span>
-0101 noise = noise./maxS;
-0102 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0103     e = diag(parameter.W);
-0104     e = e./maxS;
-0105     W = diag(e);
-0106 <span class="keyword">end</span>
-0107 
-0108 <span class="comment">% apply error weight matrix</span>
-0109 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0110    g = W*g;
-0111    K = W*K;
+0073 <span class="comment">% get the input parameters</span>
+0074 flag = parameter.T1T2;       <span class="comment">% T1/T2 switch</span>
+0075 T1IRfac = parameter.T1IRfac; <span class="comment">% T1 Sat/Inv Recovery factor</span>
+0076 Tb = parameter.Tb;           <span class="comment">% bulk relaxation time</span>
+0077 Td = parameter.Td;           <span class="comment">% diffusion relaxation time</span>
+0078 tstart = parameter.Tint(1);  <span class="comment">% log10 value</span>
+0079 tend = parameter.Tint(2);    <span class="comment">% log10 value</span>
+0080 N = parameter.Tint(3);       <span class="comment">% N per decade</span>
+0081 order = parameter.Lorder;    <span class="comment">% smoothness constraint</span>
+0082 lambda = parameter.lambda;   <span class="comment">% regularization parameter</span>
+0083 noise = parameter.noise;     <span class="comment">% noise</span>
+0084 
+0085 <span class="comment">% create the relaxation time vector</span>
+0086 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
+0087 
+0088 <span class="comment">% create the Kernel matrix</span>
+0089 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0090 
+0091 <span class="comment">% calculate reg matrix H</span>
+0092 m  = length(T1T2me);
+0093 B = get_l(m,order);
+0094 H = B'*B;
+0095 
+0096 <span class="comment">% apply error weight matrix</span>
+0097 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0098    e = 1./diag(parameter.W);
+0099    W = diag(e);
+0100    g = W*g;
+0101    K = W*K;
+0102 <span class="keyword">end</span>
+0103 
+0104 <span class="comment">% scale everything between [0,1]</span>
+0105 maxS = max(g);
+0106 g = g./maxS;
+0107 K = K./maxS;
+0108 
+0109 <span class="comment">% automatic regularization</span>
+0110 <span class="keyword">if</span> lambda == -1
+0111     lambda = trace(K'*K)/trace(H);
 0112 <span class="keyword">end</span>
 0113 
-0114 <span class="comment">% automatic regularization</span>
-0115 <span class="keyword">if</span> lambda == -1
-0116     lambda = trace(K'*K)/trace(H);
-0117 <span class="keyword">end</span>
-0118 
-0119 <span class="comment">% calculate A = K'*K + lambda*H</span>
-0120 A = K'*K + lambda*H;
-0121 <span class="comment">% calculate y = K'*g</span>
-0122 y = K'*g;
-0123 <span class="comment">% calculate f by LU decomposition</span>
-0124 [L,U] = lu(A);
-0125 f = U\(L\y);
-0126 
-0127 <span class="comment">% now iterate, mapping negative values to zero.</span>
-0128 e = 2/max(eig(A));
-0129 A = K'*K;  <span class="comment">% no regularization now</span>
-0130 <span class="keyword">for</span> i = 1:1000
-0131     f = (f&gt;0).*f; <span class="comment">% map neg to zero</span>
-0132     f =(eye(m)-e*A)*f+e*y;
-0133 <span class="keyword">end</span>
-0134 f = (f&gt;0).*f; <span class="comment">% map neg to zero again</span>
-0135 
-0136 <span class="comment">% rescale f so that the sum(f)= unscaled E0</span>
-0137 f = (f.*maxS);
+0114 <span class="comment">% calculate A = K'*K + lambda*H</span>
+0115 A = K'*K + lambda*H;
+0116 <span class="comment">% calculate y = K'*g</span>
+0117 y = K'*g;
+0118 <span class="comment">% calculate f by LU decomposition</span>
+0119 [L,U] = lu(A);
+0120 f = U\(L\y);
+0121 
+0122 <span class="comment">% now iterate, mapping negative values to zero.</span>
+0123 e = 2/max(eig(A));
+0124 A = K'*K;  <span class="comment">% no regularization now</span>
+0125 <span class="keyword">for</span> i = 1:1000
+0126     f = (f&gt;0).*f; <span class="comment">% map neg to zero</span>
+0127     f =(eye(m)-e*A)*f+e*y;
+0128 <span class="keyword">end</span>
+0129 f = (f&gt;0).*f; <span class="comment">% map neg to zero again</span>
+0130 
+0131 <span class="comment">% rescale f so that the sum(f)= unscaled E0</span>
+0132 <span class="comment">% f = (f.*maxS);</span>
+0133 
+0134 <span class="comment">% get the 'inverted' signal from the rescaled RTD</span>
+0135 s_fit = K*(f.*maxS);
+0136 <span class="comment">% cut off the end which was needed for regularization</span>
+0137 s_fit = s_fit(1:length(t),1);
 0138 
-0139 <span class="comment">% the inverted signal</span>
-0140 s_fit = K*f;
-0141 s_fit = s_fit(1:length(t),1);
-0142 
-0143 <span class="comment">% get residuals and error measures</span>
-0144 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0145     <span class="comment">% normalize the fit because the signal was error weighted for the</span>
-0146     <span class="comment">% inversion</span>
-0147     e = diag(W);
-0148     einv = 1./e;
-0149     Winv = diag(einv);
-0150     s_fit = Winv * s_fit;
-0151     
-0152     <span class="comment">% because signal and s_fit are unscaled the initial values for noise</span>
-0153     <span class="comment">% and W are used to get the error estimates</span>
-0154     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise,parameter.W);
-0155 <span class="keyword">else</span>
-0156     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,parameter.noise);
-0157 <span class="keyword">end</span>
-0158 
-0159 <span class="comment">% derivative matrix</span>
-0160 L = get_l(length(T1T2me),order);
-0161 <span class="comment">% L-curve parameter</span>
-0162 <span class="comment">% model norm |L*x|_2</span>
-0163 xn = norm(L*f,2);
-0164 <span class="comment">% residual norm |A*x-b|_2</span>
-0165 rn = norm(out.residual,2);
-0166 
-0167 <span class="comment">% get &quot;initial&quot; value E0</span>
-0168 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
-0169     t2 = 10*time(end);
-0170     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
-0171 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
-0172     t2 = 0;
-0173     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
-0174 <span class="keyword">end</span>
-0175 E0 = K2*f;
-0176 
-0177 <span class="comment">% output struct</span>
-0178 fitdata.fit_t = time(:);
-0179 fitdata.fit_s = s_fit(:);
-0180 fitdata.T1T2me = T1T2me(:);
-0181 fitdata.T1T2f = f(:);
-0182 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
-0183 fitdata.E0 = E0;
-0184 fitdata.residual = out.residual;
-0185 fitdata.chi2 = out.chi2;
-0186 fitdata.rms = out.rms;
-0187 fitdata.lambda_out = lambda;
-0188 fitdata.KK = K;
-0189 fitdata.L = L;
-0190 fitdata.xn = xn;
-0191 fitdata.rn = rn;
-0192 fitdata.invtype = <span class="string">'LU'</span>;
-0193 fitdata.invparams = parameter;
-0194 
-0195 <span class="keyword">return</span>
-0196 
-0197 <span class="comment">%------------- END OF CODE --------------</span></pre></div>
+0139 <span class="comment">% get residuals and error measures</span>
+0140 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0141     <span class="comment">% rescale the fit because the input signal was error weighted for the</span>
+0142     <span class="comment">% inversion</span>
+0143     s_fit = parameter.W * s_fit;
+0144     
+0145     <span class="comment">% because signal and s_fit are unscaled the initial values for noise</span>
+0146     <span class="comment">% and W are used to get the error estimates</span>
+0147     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
+0148 <span class="keyword">else</span>
+0149     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
+0150 <span class="keyword">end</span>
+0151 
+0152 <span class="comment">% derivative matrix</span>
+0153 L = get_l(length(T1T2me),order);
+0154 <span class="comment">% L-curve parameter</span>
+0155 <span class="comment">% model norm |L*x|_2</span>
+0156 xn = norm(L*f,2);
+0157 <span class="comment">% residual norm |A*x-b|_2</span>
+0158 rn = norm(out.residual,2);
+0159 
+0160 <span class="comment">% get &quot;initial&quot; value E0</span>
+0161 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
+0162     t2 = 10*time(end);
+0163     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
+0164 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
+0165     t2 = 0;
+0166     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
+0167 <span class="keyword">end</span>
+0168 E0 = K2*f;
+0169 
+0170 <span class="comment">% output struct</span>
+0171 fitdata.fit_t = time(:);
+0172 fitdata.fit_s = s_fit(:);
+0173 fitdata.T1T2me = T1T2me(:);
+0174 fitdata.T1T2f = f(:);
+0175 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
+0176 fitdata.E0 = E0;
+0177 fitdata.residual = out.residual;
+0178 fitdata.chi2 = out.chi2;
+0179 fitdata.rms = out.rms;
+0180 fitdata.lambda_out = lambda;
+0181 fitdata.KK = K;
+0182 fitdata.L = L;
+0183 fitdata.xn = xn;
+0184 fitdata.rn = rn;
+0185 fitdata.invtype = <span class="string">'LU'</span>;
+0186 fitdata.invparams = parameter;
+0187 
+0188 <span class="keyword">return</span>
+0189 
+0190 <span class="comment">%------------- END OF CODE --------------</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

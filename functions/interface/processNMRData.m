@@ -90,6 +90,10 @@ switch nmrproc.gatetype
     case {'log','lin'}
         tmp = applyGatesToSignal(t,s,'type',nmrproc.gatetype,...
             'Ng',min([numel(s) 300]),'Ne',nmrproc.Nechoes);
+        if ~isreal(nmrraw.s)
+            tmpI = applyGatesToSignal(t,imag(nmrraw.s),'type',nmrproc.gatetype,...
+                'Ng',min([numel(s) 300]),'Ne',nmrproc.Nechoes);
+        end
         t = tmp(:,1);
         s = tmp(:,2);
         N = tmp(:,3);
@@ -111,11 +115,25 @@ if noise ~= 0 && ~strcmp(nmrproc.gatetype,'raw')
         W = diag(e);
         nmrproc.e = e;
         nmrproc.W = W;
+        if ~isreal(nmrraw.s)
+            ErrWimag = tmpI(:,2)./e;
+            chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+            nmrproc.imag_chi2 = chi2;
+        else
+            nmrproc.imag_chi2 = NaN;
+        end
 else
     e = noise*ones(size(s));
     nmrproc.e = e;
     if isfield(nmrproc,'W')
         nmrproc = rmfield(nmrproc,'W');
+    end
+    if ~isreal(nmrraw.s)
+        ErrWimag = imag(nmrraw.s)./noise;
+        chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+        nmrproc.imag_chi2 = chi2;
+    else
+        nmrproc.imag_chi2 = NaN;
     end
 end
 

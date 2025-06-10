@@ -46,19 +46,43 @@ INVdata = getappdata(fig,'INVdata');
 
 % only proceed if there is data
 if ~isempty(INVdata)
+
+    % id of the chosen NMR signal
+    id0 = get(gui.listbox_handles.signal,'Value');
+    if isempty(id0)
+        id0 = 1;
+        set(gui.listbox_handles.signal,'Value',id0);
+        onListboxData(gui.listbox_handles.signal);
+    end
+    % check if inversion data already exists for this file
+    if ~isstruct(INVdata{id0})
+        % call standard single inversion before performing the batch run
+        runInversionStd;
+        data = getappdata(fig,'data');
+        INVdata = getappdata(fig,'INVdata');
+    end
+    
+    % L-curve is currently not supported in Batch mode
+    if strcmp(data.invstd.regtype,'lcurve')
+        helpdlg('L-curve not supported in Batch mode!',...
+        'runInversioBatch: Error');
+        return
+    end
+
     % make the RUN button a STOP  button
     set(gui.push_handles.invstd_run,'String','STOP','BackGroundColor','r',...
         'UserData',1,'Callback',@onPushStop);
 
     % check if this run has uncertainty data
     hasUncert = false;
-    if isfield(data.results.invstd,'uncert')
+    if isfield(data.results,'invstd') && isfield(data.results.invstd,'uncert')
         uncertTMP = data.results.invstd.uncert;
         hasUncert = true;
     end
     
     % remove temporary data fields
     data = removeInversionFields(data);
+    setappdata(fig,'data',data);
     
     % Inversion output on command line
     switch data.info.InvInfo
@@ -86,6 +110,8 @@ if ~isempty(INVdata)
                 posf(2)+posf(4)/2-posw(4)/2 posw(3:4)]);
         end
         set(hwb,'Visible','on');
+    else
+        steps = size(INVdata,1);
     end
     
     % proccess all signals
@@ -97,10 +123,12 @@ if ~isempty(INVdata)
             data = getappdata(fig,'data');
             % processing settings
             if strcmp(data.import.NMR.data{id}.flag,'T1')
+                % no gating for T1 data
                 data.process.gatetype = 'raw';
-                data.process.start = 1;
-            end
-            data.process.end = length(data.import.NMR.data{id}.signal);
+            else
+                % always full signal (maybe signals have a varying number of echoes)
+                data.process.end = length(data.import.NMR.data{id}.signal);
+            end            
             % update GUI data
             setappdata(fig,'data',data);
             % process the current NMR signal
@@ -119,6 +147,10 @@ if ~isempty(INVdata)
                     param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                    else
+                        if isfield(param,'W')
+                            param = rmfield(param,'W');
+                        end
                     end
                     
                     invstd = fitDataFree(data.results.nmrproc.t,...
@@ -134,6 +166,10 @@ if ~isempty(INVdata)
                     param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                    else
+                        if isfield(param,'W')
+                            param = rmfield(param,'W');
+                        end   
                     end
                     
                     invstd = fitDataFree(data.results.nmrproc.t,...
@@ -150,7 +186,14 @@ if ~isempty(INVdata)
                     param.Lorder = data.invstd.Lorder;
                     param.lambda = data.invstd.lambda;
                     param.noise = data.results.nmrproc.noise;
-                    
+                    if isfield(data.results.nmrproc,'W')
+                        param.W = data.results.nmrproc.W;
+                    else
+                        if isfield(param,'W')
+                            param = rmfield(param,'W');
+                        end
+                    end
+
                     invstd = fitDataLUdecomp(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
                     
@@ -168,6 +211,10 @@ if ~isempty(INVdata)
                     param.EchoFlag = data.info.EchoFlag;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                    else
+                        if isfield(param,'W')
+                            param = rmfield(param,'W');
+                        end
                     end
                     
                     invstd = fitDataLSQ(data.results.nmrproc.t,...
@@ -185,6 +232,10 @@ if ~isempty(INVdata)
                     param.optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                    else
+                        if isfield(param,'W')
+                            param = rmfield(param,'W');
+                        end
                     end
                     
                     % status bar information
@@ -205,9 +256,15 @@ if ~isempty(INVdata)
                 iparam = param;
                 % uncertainty parameter
                 uparam.id = id;
+                uparam.isgated = data.results.nmrproc.isgated;
                 uparam.time = data.results.nmrproc.t;
                 uparam.signal = data.results.nmrproc.s;
                 uparam.uncert = uncertTMP.params.uncert;
+                if data.results.nmrproc.isgated        
+                    uparam.raw.nmrproc = data.results.nmrproc;
+                    uparam.raw.t = data.results.nmrraw.t;
+                    uparam.raw.s = data.results.nmrraw.s;
+                end
                 invstd = estimateUncertainty(data.invstd.invtype,invstd,iparam,uparam);
             end
             
@@ -264,6 +321,18 @@ if ~isempty(INVdata)
                             ' / ',num2str(steps),' NMR signals']);
                     end
                 end
+            else
+                if size(INVdata,1) <= 50
+                    displayStatusText(gui,['Batch inversion ... processing ',num2str(id),...
+                        ' / ',num2str(steps),' NMR signals']);
+                else
+                    my_mod = round(size(INVdata,1)/25);
+                    if id == 1 || mod(id,my_mod) == 0
+                        displayStatusText(gui,['Batch inversion ... processing ',num2str(id),...
+                        ' / ',num2str(steps),' NMR signals']);
+                    end
+                end
+                
             end            
         else
             displayStatusText(gui,[infostring,' was canceled']);
@@ -285,13 +354,13 @@ if ~isempty(INVdata)
     % update INVdata to GUI
     setappdata(fig,'INVdata',INVdata);
     % make the STOP button a RUN again
-    set(gui.push_handles.invstd_run,'String','<HTML><u>R</u>UN',...
+    set(gui.push_handles.invstd_run,'String','RUN',...
         'BackgroundColor','g','Callback',@onPushRun);
     % update GUI data
     setappdata(fig,'gui',gui);
     % set focus on the first entry in the list
     set(gui.listbox_handles.signal,'Value',1);
-    onListboxData(gui.listbox_handles.signal);    
+    onListboxData(gui.listbox_handles.signal);
 else
     helpdlg('Nothing to do because there is no data loaded!',...
         'runInversioBatch: Load NMR data first.');

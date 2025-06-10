@@ -45,8 +45,10 @@ switch label
         showExtraGraphics('amp');
     case 'AMP vs TLGM'
         showExtraGraphics('ampvst');
-    case 'RTD'    
-        showExtraGraphics('rtd');
+    case '3D cube'    
+        showExtraGraphics('rtdcube');
+    case 'Surface plot'    
+        showExtraGraphics('rtdsurf');
 end
 
 end

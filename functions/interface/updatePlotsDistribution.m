@@ -126,7 +126,11 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
             % scale distribution by porosity
             F0 = invstd.T1T2f;
             if sum(abs(F0))>0
-                F = (data.invstd.porosity*100).*F0./sum(F0);
+                if data.invstd.porosity < 1
+                    F = (data.invstd.porosity*100).*F0./sum(F0);
+                else
+                    F = F0;
+                end
                 ylims = [0 max(F)*1.05];
             else
                 ylims = [-1 1];
@@ -138,7 +142,7 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
                 ylab1 = 'water content [vol. %]';
                 ylab2 = 'cumulative water content [vol. %]';
             end
-            % F = data.invstd.porosity.*F./trapz(T,F);
+            % F = data.invstd.porosity.*F./trapz(invstd.T1T2me,F);
             
             switch data.info.RTDflag
                 case 'freq'
@@ -148,7 +152,9 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
                         f_max = 0;
                         FDIST = uncert.interp_f;
                         % scaling
-                        FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+                        if data.invstd.porosity < 1
+                            FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+                        end
 
                         switch data.info.RTDuncert
                             case 'lines'
@@ -221,7 +227,9 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
                     % y-label
                     set(get(ax,'YLabel'),'String',ylab1);
                     % legend
-                    legend(ax,'Location','NorthEast');
+                    lgh = legend(ax,'Location','NorthEast');
+                    set(lgh,'EdgeColor',gui.myui.colors.axisFG,...
+                        'TextColor',gui.myui.colors.panelFG);
                     
                 case 'cum'
                     % in the case of the cumulative plot, no uncertainty is
@@ -267,10 +275,16 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
             if sum(F0)>0
                 % individual RTDs
                 for i = 1:length(invstd.x)/3
-                    dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F0);
+                    if data.invstd.porosity < 1
+                        dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F0);
+                    end
                 end
                 % combined (total) RTD
-                F = (data.invstd.porosity*100).*F0./sum(F0);
+                if data.invstd.porosity < 1
+                    F = (data.invstd.porosity*100).*F0./sum(F0);
+                else
+                    F = F0;
+                end
                 
                 ylims = [0 max(F)*1.05];
             else
@@ -295,7 +309,9 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
                         f_max = 0;
                         FDIST = uncert.interp_f;
                         % scaling
-                        FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+                        if data.invstd.porosity < 1
+                            FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+                        end
 
                         switch data.info.RTDuncert
                             case 'lines'
@@ -369,7 +385,9 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
                     % y-label
                     set(get(ax,'YLabel'),'String',ylab1);
                     % legend
-                    legend(ax,'Location','NorthEast');
+                    lgh = legend(ax,'Location','NorthEast');
+                    set(lgh,'EdgeColor',gui.myui.colors.axisFG,...
+                        'TextColor',gui.myui.colors.panelFG);
                     
                 case 'cum'
                     % in the case of the cumulative plot, no uncertainty is

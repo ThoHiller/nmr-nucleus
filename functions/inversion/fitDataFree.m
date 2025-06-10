@@ -69,7 +69,7 @@ IRfac = parameter.T1IRfac;
 
 % error weights after gating
 if isfield(parameter,'W')
-    e = diag(parameter.W);
+    e = 1./diag(parameter.W);
     iparam.e = sqrt(e);
 else
     e = ones(size(s));
@@ -85,12 +85,14 @@ if any(parameter.Tfixed_bool)
 
     % start values for E and T
     x0 = zeros(1,2*nExp);
+    % E
+    x0(1:2:end) = max(signal)/nExp;
+    % T
+    x0(2:2:end) = logspace(log10(max(t))-4,log10(max(t)),nExp);
+    % apply fixed T times
     for i = 1:nExp
-        x0(2*i-1) = i*max(signal)/nExp;
         if parameter.Tfixed_bool(i)
             x0(2*i) = parameter.Tfixed_val(i);
-        else
-            x0(2*i) = i*max(t)/nExp;
         end
     end
 
@@ -104,19 +106,19 @@ if any(parameter.Tfixed_bool)
             lb(2*i) = parameter.Tfixed_val(i);
             ub(2*i) = parameter.Tfixed_val(i);
         else
-            lb(2*i) = 0;        
-            ub(2*i) = 2*i*max(t);
-        end        
+            lb(2*i) = 0;
+            ub(2*i) = 100*i*max(t);
+        end
     end
 
 else % if not proceed with the standard version
 
     % start values for E and T
     x0 = zeros(1,2*nExp);
-    for i = 1:nExp
-        x0(2*i-1) = i*max(signal)/nExp;
-        x0(2*i) = i*max(t)/nExp;
-    end
+    % E
+    x0(1:2:end) = max(signal)/nExp;
+    % T
+    x0(2:2:end) = logspace(log10(max(t))-4,log10(max(t)),nExp);
 
     % bounds for E and T
     lb = zeros(1,2*nExp);
@@ -124,8 +126,8 @@ else % if not proceed with the standard version
     for i = 1:nExp
         lb(2*i-1) = 0;
         ub(2*i-1) = 2*i*max(signal);
-        lb(2*i) = 0;        
-        ub(2*i) = 2*i*max(t);
+        lb(2*i) = 0;
+        ub(2*i) = 100*i*max(t);
     end
 end
 
@@ -136,34 +138,34 @@ switch parameter.optim
                 % solver options
                 options = optimoptions('lsqcurvefit');
                 options.Display = parameter.info;
-%                 options.OptimalityTolerance = 1e-18;
-%                 options.StepTolerance = 1e-18;
-%                 options.MaxIterations = 1e3;
+                % options.OptimalityTolerance = 1e-18;
+                % options.StepTolerance = 1e-18;
+                % options.MaxIterations = 1e3;
                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)fcn_fitFreeT1(x,t,IRfac),...
                     x0,t,s,lb,ub,options);
             case 'T2'
                 % solver options
                 options = optimoptions('lsqnonlin');
                 options.Display = parameter.info;
-%                 options.OptimalityTolerance = 1e-18;
-%                 options.StepTolerance = 1e-18;
-%                 options.MaxIterations = 1e3;
-                
+                % options.OptimalityTolerance = 1e-18;
+                % options.StepTolerance = 1e-18;
+                % options.MaxIterations = 1e3;
+
                 iparam.t = t;
                 iparam.s = s;
                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
                     x0,lb,ub,options);
-%                 [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
-%                     x0,t,s,zeros(size(x0)),[],options);
+                % [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
+                %     x0,t,s,zeros(size(x0)),[],options);
         end
     case 'off'
         % solver options
         options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
-            'MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);        
+            'MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);
         switch flag
             case 'T1'
                 % set all start values to 0 (if something is not working as expected, comment it and try again)
-                x0 = zeros(size(lb));
+                % x0 = zeros(size(lb));
                 [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s,IRfac),...
                     x0,lb,ub,options);
             case 'T2'
@@ -194,7 +196,7 @@ switch parameter.optim
     case 'on'
         % nothing to do because the Optim. Toolbox gives the jacobian as
         % output
-    case 'off'        
+    case 'off'
         jacobian = getFitFreeJacobian(x,t,flag,IRfac);
 end
 

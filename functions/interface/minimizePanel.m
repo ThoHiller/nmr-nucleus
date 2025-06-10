@@ -163,7 +163,7 @@ switch fig_tag
                 helpdlg({'function: minimizePanel',...
                     'Something is utterly wrong.'},'Info');
         end
-        
+
     case 'UNCERTVIEW'
         panel_1 = 'Recalculate RTD Uncertainty';
         panel_2 = 'Process Uncertainty Runs';
@@ -203,10 +203,52 @@ switch fig_tag
                 helpdlg({'function: minimizePanel',...
                     'Something is utterly wrong.'},'Info');
         end
+        
     case '2DINV'
         panel_1 = 'Properties';
         panel_2 = '2D inversion settings';
-        panel_3 = 'Information';
+        panel_3 = 'Regularisation - "L-curve"';
+        panel_4 = 'Information';
+
+        switch paneltitle
+            case panel_1
+                id = 1;
+            case panel_2
+                id = 2;
+            case panel_3
+                id = 3;
+            case panel_4
+                id = 4;
+            otherwise
+                helpdlg({'function: minimizePanel',...
+                    'Something is utterly wrong.'},'Info');
+        end
+
+        switch paneltitle
+            case {panel_1,panel_2,panel_3,panel_4}
+                % all heights of the left panels
+                heights = get(gui.panels.main,'Heights');
+                % default height of this panel
+                pheight = def_heights(2,id);
+                if isminimized % maximize panel
+                    heights(id) = pheight;
+                    set(gui.panels.main,'Heights',heights);
+                    set(panel,'Minimized',false);
+                else % minimize panel
+                    heights(id) = pheightmin;
+                    set(gui.panels.main,'Heights',heights);
+                    set(panel,'Minimized',true)
+                end
+                onFigureSizeChange(fig);
+            otherwise
+                helpdlg({'function: minimizePanel',...
+                    'Something is utterly wrong.'},'Info');
+        end
+
+    case '2DMOD'
+        panel_1 = '2D modelling settings';
+        panel_2 = 'Properties';
+        panel_3 = 'NMR signals';
 
         switch paneltitle
             case panel_1
@@ -223,18 +265,19 @@ switch fig_tag
         switch paneltitle
             case {panel_1,panel_2,panel_3}
                 % all heights of the left panels
-                heights = get(gui.left,'Heights');
+                heights = get(gui.panels.main,'Heights');
                 % default height of this panel
                 pheight = def_heights(2,id);
                 if isminimized % maximize panel
                     heights(id) = pheight;
-                    set(gui.left,'Heights',heights);
+                    set(gui.panels.main,'Heights',heights);
                     set(panel,'Minimized',false);
                 else % minimize panel
                     heights(id) = pheightmin;
-                    set(gui.left,'Heights',heights);
+                    set(gui.panels.main,'Heights',heights);
                     set(panel,'Minimized',true)
                 end
+                onFigureSizeChange(fig);
             otherwise
                 helpdlg({'function: minimizePanel',...
                     'Something is utterly wrong.'},'Info');

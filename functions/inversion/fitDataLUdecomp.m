@@ -66,13 +66,9 @@ function fitdata = fitDataLUdecomp(time,signal,parameter)
 time = time(:);
 signal = signal(:);
 
-% get the maximum value of the signal to scale the signal for the inversion
-% to 1
-maxS = max(signal);
-
 % temporary variables
 t = time;
-g = signal./maxS;
+g = signal;
 
 % get the input parameters
 flag = parameter.T1T2;       % T1/T2 switch
@@ -97,19 +93,18 @@ m  = length(T1T2me);
 B = get_l(m,order);
 H = B'*B;
 
-% scale the noise and error matrix W accordingly
-noise = noise./maxS;
-if isfield(parameter,'W')
-    e = diag(parameter.W);
-    e = e./maxS;
-    W = diag(e);
-end
-
 % apply error weight matrix
 if isfield(parameter,'W')
+   e = 1./diag(parameter.W);
+   W = diag(e);
    g = W*g;
    K = W*K;
 end
+
+% scale everything between [0,1]
+maxS = max(g);
+g = g./maxS;
+K = K./maxS;
 
 % automatic regularization
 if lambda == -1
@@ -134,26 +129,24 @@ end
 f = (f>0).*f; % map neg to zero again
 
 % rescale f so that the sum(f)= unscaled E0
-f = (f.*maxS);
+% f = (f.*maxS);
 
-% the inverted signal
-s_fit = K*f;
+% get the 'inverted' signal from the rescaled RTD
+s_fit = K*(f.*maxS);
+% cut off the end which was needed for regularization
 s_fit = s_fit(1:length(t),1);
 
 % get residuals and error measures
 if isfield(parameter,'W')
-    % normalize the fit because the signal was error weighted for the
+    % rescale the fit because the input signal was error weighted for the
     % inversion
-    e = diag(W);
-    einv = 1./e;
-    Winv = diag(einv);
-    s_fit = Winv * s_fit;
+    s_fit = parameter.W * s_fit;
     
     % because signal and s_fit are unscaled the initial values for noise
     % and W are used to get the error estimates
-    out = getFitErrors(signal,s_fit,parameter.noise,parameter.W);
+    out = getFitErrors(signal,s_fit,noise,parameter.W);
 else
-    out = getFitErrors(signal,s_fit,parameter.noise);
+    out = getFitErrors(signal,s_fit,noise);
 end
 
 % derivative matrix

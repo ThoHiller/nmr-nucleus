@@ -146,16 +146,6 @@ gui.radio_handles.process_timescale_ms = uicontrol('Parent',gui.panels.process.H
     'Enable','off','Callback',@onRadioTimescale);
 set(gui.panels.process.HBox3,'Widths',[100 -1 -1 100 -1 -1]);
 
-%% Java Hack to adjust vertical alignment of text fields
-jh = findjobj(gui.text_handles.process_start);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.process_gates);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.process_normalize);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.process_timescale);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-
 return
 
 %------------- END OF CODE --------------

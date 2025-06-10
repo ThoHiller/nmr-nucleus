@@ -56,7 +56,7 @@ switch in.fileformat
         out = LoadNMRData_bgrmat(in);
     case 'corelab'
         out = LoadNMRData_corelab(in);
-    case {'dart','dartSeries','dartT2logging'}
+    case {'dart','dartjrd'}
         out = LoadNMRData_dart(in);
     case 'field'
         out = LoadNMRData_field(in);
@@ -70,6 +70,10 @@ switch in.fileformat
         out = LoadNMRData_mousecpmg(in);
     case 'MouseLift'
         out = LoadNMRData_mouselift(in);
+    case 'MouseT1T2'
+        out = LoadNMRData_mouseT1T2(in);
+    case 'mrsd'
+        out = LoadNMRData_mrsmatlab(in);
     case 'rwth'
         out = LoadNMRData_rwth(in);
     case 'pm5'

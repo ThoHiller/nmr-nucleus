@@ -236,6 +236,34 @@ if sum(Sessionpath) > 0
                     end
                 end
             end % version < 210
+            if version_in < 400 % changes introduced with v.0.4.0
+                % new 'L-curve' method
+                savedata.data.info.LcurveMethod = data.info.LcurveMethod;
+                
+                % set the new nmrproc.imag_chi2 field (if applicable)
+                for i = 1:numel(savedata.INVdata)
+                    if isstruct(savedata.INVdata{i})
+                        % the current data set
+                        nmrdata = savedata.data.import.NMR.data{i};
+
+                        % the raw data
+                        nmrraw.t = nmrdata.time;
+                        nmrraw.s = nmrdata.signal;
+                        if strcmp(nmrdata.flag,'T2')
+                            nmrraw.phase = nmrdata.phase;
+                        end                        
+                        % check if noise was calculated / estimated during import
+                        % this value is used here
+                        if isfield(nmrdata,'noise')
+                            nmrraw.noise = nmrdata.noise;
+                        end
+                        nmrproc_in = savedata.INVdata{i}.results.nmrproc;
+                        [~,nmrproc_out] = processNMRData(nmrraw,nmrproc_in);
+
+                        savedata.INVdata{i}.results.nmrproc.imag_chi2 = nmrproc_out.imag_chi2;
+                    end
+                end
+            end
         end
         
         % update GUI data from session mat-file
@@ -321,6 +349,14 @@ if sum(Sessionpath) > 0
                         set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
                         onMenuSolver(gui.menu.extra_solver_lsqnonneg);
                 end
+                % check if the EchoFlag was set and set it agin if
+                % neccessary
+                switch savedata.data.info.EchoFlag
+                    case 'on'
+                        set(gui.menu.extra_lsqlin_echoflag,'Checked','on');
+                    case 'off'
+                        set(gui.menu.extra_lsqlin_echoflag,'Checked','off');
+                end
             case 'off'
                 % if not set solver to LSQNONNEG
                 data.info.has_optim = 'off';
@@ -329,6 +365,14 @@ if sum(Sessionpath) > 0
                 set(gui.menu.extra_solver,'Enable','off');
         end        
         
+        % adjust menu entry for L-curve method
+        switch savedata.data.info.LcurveMethod
+            case 'iterative'
+                onMenuLcurve(gui.menu.extra_lcurve_iter);
+            case 'discrete'
+                onMenuLcurve(gui.menu.extra_lcurve_discrete);
+        end        
+
         % adjust menu entry for joint inversion
         switch savedata.data.info.JointInv
             case 'on'

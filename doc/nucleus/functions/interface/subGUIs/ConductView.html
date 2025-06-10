@@ -1,0 +1,789 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of ConductView</title>
+  <meta name="keywords" content="ConductView">
+  <meta name="description" content=" is an extra subGUI to visualize hydraulic conductivity">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- ../menu.html interface --><!-- menu.html subGUIs -->
+<h1>ConductView
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong> is an extra subGUI to visualize hydraulic conductivity</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="box"><strong>function ConductView(src,~) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">ConductView is an extra subGUI to visualize hydraulic conductivity
+estimates
+
+ Syntax:
+       ConductView(src)
+
+ Inputs:
+       src - handle of the calling object
+
+ Outputs:
+       none
+
+ Example:
+       ConductView
+
+ Other m-files required:
+       none
+
+ Subfunctions:
+       cv_onEditProp
+       cv_onPopupUnit
+       cv_onRadioMethod
+       cv_updateAxes
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSmod, NUCLEUSinv
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>	 handles the view menu entries</li><li><a href="../../../../nucleus/functions/interface/checkIfInversionExists.html" class="code" title="function [foundINV,N] = checkIfInversionExists(INVdata)">checkIfInversionExists</a>	 checks if any inversion result is stored inside</li><li><a href="../../../../nucleus/functions/interface/clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>	 clears all axes of a given figure</li><li><a href="../../../../nucleus/functions/interface/fixVerticalTextAlignment.html" class="code" title="function fixVerticalTextAlignment(fig)">fixVerticalTextAlignment</a>	 fixes the vertical positioning of all text</li><li><a href="../../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>	 provides some physical constants to the forward calculation</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="../../../../nucleus/callbacks/menus/onMenuSubGUIs.html" class="code" title="function onMenuSubGUIs(src,~)">onMenuSubGUIs</a>	 handles the extra menu entries to open NUCLEUS sub GUIs</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function cv_onEditProp(src,~)</a></li><li><a href="#_sub2" class="code">function cv_onPopupUnit(src,~)</a></li><li><a href="#_sub3" class="code">function cv_onRadioMethod(src,~)</a></li><li><a href="#_sub4" class="code">function cv_updateAxes(fig_conduct)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function ConductView(src,~)</a>
+0002 <span class="comment">%ConductView is an extra subGUI to visualize hydraulic conductivity</span>
+0003 <span class="comment">%estimates</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       ConductView(src)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       src - handle of the calling object</span>
+0010 <span class="comment">%</span>
+0011 <span class="comment">% Outputs:</span>
+0012 <span class="comment">%       none</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Example:</span>
+0015 <span class="comment">%       ConductView</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Other m-files required:</span>
+0018 <span class="comment">%       none</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Subfunctions:</span>
+0021 <span class="comment">%       cv_onEditProp</span>
+0022 <span class="comment">%       cv_onPopupUnit</span>
+0023 <span class="comment">%       cv_onRadioMethod</span>
+0024 <span class="comment">%       cv_updateAxes</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% MAT-files required:</span>
+0027 <span class="comment">%       none</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% See also: NUCLEUSmod, NUCLEUSinv</span>
+0030 <span class="comment">% Author: see AUTHORS.md</span>
+0031 <span class="comment">% email: see AUTHORS.md</span>
+0032 <span class="comment">% License: MIT License (at end)</span>
+0033 
+0034 <span class="comment">%------------- BEGIN CODE --------------</span>
+0035 
+0036 <span class="comment">%% get GUI handle and data</span>
+0037 fig = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0038 fig_tag = get(fig,<span class="string">'Tag'</span>);
+0039 nucleus.data = getappdata(fig,<span class="string">'data'</span>);
+0040 nucleus.gui = getappdata(fig,<span class="string">'gui'</span>);
+0041 colors = nucleus.gui.myui.colors;
+0042 
+0043 showplot = false;
+0044 
+0045 <span class="comment">% gather data depending on figure tag</span>
+0046 <span class="keyword">switch</span> fig_tag
+0047     <span class="keyword">case</span> <span class="string">'INV'</span>
+0048         INVdata = getappdata(fig,<span class="string">'INVdata'</span>);
+0049         [foundINV,~] = <a href="../../../../nucleus/functions/interface/checkIfInversionExists.html" class="code" title="function [foundINV,N] = checkIfInversionExists(INVdata)">checkIfInversionExists</a>(INVdata);
+0050         
+0051         <span class="keyword">if</span> foundINV
+0052             tolKrel = 0.999;
+0053             geom_type = INVdata{1}.invjoint.geometry_type;
+0054             constants = <a href="../../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>;
+0055             <span class="keyword">if</span> isfield(nucleus.data.results,<span class="string">'invjoint'</span>)
+0056                 colors.CPS = colors.BoxCPS;
+0057                 constants.porosity = INVdata{1}.invstd.porosity;
+0058                 constants.tortuosity = 1;
+0059                 pSAT = nucleus.data.results.invjoint.pSAT;
+0060                 showplot = true;
+0061             <span class="keyword">end</span>
+0062         <span class="keyword">end</span>
+0063         
+0064     <span class="keyword">case</span> <span class="string">'MOD'</span>
+0065         tolKrel = 0.9999;
+0066         geom_type = nucleus.data.geometry.type;
+0067         constants = nucleus.data.results.constants;
+0068         constants.porosity = nucleus.data.nmr.porosity;
+0069         constants.tortuosity = 1;
+0070         pSAT = nucleus.data.results.SAT;
+0071         showplot = true;
+0072 <span class="keyword">end</span>
+0073 
+0074 <span class="comment">% now plot the CONDUCT gui</span>
+0075 <span class="keyword">if</span> showplot
+0076     <span class="comment">% prepare neccesary gui data</span>
+0077     data.constants = constants;
+0078     data.geom_type = geom_type;
+0079     data.myui = nucleus.gui.myui;
+0080     data.tolKrel = tolKrel;
+0081     data.cond_unit = 1;
+0082     data.perm_unit = 1;
+0083     data.SAT = pSAT;
+0084     
+0085     <span class="comment">% check if the figure is already open</span>
+0086     fig_conduct = findobj(<span class="string">'Tag'</span>,<span class="string">'CONDUCT'</span>);
+0087     <span class="comment">% if not, create it</span>
+0088     <span class="keyword">if</span> isempty(fig_conduct)
+0089         <span class="comment">% draw the figure on top of NUCLEUS</span>
+0090         fig_conduct = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUS - ConductView'</span>,<span class="keyword">...</span>
+0091             <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'Menubar'</span>,<span class="string">'none'</span>,<span class="string">'Tag'</span>,<span class="string">'CONDUCT'</span>);
+0092         pos0 = get(fig,<span class="string">'Position'</span>);
+0093         cent(1) = (pos0(1)+pos0(3)/2);
+0094         cent(2) = (pos0(2)+pos0(4)/2);
+0095         set(fig_conduct,<span class="string">'Position'</span>,[cent(1)-pos0(3)/3 pos0(2)+22 pos0(3)/1.5 pos0(4)-22]);
+0096 
+0097         gui.menu.view = uimenu(fig_conduct,<span class="string">'Label'</span>,<span class="string">'View'</span>);
+0098         gui.menu.view_toolbar = uimenu(gui.menu.view,<span class="string">'Label'</span>,<span class="string">'Figure Toolbar'</span>,<span class="keyword">...</span>
+0099         <span class="string">'Callback'</span>,@<a href="../../../../nucleus/callbacks/menus/onMenuView.html" class="code" title="function onMenuView(src,~)">onMenuView</a>);
+0100         
+0101         <span class="comment">% create the layout</span>
+0102         gui.main = uix.HBox(<span class="string">'Parent'</span>,fig_conduct,<span class="keyword">...</span>
+0103             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5,<span class="string">'Padding'</span>,5);
+0104         <span class="comment">% control panel</span>
+0105         gui.col1 = uix.VBox(<span class="string">'Parent'</span>,gui.main,<span class="keyword">...</span>
+0106             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,5);
+0107         <span class="comment">% axes panel</span>
+0108         gui.col2 = uix.CardPanel(<span class="string">'Parent'</span>,gui.main,<span class="keyword">...</span>
+0109             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0110         set(gui.main,<span class="string">'Width'</span>,[200 -1]);
+0111         
+0112         <span class="comment">% axes inside uicontainers</span>
+0113         <span class="keyword">for</span> i = 1:6
+0114             gui.card(i) = uicontainer(<span class="string">'Parent'</span>,gui.col2,<span class="keyword">...</span>
+0115                 <span class="string">'BackGroundColor'</span>,colors.panelBG);
+0116             gui.ax(i) = axes(<span class="string">'Parent'</span>,gui.card(i),<span class="string">'Color'</span>,colors.axisBG,<span class="keyword">...</span>
+0117                 <span class="string">'XColor'</span>,colors.axisFG,<span class="string">'YColor'</span>,colors.axisFG,<span class="keyword">...</span>
+0118                 <span class="string">'FontSize'</span>,12);
+0119         <span class="keyword">end</span>
+0120         
+0121         <span class="comment">% control boxes</span>
+0122         uix.Empty(<span class="string">'Parent'</span>,gui.col1);
+0123         gui.panels.method = uix.BoxPanel(<span class="string">'Parent'</span>,gui.col1,<span class="string">'Title'</span>,<span class="string">'Upscaling Method'</span>,<span class="keyword">...</span>
+0124             <span class="string">'TitleColor'</span>,colors.CPS,<span class="string">'ForegroundColor'</span>,colors.BoxTitle);
+0125         gui.panels.type = uix.BoxPanel(<span class="string">'Parent'</span>,gui.col1,<span class="string">'Title'</span>,<span class="string">'Plot Type'</span>,<span class="keyword">...</span>
+0126             <span class="string">'TitleColor'</span>,colors.CPS,<span class="string">'ForegroundColor'</span>,colors.BoxTitle);
+0127         gui.panels.prop = uix.BoxPanel(<span class="string">'Parent'</span>,gui.col1,<span class="string">'Title'</span>,<span class="string">'Properties'</span>,<span class="keyword">...</span>
+0128             <span class="string">'TitleColor'</span>,colors.CPS,<span class="string">'ForegroundColor'</span>,colors.BoxTitle);
+0129         uix.Empty(<span class="string">'Parent'</span>,gui.col1);
+0130         set(gui.col1,<span class="string">'Heights'</span>,[-1 100 175 210 -1]);
+0131         
+0132         <span class="comment">% vboxes inside panels</span>
+0133         gui.vbox1 = uix.VBox(<span class="string">'Parent'</span>,gui.panels.method,<span class="keyword">...</span>
+0134             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0135         gui.vbox2 = uix.VBox(<span class="string">'Parent'</span>,gui.panels.type,<span class="keyword">...</span>
+0136             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0137         gui.vbox3 = uix.VBox(<span class="string">'Parent'</span>,gui.panels.prop,<span class="keyword">...</span>
+0138             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0139         
+0140         <span class="comment">% radio buttons inside 1. box</span>
+0141         gui.radio_handles.coord = [1 1];
+0142         <span class="comment">% parallel connection</span>
+0143         gui.radio_handles.pc = uicontrol(<span class="string">'Parent'</span>,gui.vbox1,<span class="keyword">...</span>
+0144             <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'parallel connection'</span>,<span class="keyword">...</span>
+0145             <span class="string">'Tag'</span>,<span class="string">'method'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0146             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0147             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0148             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1,<span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>);
+0149         <span class="comment">% effective capillary</span>
+0150         gui.radio_handles.eff = uicontrol(<span class="string">'Parent'</span>,gui.vbox1,<span class="keyword">...</span>
+0151             <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'effective capillary'</span>,<span class="keyword">...</span>
+0152             <span class="string">'Tag'</span>,<span class="string">'method'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0153             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0154             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0155             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>);
+0156         
+0157         <span class="comment">% radio buttons inside 2. box</span>
+0158         <span class="comment">% hydraulic conductivity</span>
+0159         gui.radio_handles.cond = uicontrol(<span class="string">'Parent'</span>,gui.vbox2,<span class="keyword">...</span>
+0160             <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'hydraulic conductivity'</span>,<span class="keyword">...</span>
+0161             <span class="string">'Tag'</span>,<span class="string">'type'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0162             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0163             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0164             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1,<span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>);
+0165         gui.hbox10 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,4,<span class="string">'Padding'</span>,2);
+0166         uix.Empty(<span class="string">'Parent'</span>,gui.hbox10);
+0167         gui.popup_handles.cond = uicontrol(<span class="string">'Parent'</span>,gui.hbox10,<span class="keyword">...</span>
+0168             <span class="string">'Style'</span>,<span class="string">'popupmenu'</span>,<span class="string">'String'</span>,{<span class="string">'m/s'</span>,<span class="string">'cm/d'</span>},<span class="keyword">...</span>
+0169             <span class="string">'Tag'</span>,<span class="string">'cond'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0170             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0171             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0172             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction cv_onPopupUnit(src,~)">cv_onPopupUnit</a>);
+0173         gui.text_handles.cond_unit = uicontrol(<span class="string">'Parent'</span>,gui.hbox10,<span class="keyword">...</span>
+0174             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="keyword">...</span>
+0175             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0176             <span class="string">'String'</span>,<span class="string">'unit'</span>);
+0177         uix.Empty(<span class="string">'Parent'</span>,gui.hbox10);
+0178         set(gui.hbox10,<span class="string">'Widths'</span>,[25 -3 -3 -1]);
+0179         <span class="comment">% permeability</span>
+0180         gui.radio_handles.perm = uicontrol(<span class="string">'Parent'</span>,gui.vbox2,<span class="keyword">...</span>
+0181             <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'permeability'</span>,<span class="keyword">...</span>
+0182             <span class="string">'Tag'</span>,<span class="string">'type'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0183             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0184             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0185             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>);
+0186         gui.hbox11 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox2,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,4,<span class="string">'Padding'</span>,2);
+0187         uix.Empty(<span class="string">'Parent'</span>,gui.hbox11);
+0188         gui.popup_handles.perm = uicontrol(<span class="string">'Parent'</span>,gui.hbox11,<span class="keyword">...</span>
+0189             <span class="string">'Style'</span>,<span class="string">'popupmenu'</span>,<span class="string">'String'</span>,{<span class="string">'m²'</span>,<span class="string">'D'</span>,<span class="string">'mD'</span>},<span class="keyword">...</span>
+0190             <span class="string">'Tag'</span>,<span class="string">'perm'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0191             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0192             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0193             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Value'</span>,1,<span class="string">'Callback'</span>,@<a href="#_sub2" class="code" title="subfunction cv_onPopupUnit(src,~)">cv_onPopupUnit</a>);
+0194         gui.text_handles.perm_unit = uicontrol(<span class="string">'Parent'</span>,gui.hbox11,<span class="keyword">...</span>
+0195             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'left'</span>,<span class="keyword">...</span>
+0196             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0197             <span class="string">'String'</span>,<span class="string">'unit'</span>);
+0198         uix.Empty(<span class="string">'Parent'</span>,gui.hbox11);
+0199         set(gui.hbox11,<span class="string">'Widths'</span>,[25 -3 -3 -1]);
+0200         <span class="comment">% relative cond / perm</span>
+0201         gui.radio_handles.rel = uicontrol(<span class="string">'Parent'</span>,gui.vbox2,<span class="keyword">...</span>
+0202             <span class="string">'Style'</span>,<span class="string">'radiobutton'</span>,<span class="string">'String'</span>,<span class="string">'relative cond / perm [-]'</span>,<span class="keyword">...</span>
+0203             <span class="string">'Tag'</span>,<span class="string">'type'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0204             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="keyword">...</span><span class="comment">.</span>
+0205             <span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0206             <span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>);
+0207         
+0208         <span class="comment">% horizontal boxes inside 3. box</span>
+0209         gui.hbox1 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox3,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0210         gui.hbox2 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox3,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0211         gui.hbox3 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox3,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0212         uix.Empty(<span class="string">'Parent'</span>,gui.vbox3);
+0213         gui.hbox4 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox3,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0214         gui.hbox5 = uix.HBox(<span class="string">'Parent'</span>,gui.vbox3,<span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'Spacing'</span>,2,<span class="string">'Padding'</span>,2);
+0215         set(gui.vbox3,<span class="string">'Heights'</span>,[-4 -4 -4 -1 -4 -4]);
+0216         
+0217         <span class="comment">% gravitational acceleration [m/s²]</span>
+0218         gui.edit_handles.gravity = uicontrol(<span class="string">'Parent'</span>,gui.hbox1,<span class="keyword">...</span>
+0219             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(constants.gravity),<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0220             <span class="string">'BackGroundColor'</span>,colors.editBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0221             <span class="string">'Tag'</span>,<span class="string">'gravity'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction cv_onEditProp(src,~)">cv_onEditProp</a>);
+0222         gui.text_handles.gravity = uicontrol(<span class="string">'Parent'</span>,gui.hbox1,<span class="keyword">...</span>
+0223             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0224             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0225             <span class="string">'String'</span>,<span class="string">'grav. acc. [m/s²]'</span>);
+0226         <span class="comment">% density [kg/m³]</span>
+0227         gui.edit_handles.dens = uicontrol(<span class="string">'Parent'</span>,gui.hbox2,<span class="keyword">...</span>
+0228             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(constants.density),<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0229             <span class="string">'BackGroundColor'</span>,colors.editBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0230             <span class="string">'Tag'</span>,<span class="string">'dens'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction cv_onEditProp(src,~)">cv_onEditProp</a>);
+0231         gui.text_handles.dens = uicontrol(<span class="string">'Parent'</span>,gui.hbox2,<span class="keyword">...</span>
+0232             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0233             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0234             <span class="string">'String'</span>,<span class="string">'density [kg/m³]'</span>);
+0235         <span class="comment">% dynamic viscosity [Pa s]</span>
+0236         gui.edit_handles.dyn = uicontrol(<span class="string">'Parent'</span>,gui.hbox3,<span class="keyword">...</span>
+0237             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(constants.dynvisc),<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0238             <span class="string">'BackGroundColor'</span>,colors.editBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0239             <span class="string">'Tag'</span>,<span class="string">'dyn'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction cv_onEditProp(src,~)">cv_onEditProp</a>);
+0240         gui.text_handles.dyn = uicontrol(<span class="string">'Parent'</span>,gui.hbox3,<span class="keyword">...</span>
+0241             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0242             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0243             <span class="string">'String'</span>,<span class="string">'dyn. visc. [Pa s]'</span>);
+0244         <span class="comment">% edit and text fields for different properties</span>
+0245         <span class="comment">% porosity [-]</span>
+0246         gui.edit_handles.poro = uicontrol(<span class="string">'Parent'</span>,gui.hbox4,<span class="keyword">...</span>
+0247             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(constants.porosity),<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0248             <span class="string">'BackGroundColor'</span>,colors.editBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0249             <span class="string">'Tag'</span>,<span class="string">'poro'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction cv_onEditProp(src,~)">cv_onEditProp</a>);
+0250         gui.text_handles.poro = uicontrol(<span class="string">'Parent'</span>,gui.hbox4,<span class="keyword">...</span>
+0251             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0252             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0253             <span class="string">'String'</span>,<span class="string">'porosity [-]'</span>);
+0254         <span class="comment">% edit and text fields for different properties</span>
+0255         <span class="comment">% porosity [-]</span>
+0256         gui.edit_handles.tort = uicontrol(<span class="string">'Parent'</span>,gui.hbox5,<span class="keyword">...</span>
+0257             <span class="string">'Style'</span>,<span class="string">'edit'</span>,<span class="string">'String'</span>,num2str(constants.tortuosity),<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="keyword">...</span>
+0258             <span class="string">'BackGroundColor'</span>,colors.editBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0259             <span class="string">'Tag'</span>,<span class="string">'tort'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub1" class="code" title="subfunction cv_onEditProp(src,~)">cv_onEditProp</a>);
+0260         gui.text_handles.tort = uicontrol(<span class="string">'Parent'</span>,gui.hbox5,<span class="keyword">...</span>
+0261             <span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'FontSize'</span>,nucleus.gui.myui.fontsize,<span class="string">'HorizontalAlignment'</span>,<span class="string">'center'</span>,<span class="keyword">...</span>
+0262             <span class="string">'BackGroundColor'</span>,colors.panelBG,<span class="string">'ForeGroundColor'</span>,colors.panelFG,<span class="keyword">...</span>
+0263             <span class="string">'String'</span>,<span class="string">'tortuosity [-]'</span>);
+0264         <span class="comment">% adjust the boxes</span>
+0265         set(gui.hbox1,<span class="string">'Width'</span>,[-1 -1.5]);
+0266         set(gui.hbox2,<span class="string">'Width'</span>,[-1 -1.5]);
+0267         set(gui.hbox3,<span class="string">'Width'</span>,[-1 -1.5]);
+0268         set(gui.hbox4,<span class="string">'Width'</span>,[-1 -1.5]);
+0269         set(gui.hbox5,<span class="string">'Width'</span>,[-1 -1.5]);
+0270         
+0271         <span class="comment">% store some main GUI settings</span>
+0272         gui.myui = nucleus.gui.myui;
+0273         <span class="comment">% save to GUI</span>
+0274         setappdata(fig_conduct,<span class="string">'gui'</span>,gui);
+0275         <a href="../../../../nucleus/functions/interface/fixVerticalTextAlignment.html" class="code" title="function fixVerticalTextAlignment(fig)">fixVerticalTextAlignment</a>(fig_conduct);
+0276     <span class="keyword">else</span>
+0277         <span class="comment">% if the figure is already open load the GUI data</span>
+0278         gui = getappdata(fig_conduct,<span class="string">'gui'</span>);
+0279         <span class="comment">% clear all axes</span>
+0280         <a href="../../../../nucleus/functions/interface/clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(fig_conduct);
+0281         <span class="comment">% set default radio buttons</span>
+0282         gui.radio_handles.coord = [1 1];
+0283         set(gui.radio_handles.pc,<span class="string">'Value'</span>,1);
+0284         set(gui.radio_handles.cond,<span class="string">'Value'</span>,1);
+0285         <a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>(gui.radio_handles.pc);
+0286         <a href="#_sub3" class="code" title="subfunction cv_onRadioMethod(src,~)">cv_onRadioMethod</a>(gui.radio_handles.cond);
+0287         <span class="comment">% set unit popup menus</span>
+0288         set(gui.popup_handles.cond,<span class="string">'Value'</span>,1);
+0289         set(gui.popup_handles.perm,<span class="string">'Value'</span>,1);        
+0290         <span class="comment">% set properties (may have changed)</span>
+0291         set(gui.edit_handles.poro,<span class="string">'String'</span>,num2str(constants.porosity));
+0292         set(gui.edit_handles.gravity,<span class="string">'String'</span>,num2str(constants.gravity));
+0293         set(gui.edit_handles.dens,<span class="string">'String'</span>,num2str(constants.density));
+0294         set(gui.edit_handles.dyn,<span class="string">'String'</span>,num2str(constants.dynvisc));
+0295         set(gui.edit_handles.tort,<span class="string">'String'</span>,num2str(constants.tortuosity));
+0296     <span class="keyword">end</span>
+0297     <span class="comment">% save to GUI</span>
+0298     setappdata(fig_conduct,<span class="string">'data'</span>,data);
+0299     <span class="comment">% plot the data</span>
+0300     <a href="#_sub4" class="code" title="subfunction cv_updateAxes(fig_conduct)">cv_updateAxes</a>(fig_conduct);
+0301     <span class="comment">% make the axes visible</span>
+0302     set(gui.col2,<span class="string">'Selection'</span>,1,<span class="string">'Visible'</span>,<span class="string">'on'</span>);
+0303 <span class="keyword">else</span>
+0304     helpdlg({<span class="string">'function: showConduct'</span>,<span class="keyword">...</span>
+0305         <span class="string">'Cannot continue because there is no data.'</span>},<span class="keyword">...</span>
+0306         <span class="string">'Not enough data to show'</span>);
+0307 <span class="keyword">end</span>
+0308 
+0309 <span class="keyword">end</span>
+0310 
+0311 <span class="comment">%%</span>
+0312 <a name="_sub1" href="#_subfunctions" class="code">function cv_onEditProp(src,~)</a>
+0313 fig_conduct = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0314 <span class="comment">% gui = getappdata(fig_conduct,'gui');</span>
+0315 data = getappdata(fig_conduct,<span class="string">'data'</span>);
+0316 
+0317 val = str2double(get(src,<span class="string">'String'</span>));
+0318 
+0319 <span class="keyword">switch</span> get(src,<span class="string">'Tag'</span>)
+0320     <span class="keyword">case</span> <span class="string">'poro'</span>
+0321         <span class="comment">% check that porosity stays within limits</span>
+0322         <span class="keyword">if</span> val &lt;= 0 || val &gt; 1
+0323             val = 1;
+0324             set(src,<span class="string">'String'</span>,num2str(val));
+0325         <span class="keyword">end</span>
+0326         data.constants.porosity = val;
+0327     <span class="keyword">case</span> <span class="string">'gravity'</span>
+0328         data.constants.gravity = val;
+0329     <span class="keyword">case</span> <span class="string">'dens'</span>
+0330         data.constants.density = val;
+0331     <span class="keyword">case</span> <span class="string">'dyn'</span>
+0332         data.constants.dynvisc = val;
+0333     <span class="keyword">case</span> <span class="string">'tort'</span>
+0334         data.constants.tortuosity = val;
+0335 <span class="keyword">end</span>
+0336 setappdata(fig_conduct,<span class="string">'data'</span>,data);
+0337 <a href="#_sub4" class="code" title="subfunction cv_updateAxes(fig_conduct)">cv_updateAxes</a>(fig_conduct);
+0338 
+0339 <span class="keyword">end</span>
+0340 
+0341 <span class="comment">%%</span>
+0342 <a name="_sub2" href="#_subfunctions" class="code">function cv_onPopupUnit(src,~)</a>
+0343 fig_conduct = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0344 data = getappdata(fig_conduct,<span class="string">'data'</span>);
+0345 gui = getappdata(fig_conduct,<span class="string">'gui'</span>);
+0346 
+0347 <span class="comment">% check which popup menu was selected</span>
+0348 <span class="comment">% and set the corresponding unit</span>
+0349 <span class="keyword">switch</span> get(src,<span class="string">'Tag'</span>)
+0350     <span class="keyword">case</span> <span class="string">'cond'</span>
+0351         data.cond_unit = get(src,<span class="string">'Value'</span>); 
+0352     <span class="keyword">case</span> <span class="string">'perm'</span>
+0353         data.perm_unit = get(src,<span class="string">'Value'</span>);
+0354 <span class="keyword">end</span>
+0355 <span class="comment">% update gui data</span>
+0356 setappdata(fig_conduct,<span class="string">'data'</span>,data);
+0357 setappdata(fig_conduct,<span class="string">'gui'</span>,gui);
+0358 
+0359 <span class="comment">% get the id of the current visible plot</span>
+0360 id = get(gui.col2,<span class="string">'Selection'</span>);
+0361 <span class="comment">% update all plots</span>
+0362 <a href="#_sub4" class="code" title="subfunction cv_updateAxes(fig_conduct)">cv_updateAxes</a>(fig_conduct)
+0363 <span class="comment">% show the current visible plot again</span>
+0364 set(gui.col2,<span class="string">'Selection'</span>,id);
+0365 
+0366 <span class="keyword">end</span>
+0367 
+0368 <span class="comment">%%</span>
+0369 <a name="_sub3" href="#_subfunctions" class="code">function cv_onRadioMethod(src,~)</a>
+0370 fig_conduct = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+0371 gui = getappdata(fig_conduct,<span class="string">'gui'</span>);
+0372 
+0373 <span class="comment">% check which radiobutton was selected</span>
+0374 <span class="keyword">switch</span> get(src,<span class="string">'Tag'</span>)
+0375     <span class="keyword">case</span> <span class="string">'method'</span>
+0376         <span class="keyword">switch</span> get(src,<span class="string">'String'</span>)
+0377             <span class="keyword">case</span> <span class="string">'parallel connection'</span>
+0378                 gui.radio_handles.coord(2) = 1;
+0379                 set(src,<span class="string">'Value'</span>,1);
+0380                 set(gui.radio_handles.eff,<span class="string">'Value'</span>,0);
+0381             <span class="keyword">case</span> <span class="string">'effective capillary'</span>
+0382                 gui.radio_handles.coord(2) = 2;
+0383                 set(src,<span class="string">'Value'</span>,1);
+0384                 set(gui.radio_handles.pc,<span class="string">'Value'</span>,0);
+0385         <span class="keyword">end</span>        
+0386     <span class="keyword">case</span> <span class="string">'type'</span>
+0387         <span class="keyword">switch</span> get(src,<span class="string">'String'</span>)
+0388             <span class="keyword">case</span> <span class="string">'hydraulic conductivity'</span>
+0389                 gui.radio_handles.coord(1) = 1;
+0390                 set(src,<span class="string">'Value'</span>,1);
+0391                 set(gui.radio_handles.perm,<span class="string">'Value'</span>,0);
+0392                 set(gui.radio_handles.rel,<span class="string">'Value'</span>,0);
+0393             <span class="keyword">case</span> <span class="string">'permeability'</span>
+0394                 gui.radio_handles.coord(1) = 2;
+0395                 set(src,<span class="string">'Value'</span>,1);
+0396                 set(gui.radio_handles.cond,<span class="string">'Value'</span>,0);
+0397                 set(gui.radio_handles.rel,<span class="string">'Value'</span>,0);
+0398             <span class="keyword">case</span> <span class="string">'relative cond / perm [-]'</span>
+0399                 gui.radio_handles.coord(1) = 3;
+0400                 set(src,<span class="string">'Value'</span>,1);
+0401                 set(gui.radio_handles.cond,<span class="string">'Value'</span>,0);
+0402                 set(gui.radio_handles.perm,<span class="string">'Value'</span>,0);
+0403         <span class="keyword">end</span>
+0404 <span class="keyword">end</span>
+0405 <span class="comment">% update gui data</span>
+0406 setappdata(fig_conduct,<span class="string">'gui'</span>,gui);
+0407 
+0408 <span class="comment">% activate selected card panel</span>
+0409 id = 3*(gui.radio_handles.coord(2)-1)+gui.radio_handles.coord(1);
+0410 set(gui.col2,<span class="string">'Selection'</span>,id);
+0411 
+0412 <span class="keyword">end</span>
+0413 
+0414 <span class="comment">%%</span>
+0415 <a name="_sub4" href="#_subfunctions" class="code">function cv_updateAxes(fig_conduct)</a>
+0416 gui = getappdata(fig_conduct,<span class="string">'gui'</span>);
+0417 data = getappdata(fig_conduct,<span class="string">'data'</span>);
+0418 colors = gui.myui.colors;
+0419 
+0420 <span class="comment">% get unit for hydraulic conductivity</span>
+0421 <span class="keyword">if</span> data.cond_unit == 1
+0422     unitfak_1 = 1; <span class="comment">% [m/s]</span>
+0423     unitstr_1 = <span class="string">'[m/s]'</span>;
+0424 <span class="keyword">else</span>
+0425     unitfak_1 = 8.64e6; <span class="comment">% [cm/d]</span>
+0426     unitstr_1 = <span class="string">'[cm/d]'</span>;
+0427 <span class="keyword">end</span>
+0428 ylstr_1 = [<span class="string">'hydraulic conductivity '</span>,unitstr_1];
+0429 
+0430 <span class="comment">% get unit for permeability</span>
+0431 <span class="keyword">if</span> data.perm_unit == 1
+0432     unitfak_2 = 1; <span class="comment">% [m^2]</span>
+0433     unitstr_2 = <span class="string">'[m²]'</span>;
+0434 <span class="keyword">elseif</span> data.perm_unit == 2
+0435     unitfak_2 = (1/9.86923e-13); <span class="comment">% [D] Darcy</span>
+0436     unitstr_2 = <span class="string">'[D]'</span>;
+0437 <span class="keyword">else</span>
+0438     unitfak_2 = (1/9.86923e-16); <span class="comment">% [mD] miili Darcy</span>
+0439     unitstr_2 = <span class="string">'[mD]'</span>;
+0440 <span class="keyword">end</span>
+0441 ylstr_2 = [<span class="string">'permeability '</span>,unitstr_2];
+0442 
+0443 <span class="comment">% gather parameters</span>
+0444 tolKrel = data.tolKrel;
+0445 constants = data.constants;
+0446 permfak = constants.dynvisc / constants.density / constants.gravity;
+0447 porofak = constants.porosity / constants.tortuosity;
+0448 SAT = data.SAT;
+0449 <span class="comment">% &quot;color brewer&quot; colors</span>
+0450 coldrain = [0.2157 0.4941 0.7216]; <span class="comment">% blue</span>
+0451 colimb = [0.8941 0.1020 0.1098]; <span class="comment">% red</span>
+0452 
+0453 <span class="comment">% clear and hold all axes</span>
+0454 <span class="keyword">for</span> i = 1:6
+0455     cla(gui.ax(i))
+0456     hold(gui.ax(i),<span class="string">'on'</span>);
+0457 <span class="keyword">end</span>
+0458 
+0459 <span class="comment">% plot data</span>
+0460 <span class="comment">% pc - cond</span>
+0461 KSpc = max(unitfak_1*porofak*SAT.Kdfull(SAT.Sdfull==1));
+0462 <span class="keyword">if</span> isempty(KSpc)
+0463     KSpc = max(unitfak_1*porofak*SAT.Kdfull(SAT.Sdfull==max(SAT.Sdfull)));
+0464 <span class="keyword">end</span>
+0465 <span class="keyword">switch</span> data.geom_type
+0466     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0467         plot(SAT.Sdfull,unitfak_1*porofak*SAT.Kdfull,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0468             <span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(1));
+0469         plot(SAT.Sifull,unitfak_1*porofak*SAT.Kifull,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0470             <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'Parent'</span>,gui.ax(1));
+0471     <span class="keyword">otherwise</span>
+0472         plot(SAT.Sdfull,unitfak_1*porofak*SAT.Kdfull,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0473             <span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(1));
+0474         plot(SAT.Sifull,unitfak_1*porofak*SAT.Kifull,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0475             <span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'Parent'</span>,gui.ax(1));
+0476 <span class="keyword">end</span>
+0477 ymin = min([unitfak_1*porofak*SAT.Kdfull;unitfak_1*porofak*SAT.Kifull]);
+0478 ymax = max([unitfak_1*porofak*SAT.Kdfull;unitfak_1*porofak*SAT.Kifull]);
+0479 ymin = 10^floor(log10(ymin));
+0480 ymax = 10^ceil(log10(ymax));
+0481 set(gui.ax(1),<span class="string">'YLim'</span>,[ymin ymax]);
+0482 lgh = legend(gui.ax(1),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0483 set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0484 
+0485 <span class="comment">% pc - perm</span>
+0486 kSpc = max(unitfak_2*permfak*porofak*SAT.Kdfull(SAT.Sdfull==1));
+0487 <span class="keyword">if</span> isempty(kSpc)
+0488     kSpc = max(unitfak_2*permfak*porofak*SAT.Kdfull(SAT.Sdfull==max(SAT.Sdfull)));
+0489 <span class="keyword">end</span>
+0490 <span class="keyword">switch</span> data.geom_type
+0491     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0492         plot(SAT.Sdfull,unitfak_2*porofak*SAT.Kdfull.*permfak,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0493             <span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(2));
+0494         plot(SAT.Sifull,unitfak_2*porofak*SAT.Kifull.*permfak,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0495             <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'Parent'</span>,gui.ax(2));
+0496     <span class="keyword">otherwise</span>
+0497         plot(SAT.Sdfull,unitfak_2*porofak*SAT.Kdfull.*permfak,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0498             <span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(2));
+0499         plot(SAT.Sifull,unitfak_2*porofak*SAT.Kifull.*permfak,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0500             <span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'Parent'</span>,gui.ax(2));
+0501 <span class="keyword">end</span>
+0502 ymin = min([unitfak_2*porofak*SAT.Kdfull.*permfak;unitfak_2*porofak*SAT.Kifull.*permfak]);
+0503 ymax = max([unitfak_2*porofak*SAT.Kdfull.*permfak;unitfak_2*porofak*SAT.Kifull.*permfak]);
+0504 ymin = 10^floor(log10(ymin));
+0505 ymax = 10^ceil(log10(ymax));
+0506 set(gui.ax(2),<span class="string">'YLim'</span>,[ymin ymax]);
+0507 lgh = legend(gui.ax(2),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0508 set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0509 
+0510 <span class="comment">% pc - rel</span>
+0511 rel1 = SAT.Kdfull/SAT.Kdfull(find(SAT.Sdfull&lt;tolKrel,1));
+0512 rel2 = SAT.Kifull/SAT.Kifull(find(SAT.Sifull&lt;tolKrel,1));
+0513 <span class="keyword">switch</span> data.geom_type
+0514     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0515         plot(SAT.Sdfull,rel1,<span class="string">'Color'</span>,coldrain,<span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(3));
+0516         plot(SAT.Sifull,rel2,<span class="string">'Color'</span>,colimb,<span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,gui.ax(3));
+0517     <span class="keyword">otherwise</span>
+0518         plot(SAT.Sdfull,rel1,<span class="string">'Color'</span>,coldrain,<span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(3));
+0519         plot(SAT.Sifull,rel2,<span class="string">'Color'</span>,colimb,<span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'Parent'</span>,gui.ax(3));
+0520 <span class="keyword">end</span>
+0521 ymin = min([rel1; rel2]);
+0522 ymin = 10^floor(log10(ymin));
+0523 set(gui.ax(3),<span class="string">'YLim'</span>,[ymin 1]);
+0524 lgh = legend(gui.ax(3),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0525 set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0526 
+0527 <span class="comment">% eff - cond</span>
+0528 KSeff = max(unitfak_1*porofak*SAT.Kd_eff(SAT.Sdfull==1));
+0529 <span class="keyword">if</span> isempty(KSeff)
+0530     KSeff = max(unitfak_1*porofak*SAT.Kd_eff(SAT.Sdfull==max(SAT.Sdfull)));
+0531 <span class="keyword">end</span>
+0532 <span class="keyword">switch</span> data.geom_type
+0533     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0534         plot(SAT.Sdfull,unitfak_1*porofak*SAT.Kd_eff,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0535             <span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0536         plot(SAT.Sifull,unitfak_1*porofak*SAT.Ki_eff,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0537             <span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0538         lgh = legend(gui.ax(4),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0539         set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0540     <span class="keyword">otherwise</span>
+0541         plot(SAT.Sdfull,unitfak_1*porofak*SAT.Kd_ducts,<span class="string">'Color'</span>,coldrain,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0542             <span class="string">'DisplayName'</span>,<span class="string">'ducts'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0543         plot(SAT.Sdfull,unitfak_1*porofak*SAT.Kd_corners,<span class="string">'Color'</span>,coldrain,<span class="string">'LineStyle'</span>,<span class="string">':'</span>,<span class="keyword">...</span>
+0544             <span class="string">'DisplayName'</span>,<span class="string">'corners'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0545         plot(SAT.Sdfull,unitfak_1*porofak*SAT.Kd_eff,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0546             <span class="string">'DisplayName'</span>,<span class="string">'sum'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0547         plot(SAT.Sifull,unitfak_1*porofak*SAT.Ki_ducts,<span class="string">'Color'</span>,colimb,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0548             <span class="string">'DisplayName'</span>,<span class="string">'ducts'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0549         plot(SAT.Sifull,unitfak_1*porofak*SAT.Ki_corners,<span class="string">'Color'</span>,colimb,<span class="string">'LineStyle'</span>,<span class="string">':'</span>,<span class="keyword">...</span>
+0550             <span class="string">'DisplayName'</span>,<span class="string">'corners'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0551         plot(SAT.Sifull,unitfak_1*porofak*SAT.Ki_eff,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0552             <span class="string">'DisplayName'</span>,<span class="string">'sum'</span>,<span class="string">'Parent'</span>,gui.ax(4));
+0553         lgh = legend(gui.ax(4),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0554         set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0555         lgh.NumColumns = 2;
+0556         lgh.Title.String = <span class="string">'drain             imb'</span>;
+0557 <span class="keyword">end</span>
+0558 ymin = min([unitfak_1*porofak*SAT.Kd_eff';unitfak_1*porofak*SAT.Ki_eff']);
+0559 ymax = max([unitfak_1*porofak*SAT.Kd_eff';unitfak_1*porofak*SAT.Ki_eff']);
+0560 ymin = 10^floor(log10(ymin));
+0561 ymax = 10^ceil(log10(ymax));
+0562 set(gui.ax(4),<span class="string">'YLim'</span>,[ymin ymax]);
+0563 
+0564 
+0565 <span class="comment">% eff - perm</span>
+0566 kSeff = max(unitfak_2*permfak*porofak*SAT.Kd_eff(SAT.Sdfull==1));
+0567 <span class="keyword">if</span> isempty(kSeff)
+0568     kSeff = max(unitfak_2*permfak*porofak*SAT.Kd_eff(SAT.Sdfull==max(SAT.Sdfull)));
+0569 <span class="keyword">end</span>
+0570 <span class="keyword">switch</span> data.geom_type
+0571     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0572         plot(SAT.Sdfull,unitfak_2*porofak*SAT.Kd_eff.*permfak,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0573             <span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0574         plot(SAT.Sifull,unitfak_2*porofak*SAT.Ki_eff.*permfak,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0575             <span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0576         lgh = legend(gui.ax(5),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0577         set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0578     <span class="keyword">otherwise</span>
+0579         plot(SAT.Sdfull,unitfak_2*porofak*SAT.Kd_ducts.*permfak,<span class="string">'Color'</span>,coldrain,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0580             <span class="string">'DisplayName'</span>,<span class="string">'ducts'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0581         plot(SAT.Sdfull,unitfak_2*porofak*SAT.Kd_corners.*permfak,<span class="string">'Color'</span>,coldrain,<span class="string">'LineStyle'</span>,<span class="string">':'</span>,<span class="keyword">...</span>
+0582             <span class="string">'DisplayName'</span>,<span class="string">'corners'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0583         plot(SAT.Sdfull,unitfak_2*porofak*SAT.Kd_eff.*permfak,<span class="string">'Color'</span>,coldrain,<span class="keyword">...</span>
+0584             <span class="string">'DisplayName'</span>,<span class="string">'sum'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0585         plot(SAT.Sifull,unitfak_2*porofak*SAT.Ki_ducts.*permfak,<span class="string">'Color'</span>,colimb,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0586             <span class="string">'DisplayName'</span>,<span class="string">'ducts'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0587         plot(SAT.Sifull,unitfak_2*porofak*SAT.Ki_corners.*permfak,<span class="string">'Color'</span>,colimb,<span class="string">'LineStyle'</span>,<span class="string">':'</span>,<span class="keyword">...</span>
+0588             <span class="string">'DisplayName'</span>,<span class="string">'corners'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0589         plot(SAT.Sifull,unitfak_2*porofak*SAT.Ki_eff.*permfak,<span class="string">'Color'</span>,colimb,<span class="keyword">...</span>
+0590             <span class="string">'DisplayName'</span>,<span class="string">'sum'</span>,<span class="string">'Parent'</span>,gui.ax(5));
+0591         lgh = legend(gui.ax(5),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0592         set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0593         lgh.NumColumns = 2;
+0594         lgh.Title.String = <span class="string">'drain             imb'</span>;
+0595 <span class="keyword">end</span>
+0596 ymin = min([unitfak_2*porofak*SAT.Kd_eff'.*permfak;unitfak_2*porofak*SAT.Ki_eff'.*permfak]);
+0597 ymax = max([unitfak_2*porofak*SAT.Kd_eff'.*permfak;unitfak_2*porofak*SAT.Ki_eff'.*permfak]);
+0598 ymin = 10^floor(log10(ymin));
+0599 ymax = 10^ceil(log10(ymax));
+0600 set(gui.ax(5),<span class="string">'YLim'</span>,[ymin ymax]);
+0601 
+0602 <span class="comment">% eff - rel</span>
+0603 rel1 = SAT.Kd_eff/SAT.Kd_eff(find(SAT.Sdfull&lt;tolKrel,1));
+0604 rel2 = SAT.Ki_eff/SAT.Ki_eff(find(SAT.Sifull&lt;tolKrel,1));
+0605 <span class="keyword">switch</span> data.geom_type
+0606     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0607         plot(SAT.Sdfull,rel1,<span class="string">'Color'</span>,coldrain,<span class="string">'DisplayName'</span>,<span class="string">'drain'</span>,<span class="keyword">...</span>
+0608             <span class="string">'Parent'</span>,gui.ax(6));
+0609         plot(SAT.Sifull,rel2,<span class="string">'Color'</span>,colimb,<span class="string">'DisplayName'</span>,<span class="string">'imb'</span>,<span class="keyword">...</span>
+0610             <span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0611         lgh = legend(gui.ax(6),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0612         set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0613     <span class="keyword">otherwise</span>
+0614         plot(SAT.Sdfull,SAT.Kd_ducts/SAT.Kd_eff(find(SAT.Sdfull&lt;tolKrel,1)),<span class="keyword">...</span>
+0615             <span class="string">'Color'</span>,coldrain,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'DisplayName'</span>,<span class="string">'ducts'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0616         plot(SAT.Sdfull,SAT.Kd_corners/SAT.Kd_eff(find(SAT.Sdfull&lt;tolKrel,1)),<span class="keyword">...</span>
+0617             <span class="string">'Color'</span>,coldrain,<span class="string">'LineStyle'</span>,<span class="string">':'</span>,<span class="string">'DisplayName'</span>,<span class="string">'corners'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0618         plot(SAT.Sdfull,rel1,<span class="string">'Color'</span>,coldrain,<span class="string">'DisplayName'</span>,<span class="string">'sum'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0619         plot(SAT.Sifull,SAT.Ki_ducts/SAT.Ki_eff(find(SAT.Sifull&lt;tolKrel,1)),<span class="keyword">...</span>
+0620             <span class="string">'Color'</span>,colimb,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="string">'DisplayName'</span>,<span class="string">'ducts'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0621         plot(SAT.Sifull,SAT.Ki_corners/SAT.Ki_eff(find(SAT.Sifull&lt;tolKrel,1)),<span class="keyword">...</span>
+0622             <span class="string">'Color'</span>,colimb,<span class="string">'LineStyle'</span>,<span class="string">':'</span>,<span class="string">'DisplayName'</span>,<span class="string">'corners'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0623         plot(SAT.Sifull,rel2,<span class="string">'Color'</span>,colimb,<span class="string">'DisplayName'</span>,<span class="string">'sum'</span>,<span class="string">'Parent'</span>,gui.ax(6));
+0624         lgh = legend(gui.ax(6),<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+0625         set(lgh,<span class="string">'TextColor'</span>,colors.panelFG,<span class="string">'Color'</span>,colors.axisBG);
+0626         lgh.NumColumns = 2;
+0627         lgh.Title.String = <span class="string">'drain             imb'</span>;
+0628 <span class="keyword">end</span>
+0629 ymin = min([rel1(rel1&gt;0)'; rel2(rel2&gt;0)']);
+0630 ymin = 10^floor(log10(ymin));
+0631 set(gui.ax(6),<span class="string">'YLim'</span>,[ymin 1]);
+0632 
+0633 <span class="comment">% general axes settingd</span>
+0634 set(gui.ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[0 1]);
+0635 <span class="keyword">for</span> i = 1:6
+0636     grid(gui.ax(i),<span class="string">'on'</span>);
+0637     hold(gui.ax(i),<span class="string">'off'</span>);
+0638     set(get(gui.ax(i),<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'saturation [-]'</span>);
+0639 <span class="keyword">end</span>
+0640 
+0641 <span class="comment">% set the individual axes titles with the full saturated values for &quot;K&quot; / &quot;k&quot;</span>
+0642 col = get(gui.ax(1),<span class="string">'XColor'</span>);
+0643 set(get(gui.ax(1),<span class="string">'Title'</span>),<span class="string">'String'</span>,[<span class="string">'K(S=1) = '</span>,sprintf(<span class="string">'%1.2e'</span>,KSpc),<span class="string">' '</span>,unitstr_1],<span class="keyword">...</span>
+0644     <span class="string">'Color'</span>,col);
+0645 set(get(gui.ax(2),<span class="string">'Title'</span>),<span class="string">'String'</span>,[<span class="string">'k(S=1) = '</span>,sprintf(<span class="string">'%1.2e'</span>,kSpc),<span class="string">' '</span>,unitstr_2],<span class="keyword">...</span>
+0646     <span class="string">'Color'</span>,col);
+0647 set(get(gui.ax(4),<span class="string">'Title'</span>),<span class="string">'String'</span>,[<span class="string">'K(S=1) = '</span>,sprintf(<span class="string">'%1.2e'</span>,KSeff),<span class="string">' '</span>,unitstr_1],<span class="keyword">...</span>
+0648     <span class="string">'Color'</span>,col);
+0649 set(get(gui.ax(5),<span class="string">'Title'</span>),<span class="string">'String'</span>,[<span class="string">'k(S=1) = '</span>,sprintf(<span class="string">'%1.2e'</span>,kSeff),<span class="string">' '</span>,unitstr_2],<span class="keyword">...</span>
+0650     <span class="string">'Color'</span>,col);
+0651 
+0652 <span class="comment">% some special axes settings</span>
+0653 <span class="keyword">for</span> i = 1:3
+0654     <span class="comment">% adjust the y-limits for similar axes</span>
+0655     ylim1 = get(gui.ax(i),<span class="string">'YLim'</span>);
+0656     ylim2 = get(gui.ax(i+3),<span class="string">'YLim'</span>);
+0657     
+0658     <span class="keyword">if</span> ylim1(1) == 0
+0659         ylim1(1) = ylim2(1);
+0660     <span class="keyword">end</span>
+0661     <span class="keyword">if</span> ylim2(1) == 0
+0662         ylim2(1) = ylim1(1);
+0663     <span class="keyword">end</span>
+0664     
+0665     <span class="keyword">if</span> i&lt;3
+0666         set(gui.ax(i),<span class="string">'YLim'</span>,[min([ylim1(1) ylim2(1)]) max([ylim1(2) ylim2(2)])]);
+0667         set(gui.ax(i+3),<span class="string">'YLim'</span>,[min([ylim1(1) ylim2(1)]) max([ylim1(2) ylim2(2)])]);
+0668     <span class="keyword">else</span>
+0669         set(gui.ax(i),<span class="string">'YLim'</span>,[min([ylim1(1) ylim2(1)]) 1]);
+0670         set(gui.ax(i+3),<span class="string">'YLim'</span>,[min([ylim1(1) ylim2(1)]) 1]);
+0671     <span class="keyword">end</span>
+0672     
+0673     <span class="comment">% axes labels</span>
+0674     <span class="keyword">if</span> i == 1
+0675         set(get(gui.ax(i),<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylstr_1);
+0676         set(get(gui.ax(i+3),<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylstr_1);
+0677     <span class="keyword">elseif</span> i == 2
+0678         set(get(gui.ax(i),<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylstr_2);
+0679         set(get(gui.ax(i+3),<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylstr_2);
+0680     <span class="keyword">else</span>
+0681         set(get(gui.ax(i),<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'relative cond. / perm. [-]'</span>);
+0682         set(get(gui.ax(i+3),<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'relative cond. / perm. [-]'</span>);
+0683     <span class="keyword">end</span>
+0684 <span class="keyword">end</span>
+0685 
+0686 <span class="keyword">end</span>
+0687 
+0688 <span class="comment">%------------- END OF CODE --------------</span>
+0689 
+0690 <span class="comment">%% License:</span>
+0691 <span class="comment">% MIT License</span>
+0692 <span class="comment">%</span>
+0693 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0694 <span class="comment">%</span>
+0695 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0696 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0697 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0698 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0699 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0700 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0701 <span class="comment">%</span>
+0702 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0703 <span class="comment">% copies or substantial portions of the Software.</span>
+0704 <span class="comment">%</span>
+0705 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0706 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0707 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0708 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0709 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0710 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0711 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

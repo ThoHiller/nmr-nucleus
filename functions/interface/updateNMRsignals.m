@@ -47,43 +47,60 @@ end
 
 %% only proceed if the noise is larger than 0
 if noise > 0
+    % first scale NMR signals by porosity
+    data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.raw.EiT1;
+    data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.raw.EdT1;
+    data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.raw.EiT2;
+    data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.raw.EdT2;
+
     switch data.nmr.noisetype
         case 'level'
-            % scale noise by porosity
-            noise = noise/data.nmr.porosity;
             % add noise to NMR signals
-            [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.raw.EiT1,0,noise);
-            [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.raw.EdT1,0,noise);
-            [data.results.NMR.EiT2,~] = addNoiseToSignal(data.results.NMR.raw.EiT2,0,noise);
-            [data.results.NMR.EdT2,~] = addNoiseToSignal(data.results.NMR.raw.EdT2,0,noise);
-            noiseM = noise*ones(size(data.results.NMR.EiT1,2),4);
+            % T1 data (real)
+            [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.EiT1,0,noise);
+            % [~,noiseT1i] = addNoiseToSignal(data.results.NMR.EiT1,0,noise);
+            [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.EdT1,0,noise);
+            % [~,noiseT1d] = addNoiseToSignal(data.results.NMR.EdT1,0,noise);
+            noiseM = noise*ones(size(data.results.NMR.EiT1,1),2);
+
+            % T2 data (complex)
+            [re,~] = addNoiseToSignal(data.results.NMR.EiT2,0,noise);
+            [~,im] = addNoiseToSignal(data.results.NMR.EiT2,0,noise);
+            data.results.NMR.EiT2 = complex(re,im);
+            [re,~] = addNoiseToSignal(data.results.NMR.EdT2,0,noise);
+            [~,im] = addNoiseToSignal(data.results.NMR.EdT2,0,noise);
+            data.results.NMR.EdT2 = complex(re,im);
+            
         case 'SNR'
-            SNR = data.nmr.noise;
+            % T1 data (real)
             noiseM(:,1) = data.results.NMR.EiT1(:,end)./SNR;
-            [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.raw.EiT1,0,noiseM(:,1));
+            [data.results.NMR.EiT1,~] = addNoiseToSignal(data.results.NMR.EiT1,0,noiseM(:,1));
             noiseM(:,2) = data.results.NMR.EdT1(:,end)./SNR;
-            [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.raw.EdT1,0,noiseM(:,2));
+            [data.results.NMR.EdT1,~] = addNoiseToSignal(data.results.NMR.EdT1,0,noiseM(:,2));
+            
+            % T2 data (complex)
             noiseM(:,3) = data.results.NMR.EiT2(:,1)./SNR;
-            [data.results.NMR.EiT2,~] = addNoiseToSignal(data.results.NMR.raw.EiT2,0,noiseM(:,3));
+            [re,~] = addNoiseToSignal(data.results.NMR.EiT2,0,noiseM(:,3));
+            [~,im] = addNoiseToSignal(data.results.NMR.EiT2,0,noiseM(:,3));
+            data.results.NMR.EiT2 = complex(re,im);
             noiseM(:,4) = data.results.NMR.EdT2(:,1)./SNR;
-            [data.results.NMR.EdT2,~] = addNoiseToSignal(data.results.NMR.raw.EdT2,0,noiseM(:,4));            
+            [re,~] = addNoiseToSignal(data.results.NMR.EdT2,0,noiseM(:,4));
+            [~,im] = addNoiseToSignal(data.results.NMR.EdT2,0,noiseM(:,4));
+            data.results.NMR.EdT2 = complex(re,im);
+            
+            % only keep noise fpr T1 data
+            noiseM = noiseM(:,1:2);
     end
 else
     % reset the NMR signals with the raw data (without noise)
-    data.results.NMR.EiT1 = data.results.NMR.raw.EiT1;
-    data.results.NMR.EdT1 = data.results.NMR.raw.EdT1;
-    data.results.NMR.EiT2 = data.results.NMR.raw.EiT2;
-    data.results.NMR.EdT2 = data.results.NMR.raw.EdT2;
+    data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.raw.EiT1;
+    data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.raw.EdT1;
+    data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.raw.EiT2;
+    data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.raw.EdT2;
     noiseM = zeros(size(data.results.NMR.EiT1,2),4);
 end
 
-% scale NMR signals by porosity
-data.results.NMR.EiT1 = data.nmr.porosity.*data.results.NMR.EiT1;
-data.results.NMR.EdT1 = data.nmr.porosity.*data.results.NMR.EdT1;
-data.results.NMR.EiT2 = data.nmr.porosity.*data.results.NMR.EiT2;
-data.results.NMR.EdT2 = data.nmr.porosity.*data.results.NMR.EdT2;
-
-% save the noise matrix values
+% save the noise matrix values (only T1)
 data.results.NMR.noise = noiseM;
 % save the porosity value
 data.results.NMR.porosity = data.nmr.porosity;

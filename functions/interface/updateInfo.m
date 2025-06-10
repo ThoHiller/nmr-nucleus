@@ -60,9 +60,16 @@ if showit
                 nmrproc = data.results.nmrproc;
                 switch nmrproc.T1T2
                     case 'T1'
+                        switch nmrproc.T1IRfac                                
+                            case 1
+                                info{end+1,1} = ['<HTML><BODY>Signal T1(SR)','</BODY></HTML>'];
+                            case 2
+                                info{end+1,1} = ['<HTML><BODY>Signal T1(IR)','</BODY></HTML>'];
+                        end                        
                         info{end+1,1} = ['<HTML><BODY>Sampl. = ',sprintf('%d',length(nmrproc.t)),...
                             ' (',data.process.gatetype,')','</BODY></HTML>'];
                     case 'T2'
+                        info{end+1,1} = ['<HTML><BODY>Signal T2','</BODY></HTML>'];
                         switch data.process.gatetype
                             case 'raw'
                                 info{end+1,1} = ['<HTML><BODY>Echos&nbsp= ',...
@@ -98,7 +105,13 @@ if showit
                         end
                         
                 end
-                info{end+1,1} = ['<HTML><BODY>noise&nbsp= ',sprintf('%4.3f',nmrproc.noise),'</BODY></HTML>'];
+                if isreal(data.results.nmrraw.s)
+                    info{end+1,1} = ['<HTML><BODY>noise&nbsp= ',sprintf('%4.3f',nmrproc.noise),'</BODY></HTML>'];
+                else
+                    info{end+1,1} = ['<HTML><BODY>noise&nbsp= ',sprintf('%4.3f',nmrproc.noise),...
+                        ' (&Chi<sup><font size="',num2str(subfs),'">2</sup>&nbsp= ',...
+                        sprintf('%5.3f',nmrproc.imag_chi2),')</BODY></HTML>'];
+                end
                 info{end+1,1} = ' ';
                 
                 % possible inversion results/statistics
@@ -396,7 +409,8 @@ if showit
                                 if data.invstd.Tfixed_bool(i)
                                     col = gui.myui.colors.listINV.*255;
                                 else
-                                    col = [1 1 1].*255;
+                                    % col = [1 1 1].*255;myui.colors.editBG
+                                    col = gui.myui.colors.editBG.*255;
                                 end
 
                                 info{end+1,1} = ['<HTML><BODY bgcolor="rgb(',...
@@ -434,15 +448,38 @@ if showit
                                     tcut = data.param.BVIcutoff;
                             end
                             por = data.invstd.porosity;
-                            CBW = abs(sum(invstd.T1T2f(invstd.T1T2me<=ccut))/sum(invstd.T1T2f));
-                            BVI = abs(sum(invstd.T1T2f(invstd.T1T2me>ccut & invstd.T1T2me<=tcut))/sum(invstd.T1T2f));
-                            BVM = abs(sum(invstd.T1T2f(invstd.T1T2me>tcut))/sum(invstd.T1T2f));
-                            info{end+1,1} = ['CBW(',sprintf('%2d',data.param.CBWcutoff),...
-                                ') = ',sprintf('%5.2f',por*CBW*100),' [vol. %]'];
-                            
-                            info{end+1,1} = ['BVI(',sprintf('%2d',data.param.BVIcutoff),...
-                                ') = ',sprintf('%5.2f',por*BVI*100),' [vol. %]'];
-                            info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [vol. %]'];
+                            if hasUncert
+                                FDIST = uncert.interp_f;
+                                TT = invstd.T1T2me';
+                                for i1 = 1:size(FDIST,1)
+                                    CBW(i1,1) = por*100*abs(sum(FDIST(i1,TT<=ccut))./sum(FDIST(i1,:)));
+                                    BVI(i1,1) = por*100*abs(sum(FDIST(i1,TT>ccut & TT<=tcut))./sum(FDIST(i1,:)));
+                                    BVM(i1,1) = por*100*abs(sum(FDIST(i1,TT>tcut))./sum(FDIST(i1,:)));
+                                end
+                                TOTAL = CBW+BVI+BVM;
+                                info{end+1,1} = 'Values in [vol. %]:';
+                                info{end+1,1} = ['<HTML><BODY>CBW(',sprintf('%2d',data.param.CBWcutoff),...
+                                    ') = ',sprintf('%7.3f',mean(CBW)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*std(CBW)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>BVI(',sprintf('%2d',data.param.BVIcutoff),...
+                                    ') = ',sprintf('%7.3f',mean(BVI)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*std(BVI)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>BVM &nbsp&nbsp&nbsp&nbsp= ',sprintf('%7.3f',mean(BVM)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*std(BVM)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>TOTAL &nbsp&nbsp= ',sprintf('%7.3f',mean(TOTAL)),...
+                                    '</BODY></HTML>'];
+                            else
+                                CBW = abs(sum(invstd.T1T2f(invstd.T1T2me<=ccut))/sum(invstd.T1T2f));
+                                BVI = abs(sum(invstd.T1T2f(invstd.T1T2me>ccut & invstd.T1T2me<=tcut))/sum(invstd.T1T2f));
+                                BVM = abs(sum(invstd.T1T2f(invstd.T1T2me>tcut))/sum(invstd.T1T2f));
+                                info{end+1,1} = 'Values in [vol. %]:';
+                                info{end+1,1} = ['CBW(',sprintf('%2d',data.param.CBWcutoff),...
+                                    ') = ',sprintf('%7.3f',por*CBW*100)];
+                                info{end+1,1} = ['BVI(',sprintf('%2d',data.param.BVIcutoff),...
+                                    ') = ',sprintf('%7.3f',por*BVI*100)];
+                                info{end+1,1} = ['BVM     = ',sprintf('%7.3f',por*BVM*100)];
+                                info{end+1,1} = ['TOTAL   = ',sprintf('%7.3f',por*(CBW+BVI+BVM)*100)];
+                            end
                             
                         case {'MUMO'}                            
                             % info is a cell array
@@ -471,15 +508,39 @@ if showit
                                     tcut = data.param.BVIcutoff;
                             end
                             por = data.invstd.porosity;
-                            CBW = abs(sum(invstd.T1T2f(invstd.T1T2me<=ccut))/sum(invstd.T1T2f));
-                            BVI = abs(sum(invstd.T1T2f(invstd.T1T2me>ccut & invstd.T1T2me<=tcut))/sum(invstd.T1T2f));
-                            BVM = abs(sum(invstd.T1T2f(invstd.T1T2me>tcut))/sum(invstd.T1T2f));
-                            info{end+1,1} = ['CBW(',sprintf('%2d',data.param.CBWcutoff),...
-                                ') = ',sprintf('%5.2f',por*CBW*100),' [vol. %]'];
+                            if hasUncert
+                                FDIST = uncert.interp_f;
+                                TT = invstd.T1T2me';
+                                for i1 = 1:size(FDIST,1)
+                                    CBW(i1,1) = por*100*abs(sum(FDIST(i1,TT<=ccut))./sum(FDIST(i1,:)));
+                                    BVI(i1,1) = por*100*abs(sum(FDIST(i1,TT>ccut & TT<=tcut))./sum(FDIST(i1,:)));
+                                    BVM(i1,1) = por*100*abs(sum(FDIST(i1,TT>tcut))./sum(FDIST(i1,:)));
+                                end
+                                TOTAL = CBW+BVI+BVM;
+                                info{end+1,1} = 'Values in [vol. %]:';
+                                info{end+1,1} = ['<HTML><BODY>CBW(',sprintf('%2d',data.param.CBWcutoff),...
+                                    ') = ',sprintf('%7.3f',mean(CBW)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*std(CBW)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>BVI(',sprintf('%2d',data.param.BVIcutoff),...
+                                    ') = ',sprintf('%7.3f',mean(BVI)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*std(BVI)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>BVM &nbsp&nbsp&nbsp&nbsp= ',sprintf('%7.3f',mean(BVM)),...
+                                    ' &#8723 (',sprintf('%5.3f',2*std(BVM)),')','</BODY></HTML>'];
+                                info{end+1,1} = ['<HTML><BODY>TOTAL &nbsp&nbsp= ',sprintf('%7.3f',mean(TOTAL)),...
+                                    '</BODY></HTML>'];
+                            else
+                                CBW = abs(sum(invstd.T1T2f(invstd.T1T2me<=ccut))/sum(invstd.T1T2f));
+                                BVI = abs(sum(invstd.T1T2f(invstd.T1T2me>ccut & invstd.T1T2me<=tcut))/sum(invstd.T1T2f));
+                                BVM = abs(sum(invstd.T1T2f(invstd.T1T2me>tcut))/sum(invstd.T1T2f));
+                                info{end+1,1} = 'Values in [vol. %]:';
+                                info{end+1,1} = ['CBW(',sprintf('%2d',data.param.CBWcutoff),...
+                                    ') = ',sprintf('%7.3f',por*CBW*100)];
+                                info{end+1,1} = ['BVI(',sprintf('%2d',data.param.BVIcutoff),...
+                                    ') = ',sprintf('%7.3f',por*BVI*100)];
+                                info{end+1,1} = ['BVM     = ',sprintf('%7.3f',por*BVM*100)];
+                                info{end+1,1} = ['TOTAL   = ',sprintf('%7.3f',por*(CBW+BVI+BVM)*100)];
+                            end
                             
-                            info{end+1,1} = ['BVI(',sprintf('%2d',data.param.BVIcutoff),...
-                                ') = ',sprintf('%5.2f',por*BVI*100),' [vol. %]'];
-                            info{end+1,1} = ['BVM     = ',sprintf('%5.2f',por*BVM*100),' [vol. %]'];
                             info{end+1,1} = ' ';
                             
                             % values for T, sigma and amplitude

@@ -184,33 +184,28 @@ if foundINV
         end
     end
     
-    if isfield(data.import,'BAM')
-        if data.import.BAM.use_z
-            xval = data.import.BAM.zslice;
-            xlabelstr = 'position';
-            ylabelstr = 'position [µm]';
-        else
-            xlabelstr = 'date' ;
-        end
-    elseif isfield(data.import,'IBAC')
-        if data.import.IBAC.use_z
-            xval = data.import.IBAC.zslice;
-            xlabelstr = 'position';
-            ylabelstr = 'position [µm]';
-        else
-            xlabelstr = 'date' ;
-        end
-    elseif isfield(data.import,'LIAGCORE')
+    % default label is date
+    labelstr = 'date';
+    % special treatment (e.g. position information available)
+    if isfield(data.import,'BAM') && data.import.BAM.use_z
+        xval = data.import.BAM.zslice;
+        labelstr = ['position [',data.import.BAM.z_unit,']'];
+    end
+    if isfield(data.import,'IBAC') && data.import.IBAC.use_z
+        xval = data.import.IBAC.zslice;
+        labelstr = 'position [µm]';
+    end
+    if isfield(data.import,'LIAGCORE')
         xval = data.import.LIAGCORE.zslice;
         if data.import.LIAGCORE.use_z
-            xlabelstr = 'position [mm]';
-            ylabelstr = 'position [mm]';
+            labelstr = 'position [mm]';
         else
-            xlabelstr = 'level';
-            ylabelstr = 'level';
+            labelstr = 'level';
         end
-    else
-        xlabelstr = 'date' ;
+    end
+    if isfield(data.import,'MRSMATLAB')
+        xval = data.import.MRSMATLAB.q;
+        labelstr = 'pulse moment q [As]';
     end
     
     % plot it
@@ -321,14 +316,21 @@ if foundINV
             hold(ax3,'on');
             plot(xval,SNR,'o','Color',col.FIT,'LineWidth',1.5,'Parent',ax3);
             grid on;
-            xlabel(xlabelstr);
-            set(get(ax3,'YLabel'),'String','signal-to-noise ratio');
+            xlabel(labelstr);
+            set(get(ax3,'YLabel'),'String','SNR');
+
+            if isfield(data.import,'MRSMATLAB')
+                set([ax1 ax2 ax3],'XScale','log');
+                set([ax1 ax2 ax3],'XLim',[min(xval)/2 max(xval)*2]);
+            else
+                set([ax1 ax2 ax3],'XScale','lin');
+            end
             
             % link axes for combined zooming and panning
             linkaxes([ax1 ax2 ax3], 'x');
             
             % make nice date ticks
-            if strcmp(xlabelstr,'date')
+            if strcmp(labelstr,'date')
                 isfile = which('dynamicDateTicks');
                 if ~isempty(isfile)
                     dynamicDateTicks([ax1 ax2 ax3],'link','dd.mm. HH:MM');
@@ -338,15 +340,115 @@ if foundINV
                     datetick(ax3,'x','dd.mm. HH:MM','keepticks');
                 end
             end
+            set([ax1 ax2 ax3],'FontSize',12);
             
         case 'ampvst'
             f = figure;
-            ax1 = axes('Parent',f);
+            ax = axes('Parent',f);
             
-            plot(E0,T,'ko','Parent',ax1),
-            set(get(ax1,'XLabel'),'String','E0');
-            set(get(ax1,'YLabel'),'String',['T [',timescale,']']);
+            plot(E0,T,'ko','Parent',ax),
+            set(get(ax,'XLabel'),'String','E0');
+            set(get(ax,'YLabel'),'String',['T [',timescale,']']);
+            set(ax,'FontSize',12);
             
+        case {'rtdcube','rtdsurf'}
+            switch data.invstd.invtype
+                case {'LU','NNLS','MUMO'}
+                    switch method
+                        case 'rtdcube' % 3d cube
+                            mycol = parula(size(Tspec,1));
+                            [xval,ix] = sort(xval);
+                            Tspec = Tspec(ix,:);
+                            f  = figure;
+                            ax = axes('Parent',f);
+                            hold(ax,'on')
+                            for i = 1:size(Tspec,1)
+                                plot3(xval(i)*ones(size(Tt)),Tt,Tspec(i,:),...
+                                    'Color',mycol(i,:),'Parent',ax);
+                            end
+                            grid on; box on;
+
+                            if strcmp(labelstr,'date')                                
+                                xlabel('date');
+                                ylabel(['relaxation time [',timescale,']']);
+                                zlabel('amplitude [-]');
+
+                                set(ax,'YScale','log');
+                                isfile = which('dynamicDateTicks');
+                                if ~isempty(isfile)
+                                    dynamicDateTicks(ax,'dd.mm. HH:MM');
+                                else
+                                    datetick(ax,'x','dd.mm. HH:MM','keepticks');
+                                end
+                            else
+                                xlabel(labelstr);
+                                ylabel(['relaxation time [',timescale,']']);
+                                zlabel('amplitude [-]');
+
+                                set(ax,'YScale','log');
+                            end
+                            view([54 30]);
+
+                        case 'rtdsurf' % surface plot
+                            if strcmp(labelstr,'date')
+                                [time,ix] = sort(xval);
+                                Tspec = Tspec(ix,:);
+                                [xx,yy] = meshgrid(Tt',time);
+                            else
+                                dx = xval(2)-xval(1);
+                                [xx,yy] = meshgrid(Tt',[xval-dx/2; xval(end)+dx/2]);
+                                
+                                % remove the backgound file
+                                Tspec(isnan(Tspec)) = [];
+                                xi = numel(Tspec)/numel(Tt);
+                                Tspec = reshape(Tspec,[xi numel(Tt)]);
+                            end
+
+                            f  = figure;
+                            ax = axes('Parent',f);
+                            hold(ax,'on');
+
+                            surf(xx,yy,zeros(size(xx)),Tspec./max(Tspec(:)),'Parent',ax);
+                            shading(ax,'flat');
+                            xticks = log10(min(Tt)):1:log10(max(Tt));
+                            set(ax,'XScale','log','XLim',[10^xticks(1) 10^xticks(end)],...
+                                'XTick',10.^xticks,'Layer','top','Box','on');
+                            set(ax,'YLim',[min(yy(:)) max(yy(:))],'YDir','normal')
+                            cmap = parula;
+                            colormap(ax,cmap);
+                            xlabel(['relaxation time [',timescale,']']);
+                            ylabel(labelstr);
+                            cb = colorbar;
+                            set(get(cb,'YLabel'),'String','norm. amplitude');
+
+                            if strcmp(labelstr,'date')
+                                datetick(ax,'y','dd.mm. HH:MM','keepticks');
+                                set(ax,'YLim',[min(yy(:)) max(yy(:))],'YDir','normal');
+                            end
+
+                            % context menu to chnage axis and color
+                            % settings
+                            axes_cm = uicontextmenu(f);
+                            gui.cm_handles.axes_proc_xaxis = uimenu(axes_cm,...
+                                'Label','flip y-axis','Tag','flip','Enable','on',...
+                                'Callback',@onContextFlip);
+                            gui.cm_handles.axes_proc_xaxis2 = uimenu(axes_cm,...
+                                'Label','y-axis log/lin','Tag','logax','Enable','on',...
+                                'Callback',@onContextFlip);
+                            gui.cm_handles.axes_proc_xaxis3 = uimenu(axes_cm,...
+                                'Label','color scale log/lin','Tag','loglin','Enable','on',...
+                                'Callback',@onContextFlip);
+                            set(ax,'UIContextMenu',axes_cm);
+
+                    end
+                    set(ax,'FontSize',12);
+
+                otherwise
+                    helpdlg({'function: showExtraGraphics',...
+                        'Cannot plot RTDs because the inversion was not multi exponential'},...
+                        'Invert NMR data first.');
+            end    
+
         case 'rtd'
             switch data.invstd.invtype
                 case {'LU','NNLS','MUMO'}
@@ -415,8 +517,8 @@ if foundINV
                         'Cannot plot RTDs because the inversion was not multi exponential'},...
                         'Invert NMR data first.');
             end
-    end
-    
+    end   
+
     catch ME
         % show error message in case import fails
         errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
@@ -431,6 +533,7 @@ end
 
 end
 
+%% provide context menu to change axis and color settings
 function onContextFlip(src,~)
 f = ancestor(src,'Figure','toplevel');
 ax = findobj(f,'Type','Axes');
@@ -445,6 +548,14 @@ switch tag
             case 'linear'
                 set(ax,'ColorScale','log','CLim',[0.01 1]);
         end
+    case 'logax'
+        islog = get(ax,'YScale');
+        switch islog
+            case 'log'
+                set(ax,'YScale','linear');
+            case 'linear'
+                set(ax,'YScale','log');
+        end    
     case 'flip'
         direction = get(ax,'Ydir');
         switch direction

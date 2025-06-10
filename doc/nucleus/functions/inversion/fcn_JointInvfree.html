@@ -213,105 +213,115 @@ This function is called by:
 0128 
 0129 <span class="comment">% error weighing</span>
 0130 <span class="keyword">if</span> isfield(iparam,<span class="string">'W'</span>)
-0131     g = iparam.W*g';
-0132     XX = iparam.W*XX;
-0133     g = g';
-0134 <span class="keyword">end</span>
-0135 
-0136 <span class="comment">% corresponding signal g = Kf</span>
-0137 ig = XX*x';
-0138 <span class="comment">% residual</span>
-0139 F1 = (ig - g');
-0140 <span class="comment">% regularization</span>
-0141 F2 = (lambda*L)*x';
-0142 <span class="comment">% fcn should return the residual as output for lsqnonlin</span>
-0143 <span class="comment">% see e.g. Aster et al. S. 240 eq.10.4</span>
-0144 F  = [F1; F2];
-0145 
-0146 <span class="comment">% jacobian - speeds up inversion!</span>
-0147 J = 0;
-0148 <span class="keyword">if</span> nargout &gt; 1
-0149     <span class="comment">% see Mohnke, 2014 WRR paper for info</span>
-0150     
-0151     <span class="comment">% J = dGAMMA/df</span>
-0152     J = XX;
-0153     
-0154     <span class="keyword">switch</span> T1T2
-0155         <span class="keyword">case</span> <span class="string">'T1'</span>
-0156             <span class="comment">% Jr = dGAMMA/drho</span>
-0157             <span class="comment">% for T1 it's a bit more tricky because</span>
-0158             <span class="comment">% d/drho 1-IR*exp(-t*rho*SV) = IR*t*SV * exp(-t*rho*SV)</span>
-0159             <span class="comment">% where exp(-t*rho*SV) is essentially the T2 Kernel matrix</span>
-0160             
-0161             <span class="comment">% DD = exp(-t*rho*SV)</span>
-0162             <span class="keyword">switch</span> igeom.type
-0163                 <span class="keyword">case</span> <span class="string">'cyl'</span>
-0164                     DD = zeros(length(t),length(SV));
-0165                     <span class="keyword">for</span> i=1:length(SV)
-0166                         DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-0167                     <span class="keyword">end</span>
-0168                     
-0169                 <span class="keyword">case</span> {<span class="string">'ang'</span>,<span class="string">'poly'</span>}
-0170                     <span class="comment">% Kernel matrix for full saturation</span>
+0131     e = 1./diag(iparam.W);
+0132     W = diag(e);
+0133     g = W*g';
+0134     XX = W*XX;
+0135     g = g';
+0136 <span class="keyword">end</span>
+0137 
+0138 <span class="comment">% scale everything between [0,1]</span>
+0139 maxS = max(g);
+0140 g = g./maxS;
+0141 XX = XX./maxS;
+0142 
+0143 <span class="comment">% corresponding signal g = Kf</span>
+0144 ig = XX*x';
+0145 <span class="comment">% residual</span>
+0146 F1 = (ig - g');
+0147 <span class="comment">% regularization</span>
+0148 F2 = (lambda*L)*x';
+0149 <span class="comment">% fcn should return the residual as output for lsqnonlin</span>
+0150 <span class="comment">% see e.g. Aster et al. S. 240 eq.10.4</span>
+0151 F  = [F1; F2];
+0152 
+0153 <span class="comment">% jacobian - speeds up inversion!</span>
+0154 J = 0;
+0155 <span class="keyword">if</span> nargout &gt; 1
+0156     <span class="comment">% see Mohnke, 2014 WRR paper for info</span>
+0157     
+0158     <span class="comment">% J = dGAMMA/df</span>
+0159     J = XX;
+0160     
+0161     <span class="keyword">switch</span> T1T2
+0162         <span class="keyword">case</span> <span class="string">'T1'</span>
+0163             <span class="comment">% Jr = dGAMMA/drho</span>
+0164             <span class="comment">% for T1 it's a bit more tricky because</span>
+0165             <span class="comment">% d/drho 1-IR*exp(-t*rho*SV) = IR*t*SV * exp(-t*rho*SV)</span>
+0166             <span class="comment">% where exp(-t*rho*SV) is essentially the T2 Kernel matrix</span>
+0167             
+0168             <span class="comment">% DD = exp(-t*rho*SV)</span>
+0169             <span class="keyword">switch</span> igeom.type
+0170                 <span class="keyword">case</span> <span class="string">'cyl'</span>
 0171                     DD = zeros(length(t),length(SV));
 0172                     <span class="keyword">for</span> i=1:length(SV)
 0173                         DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
 0174                     <span class="keyword">end</span>
-0175                     <span class="comment">% Kernel matrix for partial saturation</span>
-0176                     D = zeros(length(t),length(SV));
-0177                     <span class="keyword">for</span> i=1:size(SVC,1)
-0178                         D = D + ( squeeze(Amp(i,:,:)).*<span class="keyword">...</span>
-0179                             exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
-0180                     <span class="keyword">end</span>
-0181                     DD(IPS~=1) = D(IPS~=1);
-0182             <span class="keyword">end</span>
-0183             
-0184             <span class="comment">% and now using DD in the derivative:</span>
-0185             Jr = zeros(1,length(t));
-0186             <span class="keyword">for</span> i = 1:length(t)
-0187                 Jr(i) = t(i).*sum(x.*T1IRfac.*SV.*rhos.*DD(i,:));
-0188             <span class="keyword">end</span>
-0189             
-0190         <span class="keyword">case</span> <span class="string">'T2'</span>
-0191             <span class="comment">% Jr = dGAMMA/drho</span>
-0192             <span class="comment">% in the case of T2 the derivate of dGAMMA/drho is simple</span>
-0193             Jr = zeros(1,length(t));
-0194             <span class="keyword">for</span> i = 1:length(t)
-0195                 Jr(i) = t(i).*sum(-x.*SV.*rhos.*XX(i,:));
-0196             <span class="keyword">end</span>
-0197     <span class="keyword">end</span>
-0198     
-0199     JJ = [J Jr'];
-0200     LL = [lambda*L 0*L(:,1)];
-0201     J = [JJ;LL];
-0202 <span class="keyword">end</span>
-0203 
-0204 <span class="keyword">return</span>
-0205 
-0206 <span class="comment">%------------- END OF CODE --------------</span>
-0207 
-0208 <span class="comment">%% License:</span>
-0209 <span class="comment">% MIT License</span>
-0210 <span class="comment">%</span>
-0211 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0212 <span class="comment">%</span>
-0213 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0214 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0215 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0216 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0217 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0218 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0219 <span class="comment">%</span>
-0220 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0221 <span class="comment">% copies or substantial portions of the Software.</span>
+0175                     
+0176                 <span class="keyword">case</span> {<span class="string">'ang'</span>,<span class="string">'poly'</span>}
+0177                     <span class="comment">% Kernel matrix for full saturation</span>
+0178                     DD = zeros(length(t),length(SV));
+0179                     <span class="keyword">for</span> i=1:length(SV)
+0180                         DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
+0181                     <span class="keyword">end</span>
+0182                     <span class="comment">% Kernel matrix for partial saturation</span>
+0183                     D = zeros(length(t),length(SV));
+0184                     <span class="keyword">for</span> i=1:size(SVC,1)
+0185                         D = D + ( squeeze(Amp(i,:,:)).*<span class="keyword">...</span>
+0186                             exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
+0187                     <span class="keyword">end</span>
+0188                     DD(IPS~=1) = D(IPS~=1);
+0189             <span class="keyword">end</span>
+0190             
+0191             <span class="comment">% and now using DD in the derivative:</span>
+0192             Jr = zeros(1,length(t));
+0193             <span class="keyword">for</span> i = 1:length(t)
+0194                 Jr(i) = t(i).*sum(x.*T1IRfac.*SV.*rhos.*DD(i,:));
+0195             <span class="keyword">end</span>
+0196             
+0197         <span class="keyword">case</span> <span class="string">'T2'</span>
+0198             <span class="comment">% Jr = dGAMMA/drho</span>
+0199             <span class="comment">% in the case of T2 the derivate of dGAMMA/drho is simple</span>
+0200             Jr = zeros(1,length(t));
+0201             <span class="keyword">for</span> i = 1:length(t)
+0202                 Jr(i) = t(i).*sum(-x.*SV.*rhos.*XX(i,:));
+0203             <span class="keyword">end</span>
+0204     <span class="keyword">end</span>
+0205     
+0206     JJ = [J Jr'];
+0207     LL = [lambda*L 0*L(:,1)];
+0208     J = [JJ;LL];
+0209     
+0210     <span class="comment">% for final output scale the fitted signal back</span>
+0211     ig = XX*(x'.*maxS);
+0212 <span class="keyword">end</span>
+0213 
+0214 <span class="keyword">return</span>
+0215 
+0216 <span class="comment">%------------- END OF CODE --------------</span>
+0217 
+0218 <span class="comment">%% License:</span>
+0219 <span class="comment">% MIT License</span>
+0220 <span class="comment">%</span>
+0221 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0222 <span class="comment">%</span>
-0223 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0224 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0225 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0226 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0227 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0228 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0229 <span class="comment">% SOFTWARE.</span></pre></div>
+0223 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0224 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0225 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0226 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0227 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0228 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0229 <span class="comment">%</span>
+0230 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0231 <span class="comment">% copies or substantial portions of the Software.</span>
+0232 <span class="comment">%</span>
+0233 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0234 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0235 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0236 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0237 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0238 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0239 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

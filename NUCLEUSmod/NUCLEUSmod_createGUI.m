@@ -100,11 +100,11 @@ gui.panels.nmr.main = uix.BoxPanel('Parent',gui.panels.main,...
     'MinimizeFcn',@minimizePanel);
 
 % adjust the heights of all left-column-panels
-myui.heights = [22 22 22; 249 -1 139];
+myui.heights = [22 22 22; 249 -1 170];
 % panel header is always 22 high
 set(gui.panels.main,'Heights',myui.heights(2,:),...
     'MinimumHeights',[22 22 22]);
-set(gui.left,'Heights',-1,'MinimumHeights',249+250+139+20);
+set(gui.left,'Heights',-1,'MinimumHeights',249+250+170+20);
 
 % 1. geometry panel
 if wbon
@@ -143,6 +143,7 @@ gui = NUCLEUSmod_createStatusbar(gui);
 % make the main GUI visible again; "gui" needs to be saved because
 % otherwise "fixAxes" throws an error
 setappdata(h,'gui',gui);
+fixVerticalTextAlignment(h);
 set(gui.main,'Visible','on');
 
 % update the GUI data

@@ -103,7 +103,7 @@ data.raw.signal = complex(re,im);
 % the HELIOS phase is generally around 140°, hence we give a range for
 % finding the optimal phase angle
 [data.signal,data.phase] = rotateT2phase(data.raw.signal,'stdIm',...
-    [deg2rad(140-25) deg2rad(140+25)]);
+    [deg2rad(90) deg2rad(155)]);
 
 data.time = data.raw.time;
 data.raw.signal = data.signal;

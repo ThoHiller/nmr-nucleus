@@ -36,13 +36,16 @@ function NUCLEUSmod
 
 %------------- BEGIN CODE --------------
 
+%% switch-off java warnings
+warning('off', 'MATLAB:ui:javacomponent:FunctionToBeRemoved');
+
 %% Only one instance of NUCLEUSmod is allowed
 h0  = findobj('Tag','MOD');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.3.0';
-myui.date = '27.11.2024';
+myui.version = '0.4.0';
+myui.date = '10.06.2025';
 myui.author = {'Stephan Costabel','Thomas Hiller'};
 myui.email = 'thomas.hiller[at]bgr.de';
 myui.fontsize = 10;

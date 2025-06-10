@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0] - 2025-06-10
+
+### Added
+- Uncertainty calculation and 2D T1-T2 inversion in **NUCLEUSinv** now also work with gated signals
+- New L-curve calculation routine for 1D and 2D data in **NUCLEUSinv** that estimates the optimal regularization parameter iteratively (selectable via the *Extra* menu)
+- New *Extra* menu entry in **NUCLEUSinv** to estimate the noise of a signal from the RMS of its data  fit (sometimes useful e.g. for T1 data)
+- New import routines in **NUCLEUSinv** for *MRSMatlab* mrsd-files and *NMR Mouse* T1T2 data files
+- New *Batch* checkbox in **NUCLEUSinv** to invert all signals automatically with identical settings
+- New *File* menu for sorting the imported signals in **NUCLEUSinv**
+- New *Extra* menu for batch processing options in **NUCLEUSinv**
+- Several usability improvements in all parts of **NUCLEUSinv** and **NUCLEUSmod**
+
+### Changed
+- Changed the labels of the context menu for coloring the plots in the **NUCLEUSinv** sub GUI *UncertView*
+- Changed the default LSQ solver in **NUCLEUSinv** to *LSQLIN* (if the Optimization Toolbox is available)
+
+
+### Fixed
+- Fixed a bug when automatically determining Lambda from the L-curve in the **NUCLEUSinv** main GUI
+- Fixed a bug when calculating uncertainty runs within the **NUCLEUSinv** main GUI
+- Fixed a coloring bug in the **NUCLEUSinv** sub GUI *UncertView*
+- Fixed a figure-resizing bug in both 2D sub GUIs in **NUCLEUSinv** and **NUCLEUSmod**
+
 ## [0.3.0] - 2024-11-27
 
 ### Added
@@ -63,10 +86,10 @@
 ## [0.1.12] - 2022-02-17
 
 ### Added
-- New *SNR*-option in **NUCLEUSmod** to set the noise of the forward modelled NMR data either by noise level or signal-to-noise ratio (SNR)
+- New *SNR*-option in **NUCLEUSmod** to set the noise of the forward modeled NMR data either by noise level or signal-to-noise ratio (SNR)
 - New *Multi modal* fitting option in **NUCLEUSinv** (only in Expert mode) with built-in uncertainty estimation for the final RTD
 - New import routines to **NUCLEUSinv** for *BGR* devices (*Mouse* and *Helios*)
-- Difussion relaxation time *T<sub>diff</sub>*  is now considered in **NUCLEUSmod** (*NMR* panel) and **NUCLEUSinv** (*Petro Parameter* panel)
+- Diffusion relaxation time *T<sub>diff</sub>*  is now considered in **NUCLEUSmod** (*NMR* panel) and **NUCLEUSinv** (*Petro Parameter* panel)
 - Added an `AUTHORS.md` file to the repository.
 
 ### Changed
@@ -86,14 +109,14 @@
 
 ### Changed
 - Changed the behavior of the *number of echoes per gate* field. Zero is no longer allowed and will be automatically set to 1
-- Rearrangement of some menues regarding the *ConductView* implementation
+- Rearrangement of some menus regarding the *ConductView* implementation
 - Restructured the import menu of **NUCLEUSinv** so that the *GGE* and *IBAC* institute are now in *RWTH*
 - The y-axis label of the RTD and PSD plots in **NUCLEUSinv** now only shows *water content [vol %]* if the porosity is not 1. This is much more intuitive
 
 ### Fixed
 - Fixed two import bugs for *LIAG single/project* data in **NUCLEUSinv** (time scale conversion and background signal treatment)
 - Fixed output data when using the *LU* inversion in **NUCLEUSinv** (before the wrong kernel matrix was stored)
-- Fixed an internal data managment bug when activating/deactivating the joint inversion options
+- Fixed an internal data management bug when activating/deactivating the joint inversion options
 - Fixed an issue regarding the use of only a single signal for the joint inversion and the inversion-geometry exhibits corners
 
 ## [0.1.10] - 2020-09-10
@@ -231,6 +254,7 @@
 
 Initial Version
 
+[0.4.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.3.0...v.0.4.0
 [0.3.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.2.1...v.0.3.0
 [0.2.1]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.2.0...v.0.2.1
 [0.2.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.1.14...v.0.2.0

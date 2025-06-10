@@ -45,7 +45,7 @@ switch importtype
         % process panel
         data.process.end = 0;
         switch data.import.fileformat
-            case {'dart','field','helios'}
+            case {'dart','field','helios','mrsd'}
                 data.process.gatetype = 'raw';
             otherwise
                 data.process.gatetype = 'log';
@@ -63,6 +63,7 @@ data.invstd.regtype = 'manual';
 data.invstd.lambda = 1;
 data.invstd.Lorder = 1;
 set(gui.push_handles.invstd_run,'Enable','on');
+% set(gui.push_handles.invstd_run_batch,'Enable','on');
 
 % petro panel
 data.param.calibVol = 1;

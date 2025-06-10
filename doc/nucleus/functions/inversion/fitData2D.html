@@ -67,10 +67,10 @@ otherwise the default built-in LSQNONNEG is used;
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="applyRegularization2D.html" class="code" title="function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)">applyRegularization2D</a>	</li><li><a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>	 creates a Kernel matrix from signals time vectors "t"</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>	</li></ul>
+<li><a href="applyRegularization2D.html" class="code" title="function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level)">applyRegularization2D</a>	</li><li><a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>	 creates a Kernel matrix from signals time vectors "t"</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getSmoothness2D.html" class="code" title="function [L,LD,dat_inp] = getSmoothness2D(order,Tvec,Dvec,indices,dat_vec)">getSmoothness2D</a>	 creates 2D smoothness constraint matrices</li><li><a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>	</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/functions/interface/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>	 is an extra subGUI to calculate 2D inversion of T1-T2 data</li></ul>
+<li><a href="../../../nucleus/functions/interface/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>	 is an extra subGUI to calculate 2D inversion of T1-T2 data</li><li><a href="../../../nucleus/functions/interface/subGUIs/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>	 is an extra subGUI to calculate 2D inversion of T1-T2 data</li></ul>
 <!-- crossreference -->
 
 
@@ -144,132 +144,224 @@ This function is called by:
 0066 <span class="comment">% prepare data vector</span>
 0067 Nsignals = numel(data);
 0068 Nechos = numel(data(1).t);
-0069 dat_vec = zeros(Nsignals*Nechos,1);
+0069 s_vec = zeros(Nsignals*Nechos,1);
 0070 <span class="keyword">for</span> n = 1:numel(data)
 0071     <span class="keyword">if</span> n == 1
-0072         dat_vec(1:Nechos,1) = data(n).s;
+0072         s_vec(1:Nechos,1) = data(n).s;
 0073     <span class="keyword">else</span>
-0074         dat_vec((n-1)*Nechos+1:n*Nechos,1) = data(n).s;
+0074         s_vec((n-1)*Nechos+1:n*Nechos,1) = data(n).s;
 0075     <span class="keyword">end</span>
 0076 <span class="keyword">end</span>
-0077 
-0078 <span class="comment">% create the Kernel matrix for inversion</span>
-0079 p.G0 = G0;
-0080 p.D = D;
-0081 p.te = te;
-0082 p.T1IRfac = T1IRfac;
-0083 p.IRtype = IRtype;
-0084 [K,indices] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(data,T1vec,T2vec,p);
-0085 
-0086 <span class="comment">% regularization</span>
-0087 order = parameter.orderT1;
-0088 lambda = [parameter.lamT1 parameter.lamT2];
-0089 
-0090 [KK,dat_inp,LT,LD] = <a href="applyRegularization2D.html" class="code" title="function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)">applyRegularization2D</a>(K,order,T2vec,T1vec,indices,dat_vec,lambda);
-0091 
-0092 <span class="keyword">switch</span> parameter.solver
-0093     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
-0094         x0 = zeros(size(KK,2),1);
-0095         lb = zeros(size(KK,2),1);
-0096         ub = ones(size(KK,2),1);
-0097 
-0098         options = optimoptions(<span class="string">'lsqlin'</span>);
-0099         options.Display = parameter.info;
-0100         <span class="comment">% options.OptimalityTolerance = 1e-16;</span>
-0101         <span class="comment">% options.StepTolerance = 1e-16;</span>
-0102         <span class="comment">% options.MaxIterations = 2000;</span>
-0103         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqlin(KK,dat_inp,[],[],[],[],<span class="keyword">...</span>
-0104             lb,ub,x0,options);
-0105 
-0106     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
-0107         options = optimset(<span class="string">'lsqnonneg'</span>);
-0108         options.Display = parameter.info;
-0109         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqnonneg(KK,dat_inp,options);
-0110 <span class="keyword">end</span>
-0111 
-0112 <span class="comment">% global model response (fit)</span>
-0113 s_fit = K * f_vec;
-0114 <span class="comment">% global fit errors</span>
-0115 out_global = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(dat_vec,s_fit,noise);
-0116 <span class="comment">% local fit errors</span>
-0117 <span class="keyword">for</span> n = 1:numel(data)
-0118     data(n).s_fit = s_fit((n-1)*Nechos+1:n*Nechos);
-0119     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(data(n).s,data(n).s_fit,data(n).noise);
-0120     data(n).resnorm = out.resnorm;
-0121     data(n).residual = out.residual;
-0122     data(n).chi2 = out.chi2;
-0123     data(n).rms = out.rms;
-0124 <span class="keyword">end</span>
-0125 
-0126 <span class="comment">% L-curve parameter</span>
-0127 <span class="comment">% model norm |L*x|_2</span>
-0128 xn = norm([LT;LD]*f_vec,2);
-0129 <span class="comment">% residual norm |A*x-b|_2</span>
-0130 rn = norm(out_global.residual,2);
-0131 
-0132 <span class="comment">% create the Kernel matrix for E0</span>
-0133 dat0.t=0;
-0134 dat0.T1=10000;
-0135 [K0,~] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(dat0,T1vec,T2vec,p);
-0136 E0 = K0*f_vec;
-0137 
-0138 <span class="comment">% sort the result</span>
-0139 f_2Dmap = zeros(size(MOD'));
-0140 <span class="keyword">for</span> n = 1:length(T1vec)
-0141     f_2Dmap(n,:) = f_vec(indices.col_1(n):indices.col_end(n));
-0142 <span class="keyword">end</span>
-0143 
-0144 <span class="comment">% get TLGM and TMAX</span>
-0145 [TLGM,TMAX] = <a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(T1vec,T2vec,f_2Dmap);
-0146 
-0147 <span class="comment">% output struct</span>
-0148 fitdata.data = data;
-0149 fitdata.T1vec = T1vec;
-0150 fitdata.T2vec = T2vec;
-0151 fitdata.indices = indices;
-0152 fitdata.f_vec = f_vec;
-0153 fitdata.f_2Dmap = f_2Dmap;
-0154 fitdata.E0 = E0;
-0155 fitdata.T1tlgm = TLGM(1);
-0156 fitdata.T2tlgm = TLGM(2);
-0157 fitdata.T1tmax = TMAX(1);
-0158 fitdata.T2tmax = TMAX(2);
-0159 fitdata.error_global = out_global;
-0160 fitdata.xn = xn;
-0161 fitdata.rn = rn;
-0162 fitdata.solver_out.RESNORM = RESNORM;
-0163 fitdata.solver_out.RESIDUAL = RESIDUAL;
-0164 fitdata.solver_out.EXITFLAG = EXITFLAG;
-0165 fitdata.solver_out.OUTPUT = OUTPUT;
-0166 fitdata.param = parameter;
-0167 <span class="comment">% fitdata.K = K;</span>
-0168 
-0169 <span class="keyword">return</span>
-0170 
-0171 <span class="comment">%------------- END OF CODE --------------</span>
-0172 
-0173 <span class="comment">%% License:</span>
-0174 <span class="comment">% MIT License</span>
-0175 <span class="comment">%</span>
-0176 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0177 <span class="comment">%</span>
-0178 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0179 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0180 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0181 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0182 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0183 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0184 <span class="comment">%</span>
-0185 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0186 <span class="comment">% copies or substantial portions of the Software.</span>
-0187 <span class="comment">%</span>
-0188 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0189 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0190 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0191 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0192 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0193 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0194 <span class="comment">% SOFTWARE.</span></pre></div>
+0077 <span class="comment">% prepare error vector when gated</span>
+0078 <span class="keyword">if</span> parameter.useLogGates
+0079     e_vec = zeros(Nsignals*Nechos,1);
+0080     <span class="keyword">for</span> n = 1:numel(data)
+0081         <span class="keyword">if</span> n == 1
+0082             e_vec(1:Nechos,1) = data(n).e;
+0083         <span class="keyword">else</span>
+0084             e_vec((n-1)*Nechos+1:n*Nechos,1) = data(n).e;
+0085         <span class="keyword">end</span>
+0086     <span class="keyword">end</span>
+0087 <span class="keyword">end</span>
+0088 
+0089 <span class="comment">% create the Kernel matrix for inversion</span>
+0090 p.G0 = G0;
+0091 p.D = D;
+0092 p.te = te;
+0093 p.T1IRfac = T1IRfac;
+0094 p.IRtype = IRtype;
+0095 [K,indices] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(data,T1vec,T2vec,p);
+0096 
+0097 <span class="comment">% weight the data and kernel in case of gateing</span>
+0098 <span class="keyword">if</span> parameter.useLogGates
+0099     <span class="keyword">if</span> parameter.noise == 0
+0100         W = diag(ones(size(e_vec)));
+0101     <span class="keyword">else</span>
+0102         W = diag(1./e_vec);
+0103     <span class="keyword">end</span>
+0104     dat_vec = W*s_vec;
+0105     K = W*K;
+0106 <span class="keyword">else</span>
+0107     dat_vec = s_vec;
+0108 <span class="keyword">end</span>
+0109 
+0110 <span class="comment">% scale everything between [0,1]</span>
+0111 maxS = max(dat_vec);
+0112 dat_vec = dat_vec./maxS;
+0113 K = K./maxS;
+0114 
+0115 <span class="comment">% regularization</span>
+0116 order = parameter.orderT1;
+0117 lambda = [parameter.lamT2 parameter.lamT1];
+0118 regMethod = parameter.regMethod;
+0119 
+0120 <span class="comment">% this is essentially what happens next:</span>
+0121 <span class="comment">% 1. get a smoothness constraint matrix</span>
+0122 <span class="comment">% 2. scale them by lambda</span>
+0123 <span class="comment">% 3. extent kernel matrix K accordingly</span>
+0124 <span class="comment">%</span>
+0125 <span class="comment">% L = [lambda(T2)*LT2;lambda(T1)*LT1];</span>
+0126 <span class="comment">% Kreg = [K;L];</span>
+0127 
+0128 <span class="comment">% get smoothness constrain matrices</span>
+0129 [LT2,LT1,dat_inp] = <a href="getSmoothness2D.html" class="code" title="function [L,LD,dat_inp] = getSmoothness2D(order,Tvec,Dvec,indices,dat_vec)">getSmoothness2D</a>(order,T2vec,T1vec,indices,dat_vec);
+0130 
+0131 <span class="comment">% extend K and apply regularization</span>
+0132 <span class="comment">% 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'</span>
+0133 [KK,lambda_out] = <a href="applyRegularization2D.html" class="code" title="function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level)">applyRegularization2D</a>(K,dat_vec,LT2,LT1,lambda,<span class="keyword">...</span>
+0134     regMethod,order,parameter.noise./maxS);
+0135 
+0136 <span class="comment">% solve LSE</span>
+0137 t1 = toc;
+0138 <span class="keyword">switch</span> parameter.solver
+0139     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
+0140         <span class="comment">% only the Optimization toolbox allows using bounds</span>
+0141         x0 = zeros(size(KK,2),1);
+0142         lb = zeros(size(KK,2),1);
+0143         ub = maxS.*ones(size(KK,2),1);
+0144         
+0145         <span class="comment">% force certain RTs to 0 (switch in EXTRA menu)</span>
+0146         <span class="keyword">if</span> strcmp(parameter.EchoFlag,<span class="string">'on'</span>)
+0147             T1cut = data(1).T1(1)/5;
+0148             T2cut = parameter.te/5;
+0149             <span class="keyword">if</span> T1cut &lt; T2cut
+0150                 T1cut = T2cut;
+0151             <span class="keyword">end</span>            
+0152             ub = maxS.*ones(numel(T2vec),numel(T1vec));
+0153             ub(:,T1vec&lt;T1cut,:) = 0;
+0154             ub(T2vec&lt;T2cut,:) = 0;
+0155             ub = reshape(ub,[numel(T1vec)*numel(T2vec) 1]);
+0156         <span class="keyword">end</span>
+0157 
+0158         options = optimoptions(<span class="string">'lsqlin'</span>);
+0159         options.Display = parameter.info;
+0160         <span class="comment">% activate and use these options only when you know what you are doing</span>
+0161         <span class="comment">% options.OptimalityTolerance = 1e-16;</span>
+0162         <span class="comment">% options.StepTolerance = 1e-16;</span>
+0163         <span class="comment">% options.MaxIterations = 1000;</span>
+0164         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqlin(KK,dat_inp,[],[],[],[],<span class="keyword">...</span>
+0165             lb,ub,x0,options);
+0166 
+0167     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
+0168         <span class="comment">% native Matlab built-in LSQ-solver</span>
+0169         options = optimset(<span class="string">'lsqnonneg'</span>);
+0170         options.Display = parameter.info;
+0171         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqnonneg(KK,dat_inp,options);
+0172 <span class="keyword">end</span>
+0173 t2 = toc;
+0174 OUTPUT.solver_time = t2-t1;
+0175 <span class="comment">% disp(OUTPUT.solver_time);</span>
+0176 
+0177 <span class="comment">% get the fit (rescale the f distribution)</span>
+0178 g_fit = KK*(f_vec.*maxS);
+0179 <span class="comment">% cut off the regularization part</span>
+0180 s_fit = g_fit(1:length(s_vec),1);
+0181 
+0182 <span class="comment">% get errors</span>
+0183 <span class="keyword">if</span> parameter.useLogGates
+0184     <span class="comment">% remove the error weights from the fit</span>
+0185     e = diag(W);
+0186     einv = 1./e;
+0187     Winv = diag(einv);
+0188     s_fit = Winv * s_fit;
+0189 
+0190     <span class="comment">% get global fit errors</span>
+0191     out_global = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(s_vec,s_fit,noise,Winv);
+0192     <span class="comment">% get local fit errors (for every T2 signal)</span>
+0193     <span class="keyword">for</span> n = 1:numel(data)
+0194         data(n).s_fit = s_fit((n-1)*Nechos+1:n*Nechos);
+0195         W1 = diag(data(n).e);
+0196         out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(data(n).s,data(n).s_fit,data(n).noise,W1);
+0197         data(n).resnorm = out.resnorm;
+0198         data(n).residual = out.residual;
+0199         data(n).chi2 = out.chi2;
+0200         data(n).rms = out.rms;
+0201     <span class="keyword">end</span>
+0202 <span class="keyword">else</span>
+0203     <span class="comment">% get global fit errors</span>
+0204     out_global = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(s_vec,s_fit,noise);
+0205     <span class="comment">% get local fit errors (for every T2 signal)</span>
+0206     <span class="keyword">for</span> n = 1:numel(data)
+0207         data(n).s_fit = s_fit((n-1)*Nechos+1:n*Nechos);
+0208         out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(data(n).s,data(n).s_fit,data(n).noise);
+0209         data(n).resnorm = out.resnorm;
+0210         data(n).residual = out.residual;
+0211         data(n).chi2 = out.chi2;
+0212         data(n).rms = out.rms;
+0213     <span class="keyword">end</span>
+0214 <span class="keyword">end</span>
+0215 
+0216 <span class="comment">% L-curve parameter</span>
+0217 <span class="comment">% model norm |L*x|_2</span>
+0218 xn = norm([LT2;LT1]*f_vec,2);
+0219 <span class="comment">% residual norm |A*x-b|_2</span>
+0220 rn = norm(out_global.residual,2);
+0221 
+0222 <span class="comment">% create the Kernel matrix for E0</span>
+0223 dat0.t = 0; <span class="comment">% shortest T2 echo time [s]</span>
+0224 dat0.T1 = 10000; <span class="comment">% longest T1 time [s]</span>
+0225 [K0,~] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(dat0,T1vec,T2vec,p);
+0226 E0 = K0*f_vec;
+0227 
+0228 <span class="comment">% remap the result vector ina  2D matrix</span>
+0229 f_2Dmap = zeros(size(MOD'));
+0230 <span class="keyword">for</span> n = 1:length(T1vec)
+0231     f_2Dmap(n,:) = f_vec(indices.col_1(n):indices.col_end(n));
+0232 <span class="keyword">end</span>
+0233 
+0234 <span class="comment">% get TLGM and TMAX of the map</span>
+0235 [TLGM,TMAX] = <a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(T1vec,T2vec,f_2Dmap);
+0236 
+0237 <span class="comment">% output struct</span>
+0238 fitdata.data = data;
+0239 fitdata.T1vec = T1vec;
+0240 fitdata.T2vec = T2vec;
+0241 fitdata.indices = indices;
+0242 fitdata.f_vec = f_vec;
+0243 fitdata.f_2Dmap = f_2Dmap;
+0244 fitdata.E0 = E0;
+0245 fitdata.T1tlgm = TLGM(1);
+0246 fitdata.T2tlgm = TLGM(2);
+0247 fitdata.T1tmax = TMAX(1);
+0248 fitdata.T2tmax = TMAX(2);
+0249 fitdata.error_global = out_global;
+0250 fitdata.chi2 = out_global.chi2;
+0251 fitdata.xn = xn;
+0252 fitdata.rn = rn;
+0253 fitdata.lambda_out = lambda_out;
+0254 fitdata.solver_out.RESNORM = RESNORM;
+0255 fitdata.solver_out.RESIDUAL = RESIDUAL;
+0256 fitdata.solver_out.EXITFLAG = EXITFLAG;
+0257 fitdata.solver_out.OUTPUT = OUTPUT;
+0258 fitdata.param = parameter;
+0259 <span class="comment">% fitdata.K = K;</span>
+0260 
+0261 <span class="keyword">return</span>
+0262 
+0263 <span class="comment">%------------- END OF CODE --------------</span>
+0264 
+0265 <span class="comment">%% License:</span>
+0266 <span class="comment">% MIT License</span>
+0267 <span class="comment">%</span>
+0268 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0269 <span class="comment">%</span>
+0270 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0271 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0272 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0273 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0274 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0275 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0276 <span class="comment">%</span>
+0277 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0278 <span class="comment">% copies or substantial portions of the Software.</span>
+0279 <span class="comment">%</span>
+0280 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0281 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0282 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0283 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0284 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0285 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0286 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

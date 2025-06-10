@@ -27,12 +27,12 @@ function runInversionStd
 %       onPushRun
 %       onPushShowHide
 %       onPushStop
-%       removeInversionFields	
+%       removeInversionFields
 %       showFitStatistics
 %       updateInfo
 %       updatePlotsDistribution
-%       updatePlotsLcurve	
-%       updatePlotsSignal	
+%       updatePlotsLcurve
+%       updatePlotsSignal
 %       useSignalAsCalibration
 %
 % Subfunctions:
@@ -63,7 +63,7 @@ isjoint = strcmp(get(gui.menu.extra_joint,'Checked'),'on');
 if ~isempty(id) && ~isempty(INVdata)
     % remove temporary data fields
     data = removeInversionFields(data);
-    
+
     % if joint inversion is enabled clear joint PSD and CPS axes because a
     % new std inversion might change E0 and hence the saturation value of
     % the NMR signal
@@ -76,108 +76,68 @@ if ~isempty(id) && ~isempty(INVdata)
         end
         clearSingleAxis(gui.axes_handles.cps);
     end
-    
+
     % switch depending on regularization method
     switch data.invstd.regtype
         case 'lcurve' % L-curve regularization
             % clear inversion axes
             clearAllAxes(gui.figh);
-            
-            % make the RUN button a STOP button
-            % set "UserData" to 1 to catch a STOP button event
-            set(gui.push_handles.invstd_run,'String','STOP',...
-                'BackGroundColor','r','UserData',1,'Callback',@onPushStop);
-            
-            % no command line output during l-curve calculation
-            param.info = 'off';
-            
-            % lambda range and initialization of output variables
-            lambda_range = logspace(log10(data.invstd.lambdaR(1)),log10(data.invstd.lambdaR(2)),data.invstd.NlambdaR);
-            RMS = zeros(size(lambda_range));
-            XN = zeros(size(lambda_range));
-            RN = zeros(size(lambda_range));
-            
+
             % general inversion parameter
-            param.T1T2 = data.results.nmrproc.T1T2;
-            param.T1IRfac = data.results.nmrproc.T1IRfac;
-            param.Tb = data.invstd.Tbulk;
-            param.Td = data.invstd.Tdiff;
-            param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-            param.regMethod = 'manual';
-            param.Lorder = data.invstd.Lorder;
-            param.noise = data.results.nmrproc.noise;
-            param.TE = data.results.nmrraw.t(2)-data.results.nmrraw.t(1);
+            iparam.info = 'off';
+            iparam.T1T2 = data.results.nmrproc.T1T2;
+            iparam.T1IRfac = data.results.nmrproc.T1IRfac;
+            iparam.Tb = data.invstd.Tbulk;
+            iparam.Td = data.invstd.Tdiff;
+            iparam.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+            iparam.regMethod = 'manual';
+            iparam.Lorder = data.invstd.Lorder;
+            iparam.noise = data.results.nmrproc.noise;
+            iparam.TE = data.results.nmrraw.t(2)-data.results.nmrraw.t(1);
             if isfield(data.results.nmrproc,'W')
-                param.W = data.results.nmrproc.W;
+                iparam.W = data.results.nmrproc.W;
             end
-            param.solver = data.info.solver;
-            param.EchoFlag = data.info.EchoFlag;
-            
+            iparam.solver = data.info.solver;
+            iparam.EchoFlag = data.info.EchoFlag;
+
+            % data
+            lparam.t = data.results.nmrproc.t;
+            lparam.s = data.results.nmrproc.s;
+            % fit function
+            lparam.func = @fitDataLSQ;
+            % dimension (standard 1D)
+            lparam.dim = 1;
+
+            switch data.info.LcurveMethod
+                case 'iterative'
+                    % lambda range
+                    lmin = data.invstd.lambdaR(1);
+                    lmax = data.invstd.lambdaR(2);
+                    lparam.lambda_range = [lmin lmax];
+                    
+                    % call L-curve function
+                    lc = runLcurveIterative(lparam,iparam,gui);
+
+                case 'discrete'
+                    % lambda range
+                    lmin = data.invstd.lambdaR(1);
+                    lmax = data.invstd.lambdaR(2);
+                    lN = data.invstd.NlambdaR;
+                    lparam.lambda_range = logspace(log10(lmin),log10(lmax),lN);
+
+                    % call L-curve function
+                    lc = runLcurveDiscrete(lparam,iparam,gui); 
+            end
+
+            % save results
+            data.results.lcurve = lc;
+            % update GUI data
+            setappdata(fig,'data',data);
+            % update L-curve plots
+            updatePlotsLcurve;
             % status bar information
-            infostring = 'L-curve calculation ... ';
-            displayStatusText(gui,infostring);
-            
-            % wait-bar option
-            wbopts.show = true;
-            wbopts.tag = 'INV';
-            if wbopts.show
-                hwb = waitbar(0,'processing ...','Name','L-curve calculation','Visible','off');
-                steps = length(lambda_range);
-                fig = findobj('Tag',wbopts.tag);
-                if ~isempty(fig)
-                    posf = get(fig,'Position');
-                    set(hwb,'Units','Pixel')
-                    posw = get(hwb,'Position');
-                    set(hwb,'Position',[posf(1)+posf(3)/2-posw(3)/2 posf(2)+posf(4)/2-posw(4)/2 posw(3:4)]);
-                end
-                set(hwb,'Visible','on');
-            end
-            
-            % the L-curve calculation
-            for i = 1:length(lambda_range)
-                % check if the STOP button was pressed
-                % if "UserData" is 1 STOP was not pressed -> continue
-                if get(gui.push_handles.invstd_run,'UserData') == 1
-                    param.lambda = lambda_range(i);
-                    invdata = fitDataLSQ(data.results.nmrproc.t,data.results.nmrproc.s,param);                  
-                    % output data
-                    RMS(i) = invdata.rms;
-                    RN(i) = invdata.rn;
-                    XN(i) = invdata.xn;
-                    % wait-bar update
-                    if wbopts.show
-                        waitbar(i / steps,hwb,['processing ...',num2str(i),' / ',num2str(steps),' lambda steps']);
-                    end
-                end
-            end
-            % delete the wait-bar
-            if wbopts.show
-                delete(hwb);
-            end
-            
-            % check if the STOP button was pressed
-            % if "UserData" is 1 STOP was not pressed -> save data
-            if get(gui.push_handles.invstd_run,'UserData') == 1
-                lc.lambda = lambda_range;
-                lc.RMS = RMS;
-                lc.RN = RN;
-                lc.XN = XN;                
-                % get optimal lambda
-                lc.index = getLambdaFromLCurve(RN,XN,0);
-                data.results.lcurve = lc;                
-                % update GUI data
-                setappdata(fig,'data',data);
-                % update L-curve plots
-                updatePlotsLcurve;
-                % status bar information
-                displayStatusText(gui,[infostring,' done']);
-            else
-                % status bar information
-                displayStatusText(gui,[infostring,' was canceled']);
-                % remove temporary data fields
-                data = removeInversionFields(data);
-            end
-            
+            displayStatusText(gui,['L-curve calculation ... ',' done']);
+
         otherwise % normal inversion
             % time the whole inversion
             tic;
@@ -188,11 +148,11 @@ if ~isempty(id) && ~isempty(INVdata)
                 case 'off'
                     param.info = 'off';
             end
-            
+
             % disable the RUN button to indicate a running inversion
             set(gui.push_handles.invstd_run,'String','RUNNING ...',...
                 'BackgroundColor',[0.9400 0.9400 0.9400],...
-                'Enable','inactive');            
+                'Enable','inactive');
             % switch depending on inversion method
             switch data.invstd.invtype
                 case 'mono' % mono-exponential inversion
@@ -218,7 +178,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     invstd = fitDataFree(data.results.nmrproc.t,...
                         data.results.nmrproc.s,flag,param,1);
                     data.invstd.Tfixed_val = [invstd.T zeros(1,4)];
-                    
+
                 case 'free' % N free single-exponential inversion
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
@@ -241,7 +201,7 @@ if ~isempty(id) && ~isempty(INVdata)
                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
                     data.invstd.Tfixed_val = [invstd.T(1:data.invstd.freeDT)...
                         zeros(1,5-data.invstd.freeDT)];
-                            
+
                 case 'LU' % multi-exponential inversion
                     % general parameter
                     param.T1T2 = data.results.nmrproc.T1T2;
@@ -260,7 +220,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     displayStatusText(gui,infostring);
                     invstd = fitDataLUdecomp(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
-                    
+
                 case 'NNLS' % multi-exponential inversion with manual regularization
                     % general parameter
                     param.T1T2 = data.results.nmrproc.T1T2;
@@ -277,7 +237,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
-                    
+
                     % status bar information
                     switch data.info.solver
                         case 'lsqlin'
@@ -288,7 +248,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     displayStatusText(gui,infostring);
                     invstd = fitDataLSQ(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
-                    
+
                 case 'MUMO' % N free distribution inversion
                     param.nModes = data.invstd.freeDT;
                     param.T1T2 = data.results.nmrproc.T1T2;
@@ -301,7 +261,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
-                    
+
                     % status bar information
                     switch data.info.solver
                         case 'lsqlin'
@@ -312,7 +272,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     displayStatusText(gui,infostring);
                     invstd = fitDataMultiModal(data.results.nmrproc.t,...
                         data.results.nmrproc.s,param);
-            end            
+            end
             % normalize to 1
             if data.process.norm == 1
                 switch data.invstd.invtype
@@ -336,7 +296,7 @@ if ~isempty(id) && ~isempty(INVdata)
             % save inversion results
             data.results.invstd = invstd;
             setappdata(fig,'data',data);
-    end    
+    end
     % as long as the "UserData" is 1 the STOP button was not pressed and
     % the inversion result gets saved in "INVdata"
     if get(gui.push_handles.invstd_run,'UserData') == 1 && ...
@@ -348,7 +308,7 @@ if ~isempty(id) && ~isempty(INVdata)
         INVdata{id} = rmfield(INVdata{id},'info');
         INVdata{id} = rmfield(INVdata{id},'calib');
         INVdata{id} = rmfield(INVdata{id},'pressure');
-        
+
         % color the list entries that already have an inversion result
         strL = get(gui.listbox_handles.signal,'String');
         str1 = strL{id};
@@ -356,10 +316,10 @@ if ~isempty(id) && ~isempty(INVdata)
             sprintf('%d,%d,%d',gui.myui.colors.listINV.*255),')">',str1,'</BODY></HTML>'];
         strL{id} = str2;
         set(gui.listbox_handles.signal,'String',strL);
-        
+
         % update GUI INVdata
         setappdata(fig,'INVdata',INVdata);
-        
+
         % ---
         % special treatment for LIAG processing
         if isfield(data.import,'LIAG') && ~strcmp(data.invstd.regtype,'lcurve')
@@ -386,7 +346,7 @@ if ~isempty(id) && ~isempty(INVdata)
                 % update GUI data
                 setappdata(fig,'data',data);
                 % save calibration data
-                useSignalAsCalibration(id);                
+                useSignalAsCalibration(id);
             else
                 calibratePorosity;
             end
@@ -395,7 +355,7 @@ if ~isempty(id) && ~isempty(INVdata)
     else  % STOP was pressed (because "UserData" is 0)
         % reset "UserData"
         set(gui.push_handles.invstd_run,'UserData',1);
-    end    
+    end
     % update plots and INFO fields
     updatePlotsSignal;
     updatePlotsDistribution;
@@ -419,7 +379,7 @@ else
 end
 
 %% at the end, no matter what reset the RUN button
-set(gui.push_handles.invstd_run,'String','<HTML><u>R</u>UN',...
+set(gui.push_handles.invstd_run,'String','RUN',...
     'BackgroundColor','g','Enable','on','Callback',@onPushRun);
 setappdata(fig,'gui',gui);
 

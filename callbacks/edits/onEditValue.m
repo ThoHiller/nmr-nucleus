@@ -158,6 +158,7 @@ switch fig_tag
                             set(src,'String',num2str(data.invstd.porosity));
                         end
                         updatePlotsDistribution;
+                        updateInfo(gui.plots.SignalPanel);
                 end
             case 'invjoint'
                 switch out.field

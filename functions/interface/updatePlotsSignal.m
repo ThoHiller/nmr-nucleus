@@ -61,7 +61,7 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
         plot(nmrraw.t,real(nmrraw.s),'Color',col.RE,'Parent',ax);
     else
         plot(nmrraw.t,real(nmrraw.s),'Color',col.RE,'Parent',ax);
-        plot(nmrraw.t,imag(nmrraw.s),'Color',col.IM,'LineWidth',1,'Parent',axI);
+        plot(nmrraw.t,imag(nmrraw.s)./nmrproc.noise,'Color',col.IM,'LineWidth',1,'Parent',axI);
     end
     
     % limits & ticks
@@ -112,7 +112,7 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
         set(get(ax,'XLabel'),'String','time [ms]');
     end
     if strcmp(nmrproc.T1T2,'T2') && ~isreal(nmrraw.s)
-        set(get(ax,'YLabel'),'String','\Reeal');
+        set(get(ax,'YLabel'),'String','real(amplitude) [a.u.]');
     else
         set(get(ax,'YLabel'),'String','amplitude [a.u.]');
     end
@@ -121,18 +121,14 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
     if ~isreal(nmrraw.s)
         xlims = get(ax,'XLim');
         line(xlims,[0 0],'LineStyle','--','LineWidth',1,'Color','k','Parent',axI);
-        imag_mean = mean(imag(nmrraw.s));
-        imag_std = std(imag(nmrraw.s));
-        yticks = [imag_mean-imag_std*2 imag_mean imag_mean+imag_std*2];
-        ylim = [imag_mean-imag_std*3 imag_mean+imag_std*3];
-        set(axI,'XTickLabel','','YLim',ylim,'YTick',yticks,'YTickLabelMode','auto');
+        set(axI,'XTickLabel','','YLim',[-2 2],'YTick',[-1 0 1],'YTickLabelMode','auto');
         switch loglinx
             case 'x-axis -> lin' % log axes
                 set(axI,'XScale','log','XLim',xlims);
             case 'x-axis -> log' % lin axes
                 set(axI,'XScale','lin','XLim',xlims);
         end
-        set(get(axI,'YLabel'),'String','\Immag');
+        set(get(axI,'YLabel'),'String',{'noise';'weighted';'imag'});
     end
     
     % grid
@@ -151,30 +147,71 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
         case {'LU','NNLS','MUMO'}            
             if isfield(data.results,'invstd')
                 if isfield(data.results.invstd,'uncert')
+                    patchtype = 'meanstd';
                     uncert = data.results.invstd.uncert;
                     t = uncert.interp_t;
-                    SDIST = uncert.interp_s;
+                    SDIST = uncert.interp_s';
                     switch data.info.RTDuncert
                         case 'lines'
-                            plot(t,SDIST(:,1),'-','Color',[0.5 0.5 0.5],...
+                            plot(t,SDIST(1,:),'-','Color',[0.5 0.5 0.5],...
                                 'LineWidth',1,...
                                 'DisplayName','uncert models','Parent',ax);
-                            plot(t,SDIST(:,2:end),'-','Color',[0.5 0.5 0.5],...
+                            plot(t,SDIST(2:end,:),'-','Color',[0.5 0.5 0.5],...
                                 'LineWidth',1,'HandleVisibility','off',...
                                 'Tag','infolines','Parent',ax);
                         case 'patch'
-                            % uncertainty patch created from min max of uncertainty
-                            % data
-                            s_min = data.results.invstd.uncert.interp_s_min;
-                            s_max = data.results.invstd.uncert.interp_s_max;
-                            t = data.results.invstd.uncert.interp_t;
-                            verts = [t(t>0) s_min(t>0); flipud(t(t>0)) flipud(s_max(t>0))];
-                            faces = 1:1:size(verts,1);
-                            patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
-                                'FaceAlpha',0.75,'EdgeColor','none',...
-                                'DisplayName','uncert','Parent',ax);
-                    end
+                            switch patchtype
+                                case 'minmax'
+                                    % uncertainty patch created from min max
+                                    % of uncertainty data
+                                    s_min = data.results.invstd.uncert.interp_s_min;
+                                    s_max = data.results.invstd.uncert.interp_s_max;
+                                    t = data.results.invstd.uncert.interp_t;
+                                    verts = [t(t>0) s_min(t>0); flipud(t(t>0)) flipud(s_max(t>0))];
+                                    faces = 1:1:size(verts,1);
+                                    patch('Faces',faces,'Vertices',verts,'FaceColor',[0.64 0.64 0.64],...
+                                        'FaceAlpha',0.75,'EdgeColor','none',...
+                                        'DisplayName','uncert','Parent',ax);
+                                case 'meanstd'
+                                    % uncertainty patch created from mean 
+                                    % and std of all uncert models
+                                    mean_s = mean(SDIST);
+                                    std_s = std(SDIST);
 
+                                    % patch lower and upper bounds
+                                    patch_s_std1 = [mean_s+std_s;mean_s-std_s];
+                                    patch_s_std2 = [mean_s+2*std_s;mean_s-2*std_s];
+                                    patch_s_std3 = [mean_s+3*std_s;mean_s-3*std_s];
+                                    patch_s_std1(patch_s_std1<0) = 0;
+                                    patch_s_std2(patch_s_std2<0) = 0;
+                                    patch_s_std3(patch_s_std3<0) = 0;
+                                    % s_max = max([max(patch_s_std1)...
+                                    %     max(patch_s_std2) max(patch_s_std3)]);
+
+                                    % draw all three patches on top of each other
+                                    verts = [t(t>0) patch_s_std3(2,t>0)';....
+                                        flipud(t(t>0)) flipud(patch_s_std3(1,t>0)')];
+                                    faces = 1:1:size(verts,1);
+                                    patch('Faces',faces,'Vertices',verts,...
+                                        'FaceColor',[0.6 0.6 0.6],...
+                                        'FaceAlpha',0.75,'EdgeColor','none',...
+                                        'DisplayName','mean (3*std)','Parent',ax);
+                                    verts = [t(t>0) patch_s_std2(2,t>0)';....
+                                        flipud(t(t>0)) flipud(patch_s_std2(1,t>0)')];
+                                    faces = 1:1:size(verts,1);
+                                    patch('Faces',faces,'Vertices',verts,...
+                                        'FaceColor',[0.4 0.4 0.4],...
+                                        'FaceAlpha',0.75,'EdgeColor','none',...
+                                        'DisplayName','mean (2*std)','Parent',ax);
+                                    verts = [t(t>0) patch_s_std1(2,t>0)';....
+                                        flipud(t(t>0)) flipud(patch_s_std1(1,t>0)')];
+                                    faces = 1:1:size(verts,1);
+                                    patch('Faces',faces,'Vertices',verts,...
+                                        'FaceColor',[0.2 0.2 0.2],...
+                                        'FaceAlpha',0.75,'EdgeColor','none',...
+                                        'DisplayName','mean (std)','Parent',ax);
+                            end
+                    end
                 end
                 if nmrproc.isgated
                     plot(data.results.nmrraw.t,data.results.nmrraw.s,'o',...
@@ -322,8 +359,8 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
             case 'T2'
                 set(lgh,'Location','NorthEast');
         end
-        set(lgh,'TextColor',gui.myui.colors.panelFG,'Tag','fitlegend',...
-            'FontSize',10);
+        set(lgh,'EdgeColor',gui.myui.colors.axisFG,'TextColor',gui.myui.colors.panelFG,...
+            'Tag','fitlegend','FontSize',10);
     end
     
     % grid
@@ -416,9 +453,9 @@ if isjoint && ~isfield(data.results,'invjoint') && ...
         tablelevels = 1:size(table,1);
         tablelevels = tablelevels(uselevel);
         S = cell2mat(table(:,3));
-        %         if numel(S)~=nINV
-        %             % S()
-        %         end
+        % if numel(S)~=nINV
+        %    % S()
+        % end
         [isin,levels] = ismember(invlevels,tablelevels);
         levels = tablelevels(levels(isin));
     end

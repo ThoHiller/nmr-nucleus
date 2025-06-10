@@ -55,6 +55,10 @@ if isfield(data.import,'BAM')
     data.import = rmfield(data.import,'BAM');
 end
 
+if isfield(data.import,'T1T2map')
+    data.import = rmfield(data.import,'T1T2map');
+end
+
 if isfield(data,'results')
     data = rmfield(data,'results');
 end

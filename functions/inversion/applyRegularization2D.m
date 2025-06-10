@@ -1,30 +1,35 @@
-function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)
-%applyRegularization applies a manual regularization to the kernel matrix K
+function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level)
+%applyRegularization applies regularization procedures from the
+%Regularization toolbox from P. Hansen -- for all methods (except "manual")
+%the regularization parameter lambda is determined by different criteria
+%and using a SVD
 %
 % Syntax:
-%       applyRegularization2D(K,order,Tvec,Dvec,indices,dat_vec,lambda)
+%       applyRegularization(K,g,LT2,LT1,lambda_in,flag,order,noise_level)
 %
 % Inputs:
 %       K - Kernel matrix
-%       order - smoothness constraint: '0', '1' or '2' for both dimensions
-%               the same so far
-%       Tvec - relaxation time vector: here T2
-%       Dvec - diffusion / relaxation time vector: here T1
-%       indices - struct holding tile indices
-%       dat_vec - signal vector
-%       lambda - 1x2 vector holding lambda for both dimensions
+%       g - signal
+%       LT,LD - smoothness constraint matrices
+%       lambda_in - regularization parameter
+%       flag - flag for regularization method:
+%              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',
+%       order - smoothness constraint: '0', '1' or '2'
+%       noise_level - noise level for 'discrep' method (discrepancy principle)
 %
 % Outputs:
 %       Kreg - expanded (regularized) Kernel matrix
-%       dat_inp - expanded signal vector
-%       L - smoothness matrix regarding T dim
-%       LD - smoothness matrix regarding D dim
+%       lambda - determined lambda
 %
 % Example:
-%       [Kreg,dat_inp,~,~] = applyRegularization2D(K,order,T2vec,T1vec,indices,dat_vec,lambda)
+%       [Kr,lam] = applyRegularization(K,s,LT2,LT1,lambda_in,flag,Lorder,noise)
 %
 % Other m-files required:
-%       get_l (from Regularization toolbox)
+%       Regularization Toolbox
+%       csvd
+%       cgsvd
+%       gcv
+%       discrep
 %
 % Subfunctions:
 %       none
@@ -39,37 +44,64 @@ function [Kreg,dat_inp,L,LD] = applyRegularization2D(K,order,Tvec,Dvec,indices,d
 
 %------------- BEGIN CODE --------------
 
-%% get lambda values
-lamT = lambda(2); % T2
-lamD = lambda(1); % T1
+% combined smoothness matrix
+L = [LT;LD];
 
-%% get column indices
-col_end = indices.col_end;
+switch flag
+    case 'manual'
+        Kreg = [K;lambda_in(1)*LT;lambda_in(2)*LD];
+        lambda = lambda_in;
 
-% get first smoothness matrix
-L = get_l(length(Tvec)*length(Dvec),order);
+    case {'gcv_tikh','gcv_trunc','gcv_damp'}
+        try
+            if order == 0
+                [U,s,~] = csvd(K);
+            else
+                [U,s,~,~,~] = cgsvd(K,L);
+            end
+            switch flag
+                case 'gcv_tikh'
+                    [lambda,~,~] = gcv(U,s,g,'tikh',0);
+                case 'gcv_trunc'
+                    [lambda,~,~] = gcv(U,s,g,'tsvd',0);
+                case 'gcv_damp'
+                    [lambda,~,~] = gcv(U,s,g,'dsvd',0);
+            end
+            Kreg = [K;lambda*L];
+        catch ME
+            % show error message in case cgsvd fails
+            errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
+                'Regul. Box: cgsvd.m failed!';'Increase #gates or decrease model space.';'Using Lambda=1 as fall back.'};
+            errordlg(errmsg,'applyRegularization: Error!');
+            lambda = 1;
+            Kreg = [K;lambda*L];
+        end
 
-% regularization along first dimension, normally Tvec (here T2)
-% loop necessary to correct the transitions among the tiles
-for n = 1:length(Dvec)-1
-        L(col_end(n)-order+1:col_end(n),col_end(n)+1:col_end(n)+order) = zeros(order);  
+    case 'discrep'
+        delta = sqrt(length(g))*noise_level;
+        try
+            if order == 0
+                [U,s,V] = csvd(K);
+                [~,lambda] = discrep(U,s,V,g,delta);
+            else
+                [U,s,X,~,~] = cgsvd(K,L);
+                [~,lambda] = discrep(U,s,X,g,delta);
+            end
+            Kreg = [K;lambda*L];
+        catch ME
+            % show error message in case discrep fails
+            errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...
+                'Regul. Box: discrep.m failed!';'Using Lambda=1 as fall back.'};
+            errordlg(errmsg,'applyRegularization: Error!');
+            lambda = 1;
+            Kreg = [K;lambda*L];
+        end
 end
-% first expanded kernel matrix
-KregT = [K;lamT * L];
 
-% regularization along second dimension, normally D (here T1)
-LD = zeros(size(L,1)-order*length(Tvec),size(L,2));
-for no = 1:order + 1
-    for n = 1:size(LD,2) - (order) * length(Tvec)
-         LD(n,n+(no-1)*length(Tvec)) = L(1,no); 
-    end
+% the GUI needs two lambda values
+if numel(lambda) == 1
+    lambda(2) = lambda(1);
 end
-% final expanded kernel matrix
-Kreg = [KregT;lamD * LD];
-
-% expanded data vector
-dat_inp = dat_vec;
-dat_inp(length(dat_vec)+1:length(dat_vec)+size(L,1)+size(LD,1),1) = 0;
 
 return
 
@@ -78,7 +110,7 @@ return
 %% License:
 % MIT License
 %
-% Copyright (c) 2024 Thomas Hiller
+% Copyright (c) 2025 Thomas Hiller
 %
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
@@ -97,7 +129,3 @@ return
 % LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
-
-
-        
-        

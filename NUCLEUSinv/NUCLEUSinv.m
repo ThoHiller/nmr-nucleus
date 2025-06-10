@@ -33,13 +33,16 @@ function NUCLEUSinv
 
 %------------- BEGIN CODE --------------
 
+%% switch-off java warnings
+warning('off', 'MATLAB:ui:javacomponent:FunctionToBeRemoved');
+
 %% Only one instance of NUCLEUSinv is allowed
 h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.3.0';
-myui.date = '27.11.2024';
+myui.version = '0.4.0';
+myui.date = '10.06.2025';
 myui.author = {'Stephan Costabel','Thomas Hiller'};
 myui.email = 'thomas.hiller[at]bgr.de';
 myui.fontsize = 10;
@@ -83,6 +86,13 @@ for i = 1:size(Mver,2)
     if strfind(Mver(i).Name,'Statistics')
         data.info.stat = 'on';
     end
+end
+% set solver default (LSQLIN if available)
+switch data.info.has_optim
+    case 'on'
+        data.info.solver = 'lsqlin';
+    case 'off'
+        data.info.solver = 'lsqnonneg';
 end
 
 % save the data struct within the GUI

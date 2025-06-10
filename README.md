@@ -6,6 +6,7 @@ modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**
 
 [![release](https://img.shields.io/github/release/NMR-NUCLEUS/nmr-nucleus.svg)](https://github.com/NMR-NUCLEUS/nmr-nucleus/releases/latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4022195.svg)](https://doi.org/10.5281/zenodo.4022195)
+
 - - -
 
 ## Table of Contents
@@ -28,10 +29,10 @@ modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**
 
 ### NUCLEUSmod basic features
 
-1. Generate pore size distributions (PSD) that can have a cylindrical, rectangular or polygonal cross section
+1. Generate pore size distributions (PSD) where the individual pores (capillaries) of the capillary bundle can either have a cylindrical, rectangular or polygonal cross section
 2. Calculate a capillary pressure saturation curve (CPSC) for the PSD by applying a range of non-zero air pressures (the capillaries are assumed to be water filled and completely water-wet); different saturations for drainage and imbibition conditions are considered
 3. Based on the different saturation levels along the CPSC, calculate the corresponding geometry-dependent forward NMR signals
-4. 2D forward modeling of T1-T2 data
+4. 2D forward modeling of T<sub>1</sub>-T<sub>2</sub> data (without pore geometry considerations)
 
 |    <div style="width:400px">![nucleusmod](images/nucleusmod_gui.png)</div> | <div style="width:330px">![nucleusmod2d](images/2dmod_gui.png)</div> |
 |:-------------------------------------------------------------------:|:-------------------------------------------------------------:|
@@ -47,11 +48,11 @@ modeling and i**N**version of n**UCL**ear magnetic r**E**sonance data with ang**
 4. Different inversion options to process NMR data (e.g. mono-exponential fit, bi-exponential fit, multi-exponential fit) and estimate the uncertainty of the resulting relaxation time distributions (RTDs)
 5. Different regularization options for multi-exponential fitting (e.g. manual, L-curve, SVD tools)
 6. Joint inversion of NMR and CPS data to directly infer a PSD (non-linear inversion of surface relaxivity and PSD)
-7. 2D inversion of T1-T2 data
+7. 2D inversion of T<sub>1</sub>-T<sub>2</sub> data
 
 |    <div style="width:400px">![nucleusinv](images/nucleusinv_gui.png)</div> | <div style="width:330px">![nucleusinv2d](images/2dinv_gui.png)</div>  |
 |:-------------------------------------------------------------------:|:--------------------------------------------------------------:|
-|                 NUCLEUSinv                                          |                   NUCLEUSinv - 2D (T1-T2)                      |
+|                 NUCLEUSinv                                          |                   NUCLEUSinv - 2D (T<sub>1</sub>-T<sub>2</sub>)                      |
 |    <div style="width:400px">![uncert](images/uncertview_gui.png)</div>     | <div style="width:335px">![phaseview](images/phaseview_gui.png)</div> |
 |                 NUCLEUSinv - RTD Uncertainty View                   |                   NUCLEUSinv - Phase View                      |
 
@@ -74,11 +75,11 @@ In order to work properly you need to meet the following requirements:
 7. `kde` kernel density estimator (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/14034-kernel-density-estimator)) (<span style="color:green">optional; not needed for R2023b and newer</span>)
 8. `imagescnan` (get it from [FEX](https://de.mathworks.com/matlabcentral/fileexchange/20516-imagescnan-m-v2-1-aug-2009)) (<span style="color:green">optional; only needed for the 2D inversion</span>)
 
-If you do not have the Optimization or Statistics toolboxes then not all features are available (especially parts of the joint inversion). However, the general functionality of obtaining relaxation time distributions (RTDs) form NMR relaxometry data is of course working.
+If you do not have the Optimization or Statistics toolboxes then not all features are available (especially parts of the joint inversion). However, the general functionality of obtaining relaxation time distributions (RTDs) from NMR relaxometry data is of course working.
 
 ### Operating System
 
-I tested it successfully under Windows 7 (64bit) and 10 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is afaik v2.3.6)
+I tested it successfully under Windows 7 (64bit), 10 (64bit)  and 11 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is afaik v2.4.1 but I used v2.3.9)
 
 **NOTE:** So far I did not test anything on Linux or a Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
 
@@ -134,7 +135,7 @@ In no particular order and without guarantee that it will ever happen :-) :
 ## Cite as
 If you use NUCLEUS for your research, please cite it as:
 
-Thomas Hiller. (2024, Nov 27). ThoHiller/nmr-nucleus: v0.3.0 (Version v0.3.0). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
+Thomas Hiller. (2025, Jun 10). ThoHiller/nmr-nucleus: v0.4.0 (Version v0.4.0). Zenodo. [https://doi.org/10.5281/zenodo.4022195]
 
 Note: Even though the version number might change due to updates, this DOI is permanent (represents all versions) and always links to the latest version.
 

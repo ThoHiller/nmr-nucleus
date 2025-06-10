@@ -304,10 +304,7 @@ if foundINV
                                 if useW
                                     % normalize the fit because the signal was error
                                     % weighted for the inversion
-                                    e = diag(iparam.W);
-                                    einv = 1./e;
-                                    Winv = diag(einv);
-                                    ig = Winv * ig;
+                                    ig = iparam.W * ig;
                                 end
                         
                                 residual = ig - g';
@@ -321,12 +318,12 @@ if foundINV
                                     % NOTE: if "N per gate" is too large, the RMS estimation breaks down
                                     RMS(i) = sqrt (sum(N'.*(residual).^2) / length(residual));
                                     % X2 estimate
-                                    CHI2(i) = getChi2(g',ig,e);
+                                    CHI2(i) = getChi2(g',ig,e');
                                 else
                                     % RMS error
                                     RMS(i) = sqrt( sum(residual.^2) / length(residual) );
                                     % X2 estimate
-                                    CHI2(i) = getChi2(g',ig,idata.nmr{levels(1)}.noise);
+                                    CHI2(i) = getChi2(g',ig,e');
                                 end
                                 % error norm and model norm
                                 RN(i) = norm(residual,2);
@@ -350,7 +347,6 @@ if foundINV
                             lc.RN = RN;
                             lc.XN = XN;
                             % get optimal lambda
-%                             lc.index = getLambdaFromRMS(lc.lambda,lc.RMS,0);
                             lc.index = getLambdaFromLCurve(RN,XN,0);
                             data.results.lcurve = lc;
                             % update GUI data
@@ -416,10 +412,7 @@ if foundINV
                         if useW
                             % normalize the fit because the signal was error
                             % weighted for the inversion
-                            e = diag(iparam.W);
-                            einv = 1./e;
-                            Winv = diag(einv);
-                            ig = Winv * ig;
+                            ig = iparam.W * ig;
                         end
                 
                         % the inverted surface relaxivity and PSD
@@ -453,12 +446,12 @@ if foundINV
                             % NOTE: if "N per gate" is too large, the RMS estimation breaks down
                             data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
                             % X2 estimate
-                            data.results.invjoint.chi2 = getChi2(g',ig,e);
+                            data.results.invjoint.chi2 = getChi2(g',ig,e');
                         else
                             % RMS error
                             data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
                             % X2 estimate
-                            data.results.invjoint.chi2 = getChi2(g',ig,idata.nmr{levels(1)}.noise);
+                            data.results.invjoint.chi2 = getChi2(g',ig,e');
                         end
                                                 
                         % predict CPS curves for the final model
@@ -528,10 +521,7 @@ if foundINV
                 if useW
                     % normalize the fit because the signal was error
                     % weighted for the inversion
-                    e = diag(iparam.W);
-                    einv = 1./e;
-                    Winv = diag(einv);
-                    ig = Winv * ig;
+                    ig = iparam.W * ig;
                 end                
                 
                 % inverted surface relaxivity
@@ -563,12 +553,12 @@ if foundINV
                     % NOTE: if "N per gate" is too large, the RMS estimation breaks down
                     data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
                     % X2 estimate
-                    data.results.invjoint.chi2 = getChi2(g',ig,e);
+                    data.results.invjoint.chi2 = getChi2(g',ig,e');
                 else
                     % RMS error
                     data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
                     % X2 estimate
-                    data.results.invjoint.chi2 = getChi2(g',ig,idata.nmr{levels(1)}.noise);
+                    data.results.invjoint.chi2 = getChi2(g',ig,e');
                 end
                 
                 % predict CPS curves from final model
@@ -645,10 +635,7 @@ if foundINV
                 if useW
                     % normalize the fit because the signal was error
                     % weighted for the inversion
-                    e = diag(iparam.W);
-                    einv = 1./e;
-                    Winv = diag(einv);
-                    ig = Winv * ig;
+                    ig = iparam.W * ig;
                 end
                 
                 irho = 10^X(1);
@@ -681,12 +668,12 @@ if foundINV
                     % NOTE: if "N per gate" is too large, the RMS estimation breaks down                   
                     data.results.invjoint.rms = sqrt (sum(N'.*(residual).^2) / length(residual));
                     % X2 estimate
-                    data.results.invjoint.chi2 = getChi2(g',ig,e);
+                    data.results.invjoint.chi2 = getChi2(g',ig,e');
                 else
                     % RMS error
                     data.results.invjoint.rms = sqrt( sum(residual.^2) / length(residual) );
                     % X2 estimate
-                    data.results.invjoint.chi2 = getChi2(g',ig,idata.nmr{levels(1)}.noise);
+                    data.results.invjoint.chi2 = getChi2(g',ig,e');
                 end
                 
                 % predict CPS curves from final model

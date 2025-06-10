@@ -72,7 +72,8 @@ if ~isempty(INVdata)
     set(gui.listbox_handles.signal,'Value',[],'Max',2,'Min',0);
     
     if isfield(data.import,'BAM') && isfield(data.import.BAM,'zslice')
-        data.import.BAM.zslice = flipud(data.import.BAM.zslice);
+        % data.import.BAM.zslice = flipud(data.import.BAM.zslice);
+        data.import.BAM.zslice = data.import.BAM.zslice(ix);
     end
 else
     % if there is no data to sort throw a help dialog

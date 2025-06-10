@@ -43,16 +43,16 @@ rho = rho(:);
 eta = eta(:);
 
 % log of rho and eta
-lrho = log10(rho);
-leta = log10(eta);
+% rho = log10(rho);
+% eta = log10(eta);
 
 phi = zeros(numel(eta)-2,1);
 curv = zeros(numel(eta)-2,1);
-for i = 2:numel(leta)-1
+for i = 2:numel(eta)-1
    % 3 Points
-   P1 = [lrho(i-1) leta(i-1)];
-   P2 = [lrho(i) leta(i)];
-   P3 = [lrho(i+1) leta(i+1)];
+   P1 = [rho(i-1) eta(i-1)];
+   P2 = [rho(i) eta(i)];
+   P3 = [rho(i+1) eta(i+1)];
    v1 = P1-P2;
    v2 = P3-P2;
    % angle phi and curvature at point P2
@@ -68,8 +68,25 @@ index = find(curv==max(curv));
 % plot (optional)
 if plotit == 1
     figure;
+    subplot(121);
     loglog(rho ,eta ,'o-'); hold on;
     loglog(rho(index),eta(index),'r+');
+    
+    % alternative approach
+    rr = rho - min(rho);
+    ee = eta - min(eta);
+    rr = rr./max(rr);
+    ee = ee./max(ee);
+    ss = rr+ee;
+    subplot(122)
+    plot(rr,'o-','DisplayName','rn'); hold on;
+    plot(ee,'o-','DisplayName','xn');
+    plot(ss,'x-','DisplayName','rn+xn');
+    indx = find(ss==min(ss));    
+    plot(indx,ss(indx),'kx','MarkerSize',8,'DisplayName','min(rn+xn)');
+    plot(index,ss(index),'rx','MarkerSize',8,'DisplayName','min(Lcurve)');
+    lh = legend;
+    set(lh,'FontSize',10);
 end
 
 return

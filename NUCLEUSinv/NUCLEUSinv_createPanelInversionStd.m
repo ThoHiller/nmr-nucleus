@@ -162,14 +162,19 @@ gui.edit_handles.invstd_NlambdaR = uicontrol('Parent',gui.panels.invstd.HBox5,..
     'Enable','off','Callback',@onEditValue);
 set(gui.panels.invstd.HBox5,'Widths',[200 -1 -1 -1]);
 
-%% RUN button
+%% RUN buttons
 gui.text_handles.invstd_run = uicontrol('Parent',gui.panels.invstd.HBox6,...
     'Style','text','FontSize',myui.fontsize,'HorizontalAlignment','center',...
     'String','run Inversion');
+% gui.push_handles.invstd_run_batch = uicontrol('Parent',gui.panels.invstd.HBox6,'Enable','off',...
+%     'String','RUN BATCH','FontSize',myui.fontsize,'BackGroundColor','g',...
+%     'Tag','stdbatch','UserData',1,'Callback',@onPushRun);
+gui.check_handles.invstd_batch = uicontrol('Parent',gui.panels.invstd.HBox6,'Style','checkbox',...
+    'String','Batch','FontSize',myui.fontsize,'Tag','stdbatch');
 gui.push_handles.invstd_run = uicontrol('Parent',gui.panels.invstd.HBox6,'Enable','off',...
-    'String','<HTML><u>R</u>UN','FontSize',myui.fontsize,'BackGroundColor','g',...
+    'String','RUN','FontSize',myui.fontsize,'BackGroundColor','g',...
     'Tag','std','UserData',1,'Callback',@onPushRun);
-set(gui.panels.invstd.HBox6,'Widths',[200 -1]);
+set(gui.panels.invstd.HBox6,'Widths',[200 60 -1]);
 
 %% RTD uncertainty
 gui.text_handles.uncert = uicontrol('Parent',gui.panels.invstd.HBox7,...
@@ -182,25 +187,9 @@ gui.edit_handles.uncert_N = uicontrol('Parent',gui.panels.invstd.HBox7,...
     'Tag','uncert_N','FontSize',myui.fontsize,...
     'Enable','off','Callback',@onEditValue);
 gui.push_handles.uncert = uicontrol('Parent',gui.panels.invstd.HBox7,'Enable','off',...
-    'String','CALC.','FontSize',myui.fontsize,'BackGroundColor','g',...
+    'String','RUN UNCERT','FontSize',myui.fontsize,'BackGroundColor','g',...
     'Tag','uncert','UserData',1,'Callback',@onPushRun);
 set(gui.panels.invstd.HBox7,'Widths',[200 -1 -2]);
-
-%% Java Hack to adjust vertical alignment of text fields
-jh = findjobj(gui.text_handles.invstd_InvType);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invstd_RTDtimes);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invstd_InvTypeOpt);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invstd_Lorder);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invstd_lambda);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.invstd_run);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
-jh = findjobj(gui.text_handles.uncert);
-jh.setVerticalAlignment(javax.swing.JLabel.CENTER);
 
 return
 

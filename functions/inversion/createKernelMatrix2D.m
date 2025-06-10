@@ -1,6 +1,6 @@
 function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)
 %createKernelMatrix2D creates a Kernel matrix from signals time vectors "t"
-%and relaxation time vector "T1vec" and "T2vec"
+%and relaxation time vectors "T1vec" and "T2vec"
 %
 % Syntax:
 %       createKernelMatrix2D(dat,T1vec,T2vec,G0,D,te,T1IRfac)
@@ -120,7 +120,7 @@ for n = 1:numel(T1vec)
     end
 end
 
-% struc holding tile indices
+% struct holding tile indices
 indices.lin_1 = lin_1;
 indices.lin_end = lin_end;
 indices.col_1 = col_1;

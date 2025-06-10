@@ -53,11 +53,11 @@ switch tag
     case 'sort'
         switch label
             case 'by name'
-                resortDataList('name');                
+                resortDataList('name');
             case 'by date'
                 resortDataList('date');
             case 'flip list'
-                resortDataList('flip');    
+                resortDataList('flip');
             case [char(hex2dec('2191')),'up']
                 moveEntryInList(-1);
             case [char(hex2dec('2193')),'down']
@@ -93,6 +93,16 @@ switch tag
             otherwise
                 disp(['onContextSignalList ',tag,' ',label,...
                     ': Something is utterly wrong.']);
+        end
+    case 'T1'
+        setT1type(id,label)
+        switch label
+            case 'SR'
+                set(gui.cm_handles.data_list_T1_SR,'Checked','on');
+                set(gui.cm_handles.data_list_T1_IR,'Checked','off');
+            case 'IR'
+                set(gui.cm_handles.data_list_T1_SR,'Checked','off');
+                set(gui.cm_handles.data_list_T1_IR,'Checked','on');
         end
     otherwise
         disp(['onContextSignalList ',tag,': Something is utterly wrong.']);

@@ -43,7 +43,8 @@ data = getappdata(fig,'data');
 if isfield(data.results,'SAT')
     
     % generate a time vector from the echo time 'TE' and number of echoes 'echosN'
-    nmr.t = getNMRTimeVector(data.nmr.TE,'µs','N',data.nmr.echosN);
+    nmr.t2 = getNMRTimeVector(data.nmr.TE,'µs','N',data.nmr.echosN);
+    nmr.t1 = logspace(log10(data.nmr.T1rmin),log10(data.nmr.T1rmax),data.nmr.T1rN);
     nmr.Tb = data.nmr.Tbulk;
     nmr.Td = data.nmr.Tdiff;
     nmr.rho = data.nmr.rho/1e6; % µm/s to m/s

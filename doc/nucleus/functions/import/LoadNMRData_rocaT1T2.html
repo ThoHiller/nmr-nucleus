@@ -44,13 +44,15 @@ produced by the Magritek Rock Core Analyzer
        out.nmrData - NMR data
 
  Example:
-       out = LoadNMRData_helios(in)
+       out = LoadNMRData_rocaT1T2(in)
 
  Other m-files required:
        fixParameterString
+       rotateT2phase
 
  Subfunctions:
        LoadDataFile
+       LoadParameterFile
 
  MAT-files required:
        none
@@ -94,261 +96,263 @@ This function is called by:
 0017 <span class="comment">%       out.nmrData - NMR data</span>
 0018 <span class="comment">%</span>
 0019 <span class="comment">% Example:</span>
-0020 <span class="comment">%       out = LoadNMRData_helios(in)</span>
+0020 <span class="comment">%       out = LoadNMRData_rocaT1T2(in)</span>
 0021 <span class="comment">%</span>
 0022 <span class="comment">% Other m-files required:</span>
 0023 <span class="comment">%       fixParameterString</span>
-0024 <span class="comment">%</span>
-0025 <span class="comment">% Subfunctions:</span>
-0026 <span class="comment">%       LoadDataFile</span>
-0027 <span class="comment">%</span>
-0028 <span class="comment">% MAT-files required:</span>
-0029 <span class="comment">%       none</span>
-0030 <span class="comment">%</span>
-0031 <span class="comment">% See also: NUCLEUSinv</span>
-0032 <span class="comment">% Author: see AUTHORS.md</span>
-0033 <span class="comment">% email: see AUTHORS.md</span>
-0034 <span class="comment">% License: MIT License (at end)</span>
-0035 
-0036 <span class="comment">%------------- BEGIN CODE --------------</span>
+0024 <span class="comment">%       rotateT2phase</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% Subfunctions:</span>
+0027 <span class="comment">%       LoadDataFile</span>
+0028 <span class="comment">%       LoadParameterFile</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% MAT-files required:</span>
+0031 <span class="comment">%       none</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% See also: NUCLEUSinv</span>
+0034 <span class="comment">% Author: see AUTHORS.md</span>
+0035 <span class="comment">% email: see AUTHORS.md</span>
+0036 <span class="comment">% License: MIT License (at end)</span>
 0037 
-0038 <span class="comment">%% start processing the files</span>
+0038 <span class="comment">%------------- BEGIN CODE --------------</span>
 0039 
-0040 <span class="comment">% read the data file</span>
-0041 datafile = dir(fullfile(in.path,in.name));
-0042 <span class="comment">% load Parameter file</span>
-0043 parData = <a href="#_sub2" class="code" title="subfunction [data] = LoadParameterFile(datapath,fname)">LoadParameterFile</a>(in.path,<span class="string">'acqu.par'</span>);
-0044 data = <a href="#_sub1" class="code" title="subfunction data = LoadDataFile(datapath,fname,flag,pardata)">LoadDataFile</a>(in.path,in.name,in.T1T2,parData);
-0045 
-0046 nmrData = cell(1,1);
-0047 <span class="keyword">for</span> j1 = 1:numel(data)
-0048     <span class="comment">% get file statistics</span>
-0049     nmrData{j1}.datfile = datafile.name;
-0050     nmrData{j1}.date = datafile.date;
-0051     nmrData{j1}.datenum = datafile.datenum;
-0052     nmrData{j1}.bytes = datafile.bytes;
-0053 
-0054     <span class="comment">% save the NMR data</span>
-0055     nmrData{j1}.flag = data(j1).flag;
-0056     nmrData{j1}.T1IRfac = 1;
-0057     nmrData{j1}.time = data(j1).time;
-0058     nmrData{j1}.signal = data(j1).signal;
-0059     nmrData{j1}.raw = data(j1).raw;
-0060     <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
-0061         nmrData{j1}.phase = data(j1).phase;
-0062     <span class="keyword">end</span>
-0063 <span class="keyword">end</span>
-0064 
-0065 <span class="comment">% save data to output struct</span>
-0066 out.parData = parData;
-0067 out.nmrData = nmrData;
-0068 
-0069 <span class="keyword">end</span>
+0040 <span class="comment">%% start processing the files</span>
+0041 
+0042 <span class="comment">% read the data file</span>
+0043 datafile = dir(fullfile(in.path,in.name));
+0044 <span class="comment">% load Parameter file</span>
+0045 parData = <a href="#_sub2" class="code" title="subfunction [data] = LoadParameterFile(datapath,fname)">LoadParameterFile</a>(in.path,<span class="string">'acqu.par'</span>);
+0046 data = <a href="#_sub1" class="code" title="subfunction data = LoadDataFile(datapath,fname,flag,pardata)">LoadDataFile</a>(in.path,in.name,in.T1T2,parData);
+0047 
+0048 nmrData = cell(1,1);
+0049 <span class="keyword">for</span> j1 = 1:numel(data)
+0050     <span class="comment">% get file statistics</span>
+0051     nmrData{j1}.datfile = datafile.name;
+0052     nmrData{j1}.date = datafile.date;
+0053     nmrData{j1}.datenum = datafile.datenum;
+0054     nmrData{j1}.bytes = datafile.bytes;
+0055 
+0056     <span class="comment">% save the NMR data</span>
+0057     nmrData{j1}.flag = data(j1).flag;
+0058     nmrData{j1}.T1IRfac = 1;
+0059     nmrData{j1}.time = data(j1).time;
+0060     nmrData{j1}.signal = data(j1).signal;
+0061     nmrData{j1}.raw = data(j1).raw;
+0062     <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
+0063         nmrData{j1}.phase = data(j1).phase;
+0064     <span class="keyword">end</span>
+0065 <span class="keyword">end</span>
+0066 
+0067 <span class="comment">% save data to output struct</span>
+0068 out.parData = parData;
+0069 out.nmrData = nmrData;
 0070 
-0071 <span class="comment">%% load NMR data file</span>
-0072 <a name="_sub1" href="#_subfunctions" class="code">function data = LoadDataFile(datapath,fname,flag,pardata)</a>
-0073 
-0074 <span class="comment">% first read the file</span>
-0075 d = importdata(fullfile(datapath,fname));
-0076 
-0077 <span class="comment">% create echo time vector</span>
-0078 time = pardata.echoTime:pardata.echoTime:pardata.echoTime*pardata.nrEchoes;
-0079 time = time(:)./1e6; <span class="comment">% to [s]</span>
-0080 
-0081 <span class="comment">% swicth on/off debug plots</span>
-0082 do_debug = false;
-0083 
-0084 <span class="comment">%% start of DEBUG part</span>
-0085 <span class="keyword">if</span> do_debug
-0086     figure; <span class="comment">%#ok&lt;*UNRCH&gt;</span>
-0087     ax1 = subplot(131);
-0088     ax2 = subplot(132);
-0089     ax3 = subplot(133);
-0090     hold([ax1 ax2 ax3],<span class="string">'on'</span>);
-0091     id_last = size(d,1);
-0092     id_test = round(linspace(1,id_last-1,8));
-0093     <span class="keyword">for</span> j1 = [id_test id_last]
-0094         re = d(j1,1:2:end);
-0095         im = d(j1,2:2:end);
-0096 
-0097         mag = abs(complex(re,im));
+0071 <span class="keyword">end</span>
+0072 
+0073 <span class="comment">%% load NMR data file</span>
+0074 <a name="_sub1" href="#_subfunctions" class="code">function data = LoadDataFile(datapath,fname,flag,pardata)</a>
+0075 
+0076 <span class="comment">% first read the file</span>
+0077 d = importdata(fullfile(datapath,fname));
+0078 
+0079 <span class="comment">% create echo time vector</span>
+0080 time = pardata.echoTime:pardata.echoTime:pardata.echoTime*pardata.nrEchoes;
+0081 time = time(:)./1e6; <span class="comment">% to [s]</span>
+0082 
+0083 <span class="comment">% swicth on/off debug plots</span>
+0084 do_debug = false;
+0085 
+0086 <span class="comment">%% start of DEBUG part</span>
+0087 <span class="keyword">if</span> do_debug
+0088     figure; <span class="comment">%#ok&lt;*UNRCH&gt;</span>
+0089     ax1 = subplot(131);
+0090     ax2 = subplot(132);
+0091     ax3 = subplot(133);
+0092     hold([ax1 ax2 ax3],<span class="string">'on'</span>);
+0093     id_last = size(d,1);
+0094     id_test = round(linspace(1,id_last-1,8));
+0095     <span class="keyword">for</span> j1 = [id_test id_last]
+0096         re = d(j1,1:2:end);
+0097         im = d(j1,2:2:end);
 0098 
-0099         <span class="keyword">if</span> j1 &lt; id_last
-0100             LS = <span class="string">'-'</span>;
-0101         <span class="keyword">else</span>
-0102             LS = <span class="string">'--'</span>;
-0103         <span class="keyword">end</span>
-0104         plot(time,re',<span class="string">'LineStyle'</span>,LS,<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax1);
-0105         plot(time,im',<span class="string">'LineStyle'</span>,LS,<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax2);
-0106         plot(time,mag',<span class="string">'LineStyle'</span>,LS,<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax3);
-0107 
-0108     <span class="keyword">end</span>
-0109     hold([ax1 ax2 ax3],<span class="string">'off'</span>);
-0110     set([ax1 ax2 ax3],<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-0111     set(get(ax1,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0112     set(get(ax2,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0113     set(get(ax3,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0114     set(get(ax1,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Real part'</span>);
-0115     set(get(ax2,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag part'</span>);
-0116     set(get(ax3,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Magntiude sqrt(Re^2+Im^2)'</span>);
-0117 
-0118     figure;
-0119     ax1 = subplot(131);
-0120     ax2 = subplot(132);
-0121     ax3 = subplot(133);
-0122     hold([ax1 ax2 ax3],<span class="string">'on'</span>);
-0123     <span class="keyword">for</span> j1 = id_test
-0124         re = d(j1,1:2:end)-d(id_last,1:2:end);
-0125         im = d(j1,2:2:end)-d(id_last,2:2:end);
-0126 
-0127         mag = abs(complex(re,im));
+0099         mag = abs(complex(re,im));
+0100 
+0101         <span class="keyword">if</span> j1 &lt; id_last
+0102             LS = <span class="string">'-'</span>;
+0103         <span class="keyword">else</span>
+0104             LS = <span class="string">'--'</span>;
+0105         <span class="keyword">end</span>
+0106         plot(time,re',<span class="string">'LineStyle'</span>,LS,<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax1);
+0107         plot(time,im',<span class="string">'LineStyle'</span>,LS,<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax2);
+0108         plot(time,mag',<span class="string">'LineStyle'</span>,LS,<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax3);
+0109 
+0110     <span class="keyword">end</span>
+0111     hold([ax1 ax2 ax3],<span class="string">'off'</span>);
+0112     set([ax1 ax2 ax3],<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+0113     set(get(ax1,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0114     set(get(ax2,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0115     set(get(ax3,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0116     set(get(ax1,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Real part'</span>);
+0117     set(get(ax2,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag part'</span>);
+0118     set(get(ax3,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Magntiude sqrt(Re^2+Im^2)'</span>);
+0119 
+0120     figure;
+0121     ax1 = subplot(131);
+0122     ax2 = subplot(132);
+0123     ax3 = subplot(133);
+0124     hold([ax1 ax2 ax3],<span class="string">'on'</span>);
+0125     <span class="keyword">for</span> j1 = id_test
+0126         re = d(j1,1:2:end)-d(id_last,1:2:end);
+0127         im = d(j1,2:2:end)-d(id_last,2:2:end);
 0128 
-0129         plot(time,re',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax1);
-0130         plot(time,im',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax2);
-0131         plot(time,mag',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax3);
-0132 
-0133     <span class="keyword">end</span>
-0134     hold([ax1 ax2 ax3],<span class="string">'off'</span>);
-0135     set([ax1 ax2 ax3],<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-0136     set(get(ax1,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0137     set(get(ax2,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0138     set(get(ax3,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0139     set(get(ax1,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Real part'</span>);
-0140     set(get(ax2,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag part'</span>);
-0141     set(get(ax3,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Magntiude sqrt(Re^2+Im^2)'</span>);
-0142 <span class="keyword">end</span>
-0143 <span class="comment">% end of DEBUG part</span>
-0144 
-0145 <span class="comment">%</span>
-0146 <span class="comment">% correction after Hürliman 2001, JMR 148</span>
-0147 <span class="comment">% last row is the correction signal</span>
-0148 dref = d(<span class="keyword">end</span>,:);
-0149 <span class="comment">% the data without the last row</span>
-0150 d = d(1:end-1,:);
-0151 <span class="comment">% subtract the correction signal from all other signals</span>
-0152 d = d - dref;
-0153 
-0154 <span class="comment">% rotate the longest delay time (last row) and get its phase</span>
-0155 dlong = complex(d(<span class="keyword">end</span>,1:2:end),d(<span class="keyword">end</span>,2:2:end));
-0156 [dlong_rot,dlong_phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(dlong);
-0157 
-0158 <span class="keyword">if</span> do_debug
-0159     figure;
-0160     subplot(121);
-0161     plot(time,real(dlong)); hold on
-0162     plot(time,imag(dlong));
-0163     xlabel(<span class="string">'time [s]'</span>);
-0164     ylabel(<span class="string">'amplitude'</span>);
-0165     title(<span class="string">'from file'</span>);
-0166     subplot(122);
-0167     plot(time,real(dlong_rot)); hold on
-0168     plot(time,imag(dlong_rot));
-0169     xlabel(<span class="string">'time [s]'</span>);
-0170     ylabel(<span class="string">'amplitude'</span>);
-0171     title(<span class="string">'after rotation'</span>);
-0172 
-0173     plotphase = zeros(pardata.tauSteps,1);
-0174 <span class="keyword">end</span>
-0175 
-0176 data = struct;
-0177 <span class="keyword">for</span> j1 = 1:pardata.tauSteps
-0178     re = d(j1,1:2:end);
-0179     im = d(j1,2:2:end);
-0180     re = re(:);
-0181     im = im(:);
-0182     data(j1).flag = flag;
-0183     data(j1).raw.time = time;
-0184     data(j1).time = time;
-0185 
-0186     tmp_s = complex(re,im);
+0129         mag = abs(complex(re,im));
+0130 
+0131         plot(time,re',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax1);
+0132         plot(time,im',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax2);
+0133         plot(time,mag',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax3);
+0134 
+0135     <span class="keyword">end</span>
+0136     hold([ax1 ax2 ax3],<span class="string">'off'</span>);
+0137     set([ax1 ax2 ax3],<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+0138     set(get(ax1,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0139     set(get(ax2,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0140     set(get(ax3,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0141     set(get(ax1,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Real part'</span>);
+0142     set(get(ax2,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag part'</span>);
+0143     set(get(ax3,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Magntiude sqrt(Re^2+Im^2)'</span>);
+0144 <span class="keyword">end</span>
+0145 <span class="comment">% end of DEBUG part</span>
+0146 
+0147 <span class="comment">%</span>
+0148 <span class="comment">% correction after Hürliman 2001, JMR 148</span>
+0149 <span class="comment">% last row is the correction signal</span>
+0150 dref = d(<span class="keyword">end</span>,:);
+0151 <span class="comment">% the data without the last row</span>
+0152 d = d(1:end-1,:);
+0153 <span class="comment">% subtract the correction signal from all other signals</span>
+0154 d = d - dref;
+0155 
+0156 <span class="comment">% rotate the longest delay time (last row) and get its phase</span>
+0157 dlong = complex(d(<span class="keyword">end</span>,1:2:end),d(<span class="keyword">end</span>,2:2:end));
+0158 [dlong_rot,dlong_phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(dlong);
+0159 
+0160 <span class="keyword">if</span> do_debug
+0161     figure;
+0162     subplot(121);
+0163     plot(time,real(dlong)); hold on
+0164     plot(time,imag(dlong));
+0165     xlabel(<span class="string">'time [s]'</span>);
+0166     ylabel(<span class="string">'amplitude'</span>);
+0167     title(<span class="string">'from file'</span>);
+0168     subplot(122);
+0169     plot(time,real(dlong_rot)); hold on
+0170     plot(time,imag(dlong_rot));
+0171     xlabel(<span class="string">'time [s]'</span>);
+0172     ylabel(<span class="string">'amplitude'</span>);
+0173     title(<span class="string">'after rotation'</span>);
+0174 
+0175     plotphase = zeros(pardata.tauSteps,1);
+0176 <span class="keyword">end</span>
+0177 
+0178 data = struct;
+0179 <span class="keyword">for</span> j1 = 1:pardata.tauSteps
+0180     re = d(j1,1:2:end);
+0181     im = d(j1,2:2:end);
+0182     re = re(:);
+0183     im = im(:);
+0184     data(j1).flag = flag;
+0185     data(j1).raw.time = time;
+0186     data(j1).time = time;
 0187 
-0188     <span class="comment">% rotate the signal with an angle within reference phase +- 5deg</span>
-0189     [tmp_s,tmp_phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(tmp_s,<span class="string">'stdIm'</span>,<span class="keyword">...</span>
-0190         [dlong_phase-deg2rad(5) dlong_phase+deg2rad(5)]);
-0191 
-0192     <span class="comment">% save the data</span>
-0193     data(j1).raw.signal = tmp_s;
-0194     data(j1).signal = data(j1).raw.signal;
-0195     data(j1).phase = tmp_phase;
-0196     
-0197     <span class="keyword">if</span> do_debug
-0198         plotphase(j1) = tmp_phase;
-0199     <span class="keyword">end</span>
-0200 <span class="keyword">end</span>
-0201 <span class="keyword">if</span> do_debug
-0202     figure;
-0203     plot(rad2deg(plotphase));
-0204     xlabel(<span class="string">'row number'</span>);
-0205     ylabel(<span class="string">'phase angle [deg]'</span>);
-0206 
-0207     figure;
-0208     ax1 = subplot(131);
-0209     ax2 = subplot(132);
-0210     ax3 = subplot(133);
-0211     hold([ax1 ax2 ax3],<span class="string">'on'</span>);
-0212     <span class="keyword">for</span> j1 = id_test
-0213         re = real(data(j1).raw.signal);
-0214         im = imag(data(j1).raw.signal);
-0215 
-0216         mag = abs(complex(re,im));
+0188     tmp_s = complex(re,im);
+0189 
+0190     <span class="comment">% rotate the signal with an angle within reference phase +- 5deg</span>
+0191     [tmp_s,tmp_phase] = <a href="rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(tmp_s,<span class="string">'stdIm'</span>,<span class="keyword">...</span>
+0192         [dlong_phase-deg2rad(5) dlong_phase+deg2rad(5)]);
+0193 
+0194     <span class="comment">% save the data</span>
+0195     data(j1).raw.signal = tmp_s;
+0196     data(j1).signal = data(j1).raw.signal;
+0197     data(j1).phase = tmp_phase;
+0198     
+0199     <span class="keyword">if</span> do_debug
+0200         plotphase(j1) = tmp_phase;
+0201     <span class="keyword">end</span>
+0202 <span class="keyword">end</span>
+0203 <span class="keyword">if</span> do_debug
+0204     figure;
+0205     plot(rad2deg(plotphase));
+0206     xlabel(<span class="string">'row number'</span>);
+0207     ylabel(<span class="string">'phase angle [deg]'</span>);
+0208 
+0209     figure;
+0210     ax1 = subplot(131);
+0211     ax2 = subplot(132);
+0212     ax3 = subplot(133);
+0213     hold([ax1 ax2 ax3],<span class="string">'on'</span>);
+0214     <span class="keyword">for</span> j1 = id_test
+0215         re = real(data(j1).raw.signal);
+0216         im = imag(data(j1).raw.signal);
 0217 
-0218         plot(time,re',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax1);
-0219         plot(time,im',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax2);
-0220         plot(time,mag',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax3);
-0221 
-0222     <span class="keyword">end</span>
-0223     hold([ax1 ax2 ax3],<span class="string">'off'</span>);
-0224     set([ax1 ax2 ax3],<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-0225     set(get(ax1,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0226     set(get(ax2,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0227     set(get(ax3,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0228     set(get(ax1,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Real part'</span>);
-0229     set(get(ax2,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag part'</span>);
-0230     set(get(ax3,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Magntiude sqrt(Re^2+Im^2)'</span>);
-0231 <span class="keyword">end</span>
-0232 
+0218         mag = abs(complex(re,im));
+0219 
+0220         plot(time,re',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax1);
+0221         plot(time,im',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax2);
+0222         plot(time,mag',<span class="string">'DisplayName'</span>,[<span class="string">'row'</span>,sprintf(<span class="string">'%d'</span>,j1)],<span class="string">'Parent'</span>,ax3);
+0223 
+0224     <span class="keyword">end</span>
+0225     hold([ax1 ax2 ax3],<span class="string">'off'</span>);
+0226     set([ax1 ax2 ax3],<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+0227     set(get(ax1,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0228     set(get(ax2,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0229     set(get(ax3,<span class="string">'Xlabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0230     set(get(ax1,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Real part'</span>);
+0231     set(get(ax2,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Imag part'</span>);
+0232     set(get(ax3,<span class="string">'Ylabel'</span>),<span class="string">'String'</span>,<span class="string">'Magntiude sqrt(Re^2+Im^2)'</span>);
 0233 <span class="keyword">end</span>
 0234 
-0235 <span class="comment">%% load parameter file</span>
-0236 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
-0237 
-0238 fid = fopen(fullfile(datapath,fname));
-0239 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
-0240 fclose(fid);
-0241 
-0242 <span class="keyword">for</span> i = 1:size(d{1},1)
-0243     str = char(d{1}(i));
-0244     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
-0245     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]); <span class="comment">%#ok&lt;EVLDOT&gt;</span>
-0246 <span class="keyword">end</span>
-0247 data.all = d;
-0248 
-0249 <span class="keyword">end</span>
+0235 <span class="keyword">end</span>
+0236 
+0237 <span class="comment">%% load parameter file</span>
+0238 <a name="_sub2" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0239 
+0240 fid = fopen(fullfile(datapath,fname));
+0241 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0242 fclose(fid);
+0243 
+0244 <span class="keyword">for</span> i = 1:size(d{1},1)
+0245     str = char(d{1}(i));
+0246     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0247     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]); <span class="comment">%#ok&lt;EVLDOT&gt;</span>
+0248 <span class="keyword">end</span>
+0249 data.all = d;
 0250 
-0251 <span class="comment">%------------- END OF CODE --------------</span>
+0251 <span class="keyword">end</span>
 0252 
-0253 <span class="comment">%% License:</span>
-0254 <span class="comment">% MIT License</span>
-0255 <span class="comment">%</span>
-0256 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+0253 <span class="comment">%------------- END OF CODE --------------</span>
+0254 
+0255 <span class="comment">%% License:</span>
+0256 <span class="comment">% MIT License</span>
 0257 <span class="comment">%</span>
-0258 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0259 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0260 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0261 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0262 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0263 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0264 <span class="comment">%</span>
-0265 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0266 <span class="comment">% copies or substantial portions of the Software.</span>
-0267 <span class="comment">%</span>
-0268 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0269 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0270 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0271 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0272 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0273 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0274 <span class="comment">% SOFTWARE.</span></pre></div>
+0258 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+0259 <span class="comment">%</span>
+0260 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0261 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0262 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0263 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0264 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0265 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0266 <span class="comment">%</span>
+0267 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0268 <span class="comment">% copies or substantial portions of the Software.</span>
+0269 <span class="comment">%</span>
+0270 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0271 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0272 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0273 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0274 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0275 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0276 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

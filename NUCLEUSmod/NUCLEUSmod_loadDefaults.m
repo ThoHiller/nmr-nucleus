@@ -69,6 +69,12 @@ out.pressure.range = [1e3 1e5];
 out.pressure.rangeN = 50;
 
 %% NMR panel defaults
+% minimum recovery time
+out.nmr.T1rmin = 1e-4;
+% maximum recovery time
+out.nmr.T1rmax = 10;
+% number of recovery times
+out.nmr.T1rN = 41;
 % echo time [µs]
 out.nmr.TE = 200;
 % number of echoes
@@ -76,7 +82,7 @@ out.nmr.echosN = 1000;
 % noise creation type 'level' or 'SNR'
 out.nmr.noisetype = 'level';
 % noise level [0:1] or SNR [-]
-out.nmr.noise = 0;
+out.nmr.noise = 0.01;
 % water bulk relaxation time [s]
 out.nmr.Tbulk = 2;
 % diffusion relaxation time [s]
@@ -111,21 +117,21 @@ out.mod2D.mod.T1min = 1e-4;
 % T1 range maximum [s]
 out.mod2D.mod.T1max = 10;
 % T1 number of points in range
-out.mod2D.mod.T1N = 151;
+out.mod2D.mod.T1N = 101;
 % T2 range minimum [s]
 out.mod2D.mod.T2min = 1e-4;
 % T2 range maximum [s]
 out.mod2D.mod.T2max = 10;
 % T2 number of points in range
-out.mod2D.mod.T2N = 151;
+out.mod2D.mod.T2N = 101;
 
 % number of 2D distribution
 out.mod2D.mod.Ndist = 3;
 % center point of 2D distribution
-out.mod2D.mod.mu = [1 1;0.01 0.03;0.5 0.005];
+out.mod2D.mod.mu = [0.01 0.03;0.5 0.5;0.005 0.5];
 % covariance matrix of 2D distribution
-out.mod2D.mod.sigma{1} = [0.1 0;0 0.1];
-out.mod2D.mod.sigma{2} = [0.2 0.3;0 0.2];
+out.mod2D.mod.sigma{1} = [0.2 0.2;0 0.2];
+out.mod2D.mod.sigma{2} = [0.1 0;0 0.1];
 out.mod2D.mod.sigma{3} = [0.3 0;0 0.01];
 % amplitude of 2D distribution
 out.mod2D.mod.amp = [1 1 1];
@@ -133,9 +139,9 @@ out.mod2D.mod.amp = [1 1 1];
 % NMR data
 out.mod2D.nmr.T1IRfac = 2;
 out.mod2D.nmr.IRtype = 1;
-out.mod2D.nmr.T1trmin = 1e-3;
-out.mod2D.nmr.T1trmax = 1;
-out.mod2D.nmr.T1trN = 21;
+out.mod2D.nmr.T1trmin = 1e-4;
+out.mod2D.nmr.T1trmax = 10;
+out.mod2D.nmr.T1trN = 41;
 out.mod2D.nmr.T2te = 200e-6;
 out.mod2D.nmr.T2teN = 500;
 % noise creation type 'level' or 'SNR'

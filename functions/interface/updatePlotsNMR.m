@@ -40,51 +40,61 @@ ax = gui.axes_handles.nmr;
 clearSingleAxis(ax);
 hold(ax,'on');
 
-if isfield(data.results,'NMR')  
+if isfield(data.results,'NMR')
     % drainage and imbibition levels
     indd = data.pressure.DrainLevels;
     indi = data.pressure.ImbLevels;
-    
+
     % NMR data to plot
     NMR = data.results.NMR;
-    
+
     mycol = flipud(parula(128));
     % color for the individual NMR signals
     colindd = getColorIndex(data.results.SAT.Sdfull(indd),128);
     colindi = getColorIndex(data.results.SAT.Sifull(indi),128);
-    
+
     hold(ax,'on');
-    switch data.nmr.toplot        
-        case 'T1'            
+    switch data.nmr.toplot
+        case 'T1'
             for i = 1:numel(indd)
-                plot(NMR.t,NMR.EdT1(indd(i),:),'-','Color',mycol(colindd(i),:),...
+                plot(NMR.t1,NMR.EdT1(indd(i),:),'o-','Color',mycol(colindd(i),:),...
+                    'MarkerSize',8,'Parent',ax);
+            end
+            for i = 1:numel(indi)
+                plot(NMR.t1,NMR.EiT1(indi(i),:),'s--','Color',mycol(colindi(i),:),...
+                    'MarkerSize',8,'Parent',ax);
+            end
+
+        case 'T2'
+            for i = 1:numel(indd)
+                plot(NMR.t2,NMR.EdT2(indd(i),:),'-','Color',mycol(colindd(i),:),...
                     'MarkerSize',5,'Parent',ax);
             end
             for i = 1:numel(indi)
-                plot(NMR.t,NMR.EiT1(indi(i),:),'--','Color',mycol(colindi(i),:),...
-                    'MarkerSize',10,'Parent',ax);
-            end
-            
-        case 'T2'            
-            for i = 1:numel(indd)
-                plot(NMR.t,NMR.EdT2(indd(i),:),'-','Color',mycol(colindd(i),:),...
+                plot(NMR.t2,NMR.EiT2(indi(i),:),'--','Color',mycol(colindi(i),:),...
                     'MarkerSize',5,'Parent',ax);
             end
-            for i = 1:numel(indi)
-                plot(NMR.t,NMR.EiT2(indi(i),:),'--','Color',mycol(colindi(i),:),...
-                    'MarkerSize',10,'Parent',ax);
-            end            
     end
-    
+
     % x-limits
     loglinx = get(gui.cm_handles.nmr_cm_xaxis,'Label');
-    switch loglinx
-        case 'x-axis -> lin' % log axes
-            set(ax,'XScale','log','XLim',[NMR.t(2) max(NMR.t)],'XTickMode','auto');
-        case 'x-axis -> log' % lin axes
-            set(ax,'XScale','lin','XLim',[0 max(NMR.t)],'XTickMode','auto');
+    switch data.nmr.toplot
+        case 'T1'
+            switch loglinx
+                case 'x-axis -> lin' % log axes
+                    set(ax,'XScale','log','XLim',[NMR.t1(1) max(NMR.t1)],'XTickMode','auto');
+                case 'x-axis -> log' % lin axes
+                    set(ax,'XScale','lin','XLim',[0 max(NMR.t1)],'XTickMode','auto');
+            end
+        case 'T2'
+            switch loglinx
+                case 'x-axis -> lin' % log axes
+                    set(ax,'XScale','log','XLim',[NMR.t2(1) max(NMR.t2)],'XTickMode','auto');
+                case 'x-axis -> log' % lin axes
+                    set(ax,'XScale','lin','XLim',[0 max(NMR.t2)],'XTickMode','auto');
+            end
     end
-    
+
     % y-limits
     logliny = get(gui.cm_handles.nmr_cm_yaxis,'Label');
     switch logliny
@@ -93,17 +103,17 @@ if isfield(data.results,'NMR')
         case 'y-axis -> log' % lin axes
             set(ax,'YScale','lin','YLim',[0 1.1*data.nmr.porosity],'YTick',linspace(0,data.nmr.porosity,6));
     end
-    
+
     hold(ax,'off');
     grid(ax,'on');
-    
+
     % axis labels
     set(get(ax,'XLabel'),'String','time [s]');
     if data.nmr.porosity < 1
         set(get(ax,'YLabel'),'String','water content [-]');
     else
         set(get(ax,'YLabel'),'String','amplitude [-]');
-    end    
+    end
 end
 
 beautifyAxes(gui.figh);

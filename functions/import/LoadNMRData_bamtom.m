@@ -95,9 +95,10 @@ d = importdata(fullfile(datapath,fname),'\t',3);
 tmpstr = d.textdata{2,1};
 colonstr = strfind(tmpstr,':');
 data.phase_bam = str2double(tmpstr(colonstr+1:end-4));
-% to compare the BAM TOM phase with the NUCLEUS fit phase shift and flip
-% the phase value
-data.phase_bam = -1*(data.phase_bam + pi);
+% shift the BAM phase 360°
+if data.phase_bam < 0
+    data.phase_bam = -1*data.phase_bam;
+end
 
 % standard data
 data.flag = flag;
@@ -107,7 +108,8 @@ switch flag
         data.signal = d.data(:,2);
     case 'T2'
         data.signal = complex(d.data(:,2),d.data(:,3));
-        [data.signal,data.phase] = rotateT2phase(data.signal);
+        range = [data.phase_bam-deg2rad(25) data.phase_bam+deg2rad(25)];
+        [data.signal,data.phase] = rotateT2phase(data.signal,'minReIm',range);
 end
 
 % save raw data

@@ -68,6 +68,18 @@ changeColorTheme(fig_tag,label);
 if ~isempty(findobj('Tag','FIXEDTIMEVIEW'))
     changeColorTheme('FIXEDTIMEVIEW',label);
 end
+if ~isempty(findobj('Tag','PHASEVIEW'))
+    changeColorTheme('PHASEVIEW',label);
+end
+if ~isempty(findobj('Tag','UNCERTVIEW'))
+    changeColorTheme('UNCERTVIEW',label);
+end
+if ~isempty(findobj('Tag','2DINV'))
+    changeColorTheme('2DINV',label);
+end
+if ~isempty(findobj('Tag','2DMOD'))
+    changeColorTheme('2DMOD',label);
+end
 
 end
 

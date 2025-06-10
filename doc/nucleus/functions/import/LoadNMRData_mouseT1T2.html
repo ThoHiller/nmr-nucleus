@@ -1,0 +1,307 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+  <title>Description of LoadNMRData_mouseT1T2</title>
+  <meta name="keywords" content="LoadNMRData_mouseT1T2">
+  <meta name="description" content=" loads T1T2 NMR data from a typical folder structure">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
+  <meta name="robots" content="index, follow">
+  <link type="text/css" rel="stylesheet" href="../../../m2html.css">
+  <script type="text/javascript">
+    if (top.frames.length == 0) { top.location = "../../../index.html"; };
+  </script>
+</head>
+<body>
+<a name="_top"></a>
+<!-- # nucleus --><!-- # functions --><!-- menu.html import -->
+<h1>LoadNMRData_mouseT1T2
+</h1>
+
+<h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong> loads T1T2 NMR data from a typical folder structure</strong></div>
+
+<h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="box"><strong>function out = LoadNMRData_mouseT1T2(in) </strong></div>
+
+<h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre class="comment">LoadNMRData_mouseT1T2 loads T1T2 NMR data from a typical folder structure
+produced by the Mouse PM25
+
+ Syntax:
+       out = LoadNMRData_mouseT1T2(in)
+
+ Inputs:
+       in - input structure
+       in.path - data path
+       in.T1T2 - T1 / T2 flag
+       in.fileformat - 'MouseT1T2'
+
+ Outputs:
+       out - output structure
+       out.parData - parameter file data
+       out.nmrData - NMR data
+
+ Example:
+       out = LoadNMRData_mouseT1T2(in)
+
+ Other m-files required:
+       fixParameterString
+
+ Subfunctions:
+       LoadDataFile
+       LoadParameterFile
+
+ MAT-files required:
+       none
+
+ See also: NUCLEUSinv
+ Author: see AUTHORS.md
+ email: see AUTHORS.md
+ License: MIT License (at end)</pre></div>
+
+<!-- crossreference -->
+<h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+This function calls:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>	 cleans parameter file lines when the properties have a</li><li><a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>	 adds noise with mean 'mu' and standard deviation 'sigma' to</li></ul>
+This function is called by:
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="LoadNMRData_driver.html" class="code" title="function out = LoadNMRData_driver(in)">LoadNMRData_driver</a>	 loads NMR raw data from different file formats</li></ul>
+<!-- crossreference -->
+
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function data = LoadDataFile(datapath,fname,flag,pardata)</a></li><li><a href="#_sub2" class="code">function data = LoadDataFileT1(datapath,fname,pardata,Nechos)</a></li><li><a href="#_sub3" class="code">function [data] = LoadParameterFile(datapath,fname)</a></li></ul>
+
+<h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function out = LoadNMRData_mouseT1T2(in)</a>
+0002 <span class="comment">%LoadNMRData_mouseT1T2 loads T1T2 NMR data from a typical folder structure</span>
+0003 <span class="comment">%produced by the Mouse PM25</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% Syntax:</span>
+0006 <span class="comment">%       out = LoadNMRData_mouseT1T2(in)</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% Inputs:</span>
+0009 <span class="comment">%       in - input structure</span>
+0010 <span class="comment">%       in.path - data path</span>
+0011 <span class="comment">%       in.T1T2 - T1 / T2 flag</span>
+0012 <span class="comment">%       in.fileformat - 'MouseT1T2'</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Outputs:</span>
+0015 <span class="comment">%       out - output structure</span>
+0016 <span class="comment">%       out.parData - parameter file data</span>
+0017 <span class="comment">%       out.nmrData - NMR data</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Example:</span>
+0020 <span class="comment">%       out = LoadNMRData_mouseT1T2(in)</span>
+0021 <span class="comment">%</span>
+0022 <span class="comment">% Other m-files required:</span>
+0023 <span class="comment">%       fixParameterString</span>
+0024 <span class="comment">%</span>
+0025 <span class="comment">% Subfunctions:</span>
+0026 <span class="comment">%       LoadDataFile</span>
+0027 <span class="comment">%       LoadParameterFile</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% MAT-files required:</span>
+0030 <span class="comment">%       none</span>
+0031 <span class="comment">%</span>
+0032 <span class="comment">% See also: NUCLEUSinv</span>
+0033 <span class="comment">% Author: see AUTHORS.md</span>
+0034 <span class="comment">% email: see AUTHORS.md</span>
+0035 <span class="comment">% License: MIT License (at end)</span>
+0036 
+0037 <span class="comment">%------------- BEGIN CODE --------------</span>
+0038 
+0039 <span class="comment">%% start processing the files</span>
+0040 
+0041 <span class="comment">% get data file info</span>
+0042 datafile = dir(fullfile(in.path,in.name));
+0043 
+0044 <span class="comment">% parameter stuff</span>
+0045 parData = <a href="#_sub3" class="code" title="subfunction [data] = LoadParameterFile(datapath,fname)">LoadParameterFile</a>(in.path,<span class="string">'acqu.par'</span>);
+0046 <span class="comment">% default T1 and T2 axes</span>
+0047 <span class="keyword">try</span>
+0048     time_1 = importdata(fullfile(in.path,<span class="string">'T1Axis.dat'</span>));
+0049     <span class="keyword">if</span> ~isempty(time_1)
+0050         parData.nrPntsT1 = numel(time_1);
+0051         parData.tMin = time_1(1);
+0052         parData.tMax = time_1(end);
+0053         parData.T1Axis = time_1(:)./1e3; <span class="comment">% to [s]</span>
+0054     <span class="keyword">else</span>
+0055         parData.T1Axis = logspace(log10(parData.tMin),log10(parData.tMax),parData.nrPntsT1);
+0056     <span class="keyword">end</span>
+0057 <span class="keyword">catch</span>
+0058     parData.T1Axis = logspace(log10(parData.tMin),log10(parData.tMax),parData.nrPntsT1);
+0059 <span class="keyword">end</span>
+0060 <span class="keyword">try</span>
+0061     time_2 = importdata(fullfile(in.path,<span class="string">'T2Axis.dat'</span>));
+0062     <span class="keyword">if</span> ~isempty(time_2)
+0063         parData.nrEchoes = numel(time_2);
+0064         parData.T2Axis = time_2./1e3; <span class="comment">% to [s]</span>
+0065     <span class="keyword">else</span>
+0066         parData.T2Axis = parData.echoTime:parData.echoTime:parData.echoTime*parData.nrEchoes;
+0067     <span class="keyword">end</span>
+0068 <span class="keyword">catch</span>
+0069     parData.T2Axis = parData.echoTime:parData.echoTime:parData.echoTime*parData.nrEchoes;
+0070 <span class="keyword">end</span>
+0071 parData.T1Axis = parData.T1Axis(:)'; <span class="comment">% row vector in [s]</span>
+0072 parData.T2Axis = parData.T2Axis(:); <span class="comment">% column vector in [s]</span>
+0073 
+0074 <span class="keyword">switch</span> in.importflag
+0075     <span class="keyword">case</span> <span class="string">'T1'</span>
+0076         <span class="comment">% load data</span>
+0077         data = <a href="#_sub2" class="code" title="subfunction data = LoadDataFileT1(datapath,fname,pardata,Nechos)">LoadDataFileT1</a>(in.path,in.name,parData,in.Nechos);
+0078 
+0079         <span class="comment">% get file statistics</span>
+0080         nmrData{1}.datfile = datafile.name;
+0081         nmrData{1}.date = datafile.date;
+0082         nmrData{1}.datenum = datafile.datenum;
+0083         nmrData{1}.bytes = datafile.bytes;
+0084 
+0085         <span class="comment">% save the NMR data</span>
+0086         nmrData{1}.flag = data.flag;
+0087         nmrData{1}.T1IRfac = 1;
+0088         nmrData{1}.time = data.time;
+0089         nmrData{1}.signal = data.signal;
+0090         nmrData{1}.raw = data.raw;
+0091 
+0092     <span class="keyword">case</span> <span class="string">'T1T2map'</span>
+0093         <span class="comment">% load data</span>
+0094         data = <a href="#_sub1" class="code" title="subfunction data = LoadDataFile(datapath,fname,flag,pardata)">LoadDataFile</a>(in.path,in.name,in.T1T2,parData);
+0095 
+0096         nmrData = cell(1,1);
+0097         <span class="keyword">for</span> j1 = 1:numel(data)
+0098             <span class="comment">% get file statistics</span>
+0099             nmrData{j1}.datfile = datafile.name;
+0100             nmrData{j1}.date = datafile.date;
+0101             nmrData{j1}.datenum = datafile.datenum;
+0102             nmrData{j1}.bytes = datafile.bytes;
+0103 
+0104             <span class="comment">% save the NMR data</span>
+0105             nmrData{j1}.flag = data(j1).flag;
+0106             nmrData{j1}.T1IRfac = 1;
+0107             nmrData{j1}.time = data(j1).time;
+0108             nmrData{j1}.signal = data(j1).signal;
+0109             nmrData{j1}.raw = data(j1).raw;
+0110             <span class="keyword">if</span> strcmp(in.T1T2,<span class="string">'T2'</span>)
+0111                 nmrData{j1}.phase = data(j1).phase;
+0112             <span class="keyword">end</span>
+0113         <span class="keyword">end</span>
+0114 
+0115 <span class="keyword">end</span>
+0116 
+0117 <span class="comment">% save data to output struct</span>
+0118 out.parData = parData;
+0119 out.nmrData = nmrData;
+0120 
+0121 <span class="keyword">end</span>
+0122 
+0123 <span class="comment">%% load NMR data file</span>
+0124 <a name="_sub1" href="#_subfunctions" class="code">function data = LoadDataFile(datapath,fname,flag,pardata)</a>
+0125 
+0126 <span class="comment">% first read the file</span>
+0127 d = importdata(fullfile(datapath,fname));
+0128 
+0129 <span class="comment">% create echo time vector</span>
+0130 time = pardata.T2Axis;
+0131 
+0132 data = struct;
+0133 disp(<span class="string">'NUCLUESinv Mouse T1T2 import: reading T_recov ...'</span>);
+0134 <span class="keyword">for</span> j1 = 1:numel(pardata.T1Axis)
+0135     disp([<span class="string">'T_recov: '</span>,sprintf(<span class="string">'%d'</span>,j1),<span class="string">' / '</span>,num2str(numel(pardata.T1Axis))]);
+0136     re = d(j1,:);
+0137     re = re(:);
+0138 
+0139     data(j1).flag = flag;
+0140     data(j1).raw.time = time;
+0141     data(j1).time = time;
+0142 
+0143     <span class="comment">% fit the data to estimate a dummy imag part</span>
+0144     param.T1IRfac = 1;
+0145     param.noise = 0;
+0146     param.optim = <span class="string">'off'</span>;
+0147     param.Tfixed_bool = [0 0 0 0 0];
+0148     param.Tfixed_val = [0 0 0 0 0];
+0149     invstd_tmp = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(time,re,<span class="string">'T2'</span>,param,5);
+0150     sigma = invstd_tmp.rms;
+0151     [~,im] = <a href="../../../nucleus/functions/modeling/addNoiseToSignal.html" class="code" title="function [signalN,noise] = addNoiseToSignal(signal,mu,sigma)">addNoiseToSignal</a>(re,0,sigma);
+0152 
+0153     <span class="comment">% create the new complex signal</span>
+0154     tmp_s = complex(re,im);
+0155 
+0156     <span class="comment">% save the data</span>
+0157     data(j1).raw.signal = tmp_s;
+0158     data(j1).signal = data(j1).raw.signal;
+0159     data(j1).phase = 0;
+0160 <span class="keyword">end</span>
+0161 disp(<span class="string">'NUCLUESinv Mouse T1T2 import: reading T_recov ... done'</span>);
+0162 <span class="keyword">end</span>
+0163 
+0164 <span class="comment">%%</span>
+0165 <a name="_sub2" href="#_subfunctions" class="code">function data = LoadDataFileT1(datapath,fname,pardata,Nechos)</a>
+0166 
+0167 <span class="comment">% first read the file</span>
+0168 d = importdata(fullfile(datapath,fname));
+0169 
+0170 <span class="comment">% create echo time vector</span>
+0171 time = pardata.T1Axis;
+0172 
+0173 <span class="comment">% number of echoes</span>
+0174 maxTE = size(d,2);
+0175 <span class="comment">% get T1 curve from averaging of first Nechos</span>
+0176 tmp_s = mean(d(:,1:min([maxTE Nechos])),2);
+0177 
+0178 data.flag = <span class="string">'T1'</span>;
+0179 data.raw.time = time;
+0180 data.time = time;
+0181 
+0182 <span class="comment">% save the data</span>
+0183 data.raw.signal = tmp_s;
+0184 data.signal = data.raw.signal;
+0185 <span class="keyword">end</span>
+0186 
+0187 <span class="comment">%% load parameter file</span>
+0188 <a name="_sub3" href="#_subfunctions" class="code">function [data] = LoadParameterFile(datapath,fname)</a>
+0189 
+0190 fid = fopen(fullfile(datapath,fname));
+0191 d = textscan(fid,<span class="string">'%s'</span>,<span class="string">'Delimiter'</span>,<span class="string">'\n'</span>);
+0192 fclose(fid);
+0193 
+0194 <span class="keyword">for</span> i = 1:size(d{1},1)
+0195     str = char(d{1}(i));
+0196     str = <a href="fixParameterString.html" class="code" title="function str = fixParameterString(str)">fixParameterString</a>(str);
+0197     eval([<span class="string">'data.'</span>,str,<span class="string">';'</span>]); <span class="comment">%#ok&lt;EVLDOT&gt;</span>
+0198 <span class="keyword">end</span>
+0199 data.all = d;
+0200 
+0201 <span class="keyword">end</span>
+0202 
+0203 <span class="comment">%------------- END OF CODE --------------</span>
+0204 
+0205 <span class="comment">%% License:</span>
+0206 <span class="comment">% MIT License</span>
+0207 <span class="comment">%</span>
+0208 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+0209 <span class="comment">%</span>
+0210 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0211 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0212 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0213 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0214 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0215 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0216 <span class="comment">%</span>
+0217 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0218 <span class="comment">% copies or substantial portions of the Software.</span>
+0219 <span class="comment">%</span>
+0220 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0221 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0222 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0223 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0224 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0225 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0226 <span class="comment">% SOFTWARE.</span></pre></div>
+<hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
+</body>
+</html>

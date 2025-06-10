@@ -10,6 +10,7 @@ function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_le
 % Inputs:
 %       K - Kernel matrix
 %       g - signal
+%       L - smoothness constraint matrix
 %       lambda_in - regularization parameter
 %       flag - flag for regularization method:
 %              'manual', 'gcv_tikh', 'gcv_trunc', 'gcv_damp', 'discrep',
@@ -87,6 +88,11 @@ switch flag
             else
                 [U,s,X,~,~] = cgsvd(K,L);
                 [~,lambda] = discrep(U,s,X,g,delta);
+            end
+            if isnan(lambda)
+                lambda = 1;
+                errmsg = {'Regul. Box: discrep.m failed!';'Using Lambda=1 as fall back.'};
+                errordlg(errmsg,'applyRegularization: Error!');
             end
             Kreg = [K;lambda*L];
         catch ME

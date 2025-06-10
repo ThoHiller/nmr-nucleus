@@ -53,6 +53,7 @@ if ~isempty(INVdata) && isstruct(INVdata{id})
     data.calib.vol = data.param.calibVol;
     data.calib.fac = data.calib.vol/E0;
     data.calib.name = data.import.NMR.filesShort{id};
+    data.calib.Tbulk = data.import.LIAG.Tbulk;
     INVdata{id}.calib = data.calib;
     INVdata{id}.param.calibVol = data.param.calibVol;
     INVdata{id}.param.calibAmp = data.param.calibAmp;

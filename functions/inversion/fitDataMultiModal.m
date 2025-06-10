@@ -60,10 +60,10 @@ function [fitdata] = fitDataMultiModal(time,signal,parameter)
 %       getConfInterval
 %       lsqnonlin (Optimization Toolbox)
 %
-% Subfunctions:
+% Subfunctions
 %       none
 %
-% MAT-files required:
+% MAT-files required::
 %       none
 %
 % See also:
@@ -80,7 +80,7 @@ s = signal(:);
 % error weights after gating
 if isfield(parameter,'W')
     e = diag(parameter.W);
-    iparam.e = sqrt(e);
+    iparam.e = sqrt(1./e);
 end
 
 % get the input parameters

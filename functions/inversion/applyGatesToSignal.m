@@ -9,7 +9,7 @@ function data = applyGatesToSignal(time,signal,varargin)
 %       time - time vector
 %       signal - NMR signal vector (no complex data allowed!)
 %       varargin - PROPERTY - VALUE OPTIONS:
-%                    'type' - 'log' or 'lin' (default is 'log')
+%                    'type' - 'log', 'logv2' or 'lin' (default is 'log')
 %                      'Ng' - No. of gates (default is 100)
 %                      'Ne' - max. No. of echoes per gate (default is 50)
 %                  'plotit' - '0' or '1' (default is 0)
@@ -40,7 +40,7 @@ function data = applyGatesToSignal(time,signal,varargin)
 
 %% default settings
 type = 'log';
-Ne = 50;
+Ne = 500;
 Ng = 100;
 plotit = 0;
 special = '';
@@ -56,10 +56,11 @@ if nargin > 2
             prop = varargin{2*i-1};
             value = varargin{2*i};
             if strcmpi(prop,'type') || strcmpi(prop,'flag')
-                if ischar(value) && (strcmpi(value,'log') || strcmpi(value,'lin'))
+                if ischar(value) && (strcmpi(value,'log') ||...
+                        strcmpi(value,'logv2') || strcmpi(value,'lin'))
                     type = value;
                 else
-                    disp('applyGatesToSignal: ''type'' must be either ''log'' or ''lin''');
+                    disp('applyGatesToSignal: ''type'' must be either ''log'', ''logv2'' or ''lin''');
                     disp('applyGatesToSignal: Using default: log.');
                 end
             end
@@ -193,6 +194,39 @@ switch type
                     Noise(i) = std(Ipart(ci(i-1):end));
                 end
             end
+        end
+
+    case 'logv2'
+        % gateing routine from MRSMatlab by MMP
+        
+        % new log spaced time vector
+        t1 = abs(logspace(log10(time(2)),log10(time(end)+time(2)),Ng) - time(2));
+
+        % get indices
+        tInd = ones(1,length(t1));
+        for n=2:length(t1)-1
+            tInd(n) = find(t1(n)<=time,1);
+        end
+        if ~isempty(find(t1(end)<=time,1)) % avoid crash
+            tInd(end) = find(t1(end)<=time,1);
+        else
+            tInd(end) = length(t1);
+        end
+        
+        % find unique indecies
+        tInd = unique(tInd);
+        tInd = cumsum([0 sort(diff(tInd))])+1;
+        
+        % prepare output data
+        signal_g = zeros(1,length(tInd)-1);
+        t = zeros(1,length(tInd)-1);
+        Nechos = zeros(1,length(tInd)-1);
+
+        % calculate mean within a gate in logspace
+        for n=2:length(tInd)
+            signal_g(n-1) = exp(mean(log(signal(tInd(n-1):tInd(n)-1))));
+            t(n-1) = mean(time(tInd(n-1):tInd(n)-1));
+            Nechos(n-1) = length(time(tInd(n-1):tInd(n)-1));
         end
         
     case 'lin'

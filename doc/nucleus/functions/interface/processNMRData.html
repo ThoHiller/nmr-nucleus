@@ -63,7 +63,7 @@ This function calls:
 <li><a href="../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>	 re-samples (gates) a NMR signal to speedup the</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>	 prepares simple NMR raw data processing</li></ul>
+<li><a href="importINV2INV.html" class="code" title="function importINV2INV(src)">importINV2INV</a>	 imports a previously saved NUCLEUSinv session</li><li><a href="processNMRDataControl.html" class="code" title="function processNMRDataControl(fig,id)">processNMRDataControl</a>	 prepares simple NMR raw data processing</li></ul>
 <!-- crossreference -->
 
 
@@ -161,61 +161,79 @@ This function is called by:
 0090     <span class="keyword">case</span> {<span class="string">'log'</span>,<span class="string">'lin'</span>}
 0091         tmp = <a href="../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t,s,<span class="string">'type'</span>,nmrproc.gatetype,<span class="keyword">...</span>
 0092             <span class="string">'Ng'</span>,min([numel(s) 300]),<span class="string">'Ne'</span>,nmrproc.Nechoes);
-0093         t = tmp(:,1);
-0094         s = tmp(:,2);
-0095         N = tmp(:,3);
-0096     <span class="keyword">case</span> <span class="string">'raw'</span>
-0097         N = ones(size(t));
-0098     <span class="keyword">otherwise</span>
-0099 <span class="keyword">end</span>
-0100 
-0101 <span class="comment">% output data</span>
-0102 nmrproc.t = t;
-0103 nmrproc.s = s;
-0104 nmrproc.N = N;
-0105 nmrproc.noise = noise;
-0106 
-0107 <span class="comment">% if there is noise information and gating was performed</span>
-0108 <span class="comment">% calculate noise per gate and weight matrix W</span>
-0109 <span class="keyword">if</span> noise ~= 0 &amp;&amp; ~strcmp(nmrproc.gatetype,<span class="string">'raw'</span>)
-0110         e = noise ./ sqrt(N);
-0111         W = diag(e);
-0112         nmrproc.e = e;
-0113         nmrproc.W = W;
-0114 <span class="keyword">else</span>
-0115     e = noise*ones(size(s));
-0116     nmrproc.e = e;
-0117     <span class="keyword">if</span> isfield(nmrproc,<span class="string">'W'</span>)
-0118         nmrproc = rmfield(nmrproc,<span class="string">'W'</span>);
-0119     <span class="keyword">end</span>
-0120 <span class="keyword">end</span>
-0121 
-0122 <span class="keyword">return</span>
-0123 
-0124 <span class="comment">%------------- END OF CODE --------------</span>
-0125 
-0126 <span class="comment">%% License:</span>
-0127 <span class="comment">% MIT License</span>
-0128 <span class="comment">%</span>
-0129 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0130 <span class="comment">%</span>
-0131 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0132 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0133 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0134 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0135 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0136 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0137 <span class="comment">%</span>
-0138 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0139 <span class="comment">% copies or substantial portions of the Software.</span>
-0140 <span class="comment">%</span>
-0141 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0142 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0143 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0144 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0145 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0146 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0147 <span class="comment">% SOFTWARE.</span></pre></div>
+0093         <span class="keyword">if</span> ~isreal(nmrraw.s)
+0094             tmpI = <a href="../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t,imag(nmrraw.s),<span class="string">'type'</span>,nmrproc.gatetype,<span class="keyword">...</span>
+0095                 <span class="string">'Ng'</span>,min([numel(s) 300]),<span class="string">'Ne'</span>,nmrproc.Nechoes);
+0096         <span class="keyword">end</span>
+0097         t = tmp(:,1);
+0098         s = tmp(:,2);
+0099         N = tmp(:,3);
+0100     <span class="keyword">case</span> <span class="string">'raw'</span>
+0101         N = ones(size(t));
+0102     <span class="keyword">otherwise</span>
+0103 <span class="keyword">end</span>
+0104 
+0105 <span class="comment">% output data</span>
+0106 nmrproc.t = t;
+0107 nmrproc.s = s;
+0108 nmrproc.N = N;
+0109 nmrproc.noise = noise;
+0110 
+0111 <span class="comment">% if there is noise information and gating was performed</span>
+0112 <span class="comment">% calculate noise per gate and weight matrix W</span>
+0113 <span class="keyword">if</span> noise ~= 0 &amp;&amp; ~strcmp(nmrproc.gatetype,<span class="string">'raw'</span>)
+0114         e = noise ./ sqrt(N);
+0115         W = diag(e);
+0116         nmrproc.e = e;
+0117         nmrproc.W = W;
+0118         <span class="keyword">if</span> ~isreal(nmrraw.s)
+0119             ErrWimag = tmpI(:,2)./e;
+0120             chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+0121             nmrproc.imag_chi2 = chi2;
+0122         <span class="keyword">else</span>
+0123             nmrproc.imag_chi2 = NaN;
+0124         <span class="keyword">end</span>
+0125 <span class="keyword">else</span>
+0126     e = noise*ones(size(s));
+0127     nmrproc.e = e;
+0128     <span class="keyword">if</span> isfield(nmrproc,<span class="string">'W'</span>)
+0129         nmrproc = rmfield(nmrproc,<span class="string">'W'</span>);
+0130     <span class="keyword">end</span>
+0131     <span class="keyword">if</span> ~isreal(nmrraw.s)
+0132         ErrWimag = imag(nmrraw.s)./noise;
+0133         chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+0134         nmrproc.imag_chi2 = chi2;
+0135     <span class="keyword">else</span>
+0136         nmrproc.imag_chi2 = NaN;
+0137     <span class="keyword">end</span>
+0138 <span class="keyword">end</span>
+0139 
+0140 <span class="keyword">return</span>
+0141 
+0142 <span class="comment">%------------- END OF CODE --------------</span>
+0143 
+0144 <span class="comment">%% License:</span>
+0145 <span class="comment">% MIT License</span>
+0146 <span class="comment">%</span>
+0147 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0148 <span class="comment">%</span>
+0149 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0150 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0151 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0152 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0153 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0154 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0155 <span class="comment">%</span>
+0156 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0157 <span class="comment">% copies or substantial portions of the Software.</span>
+0158 <span class="comment">%</span>
+0159 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0160 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0161 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0162 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0163 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0164 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0165 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

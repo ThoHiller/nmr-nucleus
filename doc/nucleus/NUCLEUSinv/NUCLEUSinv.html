@@ -106,91 +106,101 @@ This function is called by:
 0033 
 0034 <span class="comment">%------------- BEGIN CODE --------------</span>
 0035 
-0036 <span class="comment">%% Only one instance of NUCLEUSinv is allowed</span>
-0037 h0  = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
-0038 <span class="keyword">if</span> ~isempty(h0); close(h0); <span class="keyword">end</span>
-0039 
-0040 <span class="comment">%% GUI 'header' info and defaults</span>
-0041 myui.version = <span class="string">'0.3.0'</span>;
-0042 myui.date = <span class="string">'27.11.2024'</span>;
-0043 myui.author = {<span class="string">'Stephan Costabel'</span>,<span class="string">'Thomas Hiller'</span>};
-0044 myui.email = <span class="string">'thomas.hiller[at]bgr.de'</span>;
-0045 myui.fontsize = 10;
-0046 myui.inifile = <span class="string">'NUCLEUSinv.ini'</span>;
-0047 
-0048 <span class="comment">%% Default data settings</span>
-0049 defaults = <a href="NUCLEUSinv_loadDefaults.html" class="code" title="function out = NUCLEUSinv_loadDefaults">NUCLEUSinv_loadDefaults</a>;
+0036 <span class="comment">%% switch-off java warnings</span>
+0037 warning(<span class="string">'off'</span>, <span class="string">'MATLAB:ui:javacomponent:FunctionToBeRemoved'</span>);
+0038 
+0039 <span class="comment">%% Only one instance of NUCLEUSinv is allowed</span>
+0040 h0  = findobj(<span class="string">'Tag'</span>,<span class="string">'INV'</span>);
+0041 <span class="keyword">if</span> ~isempty(h0); close(h0); <span class="keyword">end</span>
+0042 
+0043 <span class="comment">%% GUI 'header' info and defaults</span>
+0044 myui.version = <span class="string">'0.4.0'</span>;
+0045 myui.date = <span class="string">'10.06.2025'</span>;
+0046 myui.author = {<span class="string">'Stephan Costabel'</span>,<span class="string">'Thomas Hiller'</span>};
+0047 myui.email = <span class="string">'thomas.hiller[at]bgr.de'</span>;
+0048 myui.fontsize = 10;
+0049 myui.inifile = <span class="string">'NUCLEUSinv.ini'</span>;
 0050 
-0051 <span class="comment">%% GUI initialization</span>
-0052 gui.figh = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - Inversion Tool'</span>,<span class="keyword">...</span>
-0053     <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'INV'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'MenuBar'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0054     <span class="string">'SizeChangedFcn'</span>,@<a href="../../nucleus/functions/interface/onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>);
-0055 
-0056 pos = <a href="../../nucleus/functions/interface/calculateGuiOnMonitorPosition.html" class="code" title="function pos = calculateGuiOnMonitorPosition(aspect_ratio)">calculateGuiOnMonitorPosition</a>(16/10);
-0057 set(gui.figh,<span class="string">'Position'</span>,pos);
+0051 <span class="comment">%% Default data settings</span>
+0052 defaults = <a href="NUCLEUSinv_loadDefaults.html" class="code" title="function out = NUCLEUSinv_loadDefaults">NUCLEUSinv_loadDefaults</a>;
+0053 
+0054 <span class="comment">%% GUI initialization</span>
+0055 gui.figh = figure(<span class="string">'Name'</span>,<span class="string">'NUCLEUSinv - Inversion Tool'</span>,<span class="keyword">...</span>
+0056     <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'INV'</span>,<span class="string">'ToolBar'</span>,<span class="string">'none'</span>,<span class="string">'MenuBar'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0057     <span class="string">'SizeChangedFcn'</span>,@<a href="../../nucleus/functions/interface/onFigureSizeChange.html" class="code" title="function onFigureSizeChange(fig,~)">onFigureSizeChange</a>);
 0058 
-0059 <span class="comment">%% Color settings</span>
-0060 myui.colors = <a href="../../nucleus/functions/interface/getColorTheme.html" class="code" title="function colors = getColorTheme(fig_tag,th)">getColorTheme</a>(<span class="string">'INV'</span>,<span class="string">'standard'</span>);
+0059 pos = <a href="../../nucleus/functions/interface/calculateGuiOnMonitorPosition.html" class="code" title="function pos = calculateGuiOnMonitorPosition(aspect_ratio)">calculateGuiOnMonitorPosition</a>(16/10);
+0060 set(gui.figh,<span class="string">'Position'</span>,pos);
 0061 
-0062 <span class="comment">%% Data structure for handling all GUI data</span>
-0063 data.import = defaults.import;
-0064 data.info = defaults.info;
-0065 data.process = defaults.process;
-0066 data.param = defaults.param;
-0067 data.invstd = defaults.invstd;
-0068 data.uncert = defaults.uncert;
-0069 data.calib = defaults.calib;
-0070 data.invjoint = defaults.invjoint;
-0071 data.inv2D = defaults.inv2D;
-0072 data.pressure = defaults.pressure;
-0073 gui.myui = myui;
-0074 
-0075 <span class="comment">%% Check toolbox availability</span>
-0076 <span class="comment">% check if the Optimization &amp; Statistics Toolbox are available</span>
-0077 <span class="comment">% if not then alternative routines will be used</span>
-0078 Mver = ver;
-0079 <span class="keyword">for</span> i = 1:size(Mver,2)
-0080     <span class="keyword">if</span> strcmp(Mver(i).Name,<span class="string">'Optimization Toolbox'</span>)
-0081         data.info.has_optim = <span class="string">'on'</span>;
-0082     <span class="keyword">end</span>
-0083     <span class="keyword">if</span> strfind(Mver(i).Name,<span class="string">'Statistics'</span>)
-0084         data.info.stat = <span class="string">'on'</span>;
+0062 <span class="comment">%% Color settings</span>
+0063 myui.colors = <a href="../../nucleus/functions/interface/getColorTheme.html" class="code" title="function colors = getColorTheme(fig_tag,th)">getColorTheme</a>(<span class="string">'INV'</span>,<span class="string">'standard'</span>);
+0064 
+0065 <span class="comment">%% Data structure for handling all GUI data</span>
+0066 data.import = defaults.import;
+0067 data.info = defaults.info;
+0068 data.process = defaults.process;
+0069 data.param = defaults.param;
+0070 data.invstd = defaults.invstd;
+0071 data.uncert = defaults.uncert;
+0072 data.calib = defaults.calib;
+0073 data.invjoint = defaults.invjoint;
+0074 data.inv2D = defaults.inv2D;
+0075 data.pressure = defaults.pressure;
+0076 gui.myui = myui;
+0077 
+0078 <span class="comment">%% Check toolbox availability</span>
+0079 <span class="comment">% check if the Optimization &amp; Statistics Toolbox are available</span>
+0080 <span class="comment">% if not then alternative routines will be used</span>
+0081 Mver = ver;
+0082 <span class="keyword">for</span> i = 1:size(Mver,2)
+0083     <span class="keyword">if</span> strcmp(Mver(i).Name,<span class="string">'Optimization Toolbox'</span>)
+0084         data.info.has_optim = <span class="string">'on'</span>;
 0085     <span class="keyword">end</span>
-0086 <span class="keyword">end</span>
-0087 
-0088 <span class="comment">% save the data struct within the GUI</span>
-0089 setappdata(gui.figh,<span class="string">'data'</span>,data);
-0090 setappdata(gui.figh,<span class="string">'gui'</span>,gui);
-0091 
-0092 <span class="comment">%% Create GUI elements</span>
-0093 <a href="NUCLEUSinv_createGUI.html" class="code" title="function NUCLEUSinv_createGUI(h,wbon)">NUCLEUSinv_createGUI</a>(gui.figh,1);
-0094 
-0095 <span class="keyword">end</span>
-0096 
-0097 <span class="comment">%------------- END OF CODE --------------</span>
-0098 
-0099 <span class="comment">%% License:</span>
-0100 <span class="comment">% MIT License</span>
-0101 <span class="comment">%</span>
-0102 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0103 <span class="comment">%</span>
-0104 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0105 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0106 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0107 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0108 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0109 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0110 <span class="comment">%</span>
-0111 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0112 <span class="comment">% copies or substantial portions of the Software.</span>
+0086     <span class="keyword">if</span> strfind(Mver(i).Name,<span class="string">'Statistics'</span>)
+0087         data.info.stat = <span class="string">'on'</span>;
+0088     <span class="keyword">end</span>
+0089 <span class="keyword">end</span>
+0090 <span class="comment">% set solver default (LSQLIN if available)</span>
+0091 <span class="keyword">switch</span> data.info.has_optim
+0092     <span class="keyword">case</span> <span class="string">'on'</span>
+0093         data.info.solver = <span class="string">'lsqlin'</span>;
+0094     <span class="keyword">case</span> <span class="string">'off'</span>
+0095         data.info.solver = <span class="string">'lsqnonneg'</span>;
+0096 <span class="keyword">end</span>
+0097 
+0098 <span class="comment">% save the data struct within the GUI</span>
+0099 setappdata(gui.figh,<span class="string">'data'</span>,data);
+0100 setappdata(gui.figh,<span class="string">'gui'</span>,gui);
+0101 
+0102 <span class="comment">%% Create GUI elements</span>
+0103 <a href="NUCLEUSinv_createGUI.html" class="code" title="function NUCLEUSinv_createGUI(h,wbon)">NUCLEUSinv_createGUI</a>(gui.figh,1);
+0104 
+0105 <span class="keyword">end</span>
+0106 
+0107 <span class="comment">%------------- END OF CODE --------------</span>
+0108 
+0109 <span class="comment">%% License:</span>
+0110 <span class="comment">% MIT License</span>
+0111 <span class="comment">%</span>
+0112 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0113 <span class="comment">%</span>
-0114 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0115 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0116 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0117 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0118 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0119 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0120 <span class="comment">% SOFTWARE.</span></pre></div>
+0114 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0115 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0116 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0117 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0118 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0119 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0120 <span class="comment">%</span>
+0121 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0122 <span class="comment">% copies or substantial portions of the Software.</span>
+0123 <span class="comment">%</span>
+0124 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0125 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0126 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0127 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0128 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0129 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0130 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -36,7 +36,7 @@ inversion
        time - time vector
        signal - NMR signal vector (no complex data allowed!)
        varargin - PROPERTY - VALUE OPTIONS:
-                    'type' - 'log' or 'lin' (default is 'log')
+                    'type' - 'log', 'logv2' or 'lin' (default is 'log')
                       'Ng' - No. of gates (default is 100)
                       'Ne' - max. No. of echoes per gate (default is 50)
                   'plotit' - '0' or '1' (default is 0)
@@ -70,7 +70,7 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="../../../nucleus/functions/interface/processNMRData.html" class="code" title="function [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)">processNMRData</a>	 processes the NMR raw data</li></ul>
+<li><a href="../../../nucleus/functions/interface/processNMRData.html" class="code" title="function [nmrraw,nmrproc] = processNMRData(nmrraw,nmrproc)">processNMRData</a>	 processes the NMR raw data</li><li><a href="../../../nucleus/functions/interface/subGUIs/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>	 is an extra subGUI to calculate 2D inversion of T1-T2 data</li><li><a href="estimateUncertainty.html" class="code" title="function [invstd,uncert] = estimateUncertainty(invtype,invstd,iparam,parameter)">estimateUncertainty</a>	 calculates pseudo uncertainty estimates for multi</li></ul>
 <!-- crossreference -->
 
 
@@ -87,7 +87,7 @@ This function is called by:
 0009 <span class="comment">%       time - time vector</span>
 0010 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
 0011 <span class="comment">%       varargin - PROPERTY - VALUE OPTIONS:</span>
-0012 <span class="comment">%                    'type' - 'log' or 'lin' (default is 'log')</span>
+0012 <span class="comment">%                    'type' - 'log', 'logv2' or 'lin' (default is 'log')</span>
 0013 <span class="comment">%                      'Ng' - No. of gates (default is 100)</span>
 0014 <span class="comment">%                      'Ne' - max. No. of echoes per gate (default is 50)</span>
 0015 <span class="comment">%                  'plotit' - '0' or '1' (default is 0)</span>
@@ -118,7 +118,7 @@ This function is called by:
 0040 
 0041 <span class="comment">%% default settings</span>
 0042 type = <span class="string">'log'</span>;
-0043 Ne = 50;
+0043 Ne = 500;
 0044 Ng = 100;
 0045 plotit = 0;
 0046 special = <span class="string">''</span>;
@@ -134,227 +134,261 @@ This function is called by:
 0056             prop = varargin{2*i-1};
 0057             value = varargin{2*i};
 0058             <span class="keyword">if</span> strcmpi(prop,<span class="string">'type'</span>) || strcmpi(prop,<span class="string">'flag'</span>)
-0059                 <span class="keyword">if</span> ischar(value) &amp;&amp; (strcmpi(value,<span class="string">'log'</span>) || strcmpi(value,<span class="string">'lin'</span>))
-0060                     type = value;
-0061                 <span class="keyword">else</span>
-0062                     disp(<span class="string">'applyGatesToSignal: ''type'' must be either ''log'' or ''lin'''</span>);
-0063                     disp(<span class="string">'applyGatesToSignal: Using default: log.'</span>);
-0064                 <span class="keyword">end</span>
-0065             <span class="keyword">end</span>
-0066             <span class="keyword">if</span> strcmpi(prop,<span class="string">'Ng'</span>)|| strcmpi(prop,<span class="string">'No'</span>)
-0067                 <span class="keyword">if</span> isnumeric(value)
-0068                     Ng = value;
-0069                 <span class="keyword">else</span>
-0070                     disp(<span class="string">'applyGatesToSignal: ''Ng'' must be a scalar value.'</span>);
-0071                     disp(<span class="string">'applyGatesToSignal: Using default: 100.'</span>);
-0072                 <span class="keyword">end</span>
-0073             <span class="keyword">end</span>
-0074             <span class="keyword">if</span> strcmpi(prop,<span class="string">'Nechoes'</span>)|| strcmpi(prop,<span class="string">'Ne'</span>)
-0075                 <span class="keyword">if</span> isnumeric(value)
-0076                     Ne = value;
-0077                 <span class="keyword">else</span>
-0078                     disp(<span class="string">'applyGatesToSignal: ''Nechoes'' must be a scalar value.'</span>);
-0079                     disp(<span class="string">'applyGatesToSignal: Using default: 50.'</span>);
-0080                 <span class="keyword">end</span>
-0081             <span class="keyword">end</span>
-0082             <span class="keyword">if</span> strcmpi(prop,<span class="string">'plot'</span>)|| strcmpi(prop,<span class="string">'plotit'</span>)
-0083                 <span class="keyword">if</span> isnumeric(value)
-0084                     plotit = value;
-0085                 <span class="keyword">else</span>
-0086                     disp(<span class="string">'applyGatesToSignal: ''plotit'' must be a scalar value.'</span>);
-0087                     disp(<span class="string">'applyGatesToSignal: Using default: 0.'</span>);
-0088                 <span class="keyword">end</span>
-0089             <span class="keyword">end</span>
-0090             <span class="keyword">if</span> strcmpi(prop,<span class="string">'special'</span>)
-0091                 <span class="keyword">if</span> ischar(value) &amp;&amp; strcmpi(value,<span class="string">'rwth'</span>)
-0092                     special = value;
-0093                 <span class="keyword">else</span>
-0094                     disp(<span class="string">'applyGatesToSignal: ''special'' can only be ''rwth''.'</span>);
-0095                     disp(<span class="string">'applyGatesToSignal: Using default: none'</span>);
-0096                 <span class="keyword">end</span>
-0097             <span class="keyword">end</span>
-0098         <span class="keyword">end</span>
-0099     <span class="keyword">end</span>
-0100 <span class="keyword">end</span>
-0101 
-0102 <span class="comment">%% complex signal -&gt; noise per gate</span>
-0103 isimag = false;
-0104 <span class="keyword">if</span> ~isreal(signal)
-0105     isimag = true;
-0106     Ipart = imag(signal);
-0107     signal = real(signal);
-0108 <span class="keyword">end</span>
-0109 
-0110 <span class="comment">%% shift correction from MMP:</span>
-0111 VbaseCorr = abs(10*min(signal)); <span class="comment">% necessary for log to be real</span>
-0112 signal = signal + VbaseCorr;  <span class="comment">% shift signal into positive</span>
-0113 
-0114 <span class="comment">%% get time range 'ms' or 's'</span>
-0115 tfak = 1;
-0116 <span class="keyword">if</span> max(time) &gt; 30
-0117     tfak = 1e3;
-0118 <span class="keyword">end</span>
-0119 
-0120 <span class="comment">%% applying the gates</span>
-0121 <span class="keyword">switch</span> type
-0122     <span class="keyword">case</span> <span class="string">'log'</span>
-0123         <span class="comment">% get a log-spaced vector with numbers of echoes per gate</span>
-0124         index = round(logspace(0,3,Ng));
-0125         
-0126         <span class="keyword">if</span> strcmp(special,<span class="string">'rwth'</span>)
-0127             <span class="comment">% merge the first 3 data points if they are below 0.001 s</span>
-0128             <span class="keyword">if</span> all(time(1:3)&lt;1e-3*tfak)
-0129                 index(1) = 3;
-0130             <span class="keyword">end</span>
-0131         <span class="keyword">end</span>
-0132         <span class="comment">% the maximal No of echoes per time gates is set to M=50</span>
-0133         <span class="comment">% this stabilizes / improves the RMS estimation</span>
-0134 <span class="comment">%         if numel(time) &lt; 20000</span>
-0135 <span class="comment">%             M = 50;</span>
-0136 <span class="comment">%         else</span>
-0137 <span class="comment">%             M = 150;</span>
-0138 <span class="comment">%         end</span>
-0139         M = Ne;
-0140         <span class="comment">% find the first one where the number of echoes is M</span>
-0141         ind = find(abs(index-M)==min(abs(index-M)),1,<span class="string">'first'</span>);
-0142         <span class="comment">% maybe M is not exactly within index due to rounding issues</span>
-0143         <span class="comment">% then take the closest one</span>
-0144         M = index(ind);
-0145         i1 = find(index==M,1,<span class="string">'last'</span>);
-0146         <span class="comment">% sum up all gates up to M</span>
-0147         s1 = cumsum(index(1:i1));
-0148         <span class="comment">% how many gates with M echoes we need to add to get the whole</span>
-0149         <span class="comment">% signal</span>
-0150         N = ceil((length(time)-s1(end))/M);
-0151         <span class="comment">% make a new index vector</span>
-0152         index = [index(1:i1) M*ones(1,N)];
-0153         <span class="comment">% sum up all gates</span>
-0154         ci = cumsum(index);
-0155         <span class="comment">% find the last one we need to re-sample the whole signal</span>
-0156         indc = find(ci&gt;=length(time),1,<span class="string">'first'</span>);
-0157         
-0158         t = zeros(indc,1);
-0159         signal_g = zeros(indc,1);
-0160         Nechos = zeros(indc,1);
-0161         Noise = zeros(indc,1);
-0162         <span class="comment">% now loop over all gates</span>
-0163         <span class="keyword">for</span> i = 1:indc
-0164             <span class="keyword">if</span> i == 1                
-0165                 t(i) = mean(time(1:ci(i)));
-0166                 signal_g(i) = exp(mean(log(signal(1:ci(i)))));
-0167                 Nechos(i) = index(i);
-0168                 <span class="keyword">if</span> isimag
-0169                     <span class="keyword">if</span> numel(1:ci(i)) == 1
-0170                         Noise(i) = Ipart(1:ci(i));
-0171                     <span class="keyword">else</span>
-0172                         Noise(i) = std(Ipart(1:ci(i)));
-0173                     <span class="keyword">end</span>
-0174                 <span class="keyword">end</span>
-0175             <span class="keyword">elseif</span> i &gt; 1 &amp;&amp; i &lt; indc
-0176                 t(i) = mean(time(ci(i-1)+1:ci(i)));
-0177                 signal_g(i) = exp(mean(log(signal(ci(i-1)+1:ci(i)))));
-0178                 Nechos(i) = index(i);
-0179                 <span class="keyword">if</span> isimag
-0180                     <span class="keyword">if</span> numel(ci(i-1)+1:ci(i)) == 1
-0181                         Noise(i) = Ipart(ci(i-1)+1:ci(i));
-0182                     <span class="keyword">else</span>
-0183                         Noise(i) = std(Ipart(ci(i-1)+1:ci(i)));
-0184                     <span class="keyword">end</span>
-0185                     
-0186                 <span class="keyword">end</span>
-0187             <span class="keyword">end</span>
-0188             <span class="keyword">if</span> i == indc
-0189                 t(i) = mean(time(ci(i-1):end));
-0190                 signal_g(i) = exp(mean(log(signal(ci(i-1):end))));
-0191                 Nechos(i) = length(time)-ci(i-1)+1;
-0192                 <span class="keyword">if</span> isimag                    
-0193                     Noise(i) = std(Ipart(ci(i-1):end));
-0194                 <span class="keyword">end</span>
-0195             <span class="keyword">end</span>
-0196         <span class="keyword">end</span>
-0197         
-0198     <span class="keyword">case</span> <span class="string">'lin'</span>
-0199         
-0200         <span class="comment">% if more echoes per gate are desired, than the number of gates</span>
-0201         <span class="comment">% gives: update the number of gates ;-)</span>
-0202 <span class="comment">%         if numel(time)/Ng &gt; Ne</span>
-0203             Ng = round(numel(time)/Ne);            
-0204 <span class="comment">%         end</span>
-0205         
-0206         <span class="comment">% get a lin-spaced time vector</span>
-0207         timeg = linspace(time(2),time(end),Ng);
-0208         t = zeros(Ng,1);
-0209         signal_g = zeros(Ng,1);
-0210         signal_std = zeros(Ng,1);
-0211         Nechos = zeros(Ng,1);
-0212         <span class="keyword">for</span> i = 1:Ng
-0213             <span class="keyword">if</span> i == 1
-0214                 signal_g(i,1)= mean( signal(time&lt;=timeg(i)) );
-0215                 signal_std(i,1) = std( signal(time&lt;=timeg(i)) );
-0216                 Nechos(i,1) = length( signal(time&lt;=timeg(i)) );
-0217                 t(i,1) = 0 + timeg(1)/2;
-0218             <span class="keyword">else</span>
-0219                 signal_g(i,1) = mean( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
-0220                 signal_std(i,1) = std( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
-0221                 Nechos(i,1) = length( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
-0222                 t(i,1) = timeg(i-1) + (timeg(i)-timeg(i-1))/2;
-0223             <span class="keyword">end</span>
-0224         <span class="keyword">end</span>
-0225 <span class="keyword">end</span>
-0226 
-0227 <span class="comment">% shift correction from MMP:</span>
-0228 signal = signal - VbaseCorr; <span class="comment">% subtract shift</span>
-0229 signal_g = signal_g - VbaseCorr; <span class="comment">% subtract shift</span>
-0230 
-0231 <span class="comment">% output struct</span>
-0232 data(:,1) = t;
-0233 data(:,2) = signal_g;
-0234 data(:,3) = Nechos;
-0235 <span class="keyword">if</span> isimag
-0236  data(:,4) = Noise;
-0237 <span class="keyword">end</span>
-0238 
-0239 <span class="comment">% if plotit is set to 1</span>
-0240 <span class="keyword">if</span> plotit == 1
-0241     figure;
-0242     subplot(211)
-0243     plot(time,signal); hold on
-0244     <span class="keyword">if</span> strcmp(type,<span class="string">'lin'</span>)
-0245         errorbar(t,signal_g,signal_std,<span class="string">'ko'</span>);
-0246     <span class="keyword">else</span>
-0247         plot(t,signal_g,<span class="string">'ko'</span>);
-0248     <span class="keyword">end</span>    
-0249     subplot(212);
-0250     semilogx(time,signal,<span class="string">'+-'</span>); hold on
-0251     semilogx(t,signal_g,<span class="string">'ko'</span>);
-0252 <span class="keyword">end</span>
-0253 
-0254 <span class="keyword">return</span>
-0255 
-0256 <span class="comment">%------------- END OF CODE --------------</span>
-0257 
-0258 <span class="comment">%% License:</span>
-0259 <span class="comment">% MIT License</span>
-0260 <span class="comment">%</span>
-0261 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0262 <span class="comment">%</span>
-0263 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0264 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0265 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0266 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0267 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0268 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0269 <span class="comment">%</span>
-0270 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0271 <span class="comment">% copies or substantial portions of the Software.</span>
-0272 <span class="comment">%</span>
-0273 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0274 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0275 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0276 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0277 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0278 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0279 <span class="comment">% SOFTWARE.</span></pre></div>
+0059                 <span class="keyword">if</span> ischar(value) &amp;&amp; (strcmpi(value,<span class="string">'log'</span>) ||<span class="keyword">...</span>
+0060                         strcmpi(value,<span class="string">'logv2'</span>) || strcmpi(value,<span class="string">'lin'</span>))
+0061                     type = value;
+0062                 <span class="keyword">else</span>
+0063                     disp(<span class="string">'applyGatesToSignal: ''type'' must be either ''log'', ''logv2'' or ''lin'''</span>);
+0064                     disp(<span class="string">'applyGatesToSignal: Using default: log.'</span>);
+0065                 <span class="keyword">end</span>
+0066             <span class="keyword">end</span>
+0067             <span class="keyword">if</span> strcmpi(prop,<span class="string">'Ng'</span>)|| strcmpi(prop,<span class="string">'No'</span>)
+0068                 <span class="keyword">if</span> isnumeric(value)
+0069                     Ng = value;
+0070                 <span class="keyword">else</span>
+0071                     disp(<span class="string">'applyGatesToSignal: ''Ng'' must be a scalar value.'</span>);
+0072                     disp(<span class="string">'applyGatesToSignal: Using default: 100.'</span>);
+0073                 <span class="keyword">end</span>
+0074             <span class="keyword">end</span>
+0075             <span class="keyword">if</span> strcmpi(prop,<span class="string">'Nechoes'</span>)|| strcmpi(prop,<span class="string">'Ne'</span>)
+0076                 <span class="keyword">if</span> isnumeric(value)
+0077                     Ne = value;
+0078                 <span class="keyword">else</span>
+0079                     disp(<span class="string">'applyGatesToSignal: ''Nechoes'' must be a scalar value.'</span>);
+0080                     disp(<span class="string">'applyGatesToSignal: Using default: 50.'</span>);
+0081                 <span class="keyword">end</span>
+0082             <span class="keyword">end</span>
+0083             <span class="keyword">if</span> strcmpi(prop,<span class="string">'plot'</span>)|| strcmpi(prop,<span class="string">'plotit'</span>)
+0084                 <span class="keyword">if</span> isnumeric(value)
+0085                     plotit = value;
+0086                 <span class="keyword">else</span>
+0087                     disp(<span class="string">'applyGatesToSignal: ''plotit'' must be a scalar value.'</span>);
+0088                     disp(<span class="string">'applyGatesToSignal: Using default: 0.'</span>);
+0089                 <span class="keyword">end</span>
+0090             <span class="keyword">end</span>
+0091             <span class="keyword">if</span> strcmpi(prop,<span class="string">'special'</span>)
+0092                 <span class="keyword">if</span> ischar(value) &amp;&amp; strcmpi(value,<span class="string">'rwth'</span>)
+0093                     special = value;
+0094                 <span class="keyword">else</span>
+0095                     disp(<span class="string">'applyGatesToSignal: ''special'' can only be ''rwth''.'</span>);
+0096                     disp(<span class="string">'applyGatesToSignal: Using default: none'</span>);
+0097                 <span class="keyword">end</span>
+0098             <span class="keyword">end</span>
+0099         <span class="keyword">end</span>
+0100     <span class="keyword">end</span>
+0101 <span class="keyword">end</span>
+0102 
+0103 <span class="comment">%% complex signal -&gt; noise per gate</span>
+0104 isimag = false;
+0105 <span class="keyword">if</span> ~isreal(signal)
+0106     isimag = true;
+0107     Ipart = imag(signal);
+0108     signal = real(signal);
+0109 <span class="keyword">end</span>
+0110 
+0111 <span class="comment">%% shift correction from MMP:</span>
+0112 VbaseCorr = abs(10*min(signal)); <span class="comment">% necessary for log to be real</span>
+0113 signal = signal + VbaseCorr;  <span class="comment">% shift signal into positive</span>
+0114 
+0115 <span class="comment">%% get time range 'ms' or 's'</span>
+0116 tfak = 1;
+0117 <span class="keyword">if</span> max(time) &gt; 30
+0118     tfak = 1e3;
+0119 <span class="keyword">end</span>
+0120 
+0121 <span class="comment">%% applying the gates</span>
+0122 <span class="keyword">switch</span> type
+0123     <span class="keyword">case</span> <span class="string">'log'</span>
+0124         <span class="comment">% get a log-spaced vector with numbers of echoes per gate</span>
+0125         index = round(logspace(0,3,Ng));
+0126         
+0127         <span class="keyword">if</span> strcmp(special,<span class="string">'rwth'</span>)
+0128             <span class="comment">% merge the first 3 data points if they are below 0.001 s</span>
+0129             <span class="keyword">if</span> all(time(1:3)&lt;1e-3*tfak)
+0130                 index(1) = 3;
+0131             <span class="keyword">end</span>
+0132         <span class="keyword">end</span>
+0133         <span class="comment">% the maximal No of echoes per time gates is set to M=50</span>
+0134         <span class="comment">% this stabilizes / improves the RMS estimation</span>
+0135 <span class="comment">%         if numel(time) &lt; 20000</span>
+0136 <span class="comment">%             M = 50;</span>
+0137 <span class="comment">%         else</span>
+0138 <span class="comment">%             M = 150;</span>
+0139 <span class="comment">%         end</span>
+0140         M = Ne;
+0141         <span class="comment">% find the first one where the number of echoes is M</span>
+0142         ind = find(abs(index-M)==min(abs(index-M)),1,<span class="string">'first'</span>);
+0143         <span class="comment">% maybe M is not exactly within index due to rounding issues</span>
+0144         <span class="comment">% then take the closest one</span>
+0145         M = index(ind);
+0146         i1 = find(index==M,1,<span class="string">'last'</span>);
+0147         <span class="comment">% sum up all gates up to M</span>
+0148         s1 = cumsum(index(1:i1));
+0149         <span class="comment">% how many gates with M echoes we need to add to get the whole</span>
+0150         <span class="comment">% signal</span>
+0151         N = ceil((length(time)-s1(end))/M);
+0152         <span class="comment">% make a new index vector</span>
+0153         index = [index(1:i1) M*ones(1,N)];
+0154         <span class="comment">% sum up all gates</span>
+0155         ci = cumsum(index);
+0156         <span class="comment">% find the last one we need to re-sample the whole signal</span>
+0157         indc = find(ci&gt;=length(time),1,<span class="string">'first'</span>);
+0158         
+0159         t = zeros(indc,1);
+0160         signal_g = zeros(indc,1);
+0161         Nechos = zeros(indc,1);
+0162         Noise = zeros(indc,1);
+0163         <span class="comment">% now loop over all gates</span>
+0164         <span class="keyword">for</span> i = 1:indc
+0165             <span class="keyword">if</span> i == 1                
+0166                 t(i) = mean(time(1:ci(i)));
+0167                 signal_g(i) = exp(mean(log(signal(1:ci(i)))));
+0168                 Nechos(i) = index(i);
+0169                 <span class="keyword">if</span> isimag
+0170                     <span class="keyword">if</span> numel(1:ci(i)) == 1
+0171                         Noise(i) = Ipart(1:ci(i));
+0172                     <span class="keyword">else</span>
+0173                         Noise(i) = std(Ipart(1:ci(i)));
+0174                     <span class="keyword">end</span>
+0175                 <span class="keyword">end</span>
+0176             <span class="keyword">elseif</span> i &gt; 1 &amp;&amp; i &lt; indc
+0177                 t(i) = mean(time(ci(i-1)+1:ci(i)));
+0178                 signal_g(i) = exp(mean(log(signal(ci(i-1)+1:ci(i)))));
+0179                 Nechos(i) = index(i);
+0180                 <span class="keyword">if</span> isimag
+0181                     <span class="keyword">if</span> numel(ci(i-1)+1:ci(i)) == 1
+0182                         Noise(i) = Ipart(ci(i-1)+1:ci(i));
+0183                     <span class="keyword">else</span>
+0184                         Noise(i) = std(Ipart(ci(i-1)+1:ci(i)));
+0185                     <span class="keyword">end</span>
+0186                     
+0187                 <span class="keyword">end</span>
+0188             <span class="keyword">end</span>
+0189             <span class="keyword">if</span> i == indc
+0190                 t(i) = mean(time(ci(i-1):end));
+0191                 signal_g(i) = exp(mean(log(signal(ci(i-1):end))));
+0192                 Nechos(i) = length(time)-ci(i-1)+1;
+0193                 <span class="keyword">if</span> isimag                    
+0194                     Noise(i) = std(Ipart(ci(i-1):end));
+0195                 <span class="keyword">end</span>
+0196             <span class="keyword">end</span>
+0197         <span class="keyword">end</span>
+0198 
+0199     <span class="keyword">case</span> <span class="string">'logv2'</span>
+0200         <span class="comment">% gateing routine from MRSMatlab by MMP</span>
+0201         
+0202         <span class="comment">% new log spaced time vector</span>
+0203         t1 = abs(logspace(log10(time(2)),log10(time(end)+time(2)),Ng) - time(2));
+0204 
+0205         <span class="comment">% get indices</span>
+0206         tInd = ones(1,length(t1));
+0207         <span class="keyword">for</span> n=2:length(t1)-1
+0208             tInd(n) = find(t1(n)&lt;=time,1);
+0209         <span class="keyword">end</span>
+0210         <span class="keyword">if</span> ~isempty(find(t1(end)&lt;=time,1)) <span class="comment">% avoid crash</span>
+0211             tInd(end) = find(t1(end)&lt;=time,1);
+0212         <span class="keyword">else</span>
+0213             tInd(end) = length(t1);
+0214         <span class="keyword">end</span>
+0215         
+0216         <span class="comment">% find unique indecies</span>
+0217         tInd = unique(tInd);
+0218         tInd = cumsum([0 sort(diff(tInd))])+1;
+0219         
+0220         <span class="comment">% prepare output data</span>
+0221         signal_g = zeros(1,length(tInd)-1);
+0222         t = zeros(1,length(tInd)-1);
+0223         Nechos = zeros(1,length(tInd)-1);
+0224 
+0225         <span class="comment">% calculate mean within a gate in logspace</span>
+0226         <span class="keyword">for</span> n=2:length(tInd)
+0227             signal_g(n-1) = exp(mean(log(signal(tInd(n-1):tInd(n)-1))));
+0228             t(n-1) = mean(time(tInd(n-1):tInd(n)-1));
+0229             Nechos(n-1) = length(time(tInd(n-1):tInd(n)-1));
+0230         <span class="keyword">end</span>
+0231         
+0232     <span class="keyword">case</span> <span class="string">'lin'</span>
+0233         
+0234         <span class="comment">% if more echoes per gate are desired, than the number of gates</span>
+0235         <span class="comment">% gives: update the number of gates ;-)</span>
+0236 <span class="comment">%         if numel(time)/Ng &gt; Ne</span>
+0237             Ng = round(numel(time)/Ne);            
+0238 <span class="comment">%         end</span>
+0239         
+0240         <span class="comment">% get a lin-spaced time vector</span>
+0241         timeg = linspace(time(2),time(end),Ng);
+0242         t = zeros(Ng,1);
+0243         signal_g = zeros(Ng,1);
+0244         signal_std = zeros(Ng,1);
+0245         Nechos = zeros(Ng,1);
+0246         <span class="keyword">for</span> i = 1:Ng
+0247             <span class="keyword">if</span> i == 1
+0248                 signal_g(i,1)= mean( signal(time&lt;=timeg(i)) );
+0249                 signal_std(i,1) = std( signal(time&lt;=timeg(i)) );
+0250                 Nechos(i,1) = length( signal(time&lt;=timeg(i)) );
+0251                 t(i,1) = 0 + timeg(1)/2;
+0252             <span class="keyword">else</span>
+0253                 signal_g(i,1) = mean( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
+0254                 signal_std(i,1) = std( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
+0255                 Nechos(i,1) = length( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
+0256                 t(i,1) = timeg(i-1) + (timeg(i)-timeg(i-1))/2;
+0257             <span class="keyword">end</span>
+0258         <span class="keyword">end</span>
+0259 <span class="keyword">end</span>
+0260 
+0261 <span class="comment">% shift correction from MMP:</span>
+0262 signal = signal - VbaseCorr; <span class="comment">% subtract shift</span>
+0263 signal_g = signal_g - VbaseCorr; <span class="comment">% subtract shift</span>
+0264 
+0265 <span class="comment">% output struct</span>
+0266 data(:,1) = t;
+0267 data(:,2) = signal_g;
+0268 data(:,3) = Nechos;
+0269 <span class="keyword">if</span> isimag
+0270  data(:,4) = Noise;
+0271 <span class="keyword">end</span>
+0272 
+0273 <span class="comment">% if plotit is set to 1</span>
+0274 <span class="keyword">if</span> plotit == 1
+0275     figure;
+0276     subplot(211)
+0277     plot(time,signal); hold on
+0278     <span class="keyword">if</span> strcmp(type,<span class="string">'lin'</span>)
+0279         errorbar(t,signal_g,signal_std,<span class="string">'ko'</span>);
+0280     <span class="keyword">else</span>
+0281         plot(t,signal_g,<span class="string">'ko'</span>);
+0282     <span class="keyword">end</span>    
+0283     subplot(212);
+0284     semilogx(time,signal,<span class="string">'+-'</span>); hold on
+0285     semilogx(t,signal_g,<span class="string">'ko'</span>);
+0286 <span class="keyword">end</span>
+0287 
+0288 <span class="keyword">return</span>
+0289 
+0290 <span class="comment">%------------- END OF CODE --------------</span>
+0291 
+0292 <span class="comment">%% License:</span>
+0293 <span class="comment">% MIT License</span>
+0294 <span class="comment">%</span>
+0295 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0296 <span class="comment">%</span>
+0297 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0298 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0299 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0300 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0301 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0302 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0303 <span class="comment">%</span>
+0304 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0305 <span class="comment">% copies or substantial portions of the Software.</span>
+0306 <span class="comment">%</span>
+0307 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0308 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0309 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0310 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0311 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0312 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0313 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

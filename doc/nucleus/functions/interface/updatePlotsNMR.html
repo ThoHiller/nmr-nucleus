@@ -109,100 +109,110 @@ This function is called by:
 0040 <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
 0041 hold(ax,<span class="string">'on'</span>);
 0042 
-0043 <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)  
+0043 <span class="keyword">if</span> isfield(data.results,<span class="string">'NMR'</span>)
 0044     <span class="comment">% drainage and imbibition levels</span>
 0045     indd = data.pressure.DrainLevels;
 0046     indi = data.pressure.ImbLevels;
-0047     
+0047 
 0048     <span class="comment">% NMR data to plot</span>
 0049     NMR = data.results.NMR;
-0050     
+0050 
 0051     mycol = flipud(parula(128));
 0052     <span class="comment">% color for the individual NMR signals</span>
 0053     colindd = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(data.results.SAT.Sdfull(indd),128);
 0054     colindi = <a href="getColorIndex.html" class="code" title="function index = getColorIndex(sat,N)">getColorIndex</a>(data.results.SAT.Sifull(indi),128);
-0055     
+0055 
 0056     hold(ax,<span class="string">'on'</span>);
-0057     <span class="keyword">switch</span> data.nmr.toplot        
-0058         <span class="keyword">case</span> <span class="string">'T1'</span>            
+0057     <span class="keyword">switch</span> data.nmr.toplot
+0058         <span class="keyword">case</span> <span class="string">'T1'</span>
 0059             <span class="keyword">for</span> i = 1:numel(indd)
-0060                 plot(NMR.t,NMR.EdT1(indd(i),:),<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="keyword">...</span>
-0061                     <span class="string">'MarkerSize'</span>,5,<span class="string">'Parent'</span>,ax);
+0060                 plot(NMR.t1,NMR.EdT1(indd(i),:),<span class="string">'o-'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="keyword">...</span>
+0061                     <span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax);
 0062             <span class="keyword">end</span>
 0063             <span class="keyword">for</span> i = 1:numel(indi)
-0064                 plot(NMR.t,NMR.EiT1(indi(i),:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="keyword">...</span>
-0065                     <span class="string">'MarkerSize'</span>,10,<span class="string">'Parent'</span>,ax);
+0064                 plot(NMR.t1,NMR.EiT1(indi(i),:),<span class="string">'s--'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="keyword">...</span>
+0065                     <span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax);
 0066             <span class="keyword">end</span>
-0067             
-0068         <span class="keyword">case</span> <span class="string">'T2'</span>            
+0067 
+0068         <span class="keyword">case</span> <span class="string">'T2'</span>
 0069             <span class="keyword">for</span> i = 1:numel(indd)
-0070                 plot(NMR.t,NMR.EdT2(indd(i),:),<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="keyword">...</span>
+0070                 plot(NMR.t2,NMR.EdT2(indd(i),:),<span class="string">'-'</span>,<span class="string">'Color'</span>,mycol(colindd(i),:),<span class="keyword">...</span>
 0071                     <span class="string">'MarkerSize'</span>,5,<span class="string">'Parent'</span>,ax);
 0072             <span class="keyword">end</span>
 0073             <span class="keyword">for</span> i = 1:numel(indi)
-0074                 plot(NMR.t,NMR.EiT2(indi(i),:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="keyword">...</span>
-0075                     <span class="string">'MarkerSize'</span>,10,<span class="string">'Parent'</span>,ax);
-0076             <span class="keyword">end</span>            
+0074                 plot(NMR.t2,NMR.EiT2(indi(i),:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycol(colindi(i),:),<span class="keyword">...</span>
+0075                     <span class="string">'MarkerSize'</span>,5,<span class="string">'Parent'</span>,ax);
+0076             <span class="keyword">end</span>
 0077     <span class="keyword">end</span>
-0078     
+0078 
 0079     <span class="comment">% x-limits</span>
 0080     loglinx = get(gui.cm_handles.nmr_cm_xaxis,<span class="string">'Label'</span>);
-0081     <span class="keyword">switch</span> loglinx
-0082         <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0083             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[NMR.t(2) max(NMR.t)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-0084         <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0085             set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 max(NMR.t)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-0086     <span class="keyword">end</span>
-0087     
-0088     <span class="comment">% y-limits</span>
-0089     logliny = get(gui.cm_handles.nmr_cm_yaxis,<span class="string">'Label'</span>);
-0090     <span class="keyword">switch</span> logliny
-0091         <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
-0092             set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[1e-4 1.01*data.nmr.porosity],<span class="string">'YTick'</span>,[1e-4 1e-3 1e-2 1e-1 1]);
-0093         <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
-0094             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 1.1*data.nmr.porosity],<span class="string">'YTick'</span>,linspace(0,data.nmr.porosity,6));
-0095     <span class="keyword">end</span>
-0096     
-0097     hold(ax,<span class="string">'off'</span>);
-0098     grid(ax,<span class="string">'on'</span>);
-0099     
-0100     <span class="comment">% axis labels</span>
-0101     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-0102     <span class="keyword">if</span> data.nmr.porosity &lt; 1
-0103         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [-]'</span>);
-0104     <span class="keyword">else</span>
-0105         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [-]'</span>);
-0106     <span class="keyword">end</span>    
-0107 <span class="keyword">end</span>
-0108 
-0109 <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(gui.figh);
-0110 
-0111 <span class="keyword">end</span>
-0112 
-0113 <span class="comment">%------------- END OF CODE --------------</span>
-0114 
-0115 <span class="comment">%% License:</span>
-0116 <span class="comment">% MIT License</span>
-0117 <span class="comment">%</span>
-0118 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0119 <span class="comment">%</span>
-0120 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0121 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0122 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0123 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0124 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0125 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0126 <span class="comment">%</span>
-0127 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0128 <span class="comment">% copies or substantial portions of the Software.</span>
+0081     <span class="keyword">switch</span> data.nmr.toplot
+0082         <span class="keyword">case</span> <span class="string">'T1'</span>
+0083             <span class="keyword">switch</span> loglinx
+0084                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0085                     set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[NMR.t1(1) max(NMR.t1)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0086                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0087                     set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 max(NMR.t1)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0088             <span class="keyword">end</span>
+0089         <span class="keyword">case</span> <span class="string">'T2'</span>
+0090             <span class="keyword">switch</span> loglinx
+0091                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0092                     set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[NMR.t2(1) max(NMR.t2)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0093                 <span class="keyword">case</span> <span class="string">'x-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0094                     set(ax,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 max(NMR.t2)],<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+0095             <span class="keyword">end</span>
+0096     <span class="keyword">end</span>
+0097 
+0098     <span class="comment">% y-limits</span>
+0099     logliny = get(gui.cm_handles.nmr_cm_yaxis,<span class="string">'Label'</span>);
+0100     <span class="keyword">switch</span> logliny
+0101         <span class="keyword">case</span> <span class="string">'y-axis -&gt; lin'</span> <span class="comment">% log axes</span>
+0102             set(ax,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YLim'</span>,[1e-4 1.01*data.nmr.porosity],<span class="string">'YTick'</span>,[1e-4 1e-3 1e-2 1e-1 1]);
+0103         <span class="keyword">case</span> <span class="string">'y-axis -&gt; log'</span> <span class="comment">% lin axes</span>
+0104             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 1.1*data.nmr.porosity],<span class="string">'YTick'</span>,linspace(0,data.nmr.porosity,6));
+0105     <span class="keyword">end</span>
+0106 
+0107     hold(ax,<span class="string">'off'</span>);
+0108     grid(ax,<span class="string">'on'</span>);
+0109 
+0110     <span class="comment">% axis labels</span>
+0111     set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+0112     <span class="keyword">if</span> data.nmr.porosity &lt; 1
+0113         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'water content [-]'</span>);
+0114     <span class="keyword">else</span>
+0115         set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [-]'</span>);
+0116     <span class="keyword">end</span>
+0117 <span class="keyword">end</span>
+0118 
+0119 <a href="beautifyAxes.html" class="code" title="function beautifyAxes(figh)">beautifyAxes</a>(gui.figh);
+0120 
+0121 <span class="keyword">end</span>
+0122 
+0123 <span class="comment">%------------- END OF CODE --------------</span>
+0124 
+0125 <span class="comment">%% License:</span>
+0126 <span class="comment">% MIT License</span>
+0127 <span class="comment">%</span>
+0128 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0129 <span class="comment">%</span>
-0130 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0131 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0132 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0133 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0134 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0135 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0136 <span class="comment">% SOFTWARE.</span></pre></div>
+0130 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0131 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0132 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0133 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0134 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0135 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0136 <span class="comment">%</span>
+0137 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0138 <span class="comment">% copies or substantial portions of the Software.</span>
+0139 <span class="comment">%</span>
+0140 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0141 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0142 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0143 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0144 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0145 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0146 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

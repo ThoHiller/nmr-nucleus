@@ -78,13 +78,9 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 time = time(:);
 signal = signal(:);
 
-% get the maximum value of the signal to scale the signal for the inversion
-% to 1
-maxS = max(signal);
-
 % temporary variables
 t = time;
-g = signal./maxS;
+g = signal;
 
 % get the input parameters
 flag = parameter.T1T2;           % T1/T2 switch
@@ -105,101 +101,87 @@ T1T2me = logspace(tstart,tend,(tend-tstart)*N);
 % create the Kernel matrix for inversion
 K = createKernelMatrix(t,T1T2me,Tb,Td,flag,T1IRfac);
 
+% set bounds, if applicable
 if strcmp(parameter.solver,'lsqlin')
     if isfield(parameter,'bounds')
         f0 = parameter.bounds.f0;
         f0_lb = parameter.bounds.lb;
         f0_ub = parameter.bounds.ub;
     else
-        % initial T2 amplitudes
+        % initial amplitudes
         f0 = zeros(size(T1T2me));
         f0_lb = f0;
         f0_ub = 1.5*max(g)*ones(size(T1T2me));
-        % switch certain RTs to 0
+        % force certain RTs to 0 (switch in EXTRA menu)
         if strcmp(parameter.EchoFlag,'on')
-            switch flag
-                case 'T1'
-                    % T1 measurements: cut everything > 5*time of last
-                    % point in SR-curve
-                    f0_ub(T1T2me > 5*time(end)) = 0;
-                case 'T2'
-                    % T2 measurements: cut everything < first considered
-                    % echo to zero
-                    f0_ub(T1T2me < time(1)/5) = 0;
-            end
+            % force everything smaller than the smallest TE/5 (or TR/5 in
+            % case of T1) to 0
+            f0_ub(T1T2me < time(1)/5) = 0;
         end
     end
 end
 
-% derivative matrix
+% derivative (smoothness) matrix
 L = get_l(length(T1T2me),order);
 
-% scale the noise and error matrix W accordingly
-noise = noise./maxS;
+% if data is gated, apply error weight matrix
 if isfield(parameter,'W')
-    e = diag(parameter.W);
-    e = e./maxS;
+    e = 1./diag(parameter.W);
     W = diag(e);
-end
-
-% apply error weight matrix
-if isfield(parameter,'W')
     g = W*g;
     K = W*K;
 end
 
+% scale everything between [0,1]
+maxS = max(g);
+g = g./maxS;
+K = K./maxS;
+
 % extend K and apply regularization
 % 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'
-[KK,lambda_out] = applyRegularization(K,g,L,lambda,regMethod,order,noise);
+[KK,lambda_out] = applyRegularization(K,g,L,lambda,regMethod,order,noise./maxS);
 
 % extend g accordingly
 gg = g;
 gg(length(g)+1:length(g)+size(L,1),1) = 0;
 
+% solve LSE depending on the chosen solver
 switch parameter.solver
     case 'lsqlin'
         options = optimoptions('lsqlin');
         options.Display = parameter.info;
         options.OptimalityTolerance = 1e-16;
         options.StepTolerance = 1e-16;
-%         options.MaxIterations = 2000;
-        if isfield(parameter,'bounds')
-            [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
-                f0_lb,f0_ub,f0,options);
-        else
-            [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],...
-                f0_lb,f0_ub,[],options);
-        end
+        [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
+
     case 'lsqnonneg'
         options = optimset('Display',parameter.info,'TolX',1e-12);
         [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
 end
 
 % rescale f so that the sum(f) = unscaled E0
-f = (f.*maxS);
+% f = (f.*maxS);
 
-% the 'inverted' signal
-gg_fit = KK*f;
+% get the 'inverted' signal from the rescaled RTD
+gg_fit = KK*(f.*maxS);
 % cut off the end which was needed for regularization
 s_fit = gg_fit(1:length(t),1);
 
 % get residuals and error measures
 if isfield(parameter,'W')
-    % normalize the fit because the signal was error weighted for the
+    % rescale the fit because the input signal was error weighted for the
     % inversion
-    e = diag(W);
-    einv = 1./e;
-    Winv = diag(einv);
-    s_fit = Winv * s_fit;
+    s_fit = parameter.W * s_fit;
     
-    % because signal and s_fit are unscaled the initial values for noise
-    % and W are used to get the error estimates
-    out = getFitErrors(signal,s_fit,parameter.noise,parameter.W);
+    % because signal and s_fit are now no longer error weighted, the
+    % initial values for noise and W are used to get the error estimates
+    out = getFitErrors(signal,s_fit,noise,parameter.W);
 else
-    out = getFitErrors(signal,s_fit,parameter.noise);
+    % if data is not gated, use global noise estimate
+    out = getFitErrors(signal,s_fit,noise);
 end
 
-% L-curve parameter
+% L-curve parameters
 % model norm |L*x|_2
 xn = norm(L*f,2);
 % residual norm |A*x-b|_2

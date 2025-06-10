@@ -199,6 +199,7 @@ set(gui.bottom,'MinimumWidths',610);
 % otherwise "fixAxes" throws an error (in NUCLEUSmod); strangely here it
 % also works without it, but I put it for consistency reasons
 setappdata(h,'gui',gui);
+fixVerticalTextAlignment(h);
 changeColorTheme('INV',myui.colors.theme);
 set(gui.main,'Visible','on');
 

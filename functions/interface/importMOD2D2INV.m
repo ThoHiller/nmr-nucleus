@@ -118,7 +118,8 @@ if isfield(data.import,'NMRMOD')
         fnames(c).datafile = data.import.file;
         fnames(c).T2specfile = '';
         
-        shownames{c} = ['NUCLEUSmod_',T1T2,'_2D_',num2str(i)];
+        shownames{c} = ['NUCLEUSmod_',T1T2,'_2D_',...
+            sprintf('%d',round(datamod.results.mod2D.t_recov(i)*1e3)),'ms'];
         
         % the 'header' data
         data.import.NMR.data{c}.datfile = fileID.name;
@@ -141,6 +142,7 @@ if isfield(data.import,'NMRMOD')
         data.import.NMR.para{c}.Tbulk = datamod.prop.Tbulk;
         data.import.NMR.para{c}.Tdiff = 1e6;
         data.import.NMR.para{c}.t_echo = datamod.nmr.T2te;
+        data.import.NMR.para{c}.t_recov = data.import.NMRMOD.nmr(i).T1;
         data.import.NMR.para{c}.rho = 100;
         data.import.NMR.para{c}.porosity = 1;
     end
@@ -150,6 +152,7 @@ if isfield(data.import,'NMRMOD')
 
     % save the recovery time vector for later use
     data.import.T1T2map.t_recov = datamod.results.mod2D.t_recov(:);
+    data.import.T1T2map.t1N = numel(data.import.T1T2map.t_recov);
     data.import.T1T2map.t2 = data.import.NMR.data{1}.time;
     data.import.T1T2map.t2N = numel(data.import.NMR.data{1}.time);
 
@@ -215,6 +218,17 @@ if isfield(data.import,'NMRMOD')
     setappdata(fig,'gui',gui);
     enableGUIelements('MOD');
     NUCLEUSinv_updateInterface;
+    % if the 2D window is open, update it
+    if ~isempty(findobj('Tag','2DINV'))
+        % but only if there is 2D data loaded
+        if isfield(data.import,'T1T2map')
+            Inv2DView(gui.menu.extra_T1T2map);
+        else
+            helpdlg({'function: importNMRdata',...
+                'Careful: 2D GUI is open but 1D data set was imported'},...
+                'Import Notification');
+        end
+    end
 else
     helpdlg({'importNUCLEUSmod:',...
         'NUCLEUSmod data import unsuccessful.'},'import error');

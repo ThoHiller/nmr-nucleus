@@ -48,21 +48,22 @@ set(gui.menu.file_import_lab_bgr_std,'Checked','off');
 set(gui.menu.file_import_lab_bgr_mat,'Checked','off');
 set(gui.menu.file_import_lab_bgr_mouse_cpmg,'Checked','off');
 set(gui.menu.file_import_lab_bgr_mouse_lift,'Checked','off');
+set(gui.menu.file_import_lab_bgr_mouse_T1T2,'Checked','off');
 set(gui.menu.file_import_lab_bgr_helios_cpmg,'Checked','off');
 set(gui.menu.file_import_lab_bgr_helios_series,'Checked','off');
 set(gui.menu.file_import_lab_bam_tom,'Checked','off');
-set(gui.menu.file_import_lab_aarhus_dartT1T2,'Checked','off');
-set(gui.menu.file_import_lab_aarhus_dartT2,'Checked','off');
+set(gui.menu.file_import_lab_aarhus_dart,'Checked','off');
 set(gui.menu.file_import_lab_rutgers_T1T2,'Checked','off');
 set(gui.menu.file_import_lab_ascii_T1,'Checked','off');
 set(gui.menu.file_import_lab_ascii_T2,'Checked','off');
 set(gui.menu.file_import_lab_excel_T1,'Checked','off');
 set(gui.menu.file_import_lab_excel_T2,'Checked','off');
 set(gui.menu.file_import_lab_dart,'Checked','off');
-set(gui.menu.file_import_lab_dartburst,'Checked','off');
+set(gui.menu.file_import_lab_mrsmatlab,'Checked','off');
 set(gui.menu.file_import_nmrinv_file,'Checked','off');
 set(gui.menu.file_import_nmrmod_file,'Checked','off');
 set(gui.menu.file_import_nmrmod_gui,'Checked','off');
+set(gui.menu.file_import_nmrmod_gui2d,'Checked','off');
 
 % update GUI data
 setappdata(fig,'gui',gui);

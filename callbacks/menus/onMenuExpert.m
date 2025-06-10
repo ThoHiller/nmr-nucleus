@@ -80,10 +80,22 @@ switch onoff
         set(gui.menu.extra_T1T2map,'Enable','off');
         
         % deactivate solver menu and set to default
-        onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+        switch data.info.has_optim
+            case 'on'
+                onMenuSolver(gui.menu.extra_solver_lsqlin);
+            case 'off'
+                onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+        end
         % get changed GUI data
         data = getappdata(fig,'data');
-        set(gui.menu.extra_solver,'Enable','off');        
+        set(gui.menu.extra_solver,'Enable','off');
+        data.info.EchoFlag = 'off';
+        set(gui.menu.extra_lsqlin_echoflag,'Checked','off','Enable','off');
+        
+        set(gui.menu.extra_lcurve_iter,'Checked','on');
+        set(gui.menu.extra_lcurve_discrete,'Checked','off');
+        set(gui.menu.extra_lcurve,'Enable','off');
+        data.info.LcurveMethod = 'discrete';
 
         % update GUI data
         setappdata(fig,'data',data);
@@ -125,6 +137,14 @@ switch onoff
             case 'off'
                 set(gui.menu.extra_solver,'Enable','off');
         end
+        switch data.info.solver
+            case 'lsqlin'
+                set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
+            case 'lsqnonneg'
+                set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
+        end
+
+        set(gui.menu.extra_lcurve,'Enable','on');
         
         % activate joint inversion menu
         set(gui.menu.extra_joint,'Enable','on');

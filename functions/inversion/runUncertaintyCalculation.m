@@ -55,8 +55,14 @@ if ~isempty(id) && ~isempty(INVdata) && isstruct(INVdata{id})
 
     % uncertainty parameter
     uparam.id = id;
+    uparam.isgated = INVdata0.results.nmrproc.isgated;
     uparam.time = INVdata0.results.nmrproc.t;
     uparam.signal = INVdata0.results.nmrproc.s;
+    if INVdata0.results.nmrproc.isgated        
+        uparam.raw.nmrproc = INVdata0.results.nmrproc;
+        uparam.raw.t = INVdata0.results.nmrraw.t;
+        uparam.raw.s = INVdata0.results.nmrraw.s;
+    end
     % can be set when switching the inversion method
     switch invtype
         case {'LU','NNLS'}
@@ -72,12 +78,13 @@ if ~isempty(id) && ~isempty(INVdata) && isstruct(INVdata{id})
     invstd = estimateUncertainty(invtype,invstd,iparam,uparam);
     
     % enable the CALC. button
-    set(gui.push_handles.uncert,'String','CALC.',...
+    set(gui.push_handles.uncert,'String','RUN UNCERT',...
     'BackgroundColor','g','Enable','on','Callback',@onPushRun);
     setappdata(fig,'gui',gui);
 
     % save updated inversion results
     data.results.invstd = invstd;
+    INVdata0.uncert = data.uncert;
     INVdata0.results.invstd = invstd;
 
     % update INVdata

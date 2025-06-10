@@ -55,6 +55,8 @@ out.info.solver = 'lsqnonneg';
 out.info.stat = 'off';
 % LSQLIN Echo flag: RTDs<TE/5=0 (default is off)
 out.info.EchoFlag = 'off';
+% Lcurve method 'iterative'(default) or 'discrete'
+out.info.LcurveMethod = 'iterative';
 
 %% process panel defaults
 % first data sample of the signal
@@ -122,12 +124,12 @@ out.invstd.Lorder = 1;
 % 'NNLS' and 'LU'
 out.invstd.lambda = 1;
 % L-curve range (lambda) for multi-exponential fitting routine 'NNLS'
-out.invstd.lambdaR = [1e-3 1e2];
+out.invstd.lambdaR = [1e-3 1e3];
 % initial L-curve range (lambda) for multi-exponential fitting routine
 % 'NNLS'
-out.invstd.lambdaRinit = [1e-3 1e2];
+out.invstd.lambdaRinit = [1e-3 1e3];
 % number of lambda values in L-curve
-out.invstd.NlambdaR = 20;
+out.invstd.NlambdaR = 30;
 % range for RTD [min max] in [s]
 out.invstd.time = [1e-4 1e2];
 % number of points per decade in RTD
@@ -203,10 +205,18 @@ out.inv2D.prop.D = 2.025e-9;
 out.inv2D.prop.G0 = 0;
 % echo time [s]
 out.inv2D.prop.te = 200e-6;
-% start echo
-out.inv2D.prop.first = 1;
-% last echo
-out.inv2D.prop.last = 1;
+% first recovery/delay time
+out.inv2D.prop.firstT1 = 1;
+% last recovery/delay time
+out.inv2D.prop.lastT1 = 1;
+% first T2 echo
+out.inv2D.prop.firstT2 = 1;
+% last T2 echo
+out.inv2D.prop.lastT2 = 1;
+% use log gates flag
+out.inv2D.prop.useLogGates = 0;
+% number of log gates
+out.inv2D.prop.Ngates = 150;
 
 % inversion settings
 % IR/SR factor
@@ -225,24 +235,40 @@ out.inv2D.inv.T2min = 1e-4;
 out.inv2D.inv.T2max = 10;
 % T2 number of points in range
 out.inv2D.inv.T2N = 51;
+% regularization method
+out.inv2D.inv.regtype = 'manual';
 % T1 regularization parameter lambda
-out.inv2D.inv.T1lambda = 5;
+out.inv2D.inv.T1lambda = 1;
 % T1 order of smoothness constraint
 out.inv2D.inv.T1order = 1;
 % T2 regularization parameter lambda
-out.inv2D.inv.T2lambda = 2;
+out.inv2D.inv.T2lambda = 1;
 % T2 order of smoothness constraint
 out.inv2D.inv.T2order = 1;
 
+% regularization properties - L-curve settings
+% switch on/off a link between lambda T1 and lambda T2
+out.inv2D.regu.linkLambdas = 0;
+% link factor between lambda_T1 and lambda_T2
+out.inv2D.regu.lambdaFactor = 3;
+% range for manual lambda_T1 regularization
+out.inv2D.regu.lambdaT1min = 0.01;
+out.inv2D.regu.lambdaT1max = 100;
+out.inv2D.regu.lambdaT1N = 21;
+% range for manual lambda_T2 regularization
+out.inv2D.regu.lambdaT2min = 0.01;
+out.inv2D.regu.lambdaT2max = 100;
+out.inv2D.regu.lambdaT2N = 21;
+
 % information settings / properties
 % T1 minimum [s]
-out.inv2D.info.T1min = 1e-3;
+out.inv2D.info.T1min = 1e-4;
 % T1 maximum [s]
-out.inv2D.info.T1max = 1;
+out.inv2D.info.T1max = 10;
 % T2 minimum [s]
-out.inv2D.info.T2min = 1e-3;
+out.inv2D.info.T2min = 1e-4;
 % T2 minimum [s]
-out.inv2D.info.T2max = 1;
+out.inv2D.info.T2max = 10;
 % initial amplitude E0 [a.u.]
 out.inv2D.info.E0 = 0;
 % T1 log mean time

@@ -32,12 +32,17 @@ function onPushStop(src,~)
 
 %------------- BEGIN CODE --------------
 
+%% get GUI handle and data
+fig = ancestor(src,'figure','toplevel');
+gui = getappdata(fig,'gui');
+
 %% if the button was pressed 'Value' is 1
 value = get(src,'Value');
 % STOP button was pressed so reset to a RUN button
 % "UserData" reset to 0
 if value == 1
-    set(src,'String','<HTML><u>R</u>UN','BackGroundColor','g','UserData',0,'Callback',@onPushRun);
+    set(src,'String','RUN','BackGroundColor','g','UserData',0,'Callback',@onPushRun);
+    displayStatusText(gui,'');
 end
 
 end

@@ -176,147 +176,196 @@ This function is called by:
 0104             <span class="keyword">else</span>
 0105                 tmp_data = tmp;
 0106             <span class="keyword">end</span>
-0107             
-0108             <span class="comment">% the individual file names</span>
-0109             c = c + 1;
-0110             fnames(c).parfile = <span class="string">''</span>;
-0111             fnames(c).datafile = data.import.file;
-0112             fnames(c).T2specfile = <span class="string">''</span>;
-0113             
-0114             shownames{c} = ASCIIfile{ifile};
-0115             
-0116             <span class="comment">% the 'header' data</span>
-0117             data.import.NMR.data{c}.datfile = fileID.name;
-0118             data.import.NMR.data{c}.date = fileID.date;
-0119             data.import.NMR.data{c}.datenum = fileID.datenum;
-0120             data.import.NMR.data{c}.bytes = fileID.bytes;
-0121             
-0122             <span class="comment">% the NMR data</span>
-0123             data.import.NMR.data{c}.flag = T1T2;
-0124             data.import.NMR.data{c}.time = tmp_data(:,1);
-0125             <span class="comment">% switch between T1 and T2 data</span>
-0126             <span class="keyword">switch</span> T1T2
-0127                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0128                     data.import.NMR.data{c}.signal = tmp_data(:,2);
-0129                     data.import.NMR.data{c}.phase = 0;
-0130 
-0131                     <span class="comment">% try saturation recovery first</span>
-0132                     param.T1IRfac = 1;
-0133                     param.noise = 0;
-0134                     param.optim = <span class="string">'off'</span>;
-0135                     param.Tfixed_bool = [0 0 0 0 0];
-0136                     param.Tfixed_val = [0 0 0 0 0];
-0137                     invstd1 = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
-0138                         data.import.NMR.data{c}.flag,param,5);
-0139 
-0140                     <span class="comment">% now inversion recovery</span>
-0141                     param.T1IRfac = 2;
-0142                     param.noise = 0;
-0143                     param.optim = <span class="string">'off'</span>;
-0144                     param.Tfixed_bool = [0 0 0 0 0];
-0145                     param.Tfixed_val = [0 0 0 0 0];
-0146                     invstd2 = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
-0147                         data.import.NMR.data{c}.flag,param,5);
-0148 
-0149                     <span class="comment">% compare the residuals</span>
-0150                     <span class="keyword">if</span> invstd1.resnorm &lt; invstd2.resnorm
-0151                         <span class="comment">% data is possibly saturation recovery</span>
-0152                         invstd = invstd1;
-0153                         T1IRfac = 1;
-0154                     <span class="keyword">else</span>
-0155                         <span class="comment">% data is possibly inversion recovery</span>
-0156                         invstd = invstd2;
-0157                         T1IRfac = 2;
-0158                     <span class="keyword">end</span>
-0159                     <span class="comment">% save the &quot;dummy&quot; RMS as noise estimate</span>
-0160                     data.import.NMR.data{c}.noise = invstd.rms;
-0161                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0162                     T1IRfac = 1;
-0163                     <span class="keyword">if</span> size(tmp_data,2)&gt;2
-0164                         tmp_signal = complex(tmp_data(:,2),tmp_data(:,3));
-0165                         [tmp_signal,tmp_phase] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(tmp_signal);
-0166                         data.import.NMR.data{c}.signal = tmp_signal;
-0167                         data.import.NMR.data{c}.phase = tmp_phase;
-0168                     <span class="keyword">else</span>
-0169                         data.import.NMR.data{c}.signal = tmp_data(:,2);
-0170                         data.import.NMR.data{c}.phase = 0;
-0171 
-0172                         <span class="comment">% noise estimate</span>
-0173                         param.T1IRfac = 1;
-0174                         param.noise = 0;
-0175                         param.optim = <span class="string">'off'</span>;
-0176                         param.Tfixed_bool = [0 0 0 0 0];
-0177                         param.Tfixed_val = [0 0 0 0 0];
-0178                         invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
-0179                             data.import.NMR.data{c}.flag,param,5);
-0180                         <span class="comment">% save the &quot;dummy&quot; RMS as noise estimate</span>
-0181                         data.import.NMR.data{c}.noise = invstd.rms;
-0182                     <span class="keyword">end</span>
-0183             <span class="keyword">end</span>
-0184             data.import.NMR.data{c}.T1IRfac = T1IRfac;
-0185             data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
-0186             data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
-0187             
-0188             <span class="comment">% dummy parameter data</span>
-0189             data.import.NMR.para{c} = 0;
-0190         <span class="keyword">end</span>        
-0191     <span class="keyword">end</span>
-0192     
-0193     <span class="comment">% save file names</span>
-0194     data.import.NMR.files = fnames;
-0195     data.import.NMR.filesShort = shownames;
-0196     
-0197     <span class="comment">% update the ini-file</span>
-0198     gui.myui.inidata.importpath = data.import.path;
-0199     gui = <a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
-0200     
-0201     <span class="comment">% update the list of file names</span>
-0202     set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
-0203     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0204     
-0205     <span class="comment">% create a global INVdata struct for every file in the list</span>
-0206     <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
-0207         setappdata(fig,<span class="string">'INVdata'</span>,[]);
-0208     <span class="keyword">end</span>
-0209     INVdata = cell(length(data.import.NMR.filesShort),1);
-0210     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0211     
-0212     <span class="comment">% clear all axes</span>
-0213     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
-0214     
-0215     <span class="comment">% update GUI data and interface</span>
-0216     setappdata(fig,<span class="string">'data'</span>,data);
-0217     setappdata(fig,<span class="string">'gui'</span>,gui);
-0218     <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'ASCII'</span>);
-0219     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;    
-0220 <span class="keyword">end</span>
-0221 
-0222 <span class="keyword">end</span>
-0223 
-0224 <span class="comment">%------------- END OF CODE --------------</span>
-0225 
-0226 <span class="comment">%% License:</span>
-0227 <span class="comment">% MIT License</span>
-0228 <span class="comment">%</span>
-0229 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0230 <span class="comment">%</span>
-0231 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0232 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0233 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0234 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0235 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0236 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0237 <span class="comment">%</span>
-0238 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0239 <span class="comment">% copies or substantial portions of the Software.</span>
-0240 <span class="comment">%</span>
-0241 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0242 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0243 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0244 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0245 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0246 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0247 <span class="comment">% SOFTWARE.</span></pre></div>
+0107 
+0108             <span class="keyword">if</span> ifile == 1
+0109                 <span class="comment">% at first run ask some parameters</span>
+0110                 <span class="comment">% time unit</span>
+0111                 answer = questdlg(<span class="string">'What is the time unit?'</span>, <span class="keyword">...</span>
+0112                 <span class="string">'ASCII import'</span>, <span class="keyword">...</span>
+0113                 <span class="string">'µs'</span>,<span class="string">'ms'</span>,<span class="string">'s'</span>,<span class="string">'µs'</span>);
+0114                 <span class="keyword">switch</span> answer
+0115                     <span class="keyword">case</span> <span class="string">'µs'</span>
+0116                         t_fac = 1e-6;
+0117                     <span class="keyword">case</span> <span class="string">'ms'</span>
+0118                         t_fac = 1e-3;
+0119                     <span class="keyword">case</span> <span class="string">'s'</span>
+0120                         t_fac = 1;
+0121                 <span class="keyword">end</span>
+0122                 <span class="comment">% time column</span>
+0123                 cols = 1:size(tmp_data,2);
+0124                 cols_c = cell(1,1);
+0125                 <span class="keyword">for</span> i1 = 1:numel(cols)
+0126                     cols_c{i1} = num2str(i1);
+0127                 <span class="keyword">end</span>
+0128                 [ind_time,~] = listdlg(<span class="string">'PromptString'</span>,<span class="string">'Time Column:'</span>,<span class="keyword">...</span>
+0129                 <span class="string">'SelectionMode'</span>,<span class="string">'single'</span>,<span class="string">'ListString'</span>,cols_c);
+0130             <span class="keyword">end</span>
+0131             
+0132             <span class="comment">% the individual file names</span>
+0133             c = c + 1;
+0134             fnames(c).parfile = <span class="string">''</span>;
+0135             fnames(c).datafile = data.import.file;
+0136             fnames(c).T2specfile = <span class="string">''</span>;
+0137             
+0138             shownames{c} = ASCIIfile{ifile};
+0139             
+0140             <span class="comment">% the 'header' data</span>
+0141             data.import.NMR.data{c}.datfile = fileID.name;
+0142             data.import.NMR.data{c}.date = fileID.date;
+0143             data.import.NMR.data{c}.datenum = fileID.datenum;
+0144             data.import.NMR.data{c}.bytes = fileID.bytes;
+0145             
+0146             <span class="comment">% the NMR data</span>
+0147             data.import.NMR.data{c}.flag = T1T2;
+0148             data.import.NMR.data{c}.time = t_fac.*tmp_data(:,ind_time);
+0149             <span class="comment">% switch between T1 and T2 data</span>
+0150             <span class="keyword">switch</span> T1T2
+0151                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0152                     data.import.NMR.data{c}.signal = tmp_data(:,ind_time+1);
+0153                     data.import.NMR.data{c}.phase = 0;
+0154 
+0155                     <span class="comment">% try saturation recovery (SR) first</span>
+0156                     param.T1IRfac = 1;
+0157                     param.noise = 0;
+0158                     param.optim = data.info.has_optim;
+0159                     param.Tfixed_bool = [0 0 0 0 0];
+0160                     param.Tfixed_val = [0 0 0 0 0];
+0161                     noise1 = zeros(5,2);
+0162                     <span class="keyword">for</span> i1 = 1:5
+0163                         invstd1 = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0164                         data.import.NMR.data{c}.flag,param,i1);
+0165                         noise1(i1,1) = i1;
+0166                         noise1(i1,2) = invstd1.rms;
+0167                     <span class="keyword">end</span>                    
+0168 
+0169                     <span class="comment">% now inversion recovery (IR)</span>
+0170                     param.T1IRfac = 2;
+0171                     param.noise = 0;
+0172                     param.optim = data.info.has_optim;
+0173                     param.Tfixed_bool = [0 0 0 0 0];
+0174                     param.Tfixed_val = [0 0 0 0 0];
+0175                     noise2 = zeros(5,2);
+0176                     <span class="keyword">for</span> i1 = 1:5
+0177                         invstd2 = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0178                         data.import.NMR.data{c}.flag,param,i1);
+0179                         noise2(i1,1) = i1;
+0180                         noise2(i1,2) = invstd2.rms;
+0181                     <span class="keyword">end</span>
+0182 
+0183                     [idr,~] = find(isnan(noise1));
+0184                     noise1(idr,:) = [];
+0185                     [idr,~] = find(isnan(noise2));
+0186                     noise2(idr,:) = [];
+0187 
+0188                     [idr1,~] = find(noise1(:,2)==min(noise1(:,2)));
+0189                     [idr2,~] = find(noise2(:,2)==min(noise2(:,2)));
+0190 
+0191                     <span class="keyword">if</span> noise1(idr1,2) &lt; noise2(idr2,2)
+0192                         <span class="comment">% data is possibly SR</span>
+0193                         T1IRfac = 1;
+0194                         nExp = noise1(idr1,1);
+0195                     <span class="keyword">else</span>
+0196                         <span class="comment">% data is possibly IR</span>
+0197                         T1IRfac = 2;
+0198                         nExp = noise2(idr2,1);
+0199                     <span class="keyword">end</span>
+0200                     param.T1IRfac = T1IRfac;
+0201                     param.noise = 0;
+0202                     param.optim = data.info.has_optim;
+0203                     param.Tfixed_bool = [0 0 0 0 0];
+0204                     param.Tfixed_val = [0 0 0 0 0];
+0205                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0206                         data.import.NMR.data{c}.flag,param,nExp);
+0207 
+0208                     <span class="comment">% save the &quot;dummy&quot; RMS as noise estimate</span>
+0209                     data.import.NMR.data{c}.noise = invstd.rms;
+0210                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0211                     T1IRfac = 1;
+0212                     <span class="keyword">if</span> size(tmp_data,2)&gt;=ind_time+2
+0213                         tmp_signal = complex(tmp_data(:,ind_time+1),tmp_data(:,ind_time+2));
+0214                         [tmp_signal,tmp_phase] = <a href="../../../nucleus/functions/import/rotateT2phase.html" class="code" title="function [s_rot,alpha] = rotateT2phase(s,varargin)">rotateT2phase</a>(tmp_signal);
+0215                         data.import.NMR.data{c}.signal = tmp_signal;
+0216                         data.import.NMR.data{c}.phase = tmp_phase;
+0217                     <span class="keyword">else</span>
+0218                         data.import.NMR.data{c}.signal = tmp_data(:,ind_time+1);
+0219                         data.import.NMR.data{c}.phase = 0;
+0220 
+0221                         <span class="comment">% noise estimate</span>
+0222                         param.T1IRfac = 1;
+0223                         param.noise = 0;
+0224                         param.optim = data.info.has_optim;
+0225                         param.Tfixed_bool = [0 0 0 0 0];
+0226                         param.Tfixed_val = [0 0 0 0 0];
+0227                         invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,<span class="keyword">...</span>
+0228                             data.import.NMR.data{c}.flag,param,5);
+0229                         <span class="comment">% save the &quot;dummy&quot; RMS as noise estimate</span>
+0230                         data.import.NMR.data{c}.noise = invstd.rms;
+0231                     <span class="keyword">end</span>
+0232             <span class="keyword">end</span>
+0233             data.import.NMR.data{c}.T1IRfac = T1IRfac;
+0234             data.import.NMR.data{c}.raw.time = data.import.NMR.data{c}.time;
+0235             data.import.NMR.data{c}.raw.signal = data.import.NMR.data{c}.signal;
+0236             
+0237             <span class="comment">% dummy parameter data</span>
+0238             data.import.NMR.para{c} = 0;
+0239         <span class="keyword">end</span>        
+0240     <span class="keyword">end</span>
+0241     
+0242     <span class="comment">% save file names</span>
+0243     data.import.NMR.files = fnames;
+0244     data.import.NMR.filesShort = shownames;
+0245     
+0246     <span class="comment">% update the ini-file</span>
+0247     gui.myui.inidata.importpath = data.import.path;
+0248     gui = <a href="makeINIfile.html" class="code" title="function gui = makeINIfile(gui,method)">makeINIfile</a>(gui,<span class="string">'update'</span>);
+0249     
+0250     <span class="comment">% update the list of file names</span>
+0251     set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
+0252     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0253     
+0254     <span class="comment">% create a global INVdata struct for every file in the list</span>
+0255     <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
+0256         setappdata(fig,<span class="string">'INVdata'</span>,[]);
+0257     <span class="keyword">end</span>
+0258     INVdata = cell(length(data.import.NMR.filesShort),1);
+0259     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0260     
+0261     <span class="comment">% clear all axes</span>
+0262     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
+0263     
+0264     <span class="comment">% update GUI data and interface</span>
+0265     setappdata(fig,<span class="string">'data'</span>,data);
+0266     setappdata(fig,<span class="string">'gui'</span>,gui);
+0267     <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'ASCII'</span>);
+0268     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;    
+0269 <span class="keyword">end</span>
+0270 
+0271 <span class="keyword">end</span>
+0272 
+0273 <span class="comment">%------------- END OF CODE --------------</span>
+0274 
+0275 <span class="comment">%% License:</span>
+0276 <span class="comment">% MIT License</span>
+0277 <span class="comment">%</span>
+0278 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0279 <span class="comment">%</span>
+0280 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0281 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0282 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0283 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0284 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0285 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0286 <span class="comment">%</span>
+0287 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0288 <span class="comment">% copies or substantial portions of the Software.</span>
+0289 <span class="comment">%</span>
+0290 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0291 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0292 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0293 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0294 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0295 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0296 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -128,10 +128,17 @@ end
 
 % error weighing
 if isfield(iparam,'W')
-    g = iparam.W*g';
-    XX = iparam.W*XX;
+    e = 1./diag(iparam.W);
+    W = diag(e);
+    g = W*g';
+    XX = W*XX;
     g = g';
 end
+
+% scale everything between [0,1]
+maxS = max(g);
+g = g./maxS;
+XX = XX./maxS;
 
 % corresponding signal g = Kf
 ig = XX*x';
@@ -199,6 +206,9 @@ if nargout > 1
     JJ = [J Jr'];
     LL = [lambda*L 0*L(:,1)];
     J = [JJ;LL];
+    
+    % for final output scale the fitted signal back
+    ig = XX*(x'.*maxS);
 end
 
 return

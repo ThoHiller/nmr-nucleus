@@ -68,8 +68,7 @@ switch fig_tag
                     set(gui.panels.process.HBox2,'Widths',[200 -1 -1 -1.5 50]);
                 end
             end
-        end
-        
+        end        
         % check that the GUI is not smaller than the minimum size
         set(fig,'position', max([0 0 610 358], fig.Position));
         
@@ -86,6 +85,24 @@ switch fig_tag
         end
         % check that the GUI is not smaller than the minimum size
         set(fig,'position', max([0 0 600 336], fig.Position));
+
+    case '2DINV'
+        % proceed if there is data
+        if ~isempty(gui) && isfield(gui,'panels')
+            heights = get(gui.panels.main,'Heights');
+            set(gui.left,'Heights',-1,'MinimumHeights',sum(heights(2:end))+210);
+        end
+        % check that the GUI is not smaller than the minimum size
+        set(fig,'position', max([0 0 600 360], fig.Position));
+
+    case '2DMOD'
+        % proceed if there is data
+        if ~isempty(gui) && isfield(gui,'panels')
+            heights = get(gui.panels.main,'Heights');
+            set(gui.left,'Heights',-1,'MinimumHeights',sum(heights(2:end))+215);
+        end
+        % check that the GUI is not smaller than the minimum size
+        set(fig,'position', max([0 0 600 360], fig.Position));
 end
 
 end
