@@ -41,9 +41,9 @@ switch label
         showParameterInfo;
     case 'Fit statistics'
         showFitStatistics;
-    case 'AMP-TLGM-SNR'
+    case 'E0-T-SNR'
         showExtraGraphics('amp');
-    case 'AMP vs TLGM'
+    case 'E0*T^2'
         showExtraGraphics('ampvst');
     case '3D cube'    
         showExtraGraphics('rtdcube');

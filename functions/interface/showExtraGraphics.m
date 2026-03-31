@@ -140,6 +140,9 @@ if foundINV
                         case 'T2'
                             Tx(id,:) = INVdata{id}.results.invstd.T2;
                     end
+                    % only choose the relaxation time with the largest
+                    % amplitude
+                    T(id,:) = Tx(id,Ex(id,:)==max(Ex(id,:)));
                     Tx_er(id,:) = INVdata{id}.results.invstd.ci(2:2:end);
                     
                 case 'MUMO'
@@ -190,6 +193,10 @@ if foundINV
     if isfield(data.import,'BAM') && data.import.BAM.use_z
         xval = data.import.BAM.zslice;
         labelstr = ['position [',data.import.BAM.z_unit,']'];
+    end
+    if isfield(data.import,'BGRDART') && data.import.BGRDART.use_z
+        xval = data.import.BGRDART.zslice;
+        labelstr = ['position [',data.import.BGRDART.z_unit,']'];
     end
     if isfield(data.import,'IBAC') && data.import.IBAC.use_z
         xval = data.import.IBAC.zslice;
@@ -346,10 +353,13 @@ if foundINV
             f = figure;
             ax = axes('Parent',f);
             
-            plot(E0,T,'ko','Parent',ax),
-            set(get(ax,'XLabel'),'String','E0');
-            set(get(ax,'YLabel'),'String',['T [',timescale,']']);
+            plot(xval,E0.*T.^2,'ko','Parent',ax),
+            set(get(ax,'XLabel'),'String',labelstr);
+            set(get(ax,'YLabel'),'String','E_0 \cdot T^2');
             set(ax,'FontSize',12);
+            if strcmp(labelstr,'date')
+                datetick(ax,'x','dd.mm. HH:MM','keepticks');
+            end
             
         case {'rtdcube','rtdsurf'}
             switch data.invstd.invtype

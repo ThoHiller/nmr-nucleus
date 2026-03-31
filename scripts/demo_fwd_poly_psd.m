@@ -26,7 +26,8 @@ sat = getSaturationFromPressureBatch(geom,pressure,psddata,constants,wbopts);
 
 %% NMR
 % init
-nmr.t = getNMRTimeVector(0.1,'ms','tmax',0.1);
+nmr.t2 = getNMRTimeVector(0.1,'ms','tmax',0.1);
+nmr.t1 = logspace(log10(1e-3),log10(10),41);
 nmr.rho = 1e-5;
 nmr.Tb = 2;
 nmr.Td = 1e6;
@@ -78,10 +79,10 @@ grid on
 subplot(133);
 for i = 1:length(SatLevels)
     if strcmp(SatImbDrain(i),'D')
-        plot(nmr.t,nmr.EdT2(iSatLevels(i),:),'-','Color',...
+        plot(nmr.t2,nmr.EdT2(iSatLevels(i),:),'-','Color',...
             mycol(colind(i),:),'LineWidth',2); hold on;
     elseif strcmp(SatImbDrain(i),'I')
-        plot(nmr.t,nmr.EiT2(iSatLevels(i),:),'--','Color',...
+        plot(nmr.t2,nmr.EiT2(iSatLevels(i),:),'--','Color',...
             mycol(colind(i),:),'LineWidth',2); hold on;
     end
    

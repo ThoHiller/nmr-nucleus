@@ -745,12 +745,13 @@ ax1 = gui.axes_handles.real;
 ax2 = gui.axes_handles.imag;
 clearSingleAxis(ax1);
 clearSingleAxis(ax2);
-hold(ax1,'on');
-hold(ax2,'on');
 
 % plot Real and IMag part of signal
 plot(data.time,real(data.signal_rot),'Color',gui.myui.colors.RE,'Parent',ax1);
 plot(data.time,imag(data.signal_rot),'Color',gui.myui.colors.IM,'Parent',ax2);
+
+hold(ax1,'on');
+hold(ax2,'on');
 
 switch data.loglinx
     case 'x-axis -> lin' % log axes
@@ -806,7 +807,8 @@ if data.time(te_end)<xlims(2)
 end
 set(ax1,'YLim',ylims_re);
 set(ax2,'YLim',ylims_im);
-set([ax1 ax2],'FontSize',gui.myui.fontsize);
+set([ax1 ax2],'FontSize',gui.myui.fontsize,'Color',gui.myui.colors.axisBG,...
+    'XColor',gui.myui.colors.axisFG,'YColor',gui.myui.colors.axisFG);
 hold(ax1,'off');
 hold(ax2,'off');
 end

@@ -1,20 +1,21 @@
-function index = getLambdaFromLCurve(rho,eta,plotit)
+function [index,varargout] = getLambdaFromLCurve(rho,eta,lam,plotit)
 %getLambdaFromLCurve estimates the regularization parameter lambda according
 %to the curvature of the L-curve
 %
 % Syntax:
-%       getLambdaFromLCurve(rho,eta,plotit)
+%       getLambdaFromLCurve(rho,eta,lam,plotit)
 %
 % Inputs:
 %       rho - residual norm
 %       eta - model norm
+%       lam - lambda values
 %       plotit - plot switch (0 (default) or 1)
 %
 % Outputs:
 %       index - index of optimal lambda
 %
 % Example:
-%       index = getLambdaFromLCurve(rho,eta,0)
+%       index = getLambdaFromLCurve(rho,eta,lambda_range,0)
 %
 % Other m-files required:
 %       none
@@ -67,26 +68,46 @@ index = find(curv==max(curv));
 
 % plot (optional)
 if plotit == 1
-    figure;
-    subplot(121);
-    loglog(rho ,eta ,'o-'); hold on;
-    loglog(rho(index),eta(index),'r+');
+    f0 = figure; clf(f0);
+    ax1 = subplot(211,'Parent',f0);
+    hold(ax1,'on');
+    loglog(rho ,eta ,'o-','Parent',ax1);
+    loglog(rho(index),eta(index),'r+','MarkerSize',12,'Parent',ax1);
+    set(ax1,'XScale','log','YScale','log');
+    xlabel('residual norm |Gm-d|_2');
+    ylabel('model norm |Lm|_2');
+
+    ax2 = subplot(212,'Parent',f0);
+    hold(ax2,'on');
+    plot(lam,curv,'o-','Parent',ax2);
+    plot(lam(index),curv(index),'rx','MarkerSize',12,'Parent',ax2);
+    set(ax2,'XScale','log');
+    xlabel('regularization parameter \lambda');
+    ylabel('curvature');
     
     % alternative approach
-    rr = rho - min(rho);
-    ee = eta - min(eta);
-    rr = rr./max(rr);
-    ee = ee./max(ee);
-    ss = rr+ee;
-    subplot(122)
-    plot(rr,'o-','DisplayName','rn'); hold on;
-    plot(ee,'o-','DisplayName','xn');
-    plot(ss,'x-','DisplayName','rn+xn');
-    indx = find(ss==min(ss));    
-    plot(indx,ss(indx),'kx','MarkerSize',8,'DisplayName','min(rn+xn)');
-    plot(index,ss(index),'rx','MarkerSize',8,'DisplayName','min(Lcurve)');
-    lh = legend;
-    set(lh,'FontSize',10);
+    % rr = rho - min(rho);
+    % ee = eta - min(eta);
+    % rr = rr./max(rr);
+    % ee = ee./max(ee);
+    % ss = rr+ee;
+    % ax3 = subplot(313,'Parent',f0);
+    % hold(ax3,'on');
+    % plot(lam,rr,'-','DisplayName','rn','Parent',ax3);
+    % plot(lam,ee,'-','DisplayName','xn','Parent',ax3);
+    % plot(lam,ss,'-','DisplayName','rn+xn','Parent',ax3);
+    % indx = find(ss==min(ss));    
+    % plot(lam(indx),ss(indx),'kx','MarkerSize',12,'DisplayName','min(rn+xn)','Parent',ax3);
+    % plot(lam(index),ss(index),'rx','MarkerSize',12,'DisplayName','min(Lcurve)','Parent',ax3);
+    % set(ax3,'XScale','log');
+    % lh = legend(ax3);
+    % set(lh,'FontSize',10);
+end
+
+if nargout > 1
+    varargout{1} = rho;
+    varargout{2} = eta;
+    varargout{3} = curv;
 end
 
 return

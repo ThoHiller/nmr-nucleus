@@ -250,7 +250,7 @@ This function is called by:
 0158     <span class="comment">% In doing so, consider their individual proportions in the psd:</span>
 0159     SAT.Kifull(p,:) = SatData_tmp.Ki .* SAT.Sifull(p,:);
 0160     SAT.Kdfull(p,:) = SatData_tmp.Kd .* SAT.Sdfull(p,:);
-0161     <span class="comment">% Note: the actual summarization is done below along with Sifull and</span>
+0161     <span class="comment">% Note: the actual summation is done below along with Sifull and</span>
 0162     <span class="comment">% Sdfull (Line 273 ff)</span>
 0163     <span class="comment">% ---</span>
 0164     
@@ -271,132 +271,140 @@ This function is called by:
 0179     
 0180     <span class="comment">% find all full ducts (imbibition path)</span>
 0181     dummyi = find(SAT.Si(p,:) &lt; 1,1,<span class="string">'first'</span>);
-0182     <span class="comment">% calculate mean log of full duct range to get effective equivalent radius</span>
-0183     ri_eff = 10.^(sum(SAT.Sifull(p,1:dummyi-1)/sum(SAT.Sifull(p,1:dummyi-1)) <span class="keyword">...</span>
-0184         .* log10(radius(1:dummyi-1))));
-0185     <span class="comment">% save effective radius in temporal geom structure</span>
-0186     tmp_geomi = tmp_geom;
-0187     tmp_geomi.radius = ri_eff;
-0188     
-0189     <span class="comment">% find all full ducts (drainage path)</span>
-0190     dummyd = find(SAT.Sd(p,:) &lt; 1,1,<span class="string">'first'</span>);
-0191     <span class="comment">% calculate mean log of full duct range to get effective equivalent radius</span>
-0192     rd_eff = 10.^(sum(SAT.Sdfull(p,1:dummyd-1)/sum(SAT.Sdfull(p,1:dummyd-1))<span class="keyword">...</span>
-0193         .* log10(radius(1:dummyd-1))));
-0194     <span class="comment">% save effective radius in temporal geom structure</span>
-0195     tmp_geomd = tmp_geom;
-0196     tmp_geomd.radius = rd_eff;
-0197     
-0198     <span class="comment">% calculate the K from effective radius for recent pressure step</span>
-0199     Ki_ducts = <a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>(<a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(tmp_geomi),constants) *<span class="keyword">...</span>
-0200         sum(SAT.Sifull(p,1:dummyi-1));
-0201     Kd_ducts = <a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>(<a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(tmp_geomd),constants) *<span class="keyword">...</span>
-0202         sum(SAT.Sdfull(p,1:dummyd-1));
-0203     
-0204     <span class="comment">% calculate K for residual meniscus water in case of having 'ang' or</span>
-0205     <span class="comment">% 'poly' shape</span>
-0206     <span class="keyword">if</span> ~strcmp(GEOM.type,<span class="string">'cyl'</span>)
-0207         <span class="comment">% get water-filled area in cross-section first</span>
-0208         r_AM = (constants.sigfac * constants.sigma * cosd(constants.theta))<span class="keyword">...</span>
-0209             / pressure(p);
-0210         [Aa,~] = <a href="getCornerSaturation.html" class="code" title="function [Acorner, Pcorner] = getCornerSaturation(radius,angles)">getCornerSaturation</a>(r_AM,tmp_geom.angles);
-0211         <span class="comment">% lumped physical constants</span>
-0212         C = constants.density * constants.gravity / constants.dynvisc;
-0213         K_corners = zeros(size(tmp_geom.angles));
-0214         <span class="comment">% Note that the K response from a specific corner of a</span>
-0215         <span class="comment">% desaturated angular pore is independent from pore size!</span>
-0216         <span class="comment">% Thus, main loop is over the corners:</span>
-0217         <span class="keyword">for</span> n = 1:numel(tmp_geom.angles)
-0218             <span class="comment">% individual K values for meniscus in each corner</span>
-0219             K_corners(n) = C * (r_AM^2/<a href="getRaRaEps.html" class="code" title="function RaRaEps = getRaRaEps(gamma)">getRaRaEps</a>(tmp_geom.angles(n)));
-0220             <span class="comment">% weight the individual K values using the proportion of</span>
-0221             <span class="comment">% residual water in meniscus (with respect to bulk pore area)</span>
-0222             <span class="comment">% Loop over pore size is not really necessary, but easier to</span>
-0223             <span class="comment">% understand the process...</span>
-0224             <span class="keyword">for</span> r = dummyi : numel(radius)
-0225                 tmp_Ki_corners(r) = K_corners(n) * Aa(n) / GEOM.A0(r);
-0226             <span class="keyword">end</span>
-0227             <span class="keyword">for</span> r = dummyd : numel(radius)
-0228                 tmp_Kd_corners(r) = K_corners(n) * Aa(n) / GEOM.A0(r);
-0229             <span class="keyword">end</span>
-0230             <span class="comment">% summarize all K values from n-th corner for entire PSD (and</span>
-0231             <span class="comment">% weight them using their proportion in PSD!)</span>
-0232             Ki_corners(n) = sum(tmp_Ki_corners(dummyi:end) .* SAT.Sifull(p,dummyi:end));
-0233             Kd_corners(n) = sum(tmp_Kd_corners(dummyd:end) .* SAT.Sdfull(p,dummyd:end));
-0234             
-0235             <span class="comment">% these two lines do the same job like the two loops above and</span>
-0236             <span class="comment">% are faster, but its too difficult to explain why ;-) ...</span>
-0237             <span class="comment">% Ki_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sifull(p,dummyi:end) ./ GEOM.A0(dummyi:end)');</span>
-0238             <span class="comment">% Kd_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sdfull(p,dummyd:end) ./ GEOM.A0(dummyd:end)');</span>
-0239         <span class="keyword">end</span>
-0240     <span class="keyword">else</span>
-0241         <span class="comment">% no corners in cylindrical pores</span>
-0242         Ki_corners = 0;
-0243         Kd_corners = 0;
-0244     <span class="keyword">end</span>
-0245     
-0246     <span class="comment">% save individual contribution of ducts and corners</span>
-0247     SAT.Ki_ducts(p) = Ki_ducts;
-0248     SAT.Ki_corners(p) = sum(Ki_corners);
-0249     SAT.Kd_ducts(p) = Kd_ducts;
-0250     SAT.Kd_corners(p) = sum(Kd_corners);
-0251     
-0252     <span class="comment">% now bring ducts and corners together</span>
-0253     Ki_eff = Ki_ducts + sum(Ki_corners);
-0254     Kd_eff = Kd_ducts + sum(Kd_corners);
-0255     
-0256     SAT.ri_eff(p) = ri_eff;
-0257     SAT.Ki_eff(p) = Ki_eff;
-0258     SAT.rd_eff(p) = rd_eff;
-0259     SAT.Kd_eff(p) = Kd_eff;
-0260     <span class="comment">% --- END: hydraulic conductivity AddOn ---</span>
-0261     
-0262     <span class="comment">%%</span>
-0263     <span class="keyword">if</span> wbopts.show
-0264         waitbar((steps-p) / steps,hwb,[<span class="string">'processing ...'</span>,num2str(steps-p),<span class="keyword">...</span>
-0265             <span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
-0266     <span class="keyword">end</span>
-0267 <span class="keyword">end</span>
-0268 <span class="keyword">if</span> wbopts.show
-0269     delete(hwb);
-0270 <span class="keyword">end</span>
-0271 
-0272 <span class="comment">%% finalize global output saturation data</span>
-0273 SAT.A0  = GEOM.A0;
-0274 <span class="keyword">if</span> numel(radius) &gt; 1
-0275     SAT.Sifull = sum(SAT.Sifull,2);
-0276     SAT.Sdfull = sum(SAT.Sdfull,2);
-0277     SAT.Kifull = sum(SAT.Kifull,2);
-0278     SAT.Kdfull = sum(SAT.Kdfull,2);
-0279 <span class="keyword">end</span>
-0280 SAT.pressure = pressure(:);
-0281 
-0282 <span class="keyword">return</span>
-0283 
-0284 <span class="comment">%------------- END OF CODE --------------</span>
-0285 
-0286 <span class="comment">%% License:</span>
-0287 <span class="comment">% MIT License</span>
-0288 <span class="comment">%</span>
-0289 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0290 <span class="comment">%</span>
-0291 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0292 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0293 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0294 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0295 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0296 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0297 <span class="comment">%</span>
-0298 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0299 <span class="comment">% copies or substantial portions of the Software.</span>
-0300 <span class="comment">%</span>
-0301 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0302 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0303 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0304 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0305 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0306 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0307 <span class="comment">% SOFTWARE.</span></pre></div>
+0182     <span class="comment">% if none is found that is &lt;1 than all must be full</span>
+0183     <span class="keyword">if</span> isempty(dummyi)
+0184         dummyi = numel(SAT.Si(p,:));
+0185     <span class="keyword">end</span>
+0186     <span class="comment">% calculate mean log of full duct range to get effective equivalent radius</span>
+0187     ri_eff = 10.^(sum(SAT.Sifull(p,1:dummyi-1)/sum(SAT.Sifull(p,1:dummyi-1)) <span class="keyword">...</span>
+0188         .* log10(radius(1:dummyi-1))));
+0189     <span class="comment">% save effective radius in temporal geom structure</span>
+0190     tmp_geomi = tmp_geom;
+0191     tmp_geomi.radius = ri_eff;
+0192     
+0193     <span class="comment">% find all full ducts (drainage path)</span>
+0194     dummyd = find(SAT.Sd(p,:) &lt; 1,1,<span class="string">'first'</span>);
+0195     <span class="comment">% if none is found that is &lt;1 than all must be full</span>
+0196     <span class="keyword">if</span> isempty(dummyd)
+0197         dummyd = numel(SAT.Sd(p,:));
+0198     <span class="keyword">end</span>
+0199     <span class="comment">% calculate mean log of full duct range to get effective equivalent radius</span>
+0200     rd_eff = 10.^(sum(SAT.Sdfull(p,1:dummyd-1)/sum(SAT.Sdfull(p,1:dummyd-1))<span class="keyword">...</span>
+0201         .* log10(radius(1:dummyd-1))));
+0202     <span class="comment">% save effective radius in temporal geom structure</span>
+0203     tmp_geomd = tmp_geom;
+0204     tmp_geomd.radius = rd_eff;
+0205     
+0206     <span class="comment">% calculate the K from effective radius for recent pressure step</span>
+0207     Ki_ducts = <a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>(<a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(tmp_geomi),constants) *<span class="keyword">...</span>
+0208         sum(SAT.Sifull(p,1:dummyi-1));
+0209     Kd_ducts = <a href="getConduct.html" class="code" title="function K = getConduct(geom,constants,varargin)">getConduct</a>(<a href="getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(tmp_geomd),constants) *<span class="keyword">...</span>
+0210         sum(SAT.Sdfull(p,1:dummyd-1));
+0211     
+0212     <span class="comment">% calculate K for residual meniscus water in case of having 'ang' or</span>
+0213     <span class="comment">% 'poly' shape</span>
+0214     <span class="keyword">if</span> ~strcmp(GEOM.type,<span class="string">'cyl'</span>)
+0215         <span class="comment">% get water-filled area in cross-section first</span>
+0216         r_AM = (constants.sigfac * constants.sigma * cosd(constants.theta))<span class="keyword">...</span>
+0217             / pressure(p);
+0218         [Aa,~] = <a href="getCornerSaturation.html" class="code" title="function [Acorner, Pcorner] = getCornerSaturation(radius,angles)">getCornerSaturation</a>(r_AM,tmp_geom.angles);
+0219         <span class="comment">% lumped physical constants</span>
+0220         C = constants.density * constants.gravity / constants.dynvisc;
+0221         K_corners = zeros(size(tmp_geom.angles));
+0222         <span class="comment">% Note that the K response from a specific corner of a</span>
+0223         <span class="comment">% desaturated angular pore is independent from pore size!</span>
+0224         <span class="comment">% Thus, main loop is over the corners:</span>
+0225         <span class="keyword">for</span> n = 1:numel(tmp_geom.angles)
+0226             <span class="comment">% individual K values for meniscus in each corner</span>
+0227             K_corners(n) = C * (r_AM^2/<a href="getRaRaEps.html" class="code" title="function RaRaEps = getRaRaEps(gamma)">getRaRaEps</a>(tmp_geom.angles(n)));
+0228             <span class="comment">% weight the individual K values using the proportion of</span>
+0229             <span class="comment">% residual water in meniscus (with respect to bulk pore area)</span>
+0230             <span class="comment">% Loop over pore size is not really necessary, but easier to</span>
+0231             <span class="comment">% understand the process...</span>
+0232             <span class="keyword">for</span> r = dummyi : numel(radius)
+0233                 tmp_Ki_corners(r) = K_corners(n) * Aa(n) / GEOM.A0(r);
+0234             <span class="keyword">end</span>
+0235             <span class="keyword">for</span> r = dummyd : numel(radius)
+0236                 tmp_Kd_corners(r) = K_corners(n) * Aa(n) / GEOM.A0(r);
+0237             <span class="keyword">end</span>
+0238             <span class="comment">% summarize all K values from n-th corner for entire PSD (and</span>
+0239             <span class="comment">% weight them using their proportion in PSD!)</span>
+0240             Ki_corners(n) = sum(tmp_Ki_corners(dummyi:end) .* SAT.Sifull(p,dummyi:end));
+0241             Kd_corners(n) = sum(tmp_Kd_corners(dummyd:end) .* SAT.Sdfull(p,dummyd:end));
+0242 
+0243             <span class="comment">% these two lines do the same job like the two loops above and</span>
+0244             <span class="comment">% are faster, but its too difficult to explain why ;-) ...</span>
+0245             <span class="comment">% Ki_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sifull(p,dummyi:end) ./ GEOM.A0(dummyi:end)');</span>
+0246             <span class="comment">% Kd_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sdfull(p,dummyd:end) ./ GEOM.A0(dummyd:end)');</span>
+0247         <span class="keyword">end</span>
+0248     <span class="keyword">else</span>
+0249         <span class="comment">% no corners in cylindrical pores</span>
+0250         Ki_corners = 0;
+0251         Kd_corners = 0;
+0252     <span class="keyword">end</span>
+0253     
+0254     <span class="comment">% save individual contribution of ducts and corners</span>
+0255     SAT.Ki_ducts(p) = Ki_ducts;
+0256     SAT.Ki_corners(p) = sum(Ki_corners);
+0257     SAT.Kd_ducts(p) = Kd_ducts;
+0258     SAT.Kd_corners(p) = sum(Kd_corners);
+0259     
+0260     <span class="comment">% now bring ducts and corners together</span>
+0261     Ki_eff = Ki_ducts + sum(Ki_corners);
+0262     Kd_eff = Kd_ducts + sum(Kd_corners);
+0263     
+0264     SAT.ri_eff(p) = ri_eff;
+0265     SAT.Ki_eff(p) = Ki_eff;
+0266     SAT.rd_eff(p) = rd_eff;
+0267     SAT.Kd_eff(p) = Kd_eff;
+0268     <span class="comment">% --- END: hydraulic conductivity AddOn ---</span>
+0269     
+0270     <span class="comment">%%</span>
+0271     <span class="keyword">if</span> wbopts.show
+0272         waitbar((steps-p) / steps,hwb,[<span class="string">'processing ...'</span>,num2str(steps-p),<span class="keyword">...</span>
+0273             <span class="string">' / '</span>,num2str(steps),<span class="string">' pressure steps'</span>]);
+0274     <span class="keyword">end</span>
+0275 <span class="keyword">end</span>
+0276 <span class="keyword">if</span> wbopts.show
+0277     delete(hwb);
+0278 <span class="keyword">end</span>
+0279 
+0280 <span class="comment">%% finalize global output saturation data</span>
+0281 SAT.A0  = GEOM.A0;
+0282 <span class="keyword">if</span> numel(radius) &gt; 1
+0283     SAT.Sifull = sum(SAT.Sifull,2);
+0284     SAT.Sdfull = sum(SAT.Sdfull,2);
+0285     SAT.Kifull = sum(SAT.Kifull,2);
+0286     SAT.Kdfull = sum(SAT.Kdfull,2);
+0287 <span class="keyword">end</span>
+0288 SAT.pressure = pressure(:);
+0289 
+0290 <span class="keyword">return</span>
+0291 
+0292 <span class="comment">%------------- END OF CODE --------------</span>
+0293 
+0294 <span class="comment">%% License:</span>
+0295 <span class="comment">% MIT License</span>
+0296 <span class="comment">%</span>
+0297 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0298 <span class="comment">%</span>
+0299 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0300 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0301 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0302 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0303 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0304 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0305 <span class="comment">%</span>
+0306 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0307 <span class="comment">% copies or substantial portions of the Software.</span>
+0308 <span class="comment">%</span>
+0309 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0310 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0311 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0312 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0313 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0314 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0315 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

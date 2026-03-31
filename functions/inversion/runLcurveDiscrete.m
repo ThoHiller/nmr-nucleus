@@ -64,7 +64,7 @@ for i = 1:length(lparam.lambda_range)
 end
 
 % get optimal lambda
-out.index = getLambdaFromLCurve(RN,XN,0);
+out.index = getLambdaFromLCurve(RN,XN,lparam.lambda_range,0);
 out.lambda = lparam.lambda_range;
 out.RMS = CHI2;
 out.RN = RN;

@@ -214,8 +214,10 @@ else
 end
 
 % L-curve parameter
-% model norm |L*x|_2
+% model norm(s) |L*x|_2
 xn = norm([LT2;LT1]*f_vec,2);
+xn_T1 = norm(LT1*f_vec,2);
+xn_T2 = norm(LT2*f_vec,2); 
 % residual norm |A*x-b|_2
 rn = norm(out_global.residual,2);
 
@@ -249,6 +251,8 @@ fitdata.T2tmax = TMAX(2);
 fitdata.error_global = out_global;
 fitdata.chi2 = out_global.chi2;
 fitdata.xn = xn;
+fitdata.xn_T1 = xn_T1;
+fitdata.xn_T2 = xn_T2;
 fitdata.rn = rn;
 fitdata.lambda_out = lambda_out;
 fitdata.solver_out.RESNORM = RESNORM;

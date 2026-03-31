@@ -292,76 +292,80 @@ This function is called by:
 0214 <span class="keyword">end</span>
 0215 
 0216 <span class="comment">% L-curve parameter</span>
-0217 <span class="comment">% model norm |L*x|_2</span>
+0217 <span class="comment">% model norm(s) |L*x|_2</span>
 0218 xn = norm([LT2;LT1]*f_vec,2);
-0219 <span class="comment">% residual norm |A*x-b|_2</span>
-0220 rn = norm(out_global.residual,2);
-0221 
-0222 <span class="comment">% create the Kernel matrix for E0</span>
-0223 dat0.t = 0; <span class="comment">% shortest T2 echo time [s]</span>
-0224 dat0.T1 = 10000; <span class="comment">% longest T1 time [s]</span>
-0225 [K0,~] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(dat0,T1vec,T2vec,p);
-0226 E0 = K0*f_vec;
-0227 
-0228 <span class="comment">% remap the result vector ina  2D matrix</span>
-0229 f_2Dmap = zeros(size(MOD'));
-0230 <span class="keyword">for</span> n = 1:length(T1vec)
-0231     f_2Dmap(n,:) = f_vec(indices.col_1(n):indices.col_end(n));
-0232 <span class="keyword">end</span>
-0233 
-0234 <span class="comment">% get TLGM and TMAX of the map</span>
-0235 [TLGM,TMAX] = <a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(T1vec,T2vec,f_2Dmap);
-0236 
-0237 <span class="comment">% output struct</span>
-0238 fitdata.data = data;
-0239 fitdata.T1vec = T1vec;
-0240 fitdata.T2vec = T2vec;
-0241 fitdata.indices = indices;
-0242 fitdata.f_vec = f_vec;
-0243 fitdata.f_2Dmap = f_2Dmap;
-0244 fitdata.E0 = E0;
-0245 fitdata.T1tlgm = TLGM(1);
-0246 fitdata.T2tlgm = TLGM(2);
-0247 fitdata.T1tmax = TMAX(1);
-0248 fitdata.T2tmax = TMAX(2);
-0249 fitdata.error_global = out_global;
-0250 fitdata.chi2 = out_global.chi2;
-0251 fitdata.xn = xn;
-0252 fitdata.rn = rn;
-0253 fitdata.lambda_out = lambda_out;
-0254 fitdata.solver_out.RESNORM = RESNORM;
-0255 fitdata.solver_out.RESIDUAL = RESIDUAL;
-0256 fitdata.solver_out.EXITFLAG = EXITFLAG;
-0257 fitdata.solver_out.OUTPUT = OUTPUT;
-0258 fitdata.param = parameter;
-0259 <span class="comment">% fitdata.K = K;</span>
-0260 
-0261 <span class="keyword">return</span>
-0262 
-0263 <span class="comment">%------------- END OF CODE --------------</span>
+0219 xn_T1 = norm(LT1*f_vec,2);
+0220 xn_T2 = norm(LT2*f_vec,2); 
+0221 <span class="comment">% residual norm |A*x-b|_2</span>
+0222 rn = norm(out_global.residual,2);
+0223 
+0224 <span class="comment">% create the Kernel matrix for E0</span>
+0225 dat0.t = 0; <span class="comment">% shortest T2 echo time [s]</span>
+0226 dat0.T1 = 10000; <span class="comment">% longest T1 time [s]</span>
+0227 [K0,~] = <a href="createKernelMatrix2D.html" class="code" title="function [K,indices] = createKernelMatrix2D(dat,T1vec,T2vec,p)">createKernelMatrix2D</a>(dat0,T1vec,T2vec,p);
+0228 E0 = K0*f_vec;
+0229 
+0230 <span class="comment">% remap the result vector ina  2D matrix</span>
+0231 f_2Dmap = zeros(size(MOD'));
+0232 <span class="keyword">for</span> n = 1:length(T1vec)
+0233     f_2Dmap(n,:) = f_vec(indices.col_1(n):indices.col_end(n));
+0234 <span class="keyword">end</span>
+0235 
+0236 <span class="comment">% get TLGM and TMAX of the map</span>
+0237 [TLGM,TMAX] = <a href="getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(T1vec,T2vec,f_2Dmap);
+0238 
+0239 <span class="comment">% output struct</span>
+0240 fitdata.data = data;
+0241 fitdata.T1vec = T1vec;
+0242 fitdata.T2vec = T2vec;
+0243 fitdata.indices = indices;
+0244 fitdata.f_vec = f_vec;
+0245 fitdata.f_2Dmap = f_2Dmap;
+0246 fitdata.E0 = E0;
+0247 fitdata.T1tlgm = TLGM(1);
+0248 fitdata.T2tlgm = TLGM(2);
+0249 fitdata.T1tmax = TMAX(1);
+0250 fitdata.T2tmax = TMAX(2);
+0251 fitdata.error_global = out_global;
+0252 fitdata.chi2 = out_global.chi2;
+0253 fitdata.xn = xn;
+0254 fitdata.xn_T1 = xn_T1;
+0255 fitdata.xn_T2 = xn_T2;
+0256 fitdata.rn = rn;
+0257 fitdata.lambda_out = lambda_out;
+0258 fitdata.solver_out.RESNORM = RESNORM;
+0259 fitdata.solver_out.RESIDUAL = RESIDUAL;
+0260 fitdata.solver_out.EXITFLAG = EXITFLAG;
+0261 fitdata.solver_out.OUTPUT = OUTPUT;
+0262 fitdata.param = parameter;
+0263 <span class="comment">% fitdata.K = K;</span>
 0264 
-0265 <span class="comment">%% License:</span>
-0266 <span class="comment">% MIT License</span>
-0267 <span class="comment">%</span>
-0268 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0269 <span class="comment">%</span>
-0270 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0271 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0272 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0273 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0274 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0275 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0276 <span class="comment">%</span>
-0277 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0278 <span class="comment">% copies or substantial portions of the Software.</span>
-0279 <span class="comment">%</span>
-0280 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0281 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0282 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0283 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0284 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0285 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0286 <span class="comment">% SOFTWARE.</span></pre></div>
+0265 <span class="keyword">return</span>
+0266 
+0267 <span class="comment">%------------- END OF CODE --------------</span>
+0268 
+0269 <span class="comment">%% License:</span>
+0270 <span class="comment">% MIT License</span>
+0271 <span class="comment">%</span>
+0272 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0273 <span class="comment">%</span>
+0274 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0275 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0276 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0277 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0278 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0279 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0280 <span class="comment">%</span>
+0281 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0282 <span class="comment">% copies or substantial portions of the Software.</span>
+0283 <span class="comment">%</span>
+0284 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0285 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0286 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0287 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0288 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0289 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0290 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -27,7 +27,8 @@ sat = getSaturationFromPressureBatch(geom,pressure,psddata,constants,wbopts);
 
 %% NMR
 % init
-nmr.t = getNMRTimeVector(1,'ms','N',1001);
+nmr.t2 = getNMRTimeVector(1,'ms','N',1001);
+nmr.t1 = logspace(log10(1e-3),log10(10),41);
 nmr.rho = 1e-6;
 nmr.Tb = 2;
 nmr.Td = 1e6;
@@ -58,7 +59,7 @@ legend('imb','drain','Location','SouthWest')
 axis square;
 grid on;
 
-[pp,tt] = meshgrid(pressure,nmr.t);
+[pp,tt] = meshgrid(pressure,nmr.t1);
 subplot(133);
 pcolor(tt',pp',nmr.EiT1); shading flat;
 set(gca,'XScale','log','YScale','log','Layer','top');

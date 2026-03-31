@@ -1356,6 +1356,8 @@ else
     % call 2D inversions
     tmp.rnorm_2d = zeros(numel(T1lam_range),numel(T2lam_range));
     tmp.mnorm_2d = zeros(numel(T1lam_range),numel(T2lam_range));
+    tmp.mnormT1_2d = tmp.mnorm_2d;
+    tmp.mnormT2_2d = tmp.mnorm_2d;
     for l1 = 1:numel(T1lam_range)
         for l2 = 1:numel(T2lam_range)
             disp(['NUCLEUSinv 2D L-curve - lambda T1: ',num2str(l1),'/',num2str(numel(T1lam_range)),...
@@ -1367,6 +1369,8 @@ else
             % save norms
             tmp.rnorm_2d(l1,l2) = inv2D_tmp.rn;
             tmp.mnorm_2d(l1,l2) = inv2D_tmp.xn;
+            tmp.mnormT1_2d(l1,l2) = inv2D_tmp.xn_T1;
+            tmp.mnormT2_2d(l1,l2) = inv2D_tmp.xn_T2;
             % plot update
             tv_plotLCurveUpdate(figh,tmp,'update');
             pause(0.001);
@@ -1436,6 +1440,27 @@ else
     data.results.lcurve.mnorm = tmp.mnorm_2d;
     data.results.lcurve.lamT1 = lamT1;
     data.results.lcurve.lamT2 = lamT2;
+    
+    % get 2D curvature
+    [K,H,Pmax,Pmin] = surfature(tmp.mnormT1_2d,tmp.mnormT2_2d,tmp.rnorm_2d);
+    ff11 = figure;
+    xx1=subplot(221,'Parent',ff11); surf(tmp.LL1,tmp.LL2,K,'Parent',xx1);
+    xx2=subplot(222,'Parent',ff11); surf(tmp.LL1,tmp.LL2,H,'Parent',xx2);
+    xx3=subplot(223,'Parent',ff11); surf(tmp.LL1,tmp.LL2,Pmax,'Parent',xx3);
+    xx4=subplot(224,'Parent',ff11); surf(tmp.LL1,tmp.LL2,Pmin,'Parent',xx4);
+    set([xx1 xx2 xx3 xx4],'XScale','log','YScale','log','ColorScale','log');
+
+    ff12 = figure;
+    surf(tmp.mnormT1_2d,tmp.mnormT2_2d,tmp.rnorm_2d);
+
+    ff13 = figure;
+    surf(tmp.LL1(3:end-2,3:end-2),tmp.LL2(3:end-2,3:end-2),K(3:end-2,3:end-2));
+    set(gca,'XScale','log','YScale','log','ColorScale','log');
+
+    % ff13 = figure;
+    % subplot(131); surf(tmp.LL1,tmp.LL2,tmp.mnormT1_2d); set(gca,'XScale','log','YScale','log','ColorScale','log');
+    % subplot(132); surf(tmp.LL1,tmp.LL2,tmp.mnormT2_2d); set(gca,'XScale','log','YScale','log','ColorScale','log');
+    % subplot(133); surf(tmp.LL1,tmp.LL2,tmp.mnorm_2d); set(gca,'XScale','log','YScale','log','ColorScale','log');
 
     % set the optimal lambdas in the GUI
     set(gui.edit_handles.lambdaT1,'String',num2str(min(lamT1)));
@@ -1946,6 +1971,11 @@ mm1 = [mm1(:,1) mm1];
 imagescnan(LL1,LL2,dd1','Parent',gui.axes13);
 imagescnan(LL1,LL2,mm1','Parent',gui.axes14);
 colormap(gui.axes14,'parula');
+
+% plot3(tmp_norm.mnormT1_2d(:),tmp_norm.mnormT2_2d(:),tmp_norm.rnorm_2d(:),...
+%     'ko','Parent',gui.axes14);
+% set(gui.axes14,'XScale','log','YScale','log');
+
 set(get(gui.axes13,'Title'),'String','data norm');
 set(get(gui.axes13,'XLabel'),'String','\lambda T1');
 set(get(gui.axes13,'YLabel'),'String','\lambda T2');
@@ -1953,6 +1983,7 @@ set(gui.axes13,'XScale','log','YScale','log','YDir','normal');
 set(gui.axes13,'XLim',[min(LL1(:)) max(LL1(:))],'YLim',[min(LL2(:)) max(LL2(:))]);
 cb = colorbar(gui.axes13);
 set(cb,'Location','EastOutside');
+
 set(get(gui.axes14,'Title'),'String','model norm');
 set(get(gui.axes14,'XLabel'),'String','\lambda T1');
 set(get(gui.axes14,'YLabel'),'String','\lambda T2');

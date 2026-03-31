@@ -158,7 +158,7 @@ for p = numel(pressure):-1:1
     % In doing so, consider their individual proportions in the psd:    
     SAT.Kifull(p,:) = SatData_tmp.Ki .* SAT.Sifull(p,:);
     SAT.Kdfull(p,:) = SatData_tmp.Kd .* SAT.Sdfull(p,:);
-    % Note: the actual summarization is done below along with Sifull and
+    % Note: the actual summation is done below along with Sifull and
     % Sdfull (Line 273 ff)
     % ---
     
@@ -179,6 +179,10 @@ for p = numel(pressure):-1:1
     
     % find all full ducts (imbibition path)
     dummyi = find(SAT.Si(p,:) < 1,1,'first');
+    % if none is found that is <1 than all must be full
+    if isempty(dummyi)
+        dummyi = numel(SAT.Si(p,:));
+    end
     % calculate mean log of full duct range to get effective equivalent radius
     ri_eff = 10.^(sum(SAT.Sifull(p,1:dummyi-1)/sum(SAT.Sifull(p,1:dummyi-1)) ...
         .* log10(radius(1:dummyi-1))));
@@ -188,6 +192,10 @@ for p = numel(pressure):-1:1
     
     % find all full ducts (drainage path)
     dummyd = find(SAT.Sd(p,:) < 1,1,'first');
+    % if none is found that is <1 than all must be full
+    if isempty(dummyd)
+        dummyd = numel(SAT.Sd(p,:));
+    end
     % calculate mean log of full duct range to get effective equivalent radius
     rd_eff = 10.^(sum(SAT.Sdfull(p,1:dummyd-1)/sum(SAT.Sdfull(p,1:dummyd-1))...
         .* log10(radius(1:dummyd-1))));
@@ -231,7 +239,7 @@ for p = numel(pressure):-1:1
             % weight them using their proportion in PSD!)
             Ki_corners(n) = sum(tmp_Ki_corners(dummyi:end) .* SAT.Sifull(p,dummyi:end));
             Kd_corners(n) = sum(tmp_Kd_corners(dummyd:end) .* SAT.Sdfull(p,dummyd:end));
-            
+
             % these two lines do the same job like the two loops above and
             % are faster, but its too difficult to explain why ;-) ...
             % Ki_corners(n) = sum(K_corners(n) * Aa(n) * SAT.Sifull(p,dummyi:end) ./ GEOM.A0(dummyi:end)');

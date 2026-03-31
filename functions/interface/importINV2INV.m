@@ -265,6 +265,11 @@ if sum(Sessionpath) > 0
                 end
             end
         end
+
+        % new 'L-curve' method
+        if ~isfield(savedata.data.info,'LcurveMethod')
+            savedata.data.info.LcurveMethod = data.info.LcurveMethod;
+        end
         
         % update GUI data from session mat-file
         data = savedata.data;
@@ -382,6 +387,23 @@ if sum(Sessionpath) > 0
         end
         onMenuJointInversion(gui.menu.extra_joint);
         enableGUIelements('NMR');
+        
+        if strcmp(savedata.data.info.JointInv,'on')
+            % if the Joint Inversion is activated, look for results
+            for id = 1:size(INVdata,1)
+                if isstruct(INVdata{id})
+                    if isfield(INVdata{id}.results,'invjoint')
+                        % if there are results, enable the conduct view
+                        % menu
+                        set(gui.menu.extra_conduct,'Enable','on');
+                        break
+                    end
+                end
+            end
+        else
+            % disable conduct view menu
+            set(gui.menu.extra_conduct,'Enable','off');
+        end
         
         % adjust menu entry for comand line inversion info
         switch savedata.data.info.InvInfo

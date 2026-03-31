@@ -377,7 +377,8 @@ end
 %%
 function [data,gui] = importDataMouseCPMG(data,gui)
 
-csv_t2path = dir(fullfile(data.import.path,'CPMG'));
+% csv_t2path = dir(fullfile(data.import.path,'CPMG'));
+csv_t2path = dir(fullfile(data.import.path));
 csv_t2path = csv_t2path(~ismember({csv_t2path.name},{'.','..'}));
 
 fnames = struct;
@@ -389,7 +390,8 @@ c = 0;
 if ~isempty(csv_t2path)
     for i = 1:size(csv_t2path,1)
         in.T1T2 = 'T2';
-        in.path = fullfile(data.import.path,'CPMG',csv_t2path(i).name);
+        % in.path = fullfile(data.import.path,'CPMG',csv_t2path(i).name);
+        in.path = fullfile(data.import.path,csv_t2path(i).name);
         in.fileformat = data.import.fileformat;
         out = LoadNMRData_driver(in);
 
@@ -1257,16 +1259,26 @@ if ~isempty(datpath)
                 end
             end
             if c == 1 & out.Nfreq > 1
-                answer = questdlg('Do you want to stack frequencies?', ...
-                'DART import', ...
-                'F1 only','F2 only','F1+F2','F1+F2');
-                switch answer
-                    case 'F1 only'
-                        stackfreq = 1;
-                    case 'F2 only'
-                        stackfreq = 2;
-                    case 'F1+F2'
-                        stackfreq = 3;
+                % answer = questdlg('Do you want to stack frequencies?', ...
+                % 'DART import', ...
+                % 'F1 only','F2 only','F1+F2','F1+F2');
+                % switch answer
+                %     case 'F1 only'
+                %         stackfreq = 1;
+                %     case 'F2 only'
+                %         stackfreq = 2;
+                %     case 'F1+F2'
+                %         stackfreq = 3;
+                % end
+
+                if is_T1
+                    [stackfreq,~] = listdlg('PromptString','Select frequencies',...
+                        'SelectionMode','single',...
+                        'ListString',{'F1 only','F2 only','F1+F2 combined'});
+                else
+                    [stackfreq,~] = listdlg('PromptString','Select frequencies',...
+                        'SelectionMode','single',...
+                        'ListString',{'F1 only','F2 only','F1+F2 combined','F1 & F2 separate'});
                 end
             end
 
@@ -1315,15 +1327,45 @@ if ~isempty(datpath)
                 out.nmrData{1}.raw.signal = signal;
                 data.import.NMR.data{c} = out.nmrData{1};
                 data.import.NMR.para{c} = out.parData{1};
-            end            
 
-            % collect recovery times in case of T1 data set
-            if is_T1
-                t_recov(c,1) = out.parData{1}.t_recov;
-                t_recov(c,2) = out.nmrData{1}.phase;
+            elseif stackfreq == 4
+                fnames(c).parfile = '';
+                fnames(c).datafile = out.nmrData{1}.datfile;
+                fnames(c).T2specfile = '';
+                shownames{c} = ['F1_',content(j).name];
+                data.import.NMR.data{c} = out.nmrData{1};
+                data.import.NMR.para{c} = out.parData{1};
+                
+                
+                fnames(c+1).parfile = '';
+                fnames(c+1).datafile = out.nmrData{2}.datfile;
+                fnames(c+1).T2specfile = '';
+                shownames{c+1} = ['F2_',content(j).name];
+                data.import.NMR.data{c+1} = out.nmrData{2};
+                data.import.NMR.para{c+1} = out.parData{2};
+            end            
+            
+            if stackfreq == 4
+                if is_T1
+                    t_recov(c,1) = out.parData{1}.t_recov;
+                    t_recov(c,2) = out.nmrData{1}.phase;
+                    t_recov(c+1,1) = out.parData{1}.t_recov;
+                    t_recov(c+1,2) = out.nmrData{1}.phase;
+                else
+                    % try to collect depth values
+                    depth(c,1) = data.import.NMR.para{c}.depth;
+                    depth(c+1,1) = data.import.NMR.para{c+1}.depth;
+                end
+                c = c + 1;
             else
-                % try to collect depth values
-                depth(c,1) = data.import.NMR.para{c}.depth;
+                % collect recovery times in case of T1 data set
+                if is_T1
+                    t_recov(c,1) = out.parData{1}.t_recov;
+                    t_recov(c,2) = out.nmrData{1}.phase;
+                else
+                    % try to collect depth values
+                    depth(c,1) = data.import.NMR.para{c}.depth;
+                end
             end
         end
     end
@@ -1438,9 +1480,9 @@ if ~isempty(datpath)
         end
     else
         % T2 data
-        data.import.BAM.use_z = true;
-        data.import.BAM.z_unit = 'm';
-        data.import.BAM.zslice = depth - data.import.NMR.para{1}.stick_up_height;
+        data.import.BGRDART.use_z = true;
+        data.import.BGRDART.z_unit = 'm';
+        data.import.BGRDART.zslice = depth - data.import.NMR.para{1}.stick_up_height;
         for i1 = 1:numel(shownames)
             tmp = shownames{i1};
             shownames{i1} = ['z:',sprintf('%05.2f',depth(i1)),'m ',tmp];

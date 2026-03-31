@@ -22,12 +22,13 @@ function runInversionStd
 %       fitDataFree_fmin
 %       fitDataLUdecomp
 %       fitDataLSQ
-%       getLambdaFromLCurve
 %       NUCLEUSinv_updateInterface
 %       onPushRun
 %       onPushShowHide
 %       onPushStop
 %       removeInversionFields
+%       runLcurveDiscrete
+%       runLcurveIterative
 %       showFitStatistics
 %       updateInfo
 %       updatePlotsDistribution

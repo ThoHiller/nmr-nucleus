@@ -1452,1184 +1452,1215 @@ This function is called by:
 1356     <span class="comment">% call 2D inversions</span>
 1357     tmp.rnorm_2d = zeros(numel(T1lam_range),numel(T2lam_range));
 1358     tmp.mnorm_2d = zeros(numel(T1lam_range),numel(T2lam_range));
-1359     <span class="keyword">for</span> l1 = 1:numel(T1lam_range)
-1360         <span class="keyword">for</span> l2 = 1:numel(T2lam_range)
-1361             disp([<span class="string">'NUCLEUSinv 2D L-curve - lambda T1: '</span>,num2str(l1),<span class="string">'/'</span>,num2str(numel(T1lam_range)),<span class="keyword">...</span>
-1362                 <span class="string">' lambda T2: '</span>,num2str(l2),<span class="string">'/'</span>,num2str(numel(T2lam_range))]);
-1363             <span class="comment">% call inversion</span>
-1364             param.lamT1 = T1lam_range(l1);
-1365             param.lamT2 = T2lam_range(l2);
-1366             inv2D_tmp = <a href="../../../../nucleus/functions/inversion/fitData2D.html" class="code" title="function fitdata = fitData2D(data,parameter)">fitData2D</a>(dat,param);
-1367             <span class="comment">% save norms</span>
-1368             tmp.rnorm_2d(l1,l2) = inv2D_tmp.rn;
-1369             tmp.mnorm_2d(l1,l2) = inv2D_tmp.xn;
-1370             <span class="comment">% plot update</span>
-1371             <a href="#_sub17" class="code" title="subfunction tv_plotLCurveUpdate(figh,tmp_norm,method)">tv_plotLCurveUpdate</a>(figh,tmp,<span class="string">'update'</span>);
-1372             pause(0.001);
-1373         <span class="keyword">end</span>
-1374     <span class="keyword">end</span>
-1375     runtime = toc;
-1376     <a href="#_sub17" class="code" title="subfunction tv_plotLCurveUpdate(figh,tmp_norm,method)">tv_plotLCurveUpdate</a>(figh,tmp,<span class="string">'final'</span>);
-1377 
-1378     <span class="comment">% output to command line</span>
-1379     <a href="../../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(1,[infostring,<span class="string">'done | calculation took '</span>,<span class="keyword">...</span>
-1380         sprintf(<span class="string">'%5.2f'</span>,runtime),<span class="string">' s'</span>]);
+1359     tmp.mnormT1_2d = tmp.mnorm_2d;
+1360     tmp.mnormT2_2d = tmp.mnorm_2d;
+1361     <span class="keyword">for</span> l1 = 1:numel(T1lam_range)
+1362         <span class="keyword">for</span> l2 = 1:numel(T2lam_range)
+1363             disp([<span class="string">'NUCLEUSinv 2D L-curve - lambda T1: '</span>,num2str(l1),<span class="string">'/'</span>,num2str(numel(T1lam_range)),<span class="keyword">...</span>
+1364                 <span class="string">' lambda T2: '</span>,num2str(l2),<span class="string">'/'</span>,num2str(numel(T2lam_range))]);
+1365             <span class="comment">% call inversion</span>
+1366             param.lamT1 = T1lam_range(l1);
+1367             param.lamT2 = T2lam_range(l2);
+1368             inv2D_tmp = <a href="../../../../nucleus/functions/inversion/fitData2D.html" class="code" title="function fitdata = fitData2D(data,parameter)">fitData2D</a>(dat,param);
+1369             <span class="comment">% save norms</span>
+1370             tmp.rnorm_2d(l1,l2) = inv2D_tmp.rn;
+1371             tmp.mnorm_2d(l1,l2) = inv2D_tmp.xn;
+1372             tmp.mnormT1_2d(l1,l2) = inv2D_tmp.xn_T1;
+1373             tmp.mnormT2_2d(l1,l2) = inv2D_tmp.xn_T2;
+1374             <span class="comment">% plot update</span>
+1375             <a href="#_sub17" class="code" title="subfunction tv_plotLCurveUpdate(figh,tmp_norm,method)">tv_plotLCurveUpdate</a>(figh,tmp,<span class="string">'update'</span>);
+1376             pause(0.001);
+1377         <span class="keyword">end</span>
+1378     <span class="keyword">end</span>
+1379     runtime = toc;
+1380     <a href="#_sub17" class="code" title="subfunction tv_plotLCurveUpdate(figh,tmp_norm,method)">tv_plotLCurveUpdate</a>(figh,tmp,<span class="string">'final'</span>);
 1381 
-1382     <span class="comment">% enable the RUN button</span>
-1383     set(gui.push_handles.run_2dlcurve,<span class="string">'String'</span>,<span class="string">'CALC 2D L-CURVE'</span>,<span class="keyword">...</span>
-1384         <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub8" class="code" title="subfunction tv_onPush2DLCURVE(src,~)">tv_onPush2DLCURVE</a>);
-1385     setappdata(figh,<span class="string">'gui'</span>,gui);
-1386 
-1387     <span class="comment">% get the &quot;optimal&quot; lambda combination - brute force</span>
-1388     dd = tmp.rnorm_2d - min(tmp.rnorm_2d(:));
-1389     mm = tmp.mnorm_2d - min(tmp.mnorm_2d(:));
-1390     dd = dd./max(dd(:));
-1391     mm = mm./max(mm(:));
-1392     ss1 = dd + mm;
-1393     ss2 = abs(dd - mm);
-1394     mask1 = ss1 == min(ss1(:)); mask2 = ss2 == min(ss2(:));
-1395     lamT1(1) = tmp.LL1(mask1'); lamT2(1) = tmp.LL2(mask1');
-1396     lamT1(2) = tmp.LL1(mask2'); lamT2(2) = tmp.LL2(mask2');
-1397 
-1398     <span class="comment">% index = getLambdaFromLCurve(diag(tmp.rnorm_2d),diag(tmp.mnorm_2d),1);</span>
-1399     <span class="comment">% index = getLambdaFromLCurve(diag(rr),diag(mm),1);</span>
-1400     <span class="comment">% lamT1 = T2lam_range(index);</span>
-1401     <span class="comment">% lamT2 = T2lam_range(index);</span>
-1402     
-1403     <span class="comment">% extent matrices for plotting</span>
-1404     SS1 = [ss1(1,:);ss1];
-1405     SS1 = [SS1(:,1) SS1];
-1406     SS2 = [ss2(1,:);ss2];
-1407     SS2 = [SS2(:,1) SS2];
-1408 
-1409     <span class="comment">% opening the export figure</span>
-1410     expfig = figure(<span class="string">'Color'</span>,gui.myui.colors.panelBG);
-1411     ax1 = subplot(221,<span class="string">'Parent'</span>,expfig); ax2 = subplot(222,<span class="string">'Parent'</span>,expfig);
-1412     ax3 = subplot(223,<span class="string">'Parent'</span>,expfig); ax4 = subplot(224,<span class="string">'Parent'</span>,expfig);
-1413     pos1 = get(ax1,<span class="string">'Position'</span>); pos2 = get(ax2,<span class="string">'Position'</span>);
-1414     pos3 = get(ax3,<span class="string">'Position'</span>); pos4 = get(ax4,<span class="string">'Position'</span>);
-1415     delete(ax1); delete(ax2);
-1416     delete(ax3); delete(ax4);
-1417     ax1 = copyobj(gui.axes13,expfig); ax2 = copyobj(gui.axes14,expfig);
-1418     set(ax1,<span class="string">'Position'</span>,pos1); hold(ax1,<span class="string">'on'</span>); colorbar(ax1);
-1419     set(ax2,<span class="string">'Position'</span>,pos2); hold(ax2,<span class="string">'on'</span>); colorbar(ax2);
-1420     ax3 = copyobj(gui.axes13,expfig); set(ax3,<span class="string">'Position'</span>,pos3);
-1421     ax4 = copyobj(gui.axes14,expfig); set(ax4,<span class="string">'Position'</span>,pos4);
-1422     set(get(ax3,<span class="string">'Children'</span>),<span class="string">'CData'</span>,SS1'); hold(ax3,<span class="string">'on'</span>);
-1423     set(get(ax4,<span class="string">'Children'</span>),<span class="string">'CData'</span>,SS2'); hold(ax4,<span class="string">'on'</span>);
-1424 
-1425     plot(lamT1(1),lamT2(1),<span class="string">'rx'</span>,<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax3);
-1426     plot(lamT1(2),lamT2(2),<span class="string">'rx'</span>,<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax4);
-1427     axis([ax1 ax2 ax3 ax4],<span class="string">'square'</span>);
-1428     set(get(ax3,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'d + m'</span>);
-1429     set(get(ax4,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'abs(d - m)'</span>);
-1430     colorbar(ax3); colorbar(ax4);
-1431 
-1432     <span class="comment">% save results</span>
-1433     data.results.lcurve.T1lam_range = T1lam_range;
-1434     data.results.lcurve.T2lam_range = T2lam_range;
-1435     data.results.lcurve.rnorm = tmp.rnorm_2d;
-1436     data.results.lcurve.mnorm = tmp.mnorm_2d;
-1437     data.results.lcurve.lamT1 = lamT1;
-1438     data.results.lcurve.lamT2 = lamT2;
-1439 
-1440     <span class="comment">% set the optimal lambdas in the GUI</span>
-1441     set(gui.edit_handles.lambdaT1,<span class="string">'String'</span>,num2str(min(lamT1)));
-1442     set(gui.edit_handles.lambdaT2,<span class="string">'String'</span>,num2str(min(lamT2)));
-1443     data.inv.T1lambda = min(lamT1);
-1444     data.inv.T2lambda = min(lamT2);
-1445 <span class="keyword">end</span>
-1446 
-1447 <span class="comment">% update data</span>
-1448 setappdata(figh,<span class="string">'data'</span>,data);
-1449 setappdata(figh,<span class="string">'gui'</span>,gui);
-1450 
-1451 <span class="comment">% call final inverion with optimal lambda</span>
-1452 <a href="#_sub7" class="code" title="subfunction tv_onPushRun(src,~)">tv_onPushRun</a>(gui.push_handles.run_inv);
-1453 <span class="keyword">end</span>
-1454 
-1455 <span class="comment">%% subfuntion to prepare inversion data</span>
-1456 <a name="_sub9" href="#_subfunctions" class="code">function [dat,param] = tv_prepareInvData(figh)</a>
-1457 gui = getappdata(figh,<span class="string">'gui'</span>);
-1458 data = getappdata(figh,<span class="string">'data'</span>);
-1459 <span class="comment">% NUCLEUSinv data</span>
-1460 dataN = getappdata(gui.figh_nucleus,<span class="string">'data'</span>);
-1461 <span class="comment">% local T1T2 data</span>
-1462 T1T2map = data.results.T1T2map;
-1463 
-1464 <span class="comment">% prepare inversion parameter struct</span>
-1465 param.T1T2 = <span class="string">'T1T2'</span>; <span class="comment">% T1-T2 2D inv</span>
-1466 
-1467 <span class="comment">% get system properties</span>
-1468 param.D = data.prop.D;
-1469 param.G0 = data.prop.G0;
-1470 param.te = data.prop.te;
+1382     <span class="comment">% output to command line</span>
+1383     <a href="../../../../nucleus/functions/interface/displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(1,[infostring,<span class="string">'done | calculation took '</span>,<span class="keyword">...</span>
+1384         sprintf(<span class="string">'%5.2f'</span>,runtime),<span class="string">' s'</span>]);
+1385 
+1386     <span class="comment">% enable the RUN button</span>
+1387     set(gui.push_handles.run_2dlcurve,<span class="string">'String'</span>,<span class="string">'CALC 2D L-CURVE'</span>,<span class="keyword">...</span>
+1388         <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="#_sub8" class="code" title="subfunction tv_onPush2DLCURVE(src,~)">tv_onPush2DLCURVE</a>);
+1389     setappdata(figh,<span class="string">'gui'</span>,gui);
+1390 
+1391     <span class="comment">% get the &quot;optimal&quot; lambda combination - brute force</span>
+1392     dd = tmp.rnorm_2d - min(tmp.rnorm_2d(:));
+1393     mm = tmp.mnorm_2d - min(tmp.mnorm_2d(:));
+1394     dd = dd./max(dd(:));
+1395     mm = mm./max(mm(:));
+1396     ss1 = dd + mm;
+1397     ss2 = abs(dd - mm);
+1398     mask1 = ss1 == min(ss1(:)); mask2 = ss2 == min(ss2(:));
+1399     lamT1(1) = tmp.LL1(mask1'); lamT2(1) = tmp.LL2(mask1');
+1400     lamT1(2) = tmp.LL1(mask2'); lamT2(2) = tmp.LL2(mask2');
+1401 
+1402     <span class="comment">% index = getLambdaFromLCurve(diag(tmp.rnorm_2d),diag(tmp.mnorm_2d),1);</span>
+1403     <span class="comment">% index = getLambdaFromLCurve(diag(rr),diag(mm),1);</span>
+1404     <span class="comment">% lamT1 = T2lam_range(index);</span>
+1405     <span class="comment">% lamT2 = T2lam_range(index);</span>
+1406     
+1407     <span class="comment">% extent matrices for plotting</span>
+1408     SS1 = [ss1(1,:);ss1];
+1409     SS1 = [SS1(:,1) SS1];
+1410     SS2 = [ss2(1,:);ss2];
+1411     SS2 = [SS2(:,1) SS2];
+1412 
+1413     <span class="comment">% opening the export figure</span>
+1414     expfig = figure(<span class="string">'Color'</span>,gui.myui.colors.panelBG);
+1415     ax1 = subplot(221,<span class="string">'Parent'</span>,expfig); ax2 = subplot(222,<span class="string">'Parent'</span>,expfig);
+1416     ax3 = subplot(223,<span class="string">'Parent'</span>,expfig); ax4 = subplot(224,<span class="string">'Parent'</span>,expfig);
+1417     pos1 = get(ax1,<span class="string">'Position'</span>); pos2 = get(ax2,<span class="string">'Position'</span>);
+1418     pos3 = get(ax3,<span class="string">'Position'</span>); pos4 = get(ax4,<span class="string">'Position'</span>);
+1419     delete(ax1); delete(ax2);
+1420     delete(ax3); delete(ax4);
+1421     ax1 = copyobj(gui.axes13,expfig); ax2 = copyobj(gui.axes14,expfig);
+1422     set(ax1,<span class="string">'Position'</span>,pos1); hold(ax1,<span class="string">'on'</span>); colorbar(ax1);
+1423     set(ax2,<span class="string">'Position'</span>,pos2); hold(ax2,<span class="string">'on'</span>); colorbar(ax2);
+1424     ax3 = copyobj(gui.axes13,expfig); set(ax3,<span class="string">'Position'</span>,pos3);
+1425     ax4 = copyobj(gui.axes14,expfig); set(ax4,<span class="string">'Position'</span>,pos4);
+1426     set(get(ax3,<span class="string">'Children'</span>),<span class="string">'CData'</span>,SS1'); hold(ax3,<span class="string">'on'</span>);
+1427     set(get(ax4,<span class="string">'Children'</span>),<span class="string">'CData'</span>,SS2'); hold(ax4,<span class="string">'on'</span>);
+1428 
+1429     plot(lamT1(1),lamT2(1),<span class="string">'rx'</span>,<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax3);
+1430     plot(lamT1(2),lamT2(2),<span class="string">'rx'</span>,<span class="string">'MarkerSize'</span>,8,<span class="string">'Parent'</span>,ax4);
+1431     axis([ax1 ax2 ax3 ax4],<span class="string">'square'</span>);
+1432     set(get(ax3,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'d + m'</span>);
+1433     set(get(ax4,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'abs(d - m)'</span>);
+1434     colorbar(ax3); colorbar(ax4);
+1435 
+1436     <span class="comment">% save results</span>
+1437     data.results.lcurve.T1lam_range = T1lam_range;
+1438     data.results.lcurve.T2lam_range = T2lam_range;
+1439     data.results.lcurve.rnorm = tmp.rnorm_2d;
+1440     data.results.lcurve.mnorm = tmp.mnorm_2d;
+1441     data.results.lcurve.lamT1 = lamT1;
+1442     data.results.lcurve.lamT2 = lamT2;
+1443     
+1444     <span class="comment">% get 2D curvature</span>
+1445     [K,H,Pmax,Pmin] = surfature(tmp.mnormT1_2d,tmp.mnormT2_2d,tmp.rnorm_2d);
+1446     ff11 = figure;
+1447     xx1=subplot(221,<span class="string">'Parent'</span>,ff11); surf(tmp.LL1,tmp.LL2,K,<span class="string">'Parent'</span>,xx1);
+1448     xx2=subplot(222,<span class="string">'Parent'</span>,ff11); surf(tmp.LL1,tmp.LL2,H,<span class="string">'Parent'</span>,xx2);
+1449     xx3=subplot(223,<span class="string">'Parent'</span>,ff11); surf(tmp.LL1,tmp.LL2,Pmax,<span class="string">'Parent'</span>,xx3);
+1450     xx4=subplot(224,<span class="string">'Parent'</span>,ff11); surf(tmp.LL1,tmp.LL2,Pmin,<span class="string">'Parent'</span>,xx4);
+1451     set([xx1 xx2 xx3 xx4],<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'ColorScale'</span>,<span class="string">'log'</span>);
+1452 
+1453     ff12 = figure;
+1454     surf(tmp.mnormT1_2d,tmp.mnormT2_2d,tmp.rnorm_2d);
+1455 
+1456     ff13 = figure;
+1457     surf(tmp.LL1(3:end-2,3:end-2),tmp.LL2(3:end-2,3:end-2),K(3:end-2,3:end-2));
+1458     set(gca,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'ColorScale'</span>,<span class="string">'log'</span>);
+1459 
+1460     <span class="comment">% ff13 = figure;</span>
+1461     <span class="comment">% subplot(131); surf(tmp.LL1,tmp.LL2,tmp.mnormT1_2d); set(gca,'XScale','log','YScale','log','ColorScale','log');</span>
+1462     <span class="comment">% subplot(132); surf(tmp.LL1,tmp.LL2,tmp.mnormT2_2d); set(gca,'XScale','log','YScale','log','ColorScale','log');</span>
+1463     <span class="comment">% subplot(133); surf(tmp.LL1,tmp.LL2,tmp.mnorm_2d); set(gca,'XScale','log','YScale','log','ColorScale','log');</span>
+1464 
+1465     <span class="comment">% set the optimal lambdas in the GUI</span>
+1466     set(gui.edit_handles.lambdaT1,<span class="string">'String'</span>,num2str(min(lamT1)));
+1467     set(gui.edit_handles.lambdaT2,<span class="string">'String'</span>,num2str(min(lamT2)));
+1468     data.inv.T1lambda = min(lamT1);
+1469     data.inv.T2lambda = min(lamT2);
+1470 <span class="keyword">end</span>
 1471 
-1472 <span class="comment">% IR/SR factor</span>
-1473 param.T1IRfac = data.inv.T1IRfac;
-1474 param.IRtype = data.inv.IRtype;
+1472 <span class="comment">% update data</span>
+1473 setappdata(figh,<span class="string">'data'</span>,data);
+1474 setappdata(figh,<span class="string">'gui'</span>,gui);
 1475 
-1476 <span class="comment">% get T1/T2 RTDs values</span>
-1477 param.T1min = data.inv.T1min;
-1478 param.T1max = data.inv.T1max;
-1479 param.T1N = data.inv.T1N;
-1480 param.T2min = data.inv.T2min;
-1481 param.T2max = data.inv.T2max;
-1482 param.T2N = data.inv.T2N;
-1483 
-1484 <span class="comment">% inversion/regularization settings</span>
-1485 param.regMethod = data.inv.regtype;
-1486 param.lamT1 = data.inv.T1lambda;
-1487 param.lamT2 = data.inv.T2lambda;
-1488 param.orderT1 = data.inv.T1order;
-1489 param.orderT2 = data.inv.T2order;
-1490 
-1491 <span class="comment">% prepare data</span>
-1492 dat = struct;
-1493 <span class="keyword">for</span> n = 1:numel(T1T2map.t_recov)
-1494     <span class="keyword">if</span> data.prop.useLogGates
-1495         dat(n).t = T1T2map.t2_gate;
-1496     <span class="keyword">else</span>
-1497         dat(n).t = T1T2map.t2;
-1498     <span class="keyword">end</span>
-1499     dat(n).s = real(T1T2map.dcube(n,:))';
-1500     dat(n).e = T1T2map.ecube(n,:)';
-1501     dat(n).noise = T1T2map.noise(n);<span class="comment">%std(T1T2map.ecube(n,:));</span>
-1502     dat(n).T1 = T1T2map.t_recov(n);
-1503 <span class="keyword">end</span>
-1504 <span class="comment">% global noise</span>
-1505 param.noise = mean(T1T2map.noise);
-1506 param.useLogGates = data.prop.useLogGates;
-1507 
-1508 <span class="comment">% take solver from main NUCLEUS GUI</span>
-1509 param.solver = dataN.info.solver;
-1510 <span class="keyword">switch</span> dataN.info.InvInfo
-1511     <span class="keyword">case</span> <span class="string">'on'</span>
-1512         param.info = <span class="string">'final'</span>;
-1513     <span class="keyword">case</span> <span class="string">'off'</span>
-1514         param.info = <span class="string">'off'</span>;
-1515 <span class="keyword">end</span>
-1516 
-1517 <span class="keyword">end</span>
-1518 
-1519 <span class="comment">%% subfunction to export the 2D inversion data</span>
-1520 <a name="_sub10" href="#_subfunctions" class="code">function tv_onPushSave(src,~)</a>
-1521 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-1522 <span class="comment">% local GUI data</span>
-1523 uvgui = getappdata(figh,<span class="string">'gui'</span>);
-1524 uvdata = getappdata(figh,<span class="string">'data'</span>);
-1525 <span class="comment">% NUCLEUSinv data</span>
-1526 data = getappdata(uvgui.figh_nucleus,<span class="string">'data'</span>);
-1527 
-1528 <span class="comment">% get data path to save inversion results</span>
-1529 [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="string">'Select File for Save'</span>,<span class="keyword">...</span>
-1530     fullfile(data.import.path,<span class="string">'2Dinvdata.mat'</span>));
-1531 <span class="comment">% if user did not cancel, procceed</span>
-1532 <span class="keyword">if</span> sfile &gt; 0
-1533     invdata = uvdata;
-1534     save(fullfile(spath,sfile),<span class="string">'invdata'</span>);
-1535     disp(<span class="string">'2D Inverions data saved to: '</span>);
-1536     disp(fullfile(spath,sfile));
-1537 <span class="keyword">else</span>
-1538     disp(<span class="string">'Save cancelled.'</span>);
-1539 <span class="keyword">end</span>
-1540 
-1541 <span class="keyword">end</span>
-1542 
-1543 <span class="comment">%% subfunction to export the current view to a figure</span>
-1544 <a name="_sub11" href="#_subfunctions" class="code">function tv_onPushView(src,~)</a>
-1545 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-1546 <span class="comment">% local GUI data</span>
-1547 gui = getappdata(figh,<span class="string">'gui'</span>);
-1548 
-1549 <span class="comment">% opening the export figure</span>
-1550 expfig = figure(<span class="string">'Color'</span>,gui.myui.colors.panelBG);
-1551 
-1552 <span class="comment">% create axes layout depending on view</span>
-1553 <span class="keyword">switch</span> get(gui.rightPanel,<span class="string">'Selection'</span>)
-1554     <span class="keyword">case</span> 1
-1555         <span class="comment">% create layout</span>
-1556         ax1 = subplot(2,2,1,<span class="string">'Parent'</span>,expfig);
-1557         ax2 = subplot(2,2,2,<span class="string">'Parent'</span>,expfig);
-1558         ax3 = subplot(2,2,3,<span class="string">'Parent'</span>,expfig);
-1559         ax4 = subplot(2,2,4,<span class="string">'Parent'</span>,expfig);
-1560         <span class="comment">% get positions</span>
-1561         pos1 = get(ax1,<span class="string">'Position'</span>);
-1562         pos2 = get(ax2,<span class="string">'Position'</span>);
-1563         pos3 = get(ax3,<span class="string">'Position'</span>);
-1564         pos4 = get(ax4,<span class="string">'Position'</span>);
-1565         <span class="comment">% delete axes</span>
-1566         delete(ax1);delete(ax2);delete(ax3);delete(ax4);
-1567         <span class="comment">% copy GUI axes</span>
-1568         ax1 = copyobj(gui.axes11,expfig);
-1569         ax2 = copyobj(gui.axes12,expfig);
-1570         ax3 = copyobj(gui.axes13,expfig);
-1571         ax4 = copyobj(gui.axes14,expfig);
-1572         <span class="comment">% adjust positions</span>
-1573         set(ax1,<span class="string">'Position'</span>,pos1);
-1574         set(ax2,<span class="string">'Position'</span>,pos2);
-1575         set(ax3,<span class="string">'Position'</span>,pos3);
-1576         set(ax4,<span class="string">'Position'</span>,pos4);
-1577         <span class="comment">% set colorbars</span>
-1578         colorbar(ax1,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-1579         colorbar(ax2,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-1580         colorbar(ax3,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-1581         colorbar(ax4,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-1582     <span class="keyword">case</span> 2
-1583         <span class="comment">% create layout</span>
-1584         ax1 = subplot(5,5,[1 2 3 4],<span class="string">'Parent'</span>,expfig);
-1585         ax2 = subplot(5,5,[6:9 11:14 16:19 21:24],<span class="string">'Parent'</span>,expfig);
-1586         ax3 = subplot(5,5,[10 15 20 25],<span class="string">'Parent'</span>,expfig);
-1587         <span class="comment">% get positions</span>
-1588         pos1 = get(ax1,<span class="string">'Position'</span>);
-1589         pos2 = get(ax2,<span class="string">'Position'</span>);
-1590         pos3 = get(ax3,<span class="string">'Position'</span>);
-1591         <span class="comment">% delete axes</span>
-1592         delete(ax1);delete(ax2);delete(ax3);
-1593         <span class="comment">% copy GUI axes</span>
-1594         ax1 = copyobj(gui.axes21,expfig);
-1595         ax2 = copyobj(gui.axes2,expfig);
-1596         ax3 = copyobj(gui.axes24,expfig);
+1476 <span class="comment">% call final inverion with optimal lambda</span>
+1477 <a href="#_sub7" class="code" title="subfunction tv_onPushRun(src,~)">tv_onPushRun</a>(gui.push_handles.run_inv);
+1478 <span class="keyword">end</span>
+1479 
+1480 <span class="comment">%% subfuntion to prepare inversion data</span>
+1481 <a name="_sub9" href="#_subfunctions" class="code">function [dat,param] = tv_prepareInvData(figh)</a>
+1482 gui = getappdata(figh,<span class="string">'gui'</span>);
+1483 data = getappdata(figh,<span class="string">'data'</span>);
+1484 <span class="comment">% NUCLEUSinv data</span>
+1485 dataN = getappdata(gui.figh_nucleus,<span class="string">'data'</span>);
+1486 <span class="comment">% local T1T2 data</span>
+1487 T1T2map = data.results.T1T2map;
+1488 
+1489 <span class="comment">% prepare inversion parameter struct</span>
+1490 param.T1T2 = <span class="string">'T1T2'</span>; <span class="comment">% T1-T2 2D inv</span>
+1491 
+1492 <span class="comment">% get system properties</span>
+1493 param.D = data.prop.D;
+1494 param.G0 = data.prop.G0;
+1495 param.te = data.prop.te;
+1496 
+1497 <span class="comment">% IR/SR factor</span>
+1498 param.T1IRfac = data.inv.T1IRfac;
+1499 param.IRtype = data.inv.IRtype;
+1500 
+1501 <span class="comment">% get T1/T2 RTDs values</span>
+1502 param.T1min = data.inv.T1min;
+1503 param.T1max = data.inv.T1max;
+1504 param.T1N = data.inv.T1N;
+1505 param.T2min = data.inv.T2min;
+1506 param.T2max = data.inv.T2max;
+1507 param.T2N = data.inv.T2N;
+1508 
+1509 <span class="comment">% inversion/regularization settings</span>
+1510 param.regMethod = data.inv.regtype;
+1511 param.lamT1 = data.inv.T1lambda;
+1512 param.lamT2 = data.inv.T2lambda;
+1513 param.orderT1 = data.inv.T1order;
+1514 param.orderT2 = data.inv.T2order;
+1515 
+1516 <span class="comment">% prepare data</span>
+1517 dat = struct;
+1518 <span class="keyword">for</span> n = 1:numel(T1T2map.t_recov)
+1519     <span class="keyword">if</span> data.prop.useLogGates
+1520         dat(n).t = T1T2map.t2_gate;
+1521     <span class="keyword">else</span>
+1522         dat(n).t = T1T2map.t2;
+1523     <span class="keyword">end</span>
+1524     dat(n).s = real(T1T2map.dcube(n,:))';
+1525     dat(n).e = T1T2map.ecube(n,:)';
+1526     dat(n).noise = T1T2map.noise(n);<span class="comment">%std(T1T2map.ecube(n,:));</span>
+1527     dat(n).T1 = T1T2map.t_recov(n);
+1528 <span class="keyword">end</span>
+1529 <span class="comment">% global noise</span>
+1530 param.noise = mean(T1T2map.noise);
+1531 param.useLogGates = data.prop.useLogGates;
+1532 
+1533 <span class="comment">% take solver from main NUCLEUS GUI</span>
+1534 param.solver = dataN.info.solver;
+1535 <span class="keyword">switch</span> dataN.info.InvInfo
+1536     <span class="keyword">case</span> <span class="string">'on'</span>
+1537         param.info = <span class="string">'final'</span>;
+1538     <span class="keyword">case</span> <span class="string">'off'</span>
+1539         param.info = <span class="string">'off'</span>;
+1540 <span class="keyword">end</span>
+1541 
+1542 <span class="keyword">end</span>
+1543 
+1544 <span class="comment">%% subfunction to export the 2D inversion data</span>
+1545 <a name="_sub10" href="#_subfunctions" class="code">function tv_onPushSave(src,~)</a>
+1546 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+1547 <span class="comment">% local GUI data</span>
+1548 uvgui = getappdata(figh,<span class="string">'gui'</span>);
+1549 uvdata = getappdata(figh,<span class="string">'data'</span>);
+1550 <span class="comment">% NUCLEUSinv data</span>
+1551 data = getappdata(uvgui.figh_nucleus,<span class="string">'data'</span>);
+1552 
+1553 <span class="comment">% get data path to save inversion results</span>
+1554 [sfile,spath] = uiputfile(<span class="string">'*.mat'</span>,<span class="string">'Select File for Save'</span>,<span class="keyword">...</span>
+1555     fullfile(data.import.path,<span class="string">'2Dinvdata.mat'</span>));
+1556 <span class="comment">% if user did not cancel, procceed</span>
+1557 <span class="keyword">if</span> sfile &gt; 0
+1558     invdata = uvdata;
+1559     save(fullfile(spath,sfile),<span class="string">'invdata'</span>);
+1560     disp(<span class="string">'2D Inverions data saved to: '</span>);
+1561     disp(fullfile(spath,sfile));
+1562 <span class="keyword">else</span>
+1563     disp(<span class="string">'Save cancelled.'</span>);
+1564 <span class="keyword">end</span>
+1565 
+1566 <span class="keyword">end</span>
+1567 
+1568 <span class="comment">%% subfunction to export the current view to a figure</span>
+1569 <a name="_sub11" href="#_subfunctions" class="code">function tv_onPushView(src,~)</a>
+1570 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+1571 <span class="comment">% local GUI data</span>
+1572 gui = getappdata(figh,<span class="string">'gui'</span>);
+1573 
+1574 <span class="comment">% opening the export figure</span>
+1575 expfig = figure(<span class="string">'Color'</span>,gui.myui.colors.panelBG);
+1576 
+1577 <span class="comment">% create axes layout depending on view</span>
+1578 <span class="keyword">switch</span> get(gui.rightPanel,<span class="string">'Selection'</span>)
+1579     <span class="keyword">case</span> 1
+1580         <span class="comment">% create layout</span>
+1581         ax1 = subplot(2,2,1,<span class="string">'Parent'</span>,expfig);
+1582         ax2 = subplot(2,2,2,<span class="string">'Parent'</span>,expfig);
+1583         ax3 = subplot(2,2,3,<span class="string">'Parent'</span>,expfig);
+1584         ax4 = subplot(2,2,4,<span class="string">'Parent'</span>,expfig);
+1585         <span class="comment">% get positions</span>
+1586         pos1 = get(ax1,<span class="string">'Position'</span>);
+1587         pos2 = get(ax2,<span class="string">'Position'</span>);
+1588         pos3 = get(ax3,<span class="string">'Position'</span>);
+1589         pos4 = get(ax4,<span class="string">'Position'</span>);
+1590         <span class="comment">% delete axes</span>
+1591         delete(ax1);delete(ax2);delete(ax3);delete(ax4);
+1592         <span class="comment">% copy GUI axes</span>
+1593         ax1 = copyobj(gui.axes11,expfig);
+1594         ax2 = copyobj(gui.axes12,expfig);
+1595         ax3 = copyobj(gui.axes13,expfig);
+1596         ax4 = copyobj(gui.axes14,expfig);
 1597         <span class="comment">% adjust positions</span>
 1598         set(ax1,<span class="string">'Position'</span>,pos1);
 1599         set(ax2,<span class="string">'Position'</span>,pos2);
 1600         set(ax3,<span class="string">'Position'</span>,pos3);
-1601     <span class="keyword">case</span> 3
-1602         <span class="comment">% create layout</span>
-1603         ax1 = subplot(7,1,[1 2],<span class="string">'Parent'</span>,expfig);
-1604         ax2 = subplot(7,1,[4 5 6 7],<span class="string">'Parent'</span>,expfig);
-1605         <span class="comment">% get positions</span>
-1606         pos1 = get(ax1,<span class="string">'Position'</span>);
-1607         pos2 = get(ax2,<span class="string">'Position'</span>);
-1608         <span class="comment">% delete axes</span>
-1609         delete(ax1);delete(ax2);
-1610         <span class="comment">% copy GUI axes</span>
-1611         ax1 = copyobj(gui.axes31,expfig);
-1612         ax2 = copyobj(gui.axes32,expfig);
-1613         <span class="comment">% adjust positions</span>
-1614         set(ax1,<span class="string">'Position'</span>,pos1);
-1615         set(ax2,<span class="string">'Position'</span>,pos2);
-1616 <span class="keyword">end</span>
-1617 
-1618 <span class="keyword">end</span>
-1619 
-1620 <span class="comment">%% subfunction to update the main NUCLEUSinv GUI</span>
-1621 <a name="_sub12" href="#_subfunctions" class="code">function tv_onPushUpdate(src,~)</a>
-1622 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-1623 <span class="comment">% local GUI data</span>
-1624 uvgui = getappdata(figh,<span class="string">'gui'</span>);
-1625 uvdata = getappdata(figh,<span class="string">'data'</span>);
-1626 <span class="comment">% NUCLEUSinv data</span>
-1627 gui = getappdata(uvgui.figh_nucleus,<span class="string">'gui'</span>);
-1628 INVdata = getappdata(uvgui.figh_nucleus,<span class="string">'INVdata'</span>);
-1629 data = getappdata(uvgui.figh_nucleus,<span class="string">'data'</span>);
-1630 
-1631 <span class="comment">% loop over all signals</span>
-1632 E_inv = zeros(size(uvdata.results.T1T2map.t_recov));
-1633 firstT1 = uvdata.prop.firstT1;
-1634 lastT1 = uvdata.prop.lastT1;
-1635 idT1 = firstT1:lastT1;
-1636 <span class="keyword">for</span> id = 1:numel(INVdata)
-1637     <span class="comment">% the standard INVdata struct</span>
-1638     INVdata{id} = [];
-1639     local_id = find(id==idT1);
-1640 
-1641     <span class="keyword">if</span> any(id==idT1) <span class="comment">% for all T2 signals not cut out</span>
-1642         first = uvdata.prop.firstT2;
-1643         last = uvdata.prop.lastT2;
-1644         data.process.start = first;
-1645         data.process.end = last;
-1646 
-1647         <span class="keyword">if</span> uvdata.prop.useLogGates
-1648             data.process.gatetype = <span class="string">'log'</span>;
-1649             data.process.isgated = true;
-1650         <span class="keyword">else</span>
-1651             data.process.gatetype = <span class="string">'raw'</span>;
-1652             data.process.isgated = false;
-1653         <span class="keyword">end</span>
-1654 
-1655         <span class="comment">% update 2Dinv GUI settings</span>
-1656         data.inv2D.prop = uvdata.prop;
-1657         data.inv2D.inv = uvdata.inv;
-1658         data.inv2D.info = uvdata.info;
-1659 
-1660         <span class="comment">% create raw data struct</span>
-1661         data.results.nmrraw.t = uvdata.results.T1T2map.import{id}.time(first:last);
-1662         data.results.nmrraw.s = uvdata.results.T1T2map.import{id}.signal(first:last);
-1663         data.results.nmrraw.phase = uvdata.results.T1T2map.import{id}.phase;
-1664         data.results.nmrproc.T1T2 = <span class="string">'T2'</span>;
-1665         data.results.nmrproc.T1IRfac = 1;
-1666 
-1667         <span class="comment">% create proc data struct</span>
-1668         data.results.nmrproc.start = first;
-1669         data.results.nmrproc.end = last;
-1670 
-1671         <span class="keyword">if</span> uvdata.prop.useLogGates
-1672             data.results.nmrproc.gatetype = <span class="string">'log'</span>;
-1673             data.results.nmrproc.isgated = true;
-1674             data.results.nmrproc.t = uvdata.results.T1T2map.t2_gate(:);
-1675             data.results.nmrproc.s = real(uvdata.results.T1T2map.dcube(local_id,:))';
-1676             data.results.nmrproc.N = uvdata.results.T1T2map.t2_gateN(:);
-1677 
-1678             data.results.nmrproc.noise = uvdata.results.T1T2map.noise(local_id);
-1679             data.results.nmrproc.e = uvdata.results.inv2D.data(local_id).e;
-1680             data.results.nmrproc.W = diag(data.results.nmrproc.e);
-1681             ErrWimag = imag(uvdata.results.T1T2map.dcube(local_id,:))./uvdata.results.inv2D.data(local_id).e;
-1682             chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
-1683             data.results.nmrproc.imag_chi2 = chi2;
-1684         <span class="keyword">else</span>
-1685             data.results.nmrproc.gatetype = <span class="string">'raw'</span>;
-1686             data.results.nmrproc.isgated = false;
-1687             data.results.nmrproc.t = uvdata.results.T1T2map.import{id}.time(first:last);
-1688             data.results.nmrproc.s = real(uvdata.results.T1T2map.import{id}.signal(first:last));
-1689             data.results.nmrproc.N = ones(size(data.results.nmrproc.s));
-1690 
-1691             <span class="keyword">if</span> isfield(uvdata.results.T1T2map.import{id},<span class="string">'noise'</span>)
-1692                 data.results.nmrproc.noise = uvdata.results.T1T2map.import{id}.noise;
-1693             <span class="keyword">else</span>
-1694                 range = floor(numel(data.results.nmrproc.s)/2):numel(data.results.nmrproc.s);
-1695                 data.results.nmrproc.noise = std(imag(uvdata.results.T1T2map.import{id}.signal(range)));
-1696             <span class="keyword">end</span>
-1697             data.results.nmrproc.e = data.results.nmrproc.noise*ones(size(data.results.nmrproc.s));
-1698             <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-1699                 data.results.nmrproc = rmfield(data.results.nmrproc,<span class="string">'W'</span>);
-1700             <span class="keyword">end</span>
-1701             ErrWimag = imag(uvdata.results.T1T2map.import{id}.signal(first:last))./data.results.nmrproc.noise;
-1702             chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
-1703             data.results.nmrproc.imag_chi2 = chi2;
-1704         <span class="keyword">end</span>
-1705 
-1706         INVdata{id} = data;
-1707         INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
-1708         INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
-1709         INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
-1710         INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
-1711 
-1712         <span class="comment">% now add a dummy &quot;invstd&quot; field</span>
-1713         INVdata{id}.results.invstd.fit_t = uvdata.results.inv2D.data(local_id).t;
-1714         INVdata{id}.results.invstd.fit_s = uvdata.results.inv2D.data(local_id).s_fit;
-1715         E_inv(id,1) = uvdata.results.inv2D.data(local_id).s_fit(1);
-1716         INVdata{id}.results.invstd.E0 = uvdata.results.inv2D.data(local_id).s_fit(1);
-1717         INVdata{id}.results.invstd.ciE0 = NaN;
-1718         INVdata{id}.results.invstd.resnorm = uvdata.results.inv2D.data(local_id).resnorm;
-1719         INVdata{id}.results.invstd.residual = uvdata.results.inv2D.data(local_id).residual;
-1720         INVdata{id}.results.invstd.chi2 = uvdata.results.inv2D.data(local_id).chi2;
-1721         INVdata{id}.results.invstd.rms = uvdata.results.inv2D.data(local_id).rms;
-1722 
-1723         INVdata{id}.results.invstd.lambda_out = 1;
-1724         INVdata{id}.results.invstd.xn = 0;
-1725         INVdata{id}.results.invstd.rn = 0;
-1726         INVdata{id}.results.invstd.invtype = data.invstd.invtype;
-1727         INVdata{id}.results.invstd.invparams = NaN;
-1728 
-1729         INVdata{id}.results.inv2D = true;
+1601         set(ax4,<span class="string">'Position'</span>,pos4);
+1602         <span class="comment">% set colorbars</span>
+1603         colorbar(ax1,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+1604         colorbar(ax2,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+1605         colorbar(ax3,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+1606         colorbar(ax4,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+1607     <span class="keyword">case</span> 2
+1608         <span class="comment">% create layout</span>
+1609         ax1 = subplot(5,5,[1 2 3 4],<span class="string">'Parent'</span>,expfig);
+1610         ax2 = subplot(5,5,[6:9 11:14 16:19 21:24],<span class="string">'Parent'</span>,expfig);
+1611         ax3 = subplot(5,5,[10 15 20 25],<span class="string">'Parent'</span>,expfig);
+1612         <span class="comment">% get positions</span>
+1613         pos1 = get(ax1,<span class="string">'Position'</span>);
+1614         pos2 = get(ax2,<span class="string">'Position'</span>);
+1615         pos3 = get(ax3,<span class="string">'Position'</span>);
+1616         <span class="comment">% delete axes</span>
+1617         delete(ax1);delete(ax2);delete(ax3);
+1618         <span class="comment">% copy GUI axes</span>
+1619         ax1 = copyobj(gui.axes21,expfig);
+1620         ax2 = copyobj(gui.axes2,expfig);
+1621         ax3 = copyobj(gui.axes24,expfig);
+1622         <span class="comment">% adjust positions</span>
+1623         set(ax1,<span class="string">'Position'</span>,pos1);
+1624         set(ax2,<span class="string">'Position'</span>,pos2);
+1625         set(ax3,<span class="string">'Position'</span>,pos3);
+1626     <span class="keyword">case</span> 3
+1627         <span class="comment">% create layout</span>
+1628         ax1 = subplot(7,1,[1 2],<span class="string">'Parent'</span>,expfig);
+1629         ax2 = subplot(7,1,[4 5 6 7],<span class="string">'Parent'</span>,expfig);
+1630         <span class="comment">% get positions</span>
+1631         pos1 = get(ax1,<span class="string">'Position'</span>);
+1632         pos2 = get(ax2,<span class="string">'Position'</span>);
+1633         <span class="comment">% delete axes</span>
+1634         delete(ax1);delete(ax2);
+1635         <span class="comment">% copy GUI axes</span>
+1636         ax1 = copyobj(gui.axes31,expfig);
+1637         ax2 = copyobj(gui.axes32,expfig);
+1638         <span class="comment">% adjust positions</span>
+1639         set(ax1,<span class="string">'Position'</span>,pos1);
+1640         set(ax2,<span class="string">'Position'</span>,pos2);
+1641 <span class="keyword">end</span>
+1642 
+1643 <span class="keyword">end</span>
+1644 
+1645 <span class="comment">%% subfunction to update the main NUCLEUSinv GUI</span>
+1646 <a name="_sub12" href="#_subfunctions" class="code">function tv_onPushUpdate(src,~)</a>
+1647 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+1648 <span class="comment">% local GUI data</span>
+1649 uvgui = getappdata(figh,<span class="string">'gui'</span>);
+1650 uvdata = getappdata(figh,<span class="string">'data'</span>);
+1651 <span class="comment">% NUCLEUSinv data</span>
+1652 gui = getappdata(uvgui.figh_nucleus,<span class="string">'gui'</span>);
+1653 INVdata = getappdata(uvgui.figh_nucleus,<span class="string">'INVdata'</span>);
+1654 data = getappdata(uvgui.figh_nucleus,<span class="string">'data'</span>);
+1655 
+1656 <span class="comment">% loop over all signals</span>
+1657 E_inv = zeros(size(uvdata.results.T1T2map.t_recov));
+1658 firstT1 = uvdata.prop.firstT1;
+1659 lastT1 = uvdata.prop.lastT1;
+1660 idT1 = firstT1:lastT1;
+1661 <span class="keyword">for</span> id = 1:numel(INVdata)
+1662     <span class="comment">% the standard INVdata struct</span>
+1663     INVdata{id} = [];
+1664     local_id = find(id==idT1);
+1665 
+1666     <span class="keyword">if</span> any(id==idT1) <span class="comment">% for all T2 signals not cut out</span>
+1667         first = uvdata.prop.firstT2;
+1668         last = uvdata.prop.lastT2;
+1669         data.process.start = first;
+1670         data.process.end = last;
+1671 
+1672         <span class="keyword">if</span> uvdata.prop.useLogGates
+1673             data.process.gatetype = <span class="string">'log'</span>;
+1674             data.process.isgated = true;
+1675         <span class="keyword">else</span>
+1676             data.process.gatetype = <span class="string">'raw'</span>;
+1677             data.process.isgated = false;
+1678         <span class="keyword">end</span>
+1679 
+1680         <span class="comment">% update 2Dinv GUI settings</span>
+1681         data.inv2D.prop = uvdata.prop;
+1682         data.inv2D.inv = uvdata.inv;
+1683         data.inv2D.info = uvdata.info;
+1684 
+1685         <span class="comment">% create raw data struct</span>
+1686         data.results.nmrraw.t = uvdata.results.T1T2map.import{id}.time(first:last);
+1687         data.results.nmrraw.s = uvdata.results.T1T2map.import{id}.signal(first:last);
+1688         data.results.nmrraw.phase = uvdata.results.T1T2map.import{id}.phase;
+1689         data.results.nmrproc.T1T2 = <span class="string">'T2'</span>;
+1690         data.results.nmrproc.T1IRfac = 1;
+1691 
+1692         <span class="comment">% create proc data struct</span>
+1693         data.results.nmrproc.start = first;
+1694         data.results.nmrproc.end = last;
+1695 
+1696         <span class="keyword">if</span> uvdata.prop.useLogGates
+1697             data.results.nmrproc.gatetype = <span class="string">'log'</span>;
+1698             data.results.nmrproc.isgated = true;
+1699             data.results.nmrproc.t = uvdata.results.T1T2map.t2_gate(:);
+1700             data.results.nmrproc.s = real(uvdata.results.T1T2map.dcube(local_id,:))';
+1701             data.results.nmrproc.N = uvdata.results.T1T2map.t2_gateN(:);
+1702 
+1703             data.results.nmrproc.noise = uvdata.results.T1T2map.noise(local_id);
+1704             data.results.nmrproc.e = uvdata.results.inv2D.data(local_id).e;
+1705             data.results.nmrproc.W = diag(data.results.nmrproc.e);
+1706             ErrWimag = imag(uvdata.results.T1T2map.dcube(local_id,:))./uvdata.results.inv2D.data(local_id).e;
+1707             chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+1708             data.results.nmrproc.imag_chi2 = chi2;
+1709         <span class="keyword">else</span>
+1710             data.results.nmrproc.gatetype = <span class="string">'raw'</span>;
+1711             data.results.nmrproc.isgated = false;
+1712             data.results.nmrproc.t = uvdata.results.T1T2map.import{id}.time(first:last);
+1713             data.results.nmrproc.s = real(uvdata.results.T1T2map.import{id}.signal(first:last));
+1714             data.results.nmrproc.N = ones(size(data.results.nmrproc.s));
+1715 
+1716             <span class="keyword">if</span> isfield(uvdata.results.T1T2map.import{id},<span class="string">'noise'</span>)
+1717                 data.results.nmrproc.noise = uvdata.results.T1T2map.import{id}.noise;
+1718             <span class="keyword">else</span>
+1719                 range = floor(numel(data.results.nmrproc.s)/2):numel(data.results.nmrproc.s);
+1720                 data.results.nmrproc.noise = std(imag(uvdata.results.T1T2map.import{id}.signal(range)));
+1721             <span class="keyword">end</span>
+1722             data.results.nmrproc.e = data.results.nmrproc.noise*ones(size(data.results.nmrproc.s));
+1723             <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+1724                 data.results.nmrproc = rmfield(data.results.nmrproc,<span class="string">'W'</span>);
+1725             <span class="keyword">end</span>
+1726             ErrWimag = imag(uvdata.results.T1T2map.import{id}.signal(first:last))./data.results.nmrproc.noise;
+1727             chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+1728             data.results.nmrproc.imag_chi2 = chi2;
+1729         <span class="keyword">end</span>
 1730 
-1731         <span class="comment">% color the corresponding list entries in the main GUI</span>
-1732         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
-1733         str1 = strL{id};
-1734         str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
-1735             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-1736         strL{id} = str2;
-1737         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
-1738     <span class="keyword">end</span>
-1739 
-1740     <span class="keyword">if</span> id == numel(INVdata) <span class="comment">% for the merged T1 curve</span>
-1741         <span class="comment">% data.process.start = 1;</span>
-1742         <span class="comment">% data.process.end = numel(uvdata.results.T1T2map.import{id}.time);</span>
-1743         data.process.start = firstT1;
-1744         data.process.end = lastT1;
-1745 
-1746         data.process.gatetype = <span class="string">'raw'</span>;
-1747         data.process.isgated = false;
-1748 
-1749         <span class="comment">% update 2Dinv GUI settings</span>
-1750         data.inv2D.prop = uvdata.prop;
-1751         data.inv2D.inv = uvdata.inv;
-1752         data.inv2D.info = uvdata.info;
+1731         INVdata{id} = data;
+1732         INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
+1733         INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
+1734         INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
+1735         INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
+1736 
+1737         <span class="comment">% now add a dummy &quot;invstd&quot; field</span>
+1738         INVdata{id}.results.invstd.fit_t = uvdata.results.inv2D.data(local_id).t;
+1739         INVdata{id}.results.invstd.fit_s = uvdata.results.inv2D.data(local_id).s_fit;
+1740         E_inv(id,1) = uvdata.results.inv2D.data(local_id).s_fit(1);
+1741         INVdata{id}.results.invstd.E0 = uvdata.results.inv2D.data(local_id).s_fit(1);
+1742         INVdata{id}.results.invstd.ciE0 = NaN;
+1743         INVdata{id}.results.invstd.resnorm = uvdata.results.inv2D.data(local_id).resnorm;
+1744         INVdata{id}.results.invstd.residual = uvdata.results.inv2D.data(local_id).residual;
+1745         INVdata{id}.results.invstd.chi2 = uvdata.results.inv2D.data(local_id).chi2;
+1746         INVdata{id}.results.invstd.rms = uvdata.results.inv2D.data(local_id).rms;
+1747 
+1748         INVdata{id}.results.invstd.lambda_out = 1;
+1749         INVdata{id}.results.invstd.xn = 0;
+1750         INVdata{id}.results.invstd.rn = 0;
+1751         INVdata{id}.results.invstd.invtype = data.invstd.invtype;
+1752         INVdata{id}.results.invstd.invparams = NaN;
 1753 
-1754         <span class="comment">% create raw data struct</span>
-1755         data.results.nmrraw.t = uvdata.results.T1T2map.import{id}.time(firstT1:lastT1);
-1756         data.results.nmrraw.s = uvdata.results.T1T2map.import{id}.signal(firstT1:lastT1);
-1757         data.results.nmrraw.noise = uvdata.results.T1T2map.import{id}.noise;
-1758         data.results.nmrproc.T1T2 = <span class="string">'T1'</span>;
-1759         data.results.nmrproc.T1IRfac = 2;
-1760 
-1761         <span class="comment">% create proc data struct</span>
-1762         data.results.nmrproc.start = firstT1;
-1763         data.results.nmrproc.end = lastT1;
+1754         INVdata{id}.results.inv2D = true;
+1755 
+1756         <span class="comment">% color the corresponding list entries in the main GUI</span>
+1757         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+1758         str1 = strL{id};
+1759         str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+1760             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+1761         strL{id} = str2;
+1762         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+1763     <span class="keyword">end</span>
 1764 
-1765         data.results.nmrproc.gatetype = <span class="string">'raw'</span>;
-1766         data.results.nmrproc.isgated = false;
-1767         data.results.nmrproc.t = uvdata.results.T1T2map.import{id}.time(data.results.nmrproc.start:data.results.nmrproc.end);
-1768         data.results.nmrproc.s = real(uvdata.results.T1T2map.import{id}.signal(data.results.nmrproc.start:data.results.nmrproc.end));
-1769         data.results.nmrproc.N = ones(size(data.results.nmrproc.s));
+1765     <span class="keyword">if</span> id == numel(INVdata) <span class="comment">% for the merged T1 curve</span>
+1766         <span class="comment">% data.process.start = 1;</span>
+1767         <span class="comment">% data.process.end = numel(uvdata.results.T1T2map.import{id}.time);</span>
+1768         data.process.start = firstT1;
+1769         data.process.end = lastT1;
 1770 
-1771         <span class="keyword">if</span> isfield(uvdata.results.T1T2map.import{id},<span class="string">'noise'</span>)
-1772             data.results.nmrproc.noise = uvdata.results.T1T2map.import{id}.noise;
-1773         <span class="keyword">else</span>
-1774             range = floor(numel(data.results.nmrproc.s)/2):numel(data.results.nmrproc.s);
-1775             data.results.nmrproc.noise = std(imag(uvdata.results.T1T2map.import{id}.signal(range)));
-1776         <span class="keyword">end</span>
-1777         data.results.nmrproc.e = data.results.nmrproc.noise*ones(size(data.results.nmrproc.s));
-1778         <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-1779             data.results.nmrproc = rmfield(data.results.nmrproc,<span class="string">'W'</span>);
-1780         <span class="keyword">end</span>
-1781 
-1782         INVdata{id} = data;
-1783         INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
-1784         INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
-1785         INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
-1786         INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
-1787 
-1788         <span class="comment">% now add a dummy &quot;invstd&quot; field</span>
-1789         E_inv = E_inv(firstT1:lastT1);
-1790         INVdata{id}.results.invstd.fit_t = uvdata.results.T1T2map.t_recov;
-1791         INVdata{id}.results.invstd.fit_s = E_inv;
-1792         INVdata{id}.results.invstd.E0 = uvdata.results.inv2D.E0;
-1793         INVdata{id}.results.invstd.ciE0 = NaN;
-1794         out = <a href="../../../../nucleus/functions/inversion/getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(uvdata.results.T1T2map.E_raw(:,1),E_inv,data.results.nmrproc.noise);
-1795         INVdata{id}.results.invstd.resnorm = out.resnorm;
-1796         INVdata{id}.results.invstd.residual = out.residual;
-1797         INVdata{id}.results.invstd.chi2 = out.chi2;
-1798         INVdata{id}.results.invstd.rms = out.rms;
-1799 
-1800         INVdata{id}.results.invstd.lambda_out = 1;
-1801         INVdata{id}.results.invstd.xn = 0;
-1802         INVdata{id}.results.invstd.rn = 0;
-1803         INVdata{id}.results.invstd.invtype = data.invstd.invtype;
-1804         INVdata{id}.results.invstd.invparams = NaN;
-1805 
-1806         INVdata{id}.results.inv2D = uvdata.results.inv2D;
-1807 
-1808         <span class="comment">% color the corresponding list entries in the main GUI</span>
-1809         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
-1810         str1 = strL{id};
-1811         str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
-1812             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-1813         strL{id} = str2;
-1814         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
-1815     <span class="keyword">end</span>
-1816 <span class="keyword">end</span>
-1817 
-1818 <span class="comment">% update GUI INVdata</span>
-1819 setappdata(uvgui.figh_nucleus,<span class="string">'INVdata'</span>,INVdata);
-1820 
-1821 <span class="comment">% set focus on first signal</span>
-1822 set(gui.listbox_handles.signal,<span class="string">'Value'</span>,1);
-1823 <a href="../../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(gui.listbox_handles.signal);
-1824 <span class="keyword">end</span>
-1825 
-1826 <span class="comment">%% subfunction to switch x-axis scaling</span>
-1827 <a name="_sub13" href="#_subfunctions" class="code">function tv_onRadioLogLin(src,~)</a>
-1828 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-1829 gui = getappdata(figh,<span class="string">'gui'</span>);
-1830 <span class="comment">% get tag of the radio menu</span>
-1831 tag = get(src,<span class="string">'Tag'</span>);
-1832 val = get(src,<span class="string">'Value'</span>);
-1833 
-1834 <span class="keyword">switch</span> tag
-1835     <span class="keyword">case</span> <span class="string">'log'</span>
-1836         <span class="keyword">switch</span> val
-1837             <span class="keyword">case</span> 1 <span class="comment">% log should be used</span>
-1838                 set(gui.radio_handles.lin,<span class="string">'Value'</span>,0);
-1839             <span class="keyword">case</span> 0 <span class="comment">% lin should be used</span>
-1840                 set(gui.radio_handles.lin,<span class="string">'Value'</span>,1);
-1841         <span class="keyword">end</span>
-1842     <span class="keyword">case</span> <span class="string">'lin'</span>
-1843         <span class="keyword">switch</span> val
-1844             <span class="keyword">case</span> 1 <span class="comment">% lin should be used</span>
-1845                 set(gui.radio_handles.log,<span class="string">'Value'</span>,0);
-1846             <span class="keyword">case</span> 0 <span class="comment">% log should be used</span>
-1847                 set(gui.radio_handles.log,<span class="string">'Value'</span>,1);
-1848         <span class="keyword">end</span>
+1771         data.process.gatetype = <span class="string">'raw'</span>;
+1772         data.process.isgated = false;
+1773 
+1774         <span class="comment">% update 2Dinv GUI settings</span>
+1775         data.inv2D.prop = uvdata.prop;
+1776         data.inv2D.inv = uvdata.inv;
+1777         data.inv2D.info = uvdata.info;
+1778 
+1779         <span class="comment">% create raw data struct</span>
+1780         data.results.nmrraw.t = uvdata.results.T1T2map.import{id}.time(firstT1:lastT1);
+1781         data.results.nmrraw.s = uvdata.results.T1T2map.import{id}.signal(firstT1:lastT1);
+1782         data.results.nmrraw.noise = uvdata.results.T1T2map.import{id}.noise;
+1783         data.results.nmrproc.T1T2 = <span class="string">'T1'</span>;
+1784         data.results.nmrproc.T1IRfac = 2;
+1785 
+1786         <span class="comment">% create proc data struct</span>
+1787         data.results.nmrproc.start = firstT1;
+1788         data.results.nmrproc.end = lastT1;
+1789 
+1790         data.results.nmrproc.gatetype = <span class="string">'raw'</span>;
+1791         data.results.nmrproc.isgated = false;
+1792         data.results.nmrproc.t = uvdata.results.T1T2map.import{id}.time(data.results.nmrproc.start:data.results.nmrproc.end);
+1793         data.results.nmrproc.s = real(uvdata.results.T1T2map.import{id}.signal(data.results.nmrproc.start:data.results.nmrproc.end));
+1794         data.results.nmrproc.N = ones(size(data.results.nmrproc.s));
+1795 
+1796         <span class="keyword">if</span> isfield(uvdata.results.T1T2map.import{id},<span class="string">'noise'</span>)
+1797             data.results.nmrproc.noise = uvdata.results.T1T2map.import{id}.noise;
+1798         <span class="keyword">else</span>
+1799             range = floor(numel(data.results.nmrproc.s)/2):numel(data.results.nmrproc.s);
+1800             data.results.nmrproc.noise = std(imag(uvdata.results.T1T2map.import{id}.signal(range)));
+1801         <span class="keyword">end</span>
+1802         data.results.nmrproc.e = data.results.nmrproc.noise*ones(size(data.results.nmrproc.s));
+1803         <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+1804             data.results.nmrproc = rmfield(data.results.nmrproc,<span class="string">'W'</span>);
+1805         <span class="keyword">end</span>
+1806 
+1807         INVdata{id} = data;
+1808         INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
+1809         INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
+1810         INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
+1811         INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
+1812 
+1813         <span class="comment">% now add a dummy &quot;invstd&quot; field</span>
+1814         E_inv = E_inv(firstT1:lastT1);
+1815         INVdata{id}.results.invstd.fit_t = uvdata.results.T1T2map.t_recov;
+1816         INVdata{id}.results.invstd.fit_s = E_inv;
+1817         INVdata{id}.results.invstd.E0 = uvdata.results.inv2D.E0;
+1818         INVdata{id}.results.invstd.ciE0 = NaN;
+1819         out = <a href="../../../../nucleus/functions/inversion/getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(uvdata.results.T1T2map.E_raw(:,1),E_inv,data.results.nmrproc.noise);
+1820         INVdata{id}.results.invstd.resnorm = out.resnorm;
+1821         INVdata{id}.results.invstd.residual = out.residual;
+1822         INVdata{id}.results.invstd.chi2 = out.chi2;
+1823         INVdata{id}.results.invstd.rms = out.rms;
+1824 
+1825         INVdata{id}.results.invstd.lambda_out = 1;
+1826         INVdata{id}.results.invstd.xn = 0;
+1827         INVdata{id}.results.invstd.rn = 0;
+1828         INVdata{id}.results.invstd.invtype = data.invstd.invtype;
+1829         INVdata{id}.results.invstd.invparams = NaN;
+1830 
+1831         INVdata{id}.results.inv2D = uvdata.results.inv2D;
+1832 
+1833         <span class="comment">% color the corresponding list entries in the main GUI</span>
+1834         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+1835         str1 = strL{id};
+1836         str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+1837             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+1838         strL{id} = str2;
+1839         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+1840     <span class="keyword">end</span>
+1841 <span class="keyword">end</span>
+1842 
+1843 <span class="comment">% update GUI INVdata</span>
+1844 setappdata(uvgui.figh_nucleus,<span class="string">'INVdata'</span>,INVdata);
+1845 
+1846 <span class="comment">% set focus on first signal</span>
+1847 set(gui.listbox_handles.signal,<span class="string">'Value'</span>,1);
+1848 <a href="../../../../nucleus/callbacks/listboxes/onListboxData.html" class="code" title="function onListboxData(src,~)">onListboxData</a>(gui.listbox_handles.signal);
 1849 <span class="keyword">end</span>
-1850 <span class="comment">% update GUI data</span>
-1851 setappdata(figh,<span class="string">'gui'</span>,gui);
-1852 
-1853 <span class="comment">% call function to adapt the axes scaling</span>
-1854 <a href="#_sub16" class="code" title="subfunction tv_setAxesScaling(figh)">tv_setAxesScaling</a>(figh);
-1855 <span class="keyword">end</span>
-1856 
-1857 <span class="comment">%% subfunction to activate data tips on 2D plot</span>
-1858 <a name="_sub14" href="#_subfunctions" class="code">function tv_onCheckDCM(src,~)</a>
-1859 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-1860 gui = getappdata(figh,<span class="string">'gui'</span>);
-1861 <span class="comment">% get tag of the radio menu</span>
-1862 val = get(src,<span class="string">'Value'</span>);
-1863 
-1864 <span class="keyword">switch</span> val
-1865     <span class="keyword">case</span> 1 <span class="comment">% DCM on</span>
-1866         gui.dcm.Enable = <span class="string">'on'</span>;
-1867     <span class="keyword">case</span> 0 <span class="comment">% DCM off</span>
-1868         gui.dcm.Enable = <span class="string">'off'</span>;
-1869 <span class="keyword">end</span>
-1870 
-1871 <span class="comment">% update GUI data</span>
-1872 setappdata(figh,<span class="string">'gui'</span>,gui);
-1873 
+1850 
+1851 <span class="comment">%% subfunction to switch x-axis scaling</span>
+1852 <a name="_sub13" href="#_subfunctions" class="code">function tv_onRadioLogLin(src,~)</a>
+1853 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+1854 gui = getappdata(figh,<span class="string">'gui'</span>);
+1855 <span class="comment">% get tag of the radio menu</span>
+1856 tag = get(src,<span class="string">'Tag'</span>);
+1857 val = get(src,<span class="string">'Value'</span>);
+1858 
+1859 <span class="keyword">switch</span> tag
+1860     <span class="keyword">case</span> <span class="string">'log'</span>
+1861         <span class="keyword">switch</span> val
+1862             <span class="keyword">case</span> 1 <span class="comment">% log should be used</span>
+1863                 set(gui.radio_handles.lin,<span class="string">'Value'</span>,0);
+1864             <span class="keyword">case</span> 0 <span class="comment">% lin should be used</span>
+1865                 set(gui.radio_handles.lin,<span class="string">'Value'</span>,1);
+1866         <span class="keyword">end</span>
+1867     <span class="keyword">case</span> <span class="string">'lin'</span>
+1868         <span class="keyword">switch</span> val
+1869             <span class="keyword">case</span> 1 <span class="comment">% lin should be used</span>
+1870                 set(gui.radio_handles.log,<span class="string">'Value'</span>,0);
+1871             <span class="keyword">case</span> 0 <span class="comment">% log should be used</span>
+1872                 set(gui.radio_handles.log,<span class="string">'Value'</span>,1);
+1873         <span class="keyword">end</span>
 1874 <span class="keyword">end</span>
-1875 
-1876 <span class="comment">%% subfunction to export the 2D inversion data</span>
-1877 <a name="_sub15" href="#_subfunctions" class="code">function tv_onPopupCbar(src,~)</a>
-1878 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-1879 <a href="#_sub18" class="code" title="subfunction tv_plotResults(figh)">tv_plotResults</a>(figh)
+1875 <span class="comment">% update GUI data</span>
+1876 setappdata(figh,<span class="string">'gui'</span>,gui);
+1877 
+1878 <span class="comment">% call function to adapt the axes scaling</span>
+1879 <a href="#_sub16" class="code" title="subfunction tv_setAxesScaling(figh)">tv_setAxesScaling</a>(figh);
 1880 <span class="keyword">end</span>
 1881 
-1882 <span class="comment">%% subfunction to switch x-axis scaling log&lt;-&gt;lin</span>
-1883 <a name="_sub16" href="#_subfunctions" class="code">function tv_setAxesScaling(figh)</a>
-1884 gui = getappdata(figh,<span class="string">'gui'</span>);
-1885 
-1886 uselog = get(gui.radio_handles.log,<span class="string">'Value'</span>);
-1887 <span class="keyword">switch</span> uselog
-1888     <span class="keyword">case</span> 1
-1889         set(gui.axes11,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-1890         set(gui.axes12,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-1891         set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-1892         set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-1893         log_t_ticks = logspace(-5,2,8);
-1894         set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks);
-1895     <span class="keyword">case</span> 0
-1896         set(gui.axes11,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
-1897         set(gui.axes12,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
-1898         set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
-1899         set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
-1900         set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
-1901 <span class="keyword">end</span>
-1902 
-1903 <span class="keyword">end</span>
-1904 
-1905 <span class="comment">%% subfunction to update the plots during the 2D L-curve calculation</span>
-1906 <a name="_sub17" href="#_subfunctions" class="code">function tv_plotLCurveUpdate(figh,tmp_norm,method)</a>
-1907 gui = getappdata(figh,<span class="string">'gui'</span>);
-1908 <span class="comment">% data = getappdata(figh,'data');</span>
-1909 
-1910 <span class="comment">% clear the temporay axis</span>
-1911 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes13);
-1912 
-1913 L1 = tmp_norm.LL1;
-1914 L2 = tmp_norm.LL2;
-1915 
-1916 <span class="comment">% extent matrices for plotting</span>
-1917 LL1 = [min(L1(:))/1.5.*ones(size(L1,1),1) L1];
-1918 LL1 = [LL1(1,:); LL1];
-1919 LL2 = [min(L2(:))/1.5.*ones(1,size(L2,2)); L2];
-1920 LL2 = [LL2(:,1) LL2];
-1921 
-1922 <span class="comment">% get the normdata</span>
-1923 <span class="comment">% shift to zero</span>
-1924 dd = tmp_norm.rnorm_2d - min(tmp_norm.rnorm_2d(:));
-1925 mm = tmp_norm.mnorm_2d - min(tmp_norm.mnorm_2d(:));
-1926 <span class="comment">% scale to one</span>
-1927 dd = dd./max(dd(:));
-1928 mm = mm./max(mm(:));
-1929 <span class="comment">% add both norms</span>
-1930 <span class="comment">% ss = dd + mm;</span>
-1931 <span class="comment">% ss = abs(dd - mm);</span>
-1932 <span class="comment">% ss(ss==0) = NaN;</span>
-1933 <span class="keyword">switch</span> method
-1934     <span class="keyword">case</span> <span class="string">'update'</span>
-1935         dd(dd==0) = NaN;
-1936         mm(mm==0) = NaN;
-1937     <span class="keyword">otherwise</span>
-1938         <span class="comment">% nada</span>
-1939 <span class="keyword">end</span>
-1940 <span class="comment">% extent matrices for plotting</span>
-1941 dd1 = [dd(1,:);dd];
-1942 dd1 = [dd1(:,1) dd1];
-1943 mm1 = [mm(1,:);mm];
-1944 mm1 = [mm1(:,1) mm1];
-1945 <span class="comment">% imagescnan(tmp_norm.LL1,tmp_norm.LL2,ss','Parent',gui.axes13);</span>
-1946 imagescnan(LL1,LL2,dd1',<span class="string">'Parent'</span>,gui.axes13);
-1947 imagescnan(LL1,LL2,mm1',<span class="string">'Parent'</span>,gui.axes14);
-1948 colormap(gui.axes14,<span class="string">'parula'</span>);
-1949 set(get(gui.axes13,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'data norm'</span>);
-1950 set(get(gui.axes13,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T1'</span>);
-1951 set(get(gui.axes13,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T2'</span>);
-1952 set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-1953 set(gui.axes13,<span class="string">'XLim'</span>,[min(LL1(:)) max(LL1(:))],<span class="string">'YLim'</span>,[min(LL2(:)) max(LL2(:))]);
-1954 cb = colorbar(gui.axes13);
-1955 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-1956 set(get(gui.axes14,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'model norm'</span>);
-1957 set(get(gui.axes14,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T1'</span>);
-1958 set(get(gui.axes14,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T2'</span>);
-1959 set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-1960 set(gui.axes14,<span class="string">'XLim'</span>,[min(LL1(:)) max(LL1(:))],<span class="string">'YLim'</span>,[min(LL2(:)) max(LL2(:))]);
-1961 cb = colorbar(gui.axes14);
-1962 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-1963 
+1882 <span class="comment">%% subfunction to activate data tips on 2D plot</span>
+1883 <a name="_sub14" href="#_subfunctions" class="code">function tv_onCheckDCM(src,~)</a>
+1884 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+1885 gui = getappdata(figh,<span class="string">'gui'</span>);
+1886 <span class="comment">% get tag of the radio menu</span>
+1887 val = get(src,<span class="string">'Value'</span>);
+1888 
+1889 <span class="keyword">switch</span> val
+1890     <span class="keyword">case</span> 1 <span class="comment">% DCM on</span>
+1891         gui.dcm.Enable = <span class="string">'on'</span>;
+1892     <span class="keyword">case</span> 0 <span class="comment">% DCM off</span>
+1893         gui.dcm.Enable = <span class="string">'off'</span>;
+1894 <span class="keyword">end</span>
+1895 
+1896 <span class="comment">% update GUI data</span>
+1897 setappdata(figh,<span class="string">'gui'</span>,gui);
+1898 
+1899 <span class="keyword">end</span>
+1900 
+1901 <span class="comment">%% subfunction to export the 2D inversion data</span>
+1902 <a name="_sub15" href="#_subfunctions" class="code">function tv_onPopupCbar(src,~)</a>
+1903 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+1904 <a href="#_sub18" class="code" title="subfunction tv_plotResults(figh)">tv_plotResults</a>(figh)
+1905 <span class="keyword">end</span>
+1906 
+1907 <span class="comment">%% subfunction to switch x-axis scaling log&lt;-&gt;lin</span>
+1908 <a name="_sub16" href="#_subfunctions" class="code">function tv_setAxesScaling(figh)</a>
+1909 gui = getappdata(figh,<span class="string">'gui'</span>);
+1910 
+1911 uselog = get(gui.radio_handles.log,<span class="string">'Value'</span>);
+1912 <span class="keyword">switch</span> uselog
+1913     <span class="keyword">case</span> 1
+1914         set(gui.axes11,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+1915         set(gui.axes12,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+1916         set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+1917         set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+1918         log_t_ticks = logspace(-5,2,8);
+1919         set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks);
+1920     <span class="keyword">case</span> 0
+1921         set(gui.axes11,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
+1922         set(gui.axes12,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
+1923         set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
+1924         set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'lin'</span>);
+1925         set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XTickMode'</span>,<span class="string">'auto'</span>);
+1926 <span class="keyword">end</span>
+1927 
+1928 <span class="keyword">end</span>
+1929 
+1930 <span class="comment">%% subfunction to update the plots during the 2D L-curve calculation</span>
+1931 <a name="_sub17" href="#_subfunctions" class="code">function tv_plotLCurveUpdate(figh,tmp_norm,method)</a>
+1932 gui = getappdata(figh,<span class="string">'gui'</span>);
+1933 <span class="comment">% data = getappdata(figh,'data');</span>
+1934 
+1935 <span class="comment">% clear the temporay axis</span>
+1936 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes13);
+1937 
+1938 L1 = tmp_norm.LL1;
+1939 L2 = tmp_norm.LL2;
+1940 
+1941 <span class="comment">% extent matrices for plotting</span>
+1942 LL1 = [min(L1(:))/1.5.*ones(size(L1,1),1) L1];
+1943 LL1 = [LL1(1,:); LL1];
+1944 LL2 = [min(L2(:))/1.5.*ones(1,size(L2,2)); L2];
+1945 LL2 = [LL2(:,1) LL2];
+1946 
+1947 <span class="comment">% get the normdata</span>
+1948 <span class="comment">% shift to zero</span>
+1949 dd = tmp_norm.rnorm_2d - min(tmp_norm.rnorm_2d(:));
+1950 mm = tmp_norm.mnorm_2d - min(tmp_norm.mnorm_2d(:));
+1951 <span class="comment">% scale to one</span>
+1952 dd = dd./max(dd(:));
+1953 mm = mm./max(mm(:));
+1954 <span class="comment">% add both norms</span>
+1955 <span class="comment">% ss = dd + mm;</span>
+1956 <span class="comment">% ss = abs(dd - mm);</span>
+1957 <span class="comment">% ss(ss==0) = NaN;</span>
+1958 <span class="keyword">switch</span> method
+1959     <span class="keyword">case</span> <span class="string">'update'</span>
+1960         dd(dd==0) = NaN;
+1961         mm(mm==0) = NaN;
+1962     <span class="keyword">otherwise</span>
+1963         <span class="comment">% nada</span>
 1964 <span class="keyword">end</span>
-1965 
-1966 <span class="comment">%% subfunction to update all plots</span>
-1967 <a name="_sub18" href="#_subfunctions" class="code">function tv_plotResults(figh)</a>
-1968 gui = getappdata(figh,<span class="string">'gui'</span>);
-1969 data = getappdata(figh,<span class="string">'data'</span>);
-1970 T1T2map = data.results.T1T2map;
-1971 inv2D = data.results.inv2D;
-1972 col = gui.myui.colors;
-1973 
-1974 <span class="comment">% clear axes</span>
-1975 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes13);
-1976 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes14);
-1977 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes2);
-1978 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes21);
-1979 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes24);
-1980 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes31);
-1981 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes32);
-1982 hold(gui.axes13,<span class="string">'on'</span>);
-1983 hold(gui.axes14,<span class="string">'on'</span>);
-1984 hold(gui.axes2,<span class="string">'on'</span>);
-1985 hold(gui.axes21,<span class="string">'on'</span>);
-1986 hold(gui.axes24,<span class="string">'on'</span>);
-1987 hold(gui.axes31,<span class="string">'on'</span>);
-1988 hold(gui.axes32,<span class="string">'on'</span>);
-1989 
-1990 <span class="comment">% get T1/T2 info range from GUI</span>
-1991 T1_irange(1) = str2double(get(gui.edit_handles.T1min,<span class="string">'String'</span>));
-1992 T1_irange(2) = str2double(get(gui.edit_handles.T1max,<span class="string">'String'</span>));
-1993 T2_irange(1) = str2double(get(gui.edit_handles.T2min,<span class="string">'String'</span>));
-1994 T2_irange(2) = str2double(get(gui.edit_handles.T2max,<span class="string">'String'</span>));
-1995 
-1996 <span class="comment">% create masks for plotting</span>
-1997 [TX,TY] = meshgrid(data.results.inv2D.T2vec,data.results.inv2D.T1vec);
-1998 mask1 = TY &gt;= T1_irange(1) &amp; TY &lt;= T1_irange(2);
-1999 mask2 = TX &gt;= T2_irange(1) &amp; TX &lt;= T2_irange(2);
-2000 
-2001 <span class="comment">% define some axes settings</span>
-2002 log_t_ticks = logspace(-5,2,8);
-2003 t_recov_lims = [min(T1T2map.t_recov)/2 max(T1T2map.t_recov)*2];
-2004 p_alpha = 0.8;
-2005 
-2006 <span class="keyword">if</span> data.prop.useLogGates
-2007     t2 = T1T2map.t2_gate;
-2008 <span class="keyword">else</span>
-2009     t2 = T1T2map.t2;
-2010 <span class="keyword">end</span>
-2011 
-2012 z_max = max(inv2D.f_2Dmap(:));
-2013 <span class="comment">% tab 2 - 2D inversion model</span>
-2014 [X,Y] = meshgrid(inv2D.T2vec,inv2D.T1vec);
-2015 <span class="comment">% imagescnan(X,Y,inv2D.f_2Dmap,'Parent',gui.axes2);</span>
-2016 sh = surf(X,Y,inv2D.f_2Dmap,<span class="string">'Parent'</span>,gui.axes2);
-2017 sh.FaceColor = <span class="string">'flat'</span>;
-2018 sh.EdgeColor = <span class="string">'none'</span>;
-2019 plot3(inv2D.T2tlgm,inv2D.T1tlgm,z_max+1,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,gui.axes2);
-2020 plot3(inv2D.T2tmax,inv2D.T1tmax,z_max+1,<span class="string">'+'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,gui.axes2);
-2021 plot3([1e-5 100],[1e-5 100],[z_max z_max],<span class="keyword">...</span>
-2022     <span class="string">'--'</span>,<span class="string">'Color'</span>,<span class="string">'w'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,gui.axes2);
-2023 view(gui.axes2,[0 90]);
-2024 set(gui.axes2,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks,<span class="keyword">...</span>
-2025     <span class="string">'XLim'</span>,[min(inv2D.T2vec) max(inv2D.T2vec)]);
-2026 set(gui.axes2,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks,<span class="keyword">...</span>
-2027     <span class="string">'YLim'</span>,[min(inv2D.T1vec) max(inv2D.T1vec)],<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-2028 set(get(gui.axes2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'relaxation time T2 [s]'</span>);
-2029 set(get(gui.axes2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'relaxation time T1 [s]'</span>);
-2030 set(gui.axes2,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
-2031 <span class="comment">% colorbar</span>
-2032 <span class="keyword">switch</span> get(gui.popup_handles.cbarpos,<span class="string">'Value'</span>)
-2033     <span class="keyword">case</span> 1
-2034         colorbar(gui.axes2,<span class="string">'Location'</span>,<span class="string">'East'</span>,<span class="string">'Color'</span>,<span class="string">'w'</span>);
-2035     <span class="keyword">case</span> 2
-2036         colorbar(gui.axes2,<span class="string">'Location'</span>,<span class="string">'EastOutSide'</span>,<span class="string">'Color'</span>,<span class="string">'k'</span>);
-2037     <span class="keyword">otherwise</span>
-2038         <span class="comment">% none</span>
-2039 <span class="keyword">end</span>
-2040 
-2041 <span class="comment">% sum along each dimension to get both RTDs</span>
-2042 mapcol = parula;
-2043 Tmap = inv2D.f_2Dmap;
-2044 Tmap(~mask1) = 0;
-2045 Tmap(~mask2) = 0;
-2046 T1rtd = sum(Tmap,2);
-2047 T2rtd = sum(Tmap,1);
-2048 <span class="comment">% find common maximum for y-axis setting</span>
-2049 ymax = max([max(T1rtd) max(T2rtd)])*1.1;
-2050 <span class="comment">% T1 RTD</span>
-2051 plot(T1rtd,inv2D.T1vec,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,gui.axes24);
-2052 amp = <a href="#_sub22" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(inv2D.T1vec,T1rtd,inv2D.T1tlgm);
-2053 plot([0 amp],[inv2D.T1tlgm inv2D.T1tlgm],<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-2054     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,gui.axes24);
-2055 plot(amp,inv2D.T1tlgm,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="keyword">...</span>
-2056     <span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>,<span class="string">'Parent'</span>,gui.axes24);
-2057 set(gui.axes24,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 ymax]);
-2058 set(gui.axes24,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YTickLabel'</span>,<span class="string">''</span>);
-2059 <span class="keyword">if</span> T1_irange(1)&gt;inv2D.T1vec(1)
-2060     xlims = get(gui.axes24,<span class="string">'XLim'</span>);
-2061     <span class="comment">% draw a transparent patch</span>
-2062     v = [xlims(1) inv2D.T1vec(1); xlims(2) inv2D.T1vec(1);
-2063         xlims(2) T1_irange(1); xlims(1) T1_irange(1)];
-2064     f = [1 2 3 4 1];
-2065     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
-2066         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes24);
-2067     v2 = [inv2D.T2vec(1) inv2D.T1vec(1) z_max+1; inv2D.T2vec(end) inv2D.T1vec(1) z_max+1;
-2068         inv2D.T2vec(end) T1_irange(1) z_max+1; inv2D.T2vec(1) T1_irange(1) z_max+1];
-2069     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
-2070         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
-2071 <span class="keyword">end</span>
-2072 <span class="keyword">if</span> T1_irange(2)&lt;inv2D.T1vec(end)
-2073     xlims = get(gui.axes24,<span class="string">'XLim'</span>);
-2074     <span class="comment">% draw a transparent patch</span>
-2075     v = [xlims(1) inv2D.T1vec(end); xlims(2) inv2D.T1vec(end);
-2076         xlims(2) T1_irange(2); xlims(1) T1_irange(2)];
-2077     f = [1 2 3 4 1];
-2078     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
-2079         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes24);
-2080     v2 = [inv2D.T2vec(1) inv2D.T1vec(end) z_max+1; inv2D.T2vec(end) inv2D.T1vec(end) z_max+1;
-2081         inv2D.T2vec(end) T1_irange(2) z_max+1; inv2D.T2vec(1) T1_irange(2) z_max+1];
-2082     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
-2083         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
-2084 <span class="keyword">end</span>
-2085 
-2086 <span class="comment">% T2 RTD</span>
-2087 plot(inv2D.T2vec,T2rtd,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'RTD'</span>,<span class="string">'Parent'</span>,gui.axes21);
-2088 amp = <a href="#_sub22" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(inv2D.T2vec,T2rtd,inv2D.T2tlgm);
-2089 plot([inv2D.T2tlgm inv2D.T2tlgm],[0 amp],<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-2090     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,gui.axes21);
-2091 plot(inv2D.T2tlgm,amp,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="keyword">...</span>
-2092     <span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>,<span class="string">'Parent'</span>,gui.axes21);
-2093 set(gui.axes21,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 ymax]);
-2094 set(gui.axes21,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
-2095 <span class="keyword">if</span> T2_irange(1)&gt;inv2D.T2vec(1)
-2096     ylims = get(gui.axes21,<span class="string">'YLim'</span>);
-2097     <span class="comment">% draw a transparent patch</span>
-2098     v = [inv2D.T2vec(1) ylims(1);inv2D.T2vec(1) ylims(2);
-2099         T2_irange(1) ylims(2);T2_irange(1) ylims(1)];
-2100     f = [1 2 3 4 1];
-2101     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
-2102         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes21);
-2103     v2 = [inv2D.T2vec(1) inv2D.T1vec(1) z_max+1; inv2D.T2vec(1) inv2D.T1vec(end) z_max+1;
-2104         T2_irange(1) inv2D.T1vec(end) z_max+1; T2_irange(1) inv2D.T1vec(1) z_max+1];
-2105     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
-2106         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
-2107 <span class="keyword">end</span>
-2108 <span class="keyword">if</span> T2_irange(2)&lt;inv2D.T2vec(end)
-2109     ylims = get(gui.axes21,<span class="string">'YLim'</span>);
-2110     <span class="comment">% draw a transparent patch</span>
-2111     v = [inv2D.T2vec(end) ylims(1);inv2D.T2vec(end) ylims(2);
-2112         T2_irange(2) ylims(2);T2_irange(2) ylims(1)];
-2113     f = [1 2 3 4 1];
-2114     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
-2115         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes21);
-2116     v2 = [inv2D.T2vec(end) inv2D.T1vec(1) z_max+1; inv2D.T2vec(end) inv2D.T1vec(end) z_max+1;
-2117         T2_irange(2) inv2D.T1vec(end) z_max+1; T2_irange(2) inv2D.T1vec(1) z_max+1];
-2118     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
-2119         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
-2120 <span class="keyword">end</span>
-2121 
-2122 <span class="comment">% tab 1 - model response</span>
-2123 data_inv = inv2D.data;
-2124 E_fit_surf = zeros(numel(data_inv),numel(inv2D.data(1).t));
-2125 Residual_surf = E_fit_surf;
-2126 <span class="keyword">for</span> nn = 1:numel(data_inv)
-2127     E_fit_surf(nn,:) = data_inv(nn).s_fit;
-2128     Residual_surf(nn,:) = data_inv(nn).residual;
-2129 <span class="keyword">end</span>
-2130 [tx,ty] = meshgrid(t2,T1T2map.t_recov);
-2131 <span class="comment">% data</span>
-2132 imagescnan(tx,ty,E_fit_surf,<span class="string">'Parent'</span>,gui.axes13);
-2133 view(gui.axes13,[0 90]);
-2134 set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-2135 set(gui.axes13,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-2136 set(get(gui.axes13,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-2137 set(get(gui.axes13,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2138 set(get(gui.axes13,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'data pred'</span>,<span class="string">'Color'</span>,gui.myui.colors.axisFG);
-2139 set(gui.axes13,<span class="string">'CLim'</span>,get(gui.axes11,<span class="string">'CLim'</span>));
-2140 set(gui.axes13,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
-2141 cb = colorbar(gui.axes13);
-2142 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-2143 <span class="comment">% residual</span>
-2144 <span class="keyword">if</span> sum(T1T2map.ecube) == 0
-2145     <span class="comment">% data without noise (probably from modelling)</span>
-2146     resW = Residual_surf;
-2147 <span class="keyword">else</span>
-2148     resW = Residual_surf./T1T2map.ecube;
-2149 <span class="keyword">end</span>
-2150 chi2 = sqrt(sum(sum(resW.^2)))/sqrt(numel(resW));
-2151 imagescnan(tx,ty,resW,<span class="string">'Parent'</span>,gui.axes14);
-2152 view(gui.axes14,[0 90]);
-2153 set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-2154 set(gui.axes14,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-2155 set(get(gui.axes14,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-2156 set(get(gui.axes14,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2157 set(get(gui.axes14,<span class="string">'Title'</span>),<span class="string">'String'</span>,{<span class="string">'noise weighted residual'</span>,[<span class="string">'(RMS='</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.error_global.rms),<span class="keyword">...</span>
-2158     <span class="string">' | X^2='</span>,sprintf(<span class="string">'%3.2f'</span>,chi2),<span class="string">')'</span>]},<span class="string">'Color'</span>,gui.myui.colors.axisFG);
-2159 <span class="keyword">if</span> sum(T1T2map.ecube) == 0
-2160      set(gui.axes14,<span class="string">'CLim'</span>,[mean(resW(:))-3*std(resW(:)) mean(resW(:))+3*std(resW(:))]);
-2161 <span class="keyword">else</span>
-2162     set(gui.axes14,<span class="string">'CLim'</span>,get(gui.axes12,<span class="string">'CLim'</span>));
-2163 <span class="keyword">end</span>
-2164 set(gui.axes14,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
-2165 colormap(gui.axes14,gui.myui.cmap_rwb);
-2166 cb = colorbar(gui.axes14);
-2167 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-2168 
-2169 <span class="comment">% prepare the data for the combined T1 curve</span>
-2170 E_inv = zeros(size(T1T2map.t_recov));
-2171 <span class="keyword">for</span> nn = 1:numel(data_inv)
-2172     E_inv(nn) = data_inv(nn).s_fit(1);
-2173     <span class="comment">% E_inv(nn,2) = std(T1T2map.data(nn).s);</span>
-2174     <span class="comment">% plot individual T2 signals and fits</span>
-2175     plot3(inv2D.data(nn).t,inv2D.data(nn).T1*ones(size(inv2D.data(nn).s)),<span class="keyword">...</span>
-2176         inv2D.data(nn).s,<span class="string">'Color'</span>,col.RE,<span class="string">'DisplayName'</span>,<span class="string">'T2 signals'</span>,<span class="keyword">...</span>
-2177         <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,gui.axes32);
-2178     plot3(data_inv(nn).t,data_inv(nn).T1*ones(size(data_inv(nn).s_fit)),data_inv(nn).s_fit,<span class="keyword">...</span>
-2179         <span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'fits'</span>,<span class="string">'Parent'</span>,gui.axes32);
+1965 <span class="comment">% extent matrices for plotting</span>
+1966 dd1 = [dd(1,:);dd];
+1967 dd1 = [dd1(:,1) dd1];
+1968 mm1 = [mm(1,:);mm];
+1969 mm1 = [mm1(:,1) mm1];
+1970 <span class="comment">% imagescnan(tmp_norm.LL1,tmp_norm.LL2,ss','Parent',gui.axes13);</span>
+1971 imagescnan(LL1,LL2,dd1',<span class="string">'Parent'</span>,gui.axes13);
+1972 imagescnan(LL1,LL2,mm1',<span class="string">'Parent'</span>,gui.axes14);
+1973 colormap(gui.axes14,<span class="string">'parula'</span>);
+1974 
+1975 <span class="comment">% plot3(tmp_norm.mnormT1_2d(:),tmp_norm.mnormT2_2d(:),tmp_norm.rnorm_2d(:),...</span>
+1976 <span class="comment">%     'ko','Parent',gui.axes14);</span>
+1977 <span class="comment">% set(gui.axes14,'XScale','log','YScale','log');</span>
+1978 
+1979 set(get(gui.axes13,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'data norm'</span>);
+1980 set(get(gui.axes13,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T1'</span>);
+1981 set(get(gui.axes13,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T2'</span>);
+1982 set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+1983 set(gui.axes13,<span class="string">'XLim'</span>,[min(LL1(:)) max(LL1(:))],<span class="string">'YLim'</span>,[min(LL2(:)) max(LL2(:))]);
+1984 cb = colorbar(gui.axes13);
+1985 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+1986 
+1987 set(get(gui.axes14,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'model norm'</span>);
+1988 set(get(gui.axes14,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T1'</span>);
+1989 set(get(gui.axes14,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'\lambda T2'</span>);
+1990 set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+1991 set(gui.axes14,<span class="string">'XLim'</span>,[min(LL1(:)) max(LL1(:))],<span class="string">'YLim'</span>,[min(LL2(:)) max(LL2(:))]);
+1992 cb = colorbar(gui.axes14);
+1993 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+1994 
+1995 <span class="keyword">end</span>
+1996 
+1997 <span class="comment">%% subfunction to update all plots</span>
+1998 <a name="_sub18" href="#_subfunctions" class="code">function tv_plotResults(figh)</a>
+1999 gui = getappdata(figh,<span class="string">'gui'</span>);
+2000 data = getappdata(figh,<span class="string">'data'</span>);
+2001 T1T2map = data.results.T1T2map;
+2002 inv2D = data.results.inv2D;
+2003 col = gui.myui.colors;
+2004 
+2005 <span class="comment">% clear axes</span>
+2006 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes13);
+2007 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes14);
+2008 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes2);
+2009 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes21);
+2010 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes24);
+2011 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes31);
+2012 <a href="../../../../nucleus/functions/interface/clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes32);
+2013 hold(gui.axes13,<span class="string">'on'</span>);
+2014 hold(gui.axes14,<span class="string">'on'</span>);
+2015 hold(gui.axes2,<span class="string">'on'</span>);
+2016 hold(gui.axes21,<span class="string">'on'</span>);
+2017 hold(gui.axes24,<span class="string">'on'</span>);
+2018 hold(gui.axes31,<span class="string">'on'</span>);
+2019 hold(gui.axes32,<span class="string">'on'</span>);
+2020 
+2021 <span class="comment">% get T1/T2 info range from GUI</span>
+2022 T1_irange(1) = str2double(get(gui.edit_handles.T1min,<span class="string">'String'</span>));
+2023 T1_irange(2) = str2double(get(gui.edit_handles.T1max,<span class="string">'String'</span>));
+2024 T2_irange(1) = str2double(get(gui.edit_handles.T2min,<span class="string">'String'</span>));
+2025 T2_irange(2) = str2double(get(gui.edit_handles.T2max,<span class="string">'String'</span>));
+2026 
+2027 <span class="comment">% create masks for plotting</span>
+2028 [TX,TY] = meshgrid(data.results.inv2D.T2vec,data.results.inv2D.T1vec);
+2029 mask1 = TY &gt;= T1_irange(1) &amp; TY &lt;= T1_irange(2);
+2030 mask2 = TX &gt;= T2_irange(1) &amp; TX &lt;= T2_irange(2);
+2031 
+2032 <span class="comment">% define some axes settings</span>
+2033 log_t_ticks = logspace(-5,2,8);
+2034 t_recov_lims = [min(T1T2map.t_recov)/2 max(T1T2map.t_recov)*2];
+2035 p_alpha = 0.8;
+2036 
+2037 <span class="keyword">if</span> data.prop.useLogGates
+2038     t2 = T1T2map.t2_gate;
+2039 <span class="keyword">else</span>
+2040     t2 = T1T2map.t2;
+2041 <span class="keyword">end</span>
+2042 
+2043 z_max = max(inv2D.f_2Dmap(:));
+2044 <span class="comment">% tab 2 - 2D inversion model</span>
+2045 [X,Y] = meshgrid(inv2D.T2vec,inv2D.T1vec);
+2046 <span class="comment">% imagescnan(X,Y,inv2D.f_2Dmap,'Parent',gui.axes2);</span>
+2047 sh = surf(X,Y,inv2D.f_2Dmap,<span class="string">'Parent'</span>,gui.axes2);
+2048 sh.FaceColor = <span class="string">'flat'</span>;
+2049 sh.EdgeColor = <span class="string">'none'</span>;
+2050 plot3(inv2D.T2tlgm,inv2D.T1tlgm,z_max+1,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,gui.axes2);
+2051 plot3(inv2D.T2tmax,inv2D.T1tmax,z_max+1,<span class="string">'+'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,gui.axes2);
+2052 plot3([1e-5 100],[1e-5 100],[z_max z_max],<span class="keyword">...</span>
+2053     <span class="string">'--'</span>,<span class="string">'Color'</span>,<span class="string">'w'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,gui.axes2);
+2054 view(gui.axes2,[0 90]);
+2055 set(gui.axes2,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks,<span class="keyword">...</span>
+2056     <span class="string">'XLim'</span>,[min(inv2D.T2vec) max(inv2D.T2vec)]);
+2057 set(gui.axes2,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks,<span class="keyword">...</span>
+2058     <span class="string">'YLim'</span>,[min(inv2D.T1vec) max(inv2D.T1vec)],<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+2059 set(get(gui.axes2,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'relaxation time T2 [s]'</span>);
+2060 set(get(gui.axes2,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'relaxation time T1 [s]'</span>);
+2061 set(gui.axes2,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
+2062 <span class="comment">% colorbar</span>
+2063 <span class="keyword">switch</span> get(gui.popup_handles.cbarpos,<span class="string">'Value'</span>)
+2064     <span class="keyword">case</span> 1
+2065         colorbar(gui.axes2,<span class="string">'Location'</span>,<span class="string">'East'</span>,<span class="string">'Color'</span>,<span class="string">'w'</span>);
+2066     <span class="keyword">case</span> 2
+2067         colorbar(gui.axes2,<span class="string">'Location'</span>,<span class="string">'EastOutSide'</span>,<span class="string">'Color'</span>,<span class="string">'k'</span>);
+2068     <span class="keyword">otherwise</span>
+2069         <span class="comment">% none</span>
+2070 <span class="keyword">end</span>
+2071 
+2072 <span class="comment">% sum along each dimension to get both RTDs</span>
+2073 mapcol = parula;
+2074 Tmap = inv2D.f_2Dmap;
+2075 Tmap(~mask1) = 0;
+2076 Tmap(~mask2) = 0;
+2077 T1rtd = sum(Tmap,2);
+2078 T2rtd = sum(Tmap,1);
+2079 <span class="comment">% find common maximum for y-axis setting</span>
+2080 ymax = max([max(T1rtd) max(T2rtd)])*1.1;
+2081 <span class="comment">% T1 RTD</span>
+2082 plot(T1rtd,inv2D.T1vec,<span class="string">'Color'</span>,col.FIT,<span class="string">'Parent'</span>,gui.axes24);
+2083 amp = <a href="#_sub22" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(inv2D.T1vec,T1rtd,inv2D.T1tlgm);
+2084 plot([0 amp],[inv2D.T1tlgm inv2D.T1tlgm],<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+2085     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,gui.axes24);
+2086 plot(amp,inv2D.T1tlgm,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="keyword">...</span>
+2087     <span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>,<span class="string">'Parent'</span>,gui.axes24);
+2088 set(gui.axes24,<span class="string">'XScale'</span>,<span class="string">'lin'</span>,<span class="string">'XLim'</span>,[0 ymax]);
+2089 set(gui.axes24,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YTickLabel'</span>,<span class="string">''</span>);
+2090 <span class="keyword">if</span> T1_irange(1)&gt;inv2D.T1vec(1)
+2091     xlims = get(gui.axes24,<span class="string">'XLim'</span>);
+2092     <span class="comment">% draw a transparent patch</span>
+2093     v = [xlims(1) inv2D.T1vec(1); xlims(2) inv2D.T1vec(1);
+2094         xlims(2) T1_irange(1); xlims(1) T1_irange(1)];
+2095     f = [1 2 3 4 1];
+2096     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+2097         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes24);
+2098     v2 = [inv2D.T2vec(1) inv2D.T1vec(1) z_max+1; inv2D.T2vec(end) inv2D.T1vec(1) z_max+1;
+2099         inv2D.T2vec(end) T1_irange(1) z_max+1; inv2D.T2vec(1) T1_irange(1) z_max+1];
+2100     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
+2101         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
+2102 <span class="keyword">end</span>
+2103 <span class="keyword">if</span> T1_irange(2)&lt;inv2D.T1vec(end)
+2104     xlims = get(gui.axes24,<span class="string">'XLim'</span>);
+2105     <span class="comment">% draw a transparent patch</span>
+2106     v = [xlims(1) inv2D.T1vec(end); xlims(2) inv2D.T1vec(end);
+2107         xlims(2) T1_irange(2); xlims(1) T1_irange(2)];
+2108     f = [1 2 3 4 1];
+2109     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+2110         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes24);
+2111     v2 = [inv2D.T2vec(1) inv2D.T1vec(end) z_max+1; inv2D.T2vec(end) inv2D.T1vec(end) z_max+1;
+2112         inv2D.T2vec(end) T1_irange(2) z_max+1; inv2D.T2vec(1) T1_irange(2) z_max+1];
+2113     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
+2114         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
+2115 <span class="keyword">end</span>
+2116 
+2117 <span class="comment">% T2 RTD</span>
+2118 plot(inv2D.T2vec,T2rtd,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'RTD'</span>,<span class="string">'Parent'</span>,gui.axes21);
+2119 amp = <a href="#_sub22" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(inv2D.T2vec,T2rtd,inv2D.T2tlgm);
+2120 plot([inv2D.T2tlgm inv2D.T2tlgm],[0 amp],<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+2121     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,gui.axes21);
+2122 plot(inv2D.T2tlgm,amp,<span class="string">'o'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'Tlgm'</span>,<span class="keyword">...</span>
+2123     <span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>,<span class="string">'Parent'</span>,gui.axes21);
+2124 set(gui.axes21,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 ymax]);
+2125 set(gui.axes21,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTickLabel'</span>,<span class="string">''</span>);
+2126 <span class="keyword">if</span> T2_irange(1)&gt;inv2D.T2vec(1)
+2127     ylims = get(gui.axes21,<span class="string">'YLim'</span>);
+2128     <span class="comment">% draw a transparent patch</span>
+2129     v = [inv2D.T2vec(1) ylims(1);inv2D.T2vec(1) ylims(2);
+2130         T2_irange(1) ylims(2);T2_irange(1) ylims(1)];
+2131     f = [1 2 3 4 1];
+2132     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+2133         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes21);
+2134     v2 = [inv2D.T2vec(1) inv2D.T1vec(1) z_max+1; inv2D.T2vec(1) inv2D.T1vec(end) z_max+1;
+2135         T2_irange(1) inv2D.T1vec(end) z_max+1; T2_irange(1) inv2D.T1vec(1) z_max+1];
+2136     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
+2137         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
+2138 <span class="keyword">end</span>
+2139 <span class="keyword">if</span> T2_irange(2)&lt;inv2D.T2vec(end)
+2140     ylims = get(gui.axes21,<span class="string">'YLim'</span>);
+2141     <span class="comment">% draw a transparent patch</span>
+2142     v = [inv2D.T2vec(end) ylims(1);inv2D.T2vec(end) ylims(2);
+2143         T2_irange(2) ylims(2);T2_irange(2) ylims(1)];
+2144     f = [1 2 3 4 1];
+2145     patch(<span class="string">'Vertices'</span>,v,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,<span class="string">'w'</span>,<span class="string">'FaceAlpha'</span>,p_alpha,<span class="keyword">...</span>
+2146         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes21);
+2147     v2 = [inv2D.T2vec(end) inv2D.T1vec(1) z_max+1; inv2D.T2vec(end) inv2D.T1vec(end) z_max+1;
+2148         T2_irange(2) inv2D.T1vec(end) z_max+1; T2_irange(2) inv2D.T1vec(1) z_max+1];
+2149     patch(<span class="string">'Vertices'</span>,v2,<span class="string">'Faces'</span>,f,<span class="string">'FaceColor'</span>,mapcol(1,:),<span class="string">'FaceAlpha'</span>,1,<span class="keyword">...</span>
+2150         <span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>, gui.axes2);
+2151 <span class="keyword">end</span>
+2152 
+2153 <span class="comment">% tab 1 - model response</span>
+2154 data_inv = inv2D.data;
+2155 E_fit_surf = zeros(numel(data_inv),numel(inv2D.data(1).t));
+2156 Residual_surf = E_fit_surf;
+2157 <span class="keyword">for</span> nn = 1:numel(data_inv)
+2158     E_fit_surf(nn,:) = data_inv(nn).s_fit;
+2159     Residual_surf(nn,:) = data_inv(nn).residual;
+2160 <span class="keyword">end</span>
+2161 [tx,ty] = meshgrid(t2,T1T2map.t_recov);
+2162 <span class="comment">% data</span>
+2163 imagescnan(tx,ty,E_fit_surf,<span class="string">'Parent'</span>,gui.axes13);
+2164 view(gui.axes13,[0 90]);
+2165 set(gui.axes13,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+2166 set(gui.axes13,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+2167 set(get(gui.axes13,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+2168 set(get(gui.axes13,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2169 set(get(gui.axes13,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'data pred'</span>,<span class="string">'Color'</span>,gui.myui.colors.axisFG);
+2170 set(gui.axes13,<span class="string">'CLim'</span>,get(gui.axes11,<span class="string">'CLim'</span>));
+2171 set(gui.axes13,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
+2172 cb = colorbar(gui.axes13);
+2173 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+2174 <span class="comment">% residual</span>
+2175 <span class="keyword">if</span> sum(T1T2map.ecube) == 0
+2176     <span class="comment">% data without noise (probably from modelling)</span>
+2177     resW = Residual_surf;
+2178 <span class="keyword">else</span>
+2179     resW = Residual_surf./T1T2map.ecube;
 2180 <span class="keyword">end</span>
-2181 view(gui.axes32,[30 20]);
-2182 set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks);
-2183 set(gui.axes32,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>,<span class="string">'YTick'</span>,log_t_ticks,<span class="string">'YLim'</span>,t_recov_lims);
-2184 set(get(gui.axes32,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-2185 set(get(gui.axes32,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2186 set(get(gui.axes32,<span class="string">'ZLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
-2187 
-2188 <span class="comment">% tab 3 - combined T1 curve and fit</span>
-2189 plot(T1T2map.t_recov,T1T2map.E_raw(:,1),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.RE,<span class="keyword">...</span>
-2190     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'T1 curve'</span>,<span class="string">'Parent'</span>,gui.axes31);
-2191 plot(T1T2map.t_recov,E_inv,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'Parent'</span>,gui.axes31);
-2192 set(gui.axes31,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,t_recov_lims);
-2193 set(gui.axes31,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
-2194 set(get(gui.axes31,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2195 set(get(gui.axes31,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'mean(E(1:x)) [a.u.]'</span>);
-2196 lgh = legend(gui.axes31,<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
-2197 set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="string">'TextColor'</span>,gui.myui.colors.axisFG);
-2198 
-2199 <span class="comment">% hold off all axes</span>
-2200 hold(gui.axes13,<span class="string">'off'</span>);
-2201 hold(gui.axes14,<span class="string">'off'</span>);
-2202 hold(gui.axes2,<span class="string">'off'</span>);
-2203 hold(gui.axes21,<span class="string">'off'</span>);
-2204 hold(gui.axes24,<span class="string">'off'</span>);
-2205 hold(gui.axes31,<span class="string">'off'</span>);
-2206 hold(gui.axes32,<span class="string">'off'</span>);
-2207 
-2208 <span class="comment">% call function to adapt the axes scaling</span>
-2209 <a href="#_sub16" class="code" title="subfunction tv_setAxesScaling(figh)">tv_setAxesScaling</a>(figh);
-2210 <span class="keyword">end</span>
-2211 
-2212 <span class="comment">%%  subfunction to plot the raw data</span>
-2213 <a name="_sub19" href="#_subfunctions" class="code">function tv_plotRawData(figh)</a>
-2214 gui = getappdata(figh,<span class="string">'gui'</span>);
-2215 data = getappdata(figh,<span class="string">'data'</span>);
-2216 T1T2map = data.results.T1T2map;
-2217 col = gui.myui.colors;
-2218 hold(gui.axes31,<span class="string">'on'</span>);
-2219 hold(gui.axes32,<span class="string">'on'</span>);
-2220 
-2221 <span class="comment">% ticks and limits</span>
-2222 log_t_ticks = logspace(-5,2,8);
-2223 t_recov_lims = [min(T1T2map.t_recov)/2 max(T1T2map.t_recov)*2];
-2224 
-2225 <span class="keyword">if</span> data.prop.useLogGates
-2226     t2 = T1T2map.t2_gate;
-2227 <span class="keyword">else</span>
-2228     t2 = T1T2map.t2;
-2229 <span class="keyword">end</span>
-2230 
-2231 <span class="comment">% plot the raw signals in the 3D axis</span>
-2232 <span class="keyword">for</span> i = 1:numel(T1T2map.t_recov)
-2233     <span class="comment">% plot the individual T2 signals into the 3D data cube</span>
-2234     plot3(t2,T1T2map.t_recov(i)*ones(size(t2)),real(T1T2map.dcube(i,:)),<span class="keyword">...</span>
-2235         <span class="string">'Color'</span>,col.RE,<span class="string">'DisplayName'</span>,<span class="string">'T2 signals'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,gui.axes32);
-2236 <span class="keyword">end</span>
-2237 
-2238 <span class="comment">% tab 1 - surface plots</span>
-2239 [tx,ty] = meshgrid(t2,T1T2map.t_recov);
-2240 <span class="comment">% signal</span>
-2241 imagescnan(tx,ty,real(T1T2map.dcube),<span class="string">'Parent'</span>,gui.axes11);
-2242 view(gui.axes11,[0 90]);
-2243 set(gui.axes11,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-2244 set(gui.axes11,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-2245 set(get(gui.axes11,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-2246 set(get(gui.axes11,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2247 set(get(gui.axes11,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'real(data obs)'</span>,<span class="string">'Color'</span>,gui.myui.colors.axisFG);
-2248 set(gui.axes11,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
-2249 cb = colorbar(gui.axes11);
-2250 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+2181 chi2 = sqrt(sum(sum(resW.^2)))/sqrt(numel(resW));
+2182 imagescnan(tx,ty,resW,<span class="string">'Parent'</span>,gui.axes14);
+2183 view(gui.axes14,[0 90]);
+2184 set(gui.axes14,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+2185 set(gui.axes14,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+2186 set(get(gui.axes14,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+2187 set(get(gui.axes14,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2188 set(get(gui.axes14,<span class="string">'Title'</span>),<span class="string">'String'</span>,{<span class="string">'noise weighted residual'</span>,[<span class="string">'(RMS='</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.error_global.rms),<span class="keyword">...</span>
+2189     <span class="string">' | X^2='</span>,sprintf(<span class="string">'%3.2f'</span>,chi2),<span class="string">')'</span>]},<span class="string">'Color'</span>,gui.myui.colors.axisFG);
+2190 <span class="keyword">if</span> sum(T1T2map.ecube) == 0
+2191      set(gui.axes14,<span class="string">'CLim'</span>,[mean(resW(:))-3*std(resW(:)) mean(resW(:))+3*std(resW(:))]);
+2192 <span class="keyword">else</span>
+2193     set(gui.axes14,<span class="string">'CLim'</span>,get(gui.axes12,<span class="string">'CLim'</span>));
+2194 <span class="keyword">end</span>
+2195 set(gui.axes14,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
+2196 colormap(gui.axes14,gui.myui.cmap_rwb);
+2197 cb = colorbar(gui.axes14);
+2198 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+2199 
+2200 <span class="comment">% prepare the data for the combined T1 curve</span>
+2201 E_inv = zeros(size(T1T2map.t_recov));
+2202 <span class="keyword">for</span> nn = 1:numel(data_inv)
+2203     E_inv(nn) = data_inv(nn).s_fit(1);
+2204     <span class="comment">% E_inv(nn,2) = std(T1T2map.data(nn).s);</span>
+2205     <span class="comment">% plot individual T2 signals and fits</span>
+2206     plot3(inv2D.data(nn).t,inv2D.data(nn).T1*ones(size(inv2D.data(nn).s)),<span class="keyword">...</span>
+2207         inv2D.data(nn).s,<span class="string">'Color'</span>,col.RE,<span class="string">'DisplayName'</span>,<span class="string">'T2 signals'</span>,<span class="keyword">...</span>
+2208         <span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,gui.axes32);
+2209     plot3(data_inv(nn).t,data_inv(nn).T1*ones(size(data_inv(nn).s_fit)),data_inv(nn).s_fit,<span class="keyword">...</span>
+2210         <span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'fits'</span>,<span class="string">'Parent'</span>,gui.axes32);
+2211 <span class="keyword">end</span>
+2212 view(gui.axes32,[30 20]);
+2213 set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks);
+2214 set(gui.axes32,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>,<span class="string">'YTick'</span>,log_t_ticks,<span class="string">'YLim'</span>,t_recov_lims);
+2215 set(get(gui.axes32,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+2216 set(get(gui.axes32,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2217 set(get(gui.axes32,<span class="string">'ZLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
+2218 
+2219 <span class="comment">% tab 3 - combined T1 curve and fit</span>
+2220 plot(T1T2map.t_recov,T1T2map.E_raw(:,1),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.RE,<span class="keyword">...</span>
+2221     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'T1 curve'</span>,<span class="string">'Parent'</span>,gui.axes31);
+2222 plot(T1T2map.t_recov,E_inv,<span class="string">'Color'</span>,col.FIT,<span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'Parent'</span>,gui.axes31);
+2223 set(gui.axes31,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,t_recov_lims);
+2224 set(gui.axes31,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
+2225 set(get(gui.axes31,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2226 set(get(gui.axes31,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'mean(E(1:x)) [a.u.]'</span>);
+2227 lgh = legend(gui.axes31,<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+2228 set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="string">'TextColor'</span>,gui.myui.colors.axisFG);
+2229 
+2230 <span class="comment">% hold off all axes</span>
+2231 hold(gui.axes13,<span class="string">'off'</span>);
+2232 hold(gui.axes14,<span class="string">'off'</span>);
+2233 hold(gui.axes2,<span class="string">'off'</span>);
+2234 hold(gui.axes21,<span class="string">'off'</span>);
+2235 hold(gui.axes24,<span class="string">'off'</span>);
+2236 hold(gui.axes31,<span class="string">'off'</span>);
+2237 hold(gui.axes32,<span class="string">'off'</span>);
+2238 
+2239 <span class="comment">% call function to adapt the axes scaling</span>
+2240 <a href="#_sub16" class="code" title="subfunction tv_setAxesScaling(figh)">tv_setAxesScaling</a>(figh);
+2241 <span class="keyword">end</span>
+2242 
+2243 <span class="comment">%%  subfunction to plot the raw data</span>
+2244 <a name="_sub19" href="#_subfunctions" class="code">function tv_plotRawData(figh)</a>
+2245 gui = getappdata(figh,<span class="string">'gui'</span>);
+2246 data = getappdata(figh,<span class="string">'data'</span>);
+2247 T1T2map = data.results.T1T2map;
+2248 col = gui.myui.colors;
+2249 hold(gui.axes31,<span class="string">'on'</span>);
+2250 hold(gui.axes32,<span class="string">'on'</span>);
 2251 
-2252 <span class="comment">% noise</span>
-2253 ErrWimag = imag(T1T2map.dcube)./T1T2map.ecube;
-2254 chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
-2255 rms = mean(T1T2map.noise);
-2256 imagescnan(tx,ty,ErrWimag,<span class="string">'Parent'</span>,gui.axes12);
-2257 maxv = max(abs(ErrWimag(:)));
-2258 view(gui.axes12,[0 90]);
-2259 <span class="comment">% limits &amp; ticks</span>
-2260 set(gui.axes12,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
-2261 set(gui.axes12,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
-2262 set(get(gui.axes12,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-2263 set(get(gui.axes12,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2264 set(get(gui.axes12,<span class="string">'Title'</span>),<span class="string">'String'</span>,{<span class="string">'noise weighted imag(data obs)'</span>,[<span class="string">'(STD='</span>,sprintf(<span class="string">'%4.3f'</span>,rms),<span class="string">' | '</span>,<span class="keyword">...</span>
-2265     <span class="string">'X^2='</span>,sprintf(<span class="string">'%3.2f'</span>,chi2),<span class="string">')'</span>]},<span class="string">'Color'</span>,gui.myui.colors.axisFG);
-2266 set(gui.axes12,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
-2267 colormap(gui.axes12,gui.myui.cmap_rwb);
-2268 <span class="keyword">if</span> isnan(maxv)
-2269     maxv = 1;
-2270 <span class="keyword">end</span>
-2271 set(gui.axes12,<span class="string">'CLim'</span>,[-maxv maxv]);
-2272 cb = colorbar(gui.axes12);
-2273 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
-2274 
-2275 <span class="comment">% tab 3 - combined T1 curve</span>
-2276 plot(T1T2map.t_recov,T1T2map.E_raw(:,1),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.RE,<span class="keyword">...</span>
-2277     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'T1 curve'</span>,<span class="string">'Parent'</span>,gui.axes31);
-2278 set(gui.axes31,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,t_recov_lims);
-2279 set(gui.axes31,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
-2280 set(get(gui.axes31,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2281 set(get(gui.axes31,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'mean(E(1:x)) [a.u.]'</span>);
-2282 lgh = legend(gui.axes31,<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
-2283 set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="string">'TextColor'</span>,gui.myui.colors.axisFG);
-2284 
-2285 <span class="comment">% tab 3  - 2D data cube</span>
-2286 view(gui.axes32,[30 20]);
-2287 set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks);
-2288 set(gui.axes32,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>,<span class="string">'YTick'</span>,log_t_ticks,<span class="string">'YLim'</span>,t_recov_lims);
-2289 set(get(gui.axes32,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
-2290 set(get(gui.axes32,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
-2291 set(get(gui.axes32,<span class="string">'ZLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
-2292 hold(gui.axes32,<span class="string">'off'</span>);
-2293 
-2294 <span class="comment">% call function to adapt the axes scaling</span>
-2295 <a href="#_sub16" class="code" title="subfunction tv_setAxesScaling(figh)">tv_setAxesScaling</a>(figh);
-2296 <span class="keyword">end</span>
-2297 
-2298 <span class="comment">%% subfunction to check the LSE</span>
-2299 <a name="_sub20" href="#_subfunctions" class="code">function tv_checkLSEparams(data)</a>
-2300 
-2301 <span class="keyword">if</span> ~contains(data.inv.regtype,<span class="string">'manual'</span>)
-2302     <span class="comment">% sN = number of T2 signals</span>
-2303     <span class="comment">% gN = number of gates/echoes</span>
-2304     [sN,gN] = size(data.results.T1T2map.dcube);
-2305     <span class="comment">% size of modelspace</span>
-2306     T1N = data.inv.T1N;
-2307     T2N = data.inv.T2N;
-2308     <span class="comment">% check</span>
-2309     <span class="keyword">if</span> sN*gN &lt; T1N*T2N
-2310         helpdlg({<span class="string">'System is underdetermined:'</span>,<span class="keyword">...</span>
-2311             <span class="string">'Increase number of gates or decrease model space.'</span>},<span class="keyword">...</span>
-2312             <span class="string">'SVD warning'</span>);
-2313     <span class="keyword">end</span>
-2314 <span class="keyword">end</span>
+2252 <span class="comment">% ticks and limits</span>
+2253 log_t_ticks = logspace(-5,2,8);
+2254 t_recov_lims = [min(T1T2map.t_recov)/2 max(T1T2map.t_recov)*2];
+2255 
+2256 <span class="keyword">if</span> data.prop.useLogGates
+2257     t2 = T1T2map.t2_gate;
+2258 <span class="keyword">else</span>
+2259     t2 = T1T2map.t2;
+2260 <span class="keyword">end</span>
+2261 
+2262 <span class="comment">% plot the raw signals in the 3D axis</span>
+2263 <span class="keyword">for</span> i = 1:numel(T1T2map.t_recov)
+2264     <span class="comment">% plot the individual T2 signals into the 3D data cube</span>
+2265     plot3(t2,T1T2map.t_recov(i)*ones(size(t2)),real(T1T2map.dcube(i,:)),<span class="keyword">...</span>
+2266         <span class="string">'Color'</span>,col.RE,<span class="string">'DisplayName'</span>,<span class="string">'T2 signals'</span>,<span class="string">'LineWidth'</span>,1,<span class="string">'Parent'</span>,gui.axes32);
+2267 <span class="keyword">end</span>
+2268 
+2269 <span class="comment">% tab 1 - surface plots</span>
+2270 [tx,ty] = meshgrid(t2,T1T2map.t_recov);
+2271 <span class="comment">% signal</span>
+2272 imagescnan(tx,ty,real(T1T2map.dcube),<span class="string">'Parent'</span>,gui.axes11);
+2273 view(gui.axes11,[0 90]);
+2274 set(gui.axes11,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+2275 set(gui.axes11,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+2276 set(get(gui.axes11,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+2277 set(get(gui.axes11,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2278 set(get(gui.axes11,<span class="string">'Title'</span>),<span class="string">'String'</span>,<span class="string">'real(data obs)'</span>,<span class="string">'Color'</span>,gui.myui.colors.axisFG);
+2279 set(gui.axes11,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
+2280 cb = colorbar(gui.axes11);
+2281 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+2282 
+2283 <span class="comment">% noise</span>
+2284 ErrWimag = imag(T1T2map.dcube)./T1T2map.ecube;
+2285 chi2 = sqrt(sum(sum(ErrWimag.^2)))/sqrt(numel(ErrWimag));
+2286 rms = mean(T1T2map.noise);
+2287 imagescnan(tx,ty,ErrWimag,<span class="string">'Parent'</span>,gui.axes12);
+2288 maxv = max(abs(ErrWimag(:)));
+2289 view(gui.axes12,[0 90]);
+2290 <span class="comment">% limits &amp; ticks</span>
+2291 set(gui.axes12,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+2292 set(gui.axes12,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>);
+2293 set(get(gui.axes12,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+2294 set(get(gui.axes12,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2295 set(get(gui.axes12,<span class="string">'Title'</span>),<span class="string">'String'</span>,{<span class="string">'noise weighted imag(data obs)'</span>,[<span class="string">'(STD='</span>,sprintf(<span class="string">'%4.3f'</span>,rms),<span class="string">' | '</span>,<span class="keyword">...</span>
+2296     <span class="string">'X^2='</span>,sprintf(<span class="string">'%3.2f'</span>,chi2),<span class="string">')'</span>]},<span class="string">'Color'</span>,gui.myui.colors.axisFG);
+2297 set(gui.axes12,<span class="string">'Layer'</span>,<span class="string">'top'</span>,<span class="string">'XGrid'</span>,<span class="string">'off'</span>,<span class="string">'YGrid'</span>,<span class="string">'off'</span>);
+2298 colormap(gui.axes12,gui.myui.cmap_rwb);
+2299 <span class="keyword">if</span> isnan(maxv)
+2300     maxv = 1;
+2301 <span class="keyword">end</span>
+2302 set(gui.axes12,<span class="string">'CLim'</span>,[-maxv maxv]);
+2303 cb = colorbar(gui.axes12);
+2304 set(cb,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+2305 
+2306 <span class="comment">% tab 3 - combined T1 curve</span>
+2307 plot(T1T2map.t_recov,T1T2map.E_raw(:,1),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.RE,<span class="keyword">...</span>
+2308     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'T1 curve'</span>,<span class="string">'Parent'</span>,gui.axes31);
+2309 set(gui.axes31,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,t_recov_lims);
+2310 set(gui.axes31,<span class="string">'YScale'</span>,<span class="string">'lin'</span>);
+2311 set(get(gui.axes31,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2312 set(get(gui.axes31,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'mean(E(1:x)) [a.u.]'</span>);
+2313 lgh = legend(gui.axes31,<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>);
+2314 set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="string">'TextColor'</span>,gui.myui.colors.axisFG);
 2315 
-2316 <span class="keyword">end</span>
-2317 
-2318 <span class="comment">%% subfunction to update all plots</span>
-2319 <a name="_sub21" href="#_subfunctions" class="code">function tv_getTLGM(figh)</a>
-2320 <span class="comment">% local GUI data</span>
-2321 gui = getappdata(figh,<span class="string">'gui'</span>);
-2322 data = getappdata(figh,<span class="string">'data'</span>);
-2323 <span class="comment">% get 2D inversion data</span>
-2324 inv2D = data.results.inv2D;
-2325 
-2326 <span class="comment">% get T1/T2 range from GUI</span>
-2327 T1range(1) = data.info.T1min;
-2328 T1range(2) = data.info.T1max;
-2329 T2range(1) = data.info.T2min;
-2330 T2range(2) = data.info.T2max;
+2316 <span class="comment">% tab 3  - 2D data cube</span>
+2317 view(gui.axes32,[30 20]);
+2318 set(gui.axes32,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XTick'</span>,log_t_ticks);
+2319 set(gui.axes32,<span class="string">'YScale'</span>,<span class="string">'log'</span>,<span class="string">'YDir'</span>,<span class="string">'normal'</span>,<span class="string">'YTick'</span>,log_t_ticks,<span class="string">'YLim'</span>,t_recov_lims);
+2320 set(get(gui.axes32,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,<span class="string">'time [s]'</span>);
+2321 set(get(gui.axes32,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'recovery time t_{rec} [s]'</span>);
+2322 set(get(gui.axes32,<span class="string">'ZLabel'</span>),<span class="string">'String'</span>,<span class="string">'amplitude [a.u.]'</span>);
+2323 hold(gui.axes32,<span class="string">'off'</span>);
+2324 
+2325 <span class="comment">% call function to adapt the axes scaling</span>
+2326 <a href="#_sub16" class="code" title="subfunction tv_setAxesScaling(figh)">tv_setAxesScaling</a>(figh);
+2327 <span class="keyword">end</span>
+2328 
+2329 <span class="comment">%% subfunction to check the LSE</span>
+2330 <a name="_sub20" href="#_subfunctions" class="code">function tv_checkLSEparams(data)</a>
 2331 
-2332 <span class="comment">% get TLGM and TMAX accounting for T1 and T2 ranges</span>
-2333 [TLGM,TMAX] = <a href="../../../../nucleus/functions/inversion/getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(inv2D.T1vec,inv2D.T2vec,inv2D.f_2Dmap,T1range,T2range);
-2334 
-2335 <span class="comment">% update results in data struct</span>
-2336 inv2D.T1tlgm = TLGM(1);
-2337 inv2D.T2tlgm = TLGM(2);
-2338 inv2D.T1tmax = TMAX(1);
-2339 inv2D.T2tmax = TMAX(2);
-2340 
-2341 <span class="comment">% update GUI data struct</span>
-2342 data.info.E0 = inv2D.E0;
-2343 data.info.T1tlgm = inv2D.T1tlgm;
-2344 data.info.T2tlgm = inv2D.T2tlgm;
-2345 data.info.T1tmax = inv2D.T1tmax;
-2346 data.info.T2tmax = inv2D.T2tmax;
-2347 
-2348 <span class="comment">% update GUI elements</span>
-2349 set(gui.edit_handles.E0,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.E0));
-2350 set(gui.edit_handles.T1tlgm,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tlgm));
-2351 set(gui.edit_handles.T2tlgm,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T2tlgm));
-2352 set(gui.edit_handles.Tlgm_ratio,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tlgm/inv2D.T2tlgm));
-2353 set(gui.edit_handles.T1tmax,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tmax));
-2354 set(gui.edit_handles.T2tmax,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T2tmax));
-2355 set(gui.edit_handles.Tmax_ratio,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tmax/inv2D.T2tmax));
+2332 <span class="keyword">if</span> ~contains(data.inv.regtype,<span class="string">'manual'</span>)
+2333     <span class="comment">% sN = number of T2 signals</span>
+2334     <span class="comment">% gN = number of gates/echoes</span>
+2335     [sN,gN] = size(data.results.T1T2map.dcube);
+2336     <span class="comment">% size of modelspace</span>
+2337     T1N = data.inv.T1N;
+2338     T2N = data.inv.T2N;
+2339     <span class="comment">% check</span>
+2340     <span class="keyword">if</span> sN*gN &lt; T1N*T2N
+2341         helpdlg({<span class="string">'System is underdetermined:'</span>,<span class="keyword">...</span>
+2342             <span class="string">'Increase number of gates or decrease model space.'</span>},<span class="keyword">...</span>
+2343             <span class="string">'SVD warning'</span>);
+2344     <span class="keyword">end</span>
+2345 <span class="keyword">end</span>
+2346 
+2347 <span class="keyword">end</span>
+2348 
+2349 <span class="comment">%% subfunction to update all plots</span>
+2350 <a name="_sub21" href="#_subfunctions" class="code">function tv_getTLGM(figh)</a>
+2351 <span class="comment">% local GUI data</span>
+2352 gui = getappdata(figh,<span class="string">'gui'</span>);
+2353 data = getappdata(figh,<span class="string">'data'</span>);
+2354 <span class="comment">% get 2D inversion data</span>
+2355 inv2D = data.results.inv2D;
 2356 
-2357 <span class="comment">% update data</span>
-2358 data.results.inv2D = inv2D;
-2359 setappdata(figh,<span class="string">'data'</span>,data);
-2360 <span class="keyword">end</span>
-2361 
-2362 <span class="comment">%% subfunction to find RTD amplitude</span>
-2363 <a name="_sub22" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
-2364 
-2365 <span class="keyword">if</span> isnan(TLGM)
-2366     amp = NaN;
-2367 <span class="keyword">else</span>
-2368     index = find(abs(t-TLGM)==min(abs(t-TLGM)));
-2369     <span class="keyword">if</span> index == 1 || index == numel(t)
-2370         amp = f(index);
-2371     <span class="keyword">else</span>
-2372         amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
-2373     <span class="keyword">end</span>
-2374 <span class="keyword">end</span>
-2375 
-2376 <span class="keyword">end</span>
-2377 
-2378 <span class="comment">%%  subfunction to prepare the raw data</span>
-2379 <a name="_sub23" href="#_subfunctions" class="code">function tv_prepareRawData(figh)</a>
-2380 data = getappdata(figh,<span class="string">'data'</span>);
-2381 T1T2map = data.results.T1T2map;
-2382 
-2383 <span class="comment">% select first and last T1 recov times</span>
-2384 firstT1 = data.prop.firstT1;
-2385 lastT1 = data.prop.lastT1;
-2386 T1T2map.t_recov = T1T2map.import{end}.time(firstT1:lastT1);
-2387 id_recov = firstT1:lastT1;
-2388 
-2389 <span class="comment">% select first and last T2 echo</span>
-2390 firstN = data.prop.firstT2;
-2391 lastN = data.prop.lastT2;
-2392 T1T2map.t2 = T1T2map.import{1}.time(firstN:lastN);
-2393 
-2394 <span class="comment">% prepare the raw data</span>
-2395 <span class="keyword">if</span> ~data.prop.useLogGates
-2396     T1T2map.dcube = zeros(numel(T1T2map.t_recov),lastN-firstN+1);
-2397     T1T2map.ecube = zeros(numel(T1T2map.t_recov),lastN-firstN+1);
-2398 <span class="keyword">end</span>
-2399 
-2400 <span class="keyword">for</span> i = 1:numel(T1T2map.t_recov)
-2401     id = id_recov(i);
-2402     <span class="keyword">if</span> data.prop.useLogGates
-2403         t_tmp = T1T2map.t2;
-2404         s_tmp = real(T1T2map.import{id}.signal(firstN:lastN));
-2405         si_tmp = imag(T1T2map.import{id}.signal(firstN:lastN));
-2406         range = floor(numel(s_tmp)/2):numel(s_tmp);
-2407         noise_tmp = std(si_tmp(range));
-2408         tmp = <a href="../../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t_tmp,s_tmp,<span class="string">'type'</span>,<span class="string">'logv2'</span>,<span class="string">'Ng'</span>,data.prop.Ngates);
-2409         tmpi = <a href="../../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t_tmp,si_tmp,<span class="string">'type'</span>,<span class="string">'logv2'</span>,<span class="string">'Ng'</span>,data.prop.Ngates);
-2410         <span class="keyword">if</span> i == 1
-2411             Ngates_tmp = size(tmp,1);
-2412             T1T2map.dcube = zeros(numel(T1T2map.t_recov),Ngates_tmp);
-2413             T1T2map.ecube = zeros(numel(T1T2map.t_recov),Ngates_tmp);
-2414             T1T2map.t2_gate = tmp(:,1);
-2415             T1T2map.t2_gateN = tmp(:,3);
-2416         <span class="keyword">end</span>
-2417         s_gate = complex(tmp(:,2),tmpi(:,2));
-2418         N = tmp(:,3);
-2419         e = noise_tmp ./ sqrt(N);
-2420 
-2421         T1T2map.dcube(i,:) = s_gate';
-2422         T1T2map.ecube(i,:) = e';
-2423         T1T2map.noise(i,1) = noise_tmp;
+2357 <span class="comment">% get T1/T2 range from GUI</span>
+2358 T1range(1) = data.info.T1min;
+2359 T1range(2) = data.info.T1max;
+2360 T2range(1) = data.info.T2min;
+2361 T2range(2) = data.info.T2max;
+2362 
+2363 <span class="comment">% get TLGM and TMAX accounting for T1 and T2 ranges</span>
+2364 [TLGM,TMAX] = <a href="../../../../nucleus/functions/inversion/getTLogMean2D.html" class="code" title="function [TLGM,TMAX] = getTLogMean2D(T1,T2,f,varargin)">getTLogMean2D</a>(inv2D.T1vec,inv2D.T2vec,inv2D.f_2Dmap,T1range,T2range);
+2365 
+2366 <span class="comment">% update results in data struct</span>
+2367 inv2D.T1tlgm = TLGM(1);
+2368 inv2D.T2tlgm = TLGM(2);
+2369 inv2D.T1tmax = TMAX(1);
+2370 inv2D.T2tmax = TMAX(2);
+2371 
+2372 <span class="comment">% update GUI data struct</span>
+2373 data.info.E0 = inv2D.E0;
+2374 data.info.T1tlgm = inv2D.T1tlgm;
+2375 data.info.T2tlgm = inv2D.T2tlgm;
+2376 data.info.T1tmax = inv2D.T1tmax;
+2377 data.info.T2tmax = inv2D.T2tmax;
+2378 
+2379 <span class="comment">% update GUI elements</span>
+2380 set(gui.edit_handles.E0,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.E0));
+2381 set(gui.edit_handles.T1tlgm,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tlgm));
+2382 set(gui.edit_handles.T2tlgm,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T2tlgm));
+2383 set(gui.edit_handles.Tlgm_ratio,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tlgm/inv2D.T2tlgm));
+2384 set(gui.edit_handles.T1tmax,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tmax));
+2385 set(gui.edit_handles.T2tmax,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T2tmax));
+2386 set(gui.edit_handles.Tmax_ratio,<span class="string">'String'</span>,sprintf(<span class="string">'%4.3f'</span>,inv2D.T1tmax/inv2D.T2tmax));
+2387 
+2388 <span class="comment">% update data</span>
+2389 data.results.inv2D = inv2D;
+2390 setappdata(figh,<span class="string">'data'</span>,data);
+2391 <span class="keyword">end</span>
+2392 
+2393 <span class="comment">%% subfunction to find RTD amplitude</span>
+2394 <a name="_sub22" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
+2395 
+2396 <span class="keyword">if</span> isnan(TLGM)
+2397     amp = NaN;
+2398 <span class="keyword">else</span>
+2399     index = find(abs(t-TLGM)==min(abs(t-TLGM)));
+2400     <span class="keyword">if</span> index == 1 || index == numel(t)
+2401         amp = f(index);
+2402     <span class="keyword">else</span>
+2403         amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
+2404     <span class="keyword">end</span>
+2405 <span class="keyword">end</span>
+2406 
+2407 <span class="keyword">end</span>
+2408 
+2409 <span class="comment">%%  subfunction to prepare the raw data</span>
+2410 <a name="_sub23" href="#_subfunctions" class="code">function tv_prepareRawData(figh)</a>
+2411 data = getappdata(figh,<span class="string">'data'</span>);
+2412 T1T2map = data.results.T1T2map;
+2413 
+2414 <span class="comment">% select first and last T1 recov times</span>
+2415 firstT1 = data.prop.firstT1;
+2416 lastT1 = data.prop.lastT1;
+2417 T1T2map.t_recov = T1T2map.import{end}.time(firstT1:lastT1);
+2418 id_recov = firstT1:lastT1;
+2419 
+2420 <span class="comment">% select first and last T2 echo</span>
+2421 firstN = data.prop.firstT2;
+2422 lastN = data.prop.lastT2;
+2423 T1T2map.t2 = T1T2map.import{1}.time(firstN:lastN);
 2424 
-2425     <span class="keyword">else</span>
-2426         T1T2map.dcube(i,:) = complex(real(T1T2map.import{id}.signal(firstN:lastN)),<span class="keyword">...</span>
-2427             imag(T1T2map.import{id}.signal(firstN:lastN)));
-2428         T1T2map.ecube(i,:) = std(imag(T1T2map.import{id}.signal(firstN:lastN))) .*<span class="keyword">...</span>
-2429             ones(size(imag(T1T2map.import{id}.signal(firstN:lastN))));
-2430         T1T2map.noise(i,1) = std(imag(T1T2map.dcube(i,:)));
-2431     <span class="keyword">end</span>
-2432 <span class="keyword">end</span>
-2433 <span class="comment">%data.prop.Ngates = sNgates_tmp;</span>
-2434 
-2435 <span class="comment">% get merged T1 curve</span>
-2436 T1T2map.E_raw = T1T2map.import{end}.signal(firstT1:lastT1);
-2437 
-2438 <span class="comment">% update the data</span>
-2439 data.results.T1T2map = T1T2map;
-2440 <span class="comment">% update GUI data</span>
-2441 setappdata(figh,<span class="string">'data'</span>,data);
-2442 <span class="keyword">end</span>
-2443 
-2444 <span class="comment">%% estimate IR type</span>
-2445 <a name="_sub24" href="#_subfunctions" class="code">function tv_estimateIRtype(figh)</a>
-2446 data = getappdata(figh,<span class="string">'data'</span>);
-2447 gui = getappdata(figh,<span class="string">'gui'</span>);
-2448 T1T2map = data.results.T1T2map;
-2449 
-2450 <span class="comment">% the T1 curve</span>
-2451 E = T1T2map.E_raw;
-2452 
-2453 <span class="keyword">if</span> E(1) &gt; 0
-2454     <span class="comment">% possibly SR</span>
-2455     data.inv.IRtype = 1;
-2456     data.inv.T1IRfac = 1;
-2457     set(gui.popup_handles.T1type,<span class="string">'Value'</span>,1);
-2458     set(gui.popup_handles.IRtype,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
-2459 <span class="keyword">else</span>
-2460     <span class="keyword">if</span> E(end) &lt; abs(E(1))*0.5
-2461         <span class="comment">% possibly IR with kernel type 2 =&gt; -exp(t/T1)</span>
-2462         data.inv.IRtype = 2;
-2463         set(gui.popup_handles.T1type,<span class="string">'Value'</span>,2);
-2464         set(gui.popup_handles.IRtype,<span class="string">'Value'</span>,2);
-2465     <span class="keyword">else</span>
-2466         <span class="comment">% possibly IR with kernel type 1 =&gt; 1-2exp(t/T1)</span>
-2467         data.inv.IRtype = 1;
-2468         data.inv.T1IRfac = 2;
-2469         set(gui.popup_handles.T1type,<span class="string">'Value'</span>,2);
-2470         set(gui.popup_handles.IRtype,<span class="string">'Value'</span>,1);
-2471     <span class="keyword">end</span>
-2472 <span class="keyword">end</span>
-2473 
-2474 <span class="comment">% update GUI data</span>
-2475 setappdata(figh,<span class="string">'data'</span>,data);
-2476 setappdata(figh,<span class="string">'gui'</span>,gui);
-2477 <span class="keyword">end</span>
-2478 
-2479 <span class="comment">%% adjust the data tip on the 2D axes</span>
-2480 <a name="_sub25" href="#_subfunctions" class="code">function txt = localDcmFcn(~,event,ax)</a>
-2481 
-2482 <span class="keyword">if</span> strcmp(get(ax,<span class="string">'Tag'</span>),<span class="string">'2D'</span>)
-2483     <span class="comment">% find indices to closest x and y data values. This requires the</span>
-2484     <span class="comment">% number of values in XData and YData to agree with CData size.</span>
-2485     [~, xidx] = min(abs(event.Target.XData - event.Position(1)),[],2);
-2486     [~, yidx] = min(abs(event.Target.YData - event.Position(2)),[],1);
-2487     colorbarValue = event.Target.CData(yidx(1), xidx(1));
-2488     <span class="comment">% colormapIdx = round((colorbarValue - ax.CLim(1))/(ax.CLim(2)-ax.CLim(1)) * (size(ax.Colormap,1)-1) +1);</span>
-2489     txt = sprintf(<span class="string">'[T2,T1]: [%.2g, %.2g]\nValue: %.2g'</span>, <span class="keyword">...</span>
-2490         event.Position(1:2), colorbarValue);
-2491 <span class="keyword">end</span>
-2492 
-2493 <span class="keyword">end</span>
-2494 
-2495 <span class="comment">%% close function</span>
-2496 <a name="_sub26" href="#_subfunctions" class="code">function tv_closeme(src,~)</a>
-2497 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
-2498 <span class="comment">% try to close the sub GUI in a clean manner</span>
-2499 <span class="keyword">try</span>
-2500     <span class="comment">% NOTE: maybe needed at some later point</span>
-2501     <span class="comment">%     gui = getappdata(figh,'gui');</span>
-2502     <span class="comment">%     data = getappdata(gui.figh_nucleus,'data');</span>
-2503     <span class="comment">%     % update NUCLEUSinv</span>
-2504     <span class="comment">%     setappdata(gui.figh_nucleus,'data',data);</span>
-2505     delete(figh);
-2506 <span class="keyword">catch</span>
-2507     <span class="comment">% if this is not working: just close it</span>
-2508     delete(figh);
-2509 <span class="keyword">end</span>
-2510 
-2511 <span class="keyword">end</span>
+2425 <span class="comment">% prepare the raw data</span>
+2426 <span class="keyword">if</span> ~data.prop.useLogGates
+2427     T1T2map.dcube = zeros(numel(T1T2map.t_recov),lastN-firstN+1);
+2428     T1T2map.ecube = zeros(numel(T1T2map.t_recov),lastN-firstN+1);
+2429 <span class="keyword">end</span>
+2430 
+2431 <span class="keyword">for</span> i = 1:numel(T1T2map.t_recov)
+2432     id = id_recov(i);
+2433     <span class="keyword">if</span> data.prop.useLogGates
+2434         t_tmp = T1T2map.t2;
+2435         s_tmp = real(T1T2map.import{id}.signal(firstN:lastN));
+2436         si_tmp = imag(T1T2map.import{id}.signal(firstN:lastN));
+2437         range = floor(numel(s_tmp)/2):numel(s_tmp);
+2438         noise_tmp = std(si_tmp(range));
+2439         tmp = <a href="../../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t_tmp,s_tmp,<span class="string">'type'</span>,<span class="string">'logv2'</span>,<span class="string">'Ng'</span>,data.prop.Ngates);
+2440         tmpi = <a href="../../../../nucleus/functions/inversion/applyGatesToSignal.html" class="code" title="function data = applyGatesToSignal(time,signal,varargin)">applyGatesToSignal</a>(t_tmp,si_tmp,<span class="string">'type'</span>,<span class="string">'logv2'</span>,<span class="string">'Ng'</span>,data.prop.Ngates);
+2441         <span class="keyword">if</span> i == 1
+2442             Ngates_tmp = size(tmp,1);
+2443             T1T2map.dcube = zeros(numel(T1T2map.t_recov),Ngates_tmp);
+2444             T1T2map.ecube = zeros(numel(T1T2map.t_recov),Ngates_tmp);
+2445             T1T2map.t2_gate = tmp(:,1);
+2446             T1T2map.t2_gateN = tmp(:,3);
+2447         <span class="keyword">end</span>
+2448         s_gate = complex(tmp(:,2),tmpi(:,2));
+2449         N = tmp(:,3);
+2450         e = noise_tmp ./ sqrt(N);
+2451 
+2452         T1T2map.dcube(i,:) = s_gate';
+2453         T1T2map.ecube(i,:) = e';
+2454         T1T2map.noise(i,1) = noise_tmp;
+2455 
+2456     <span class="keyword">else</span>
+2457         T1T2map.dcube(i,:) = complex(real(T1T2map.import{id}.signal(firstN:lastN)),<span class="keyword">...</span>
+2458             imag(T1T2map.import{id}.signal(firstN:lastN)));
+2459         T1T2map.ecube(i,:) = std(imag(T1T2map.import{id}.signal(firstN:lastN))) .*<span class="keyword">...</span>
+2460             ones(size(imag(T1T2map.import{id}.signal(firstN:lastN))));
+2461         T1T2map.noise(i,1) = std(imag(T1T2map.dcube(i,:)));
+2462     <span class="keyword">end</span>
+2463 <span class="keyword">end</span>
+2464 <span class="comment">%data.prop.Ngates = sNgates_tmp;</span>
+2465 
+2466 <span class="comment">% get merged T1 curve</span>
+2467 T1T2map.E_raw = T1T2map.import{end}.signal(firstT1:lastT1);
+2468 
+2469 <span class="comment">% update the data</span>
+2470 data.results.T1T2map = T1T2map;
+2471 <span class="comment">% update GUI data</span>
+2472 setappdata(figh,<span class="string">'data'</span>,data);
+2473 <span class="keyword">end</span>
+2474 
+2475 <span class="comment">%% estimate IR type</span>
+2476 <a name="_sub24" href="#_subfunctions" class="code">function tv_estimateIRtype(figh)</a>
+2477 data = getappdata(figh,<span class="string">'data'</span>);
+2478 gui = getappdata(figh,<span class="string">'gui'</span>);
+2479 T1T2map = data.results.T1T2map;
+2480 
+2481 <span class="comment">% the T1 curve</span>
+2482 E = T1T2map.E_raw;
+2483 
+2484 <span class="keyword">if</span> E(1) &gt; 0
+2485     <span class="comment">% possibly SR</span>
+2486     data.inv.IRtype = 1;
+2487     data.inv.T1IRfac = 1;
+2488     set(gui.popup_handles.T1type,<span class="string">'Value'</span>,1);
+2489     set(gui.popup_handles.IRtype,<span class="string">'Enable'</span>,<span class="string">'off'</span>);
+2490 <span class="keyword">else</span>
+2491     <span class="keyword">if</span> E(end) &lt; abs(E(1))*0.5
+2492         <span class="comment">% possibly IR with kernel type 2 =&gt; -exp(t/T1)</span>
+2493         data.inv.IRtype = 2;
+2494         set(gui.popup_handles.T1type,<span class="string">'Value'</span>,2);
+2495         set(gui.popup_handles.IRtype,<span class="string">'Value'</span>,2);
+2496     <span class="keyword">else</span>
+2497         <span class="comment">% possibly IR with kernel type 1 =&gt; 1-2exp(t/T1)</span>
+2498         data.inv.IRtype = 1;
+2499         data.inv.T1IRfac = 2;
+2500         set(gui.popup_handles.T1type,<span class="string">'Value'</span>,2);
+2501         set(gui.popup_handles.IRtype,<span class="string">'Value'</span>,1);
+2502     <span class="keyword">end</span>
+2503 <span class="keyword">end</span>
+2504 
+2505 <span class="comment">% update GUI data</span>
+2506 setappdata(figh,<span class="string">'data'</span>,data);
+2507 setappdata(figh,<span class="string">'gui'</span>,gui);
+2508 <span class="keyword">end</span>
+2509 
+2510 <span class="comment">%% adjust the data tip on the 2D axes</span>
+2511 <a name="_sub25" href="#_subfunctions" class="code">function txt = localDcmFcn(~,event,ax)</a>
 2512 
-2513 <span class="comment">%------------- END OF CODE --------------</span>
-2514 
-2515 <span class="comment">%% License:</span>
-2516 <span class="comment">% MIT License</span>
-2517 <span class="comment">%</span>
-2518 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
-2519 <span class="comment">%</span>
-2520 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-2521 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-2522 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-2523 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-2524 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-2525 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-2526 <span class="comment">%</span>
-2527 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-2528 <span class="comment">% copies or substantial portions of the Software.</span>
-2529 <span class="comment">%</span>
-2530 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-2531 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-2532 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-2533 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-2534 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-2535 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-2536 <span class="comment">% SOFTWARE.</span></pre></div>
+2513 <span class="keyword">if</span> strcmp(get(ax,<span class="string">'Tag'</span>),<span class="string">'2D'</span>)
+2514     <span class="comment">% find indices to closest x and y data values. This requires the</span>
+2515     <span class="comment">% number of values in XData and YData to agree with CData size.</span>
+2516     [~, xidx] = min(abs(event.Target.XData - event.Position(1)),[],2);
+2517     [~, yidx] = min(abs(event.Target.YData - event.Position(2)),[],1);
+2518     colorbarValue = event.Target.CData(yidx(1), xidx(1));
+2519     <span class="comment">% colormapIdx = round((colorbarValue - ax.CLim(1))/(ax.CLim(2)-ax.CLim(1)) * (size(ax.Colormap,1)-1) +1);</span>
+2520     txt = sprintf(<span class="string">'[T2,T1]: [%.2g, %.2g]\nValue: %.2g'</span>, <span class="keyword">...</span>
+2521         event.Position(1:2), colorbarValue);
+2522 <span class="keyword">end</span>
+2523 
+2524 <span class="keyword">end</span>
+2525 
+2526 <span class="comment">%% close function</span>
+2527 <a name="_sub26" href="#_subfunctions" class="code">function tv_closeme(src,~)</a>
+2528 figh = ancestor(src,<span class="string">'figure'</span>,<span class="string">'toplevel'</span>);
+2529 <span class="comment">% try to close the sub GUI in a clean manner</span>
+2530 <span class="keyword">try</span>
+2531     <span class="comment">% NOTE: maybe needed at some later point</span>
+2532     <span class="comment">%     gui = getappdata(figh,'gui');</span>
+2533     <span class="comment">%     data = getappdata(gui.figh_nucleus,'data');</span>
+2534     <span class="comment">%     % update NUCLEUSinv</span>
+2535     <span class="comment">%     setappdata(gui.figh_nucleus,'data',data);</span>
+2536     delete(figh);
+2537 <span class="keyword">catch</span>
+2538     <span class="comment">% if this is not working: just close it</span>
+2539     delete(figh);
+2540 <span class="keyword">end</span>
+2541 
+2542 <span class="keyword">end</span>
+2543 
+2544 <span class="comment">%------------- END OF CODE --------------</span>
+2545 
+2546 <span class="comment">%% License:</span>
+2547 <span class="comment">% MIT License</span>
+2548 <span class="comment">%</span>
+2549 <span class="comment">% Copyright (c) 2024 Thomas Hiller</span>
+2550 <span class="comment">%</span>
+2551 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+2552 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+2553 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+2554 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+2555 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+2556 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+2557 <span class="comment">%</span>
+2558 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+2559 <span class="comment">% copies or substantial portions of the Software.</span>
+2560 <span class="comment">%</span>
+2561 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+2562 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+2563 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+2564 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+2565 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+2566 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+2567 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

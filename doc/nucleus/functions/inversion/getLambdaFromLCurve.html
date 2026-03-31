@@ -23,25 +23,26 @@
 <div class="box"><strong> estimates the regularization parameter lambda according</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong>function index = getLambdaFromLCurve(rho,eta,plotit) </strong></div>
+<div class="box"><strong>function [index,varargout] = getLambdaFromLCurve(rho,eta,lam,plotit) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre class="comment">getLambdaFromLCurve estimates the regularization parameter lambda according
 to the curvature of the L-curve
 
  Syntax:
-       getLambdaFromLCurve(rho,eta,plotit)
+       getLambdaFromLCurve(rho,eta,lam,plotit)
 
  Inputs:
        rho - residual norm
        eta - model norm
+       lam - lambda values
        plotit - plot switch (0 (default) or 1)
 
  Outputs:
        index - index of optimal lambda
 
  Example:
-       index = getLambdaFromLCurve(rho,eta,0)
+       index = getLambdaFromLCurve(rho,eta,lambda_range,0)
 
  Other m-files required:
        none
@@ -70,123 +71,144 @@ This function is called by:
 
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function index = getLambdaFromLCurve(rho,eta,plotit)</a>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [index,varargout] = getLambdaFromLCurve(rho,eta,lam,plotit)</a>
 0002 <span class="comment">%getLambdaFromLCurve estimates the regularization parameter lambda according</span>
 0003 <span class="comment">%to the curvature of the L-curve</span>
 0004 <span class="comment">%</span>
 0005 <span class="comment">% Syntax:</span>
-0006 <span class="comment">%       getLambdaFromLCurve(rho,eta,plotit)</span>
+0006 <span class="comment">%       getLambdaFromLCurve(rho,eta,lam,plotit)</span>
 0007 <span class="comment">%</span>
 0008 <span class="comment">% Inputs:</span>
 0009 <span class="comment">%       rho - residual norm</span>
 0010 <span class="comment">%       eta - model norm</span>
-0011 <span class="comment">%       plotit - plot switch (0 (default) or 1)</span>
-0012 <span class="comment">%</span>
-0013 <span class="comment">% Outputs:</span>
-0014 <span class="comment">%       index - index of optimal lambda</span>
-0015 <span class="comment">%</span>
-0016 <span class="comment">% Example:</span>
-0017 <span class="comment">%       index = getLambdaFromLCurve(rho,eta,0)</span>
-0018 <span class="comment">%</span>
-0019 <span class="comment">% Other m-files required:</span>
-0020 <span class="comment">%       none</span>
-0021 <span class="comment">%</span>
-0022 <span class="comment">% Subfunctions:</span>
-0023 <span class="comment">%       none</span>
-0024 <span class="comment">%</span>
-0025 <span class="comment">% MAT-files required:</span>
-0026 <span class="comment">%       none</span>
-0027 <span class="comment">%</span>
-0028 <span class="comment">% See also:</span>
-0029 <span class="comment">% Author: see AUTHORS.md</span>
-0030 <span class="comment">% email: see AUTHORS.md</span>
-0031 <span class="comment">% License: MIT License (at end)</span>
-0032 
-0033 <span class="comment">%------------- BEGIN CODE --------------</span>
-0034 
+0011 <span class="comment">%       lam - lambda values</span>
+0012 <span class="comment">%       plotit - plot switch (0 (default) or 1)</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% Outputs:</span>
+0015 <span class="comment">%       index - index of optimal lambda</span>
+0016 <span class="comment">%</span>
+0017 <span class="comment">% Example:</span>
+0018 <span class="comment">%       index = getLambdaFromLCurve(rho,eta,lambda_range,0)</span>
+0019 <span class="comment">%</span>
+0020 <span class="comment">% Other m-files required:</span>
+0021 <span class="comment">%       none</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% Subfunctions:</span>
+0024 <span class="comment">%       none</span>
+0025 <span class="comment">%</span>
+0026 <span class="comment">% MAT-files required:</span>
+0027 <span class="comment">%       none</span>
+0028 <span class="comment">%</span>
+0029 <span class="comment">% See also:</span>
+0030 <span class="comment">% Author: see AUTHORS.md</span>
+0031 <span class="comment">% email: see AUTHORS.md</span>
+0032 <span class="comment">% License: MIT License (at end)</span>
+0033 
+0034 <span class="comment">%------------- BEGIN CODE --------------</span>
 0035 
-0036 <span class="comment">%% default plot option is 0 ('off')</span>
-0037 <span class="keyword">if</span> nargin &lt; 3
-0038     plotit = 0;
-0039 <span class="keyword">end</span>
-0040 
-0041 <span class="comment">% rho and eta as column vectors</span>
-0042 rho = rho(:);
-0043 eta = eta(:);
-0044 
-0045 <span class="comment">% log of rho and eta</span>
-0046 <span class="comment">% rho = log10(rho);</span>
-0047 <span class="comment">% eta = log10(eta);</span>
-0048 
-0049 phi = zeros(numel(eta)-2,1);
-0050 curv = zeros(numel(eta)-2,1);
-0051 <span class="keyword">for</span> i = 2:numel(eta)-1
-0052    <span class="comment">% 3 Points</span>
-0053    P1 = [rho(i-1) eta(i-1)];
-0054    P2 = [rho(i) eta(i)];
-0055    P3 = [rho(i+1) eta(i+1)];
-0056    v1 = P1-P2;
-0057    v2 = P3-P2;
-0058    <span class="comment">% angle phi and curvature at point P2</span>
-0059    phi(i-1,1) = acosd((dot(v1,v2))/(norm(v1)*norm(v2)));
-0060    <span class="comment">% curvature formula 2*sin(phi)/|x-z| with phi being the angle xyz in y</span>
-0061    curv(i-1,1) = 2*sind(phi(i-1,1))/norm(P1-P3);
-0062 <span class="keyword">end</span>
-0063 <span class="comment">% extend the curvature vector to numel(rho) length</span>
-0064 curv = [0;curv;0];
-0065 <span class="comment">% find maximum curvature</span>
-0066 index = find(curv==max(curv));
-0067 
-0068 <span class="comment">% plot (optional)</span>
-0069 <span class="keyword">if</span> plotit == 1
-0070     figure;
-0071     subplot(121);
-0072     loglog(rho ,eta ,<span class="string">'o-'</span>); hold on;
-0073     loglog(rho(index),eta(index),<span class="string">'r+'</span>);
-0074     
-0075     <span class="comment">% alternative approach</span>
-0076     rr = rho - min(rho);
-0077     ee = eta - min(eta);
-0078     rr = rr./max(rr);
-0079     ee = ee./max(ee);
-0080     ss = rr+ee;
-0081     subplot(122)
-0082     plot(rr,<span class="string">'o-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'rn'</span>); hold on;
-0083     plot(ee,<span class="string">'o-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'xn'</span>);
-0084     plot(ss,<span class="string">'x-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'rn+xn'</span>);
-0085     indx = find(ss==min(ss));    
-0086     plot(indx,ss(indx),<span class="string">'kx'</span>,<span class="string">'MarkerSize'</span>,8,<span class="string">'DisplayName'</span>,<span class="string">'min(rn+xn)'</span>);
-0087     plot(index,ss(index),<span class="string">'rx'</span>,<span class="string">'MarkerSize'</span>,8,<span class="string">'DisplayName'</span>,<span class="string">'min(Lcurve)'</span>);
-0088     lh = legend;
-0089     set(lh,<span class="string">'FontSize'</span>,10);
-0090 <span class="keyword">end</span>
-0091 
-0092 <span class="keyword">return</span>
-0093 
-0094 <span class="comment">%------------- END OF CODE --------------</span>
-0095 
-0096 <span class="comment">%% License:</span>
-0097 <span class="comment">% MIT License</span>
-0098 <span class="comment">%</span>
-0099 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0100 <span class="comment">%</span>
-0101 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0102 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0103 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0104 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0105 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0106 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0107 <span class="comment">%</span>
-0108 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0109 <span class="comment">% copies or substantial portions of the Software.</span>
-0110 <span class="comment">%</span>
-0111 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0112 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0113 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0114 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0115 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0116 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0117 <span class="comment">% SOFTWARE.</span></pre></div>
+0036 
+0037 <span class="comment">%% default plot option is 0 ('off')</span>
+0038 <span class="keyword">if</span> nargin &lt; 3
+0039     plotit = 0;
+0040 <span class="keyword">end</span>
+0041 
+0042 <span class="comment">% rho and eta as column vectors</span>
+0043 rho = rho(:);
+0044 eta = eta(:);
+0045 
+0046 <span class="comment">% log of rho and eta</span>
+0047 <span class="comment">% rho = log10(rho);</span>
+0048 <span class="comment">% eta = log10(eta);</span>
+0049 
+0050 phi = zeros(numel(eta)-2,1);
+0051 curv = zeros(numel(eta)-2,1);
+0052 <span class="keyword">for</span> i = 2:numel(eta)-1
+0053    <span class="comment">% 3 Points</span>
+0054    P1 = [rho(i-1) eta(i-1)];
+0055    P2 = [rho(i) eta(i)];
+0056    P3 = [rho(i+1) eta(i+1)];
+0057    v1 = P1-P2;
+0058    v2 = P3-P2;
+0059    <span class="comment">% angle phi and curvature at point P2</span>
+0060    phi(i-1,1) = acosd((dot(v1,v2))/(norm(v1)*norm(v2)));
+0061    <span class="comment">% curvature formula 2*sin(phi)/|x-z| with phi being the angle xyz in y</span>
+0062    curv(i-1,1) = 2*sind(phi(i-1,1))/norm(P1-P3);
+0063 <span class="keyword">end</span>
+0064 <span class="comment">% extend the curvature vector to numel(rho) length</span>
+0065 curv = [0;curv;0];
+0066 <span class="comment">% find maximum curvature</span>
+0067 index = find(curv==max(curv));
+0068 
+0069 <span class="comment">% plot (optional)</span>
+0070 <span class="keyword">if</span> plotit == 1
+0071     f0 = figure; clf(f0);
+0072     ax1 = subplot(211,<span class="string">'Parent'</span>,f0);
+0073     hold(ax1,<span class="string">'on'</span>);
+0074     loglog(rho ,eta ,<span class="string">'o-'</span>,<span class="string">'Parent'</span>,ax1);
+0075     loglog(rho(index),eta(index),<span class="string">'r+'</span>,<span class="string">'MarkerSize'</span>,12,<span class="string">'Parent'</span>,ax1);
+0076     set(ax1,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'YScale'</span>,<span class="string">'log'</span>);
+0077     xlabel(<span class="string">'residual norm |Gm-d|_2'</span>);
+0078     ylabel(<span class="string">'model norm |Lm|_2'</span>);
+0079 
+0080     ax2 = subplot(212,<span class="string">'Parent'</span>,f0);
+0081     hold(ax2,<span class="string">'on'</span>);
+0082     plot(lam,curv,<span class="string">'o-'</span>,<span class="string">'Parent'</span>,ax2);
+0083     plot(lam(index),curv(index),<span class="string">'rx'</span>,<span class="string">'MarkerSize'</span>,12,<span class="string">'Parent'</span>,ax2);
+0084     set(ax2,<span class="string">'XScale'</span>,<span class="string">'log'</span>);
+0085     xlabel(<span class="string">'regularization parameter \lambda'</span>);
+0086     ylabel(<span class="string">'curvature'</span>);
+0087     
+0088     <span class="comment">% alternative approach</span>
+0089     <span class="comment">% rr = rho - min(rho);</span>
+0090     <span class="comment">% ee = eta - min(eta);</span>
+0091     <span class="comment">% rr = rr./max(rr);</span>
+0092     <span class="comment">% ee = ee./max(ee);</span>
+0093     <span class="comment">% ss = rr+ee;</span>
+0094     <span class="comment">% ax3 = subplot(313,'Parent',f0);</span>
+0095     <span class="comment">% hold(ax3,'on');</span>
+0096     <span class="comment">% plot(lam,rr,'-','DisplayName','rn','Parent',ax3);</span>
+0097     <span class="comment">% plot(lam,ee,'-','DisplayName','xn','Parent',ax3);</span>
+0098     <span class="comment">% plot(lam,ss,'-','DisplayName','rn+xn','Parent',ax3);</span>
+0099     <span class="comment">% indx = find(ss==min(ss));</span>
+0100     <span class="comment">% plot(lam(indx),ss(indx),'kx','MarkerSize',12,'DisplayName','min(rn+xn)','Parent',ax3);</span>
+0101     <span class="comment">% plot(lam(index),ss(index),'rx','MarkerSize',12,'DisplayName','min(Lcurve)','Parent',ax3);</span>
+0102     <span class="comment">% set(ax3,'XScale','log');</span>
+0103     <span class="comment">% lh = legend(ax3);</span>
+0104     <span class="comment">% set(lh,'FontSize',10);</span>
+0105 <span class="keyword">end</span>
+0106 
+0107 <span class="keyword">if</span> nargout &gt; 1
+0108     varargout{1} = rho;
+0109     varargout{2} = eta;
+0110     varargout{3} = curv;
+0111 <span class="keyword">end</span>
+0112 
+0113 <span class="keyword">return</span>
+0114 
+0115 <span class="comment">%------------- END OF CODE --------------</span>
+0116 
+0117 <span class="comment">%% License:</span>
+0118 <span class="comment">% MIT License</span>
+0119 <span class="comment">%</span>
+0120 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0121 <span class="comment">%</span>
+0122 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0123 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0124 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0125 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0126 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0127 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0128 <span class="comment">%</span>
+0129 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0130 <span class="comment">% copies or substantial portions of the Software.</span>
+0131 <span class="comment">%</span>
+0132 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0133 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0134 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0135 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0136 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0137 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0138 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

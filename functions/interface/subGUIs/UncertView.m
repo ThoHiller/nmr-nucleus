@@ -525,12 +525,12 @@ if hasUncert
         uv.colorstyle = 'none';
         % initialize RTD plot style
         uv.rtd_plotstyle = 'lines';
-        % save the initial id
-        uv.id0 = nucleus_data.results.invstd.uncert.params.id;
     else
         data = getappdata(fig_uncert,'data');
         uv = data.uv;
     end
+    % save the initial id
+    uv.id0 = nucleus_data.results.invstd.uncert.params.id;
     
     % if the figure is already open load the GUI data
     gui = getappdata(fig_uncert,'gui');

@@ -72,7 +72,7 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
             set(ax,'XScale','log','XLim',[10^(ticks(1)) nmrraw.t(end)],...
                 'XTick',10.^ticks);
         case 'x-axis -> log' % lin axes
-            set(ax,'XScale','lin','XLim',[nmrproc.echotime nmrraw.t(end)],...
+            set(ax,'XScale','lin','XLim',[0 nmrraw.t(end)],...
                 'XTickMode','auto');
     end
     logliny = get(gui.cm_handles.axes_raw_yaxis,'Label');
@@ -275,9 +275,9 @@ if isfield(data,'results') && isfield(data.results,'nmrraw') &&...
     switch loglinx
         case 'x-axis -> lin' % log axes
             ticks = floor(min(log10(nmrproc.t(nmrproc.t>0)))):1:ceil(log10(nmrproc.t(end)));
-            set(ax,'XScale','log','XLim',xlimraw,'XTick',10.^ticks);
+            set(ax,'XScale','log','XLim',[10^(ticks(1)) nmrraw.t(end)],'XTick',10.^ticks);
         case 'x-axis -> log' % lin axes
-            set(ax,'XScale','lin','XLim',xlimraw,'XTickMode','auto');
+            set(ax,'XScale','lin','XLim',[0 nmrraw.t(end)],'XTickMode','auto');
     end
     xlims = xlimraw;
     switch nmrproc.T1T2

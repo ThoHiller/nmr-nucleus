@@ -22,7 +22,7 @@ function runInversionJoint
 %       fcn_JointInvfree
 %       fcn_JointInvshape
 %       getChi2
-%       getLambdaFromRMS
+%       getLambdaFromLCurve
 %       getConstants
 %       getCornerNMRparameter
 %       getGeometryParameter
@@ -347,7 +347,7 @@ if foundINV
                             lc.RN = RN;
                             lc.XN = XN;
                             % get optimal lambda
-                            lc.index = getLambdaFromLCurve(RN,XN,0);
+                            lc.index = getLambdaFromLCurve(RN,XN,lambda_range,0);
                             data.results.lcurve = lc;
                             % update GUI data
                             setappdata(fig,'data',data);

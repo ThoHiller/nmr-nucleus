@@ -223,7 +223,8 @@ if isfield(data,'results') && isfield(data.results,'invjoint')
     
     switch data.info.PSDJflag        
         case 'freq'
-            F = (data.invstd.porosity*100).*F./sum(F);
+            % F = (data.invstd.porosity*100).*F./sum(F);
+            F = F./sum(F);
             maxF1 = max(F);
             if isfield(data.import,'NMRMOD')
                 F = F./trapz(iGEOM.radius,F);
@@ -341,6 +342,27 @@ if isfield(data,'results') && isfield(data.results,'invjoint')
             case 'I'
                 plot(p,S,'o','Color',mycol(colindi(i),:),'MarkerSize',8,'Parent',ax,...
                     'HandleVisibility','off','Tag','SatPoints');
+        end
+    end
+	% plot all other imported CPS-points
+	p_all = invjoint.p0.*data.pressure.unitfac;
+    S_all = WRCfac.*invjoint.S0;
+    SatImbDrain = cell2mat(data.pressure.table(:,4));
+    p_all(levels) = [];
+    S_all(levels) = [];
+    SatImbDrain(levels) = [];
+    if ~isempty(p_all)
+        for i = 1:numel(p_all)
+            switch SatImbDrain(i)
+                case 'D'
+                    plot(p_all(i),S_all(i),'s','Color',[0.5 0.5 0.5],...
+                        'MarkerSize',8,'Parent',ax,...
+                        'HandleVisibility','off','Tag','SatPoints');
+                case 'I'
+                    plot(p_all(i),S_all(i),'o','Color',[0.5 0.5 0.5],...
+                        'MarkerSize',8,'Parent',ax,...
+                        'HandleVisibility','off','Tag','SatPoints');
+            end
         end
     end
     
