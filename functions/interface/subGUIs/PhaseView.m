@@ -546,7 +546,7 @@ switch get(src,'Tag')
             flag = 'T1';
             param.T1IRfac = nucleus.data.import.NMR.data{N}.T1IRfac;
             param.noise = 0;
-            param.optim = 'off';
+            param.has_optim = false;
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5
@@ -721,8 +721,8 @@ data = getappdata(fig_phase,'data');
 te_start = data.echo_range(1);
 te_end = data.echo_range(2);
 % get all signals with the desired phase angles
-% SSE = data.signal_raw*exp(1i*deg2rad(data.beta_range));
-SSE = data.orig_data.signal*exp(1i*deg2rad(data.beta_range));
+SSE = data.signal_raw*exp(1i*deg2rad(data.beta_range));
+% SSE = data.orig_data.signal*exp(1i*deg2rad(data.beta_range));
 
 % get individual SSRs
 sse_r = getSSR(real(SSE(te_start:te_end,:)));

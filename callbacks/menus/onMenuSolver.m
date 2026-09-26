@@ -40,16 +40,16 @@ data = getappdata(fig,'data');
 solver = get(src,'Label');
 
 % switch solver
-if contains(solver,'LSQLIN')
-        data.info.solver = 'lsqlin';
+if contains(solver,'Optimization')
+        data.info.solver = 'optimTB';
         % menu entry
         set(gui.menu.extra_solver_lsqlin,'Checked','on');
         set(gui.menu.extra_solver_lsqnonneg,'Checked','off');
 
         set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
 
-elseif contains(solver,'LSQNONNEG')
-        data.info.solver = 'lsqnonneg';
+elseif contains(solver,'Internal')
+        data.info.solver = 'internal';
         % menu entry
         set(gui.menu.extra_solver_lsqlin,'Checked','off');
         set(gui.menu.extra_solver_lsqnonneg,'Checked','on');

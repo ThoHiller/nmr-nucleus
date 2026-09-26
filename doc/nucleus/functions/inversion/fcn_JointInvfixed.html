@@ -49,14 +49,16 @@ the full saturation NMR signal and NMR signals at partial saturation to
                    igeom       : geometry struct
                    x           : relaxation time vector
                    f           : relaxation time distribution (RTD)
+                   W           : diagonal matrix containing standard
+                                 deviations of the NMR data (optional)
 
  Outputs:
-       F - norm of the residual vector
+       F - norm of the weighted residual vector
        varargout - cell that holds several more data
-                   ig      : fitted NMR signals
-                   XX      : Kernel matrix
+                   ig      : fitted NMR signals (physical, unweighted)
+                   XX      : Kernel matrix (physical, unweighted)
                    igeom   : final geometry struct
-                   iSAT    : final pressure/saturation struct       
+                   iSAT    : final pressure/saturation struct
 
  Example:
        F = fcn_JointInvfixed(X,iparam)
@@ -68,16 +70,11 @@ the full saturation NMR signal and NMR signals at partial saturation to
        getPartialSaturationMatrix
        getSaturationFromPressureBatch
 
- Subfunctions:
-       none
-
- MAT-files required:
-       none
-
  See also:
+
  Author: see AUTHORS.md
  email: see AUTHORS.md
- License: MIT License (at end)</pre></div>
+ License: MIT License</pre></div>
 
 <!-- crossreference -->
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
@@ -116,194 +113,221 @@ This function is called by:
 0022 <span class="comment">%                   igeom       : geometry struct</span>
 0023 <span class="comment">%                   x           : relaxation time vector</span>
 0024 <span class="comment">%                   f           : relaxation time distribution (RTD)</span>
-0025 <span class="comment">%</span>
-0026 <span class="comment">% Outputs:</span>
-0027 <span class="comment">%       F - norm of the residual vector</span>
-0028 <span class="comment">%       varargout - cell that holds several more data</span>
-0029 <span class="comment">%                   ig      : fitted NMR signals</span>
-0030 <span class="comment">%                   XX      : Kernel matrix</span>
-0031 <span class="comment">%                   igeom   : final geometry struct</span>
-0032 <span class="comment">%                   iSAT    : final pressure/saturation struct</span>
-0033 <span class="comment">%</span>
-0034 <span class="comment">% Example:</span>
-0035 <span class="comment">%       F = fcn_JointInvfixed(X,iparam)</span>
-0036 <span class="comment">%</span>
-0037 <span class="comment">% Other m-files required:</span>
-0038 <span class="comment">%       getConstants</span>
-0039 <span class="comment">%       getCornerNMRparameter</span>
-0040 <span class="comment">%       getGeometryParameter</span>
-0041 <span class="comment">%       getPartialSaturationMatrix</span>
-0042 <span class="comment">%       getSaturationFromPressureBatch</span>
-0043 <span class="comment">%</span>
-0044 <span class="comment">% Subfunctions:</span>
-0045 <span class="comment">%       none</span>
-0046 <span class="comment">%</span>
-0047 <span class="comment">% MAT-files required:</span>
-0048 <span class="comment">%       none</span>
-0049 <span class="comment">%</span>
-0050 <span class="comment">% See also:</span>
-0051 <span class="comment">% Author: see AUTHORS.md</span>
-0052 <span class="comment">% email: see AUTHORS.md</span>
-0053 <span class="comment">% License: MIT License (at end)</span>
-0054 
-0055 <span class="comment">%------------- BEGIN CODE --------------</span>
-0056 
-0057 <span class="comment">%% input parameters</span>
-0058 t = iparam.t;
-0059 g = iparam.g;
-0060 indt = iparam.indt;
-0061 Tb = iparam.Tb;
-0062 Td = iparam.Td;
-0063 T1T2 = iparam.T1T2;
-0064 T1IRfac = iparam.T1IRfac;
-0065 SatImbDrain = iparam.SatImbDrain;
-0066 p = iparam.p;
-0067 igeom = iparam.igeom;
-0068 x = iparam.x;
-0069 f = iparam.f;
-0070 constants = <a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>;
-0071 
-0072 <span class="comment">%% wait-bar option</span>
-0073 wbopts.show = false;
+0025 <span class="comment">%                   W           : diagonal matrix containing standard</span>
+0026 <span class="comment">%                                 deviations of the NMR data (optional)</span>
+0027 <span class="comment">%</span>
+0028 <span class="comment">% Outputs:</span>
+0029 <span class="comment">%       F - norm of the weighted residual vector</span>
+0030 <span class="comment">%       varargout - cell that holds several more data</span>
+0031 <span class="comment">%                   ig      : fitted NMR signals (physical, unweighted)</span>
+0032 <span class="comment">%                   XX      : Kernel matrix (physical, unweighted)</span>
+0033 <span class="comment">%                   igeom   : final geometry struct</span>
+0034 <span class="comment">%                   iSAT    : final pressure/saturation struct</span>
+0035 <span class="comment">%</span>
+0036 <span class="comment">% Example:</span>
+0037 <span class="comment">%       F = fcn_JointInvfixed(X,iparam)</span>
+0038 <span class="comment">%</span>
+0039 <span class="comment">% Other m-files required:</span>
+0040 <span class="comment">%       getConstants</span>
+0041 <span class="comment">%       getCornerNMRparameter</span>
+0042 <span class="comment">%       getGeometryParameter</span>
+0043 <span class="comment">%       getPartialSaturationMatrix</span>
+0044 <span class="comment">%       getSaturationFromPressureBatch</span>
+0045 <span class="comment">%</span>
+0046 <span class="comment">% See also:</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">% Author: see AUTHORS.md</span>
+0049 <span class="comment">% email: see AUTHORS.md</span>
+0050 <span class="comment">% License: MIT License</span>
+0051 
+0052 <span class="comment">%------------- BEGIN CODE --------------</span>
+0053 
+0054 <span class="comment">%% input parameters</span>
+0055 t = iparam.t;
+0056 g = iparam.g;
+0057 indt = iparam.indt;
+0058 Tb = iparam.Tb;
+0059 Td = iparam.Td;
+0060 T1T2 = iparam.T1T2;
+0061 T1IRfac = iparam.T1IRfac;
+0062 SatImbDrain = iparam.SatImbDrain;
+0063 p = iparam.p;
+0064 igeom = iparam.igeom;
+0065 x = iparam.x;
+0066 f = iparam.f;
+0067 constants = <a href="../../../nucleus/functions/modeling/getConstants.html" class="code" title="function constants = getConstants">getConstants</a>;
+0068 
+0069 <span class="comment">% make vectors orientation consistent</span>
+0070 t = t(:);
+0071 g = g(:);
+0072 x = x(:);
+0073 f = f(:);
 0074 
-0075 <span class="comment">%% surface relaxivity as log10 value</span>
-0076 rhos = 10^X(1);
+0075 <span class="comment">%% wait-bar option</span>
+0076 wbopts.show = false;
 0077 
-0078 <span class="comment">%% switch depending on geometry</span>
-0079 <span class="keyword">switch</span> igeom.type    
-0080     <span class="keyword">case</span> <span class="string">'cyl'</span>        
-0081         <span class="comment">% new PSD with updated rhos</span>
-0082         ipsddata.r = x.*2.*rhos;
-0083         ipsddata.psd = f;
-0084         <span class="comment">% new saturation state</span>
-0085         igeom.radius = ipsddata.r';
-0086         igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
-0087         iSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(igeom,p,ipsddata,constants,wbopts);
-0088         IPS = <a href="../../../nucleus/functions/modeling/getPartialSaturationMatrix.html" class="code" title="function IPS = getPartialSaturationMatrix(SatData,indt,imbdrain)">getPartialSaturationMatrix</a>(iSAT,indt,SatImbDrain);
-0089         
-0090         <span class="comment">% get the surface-to-volume ratio</span>
-0091         SV = igeom.P0./igeom.A0;
-0092         
-0093         <span class="comment">% Kernel matrix</span>
-0094         Kf = zeros(length(t),length(SV));        
-0095         <span class="keyword">switch</span> T1T2
-0096             <span class="keyword">case</span> <span class="string">'T1'</span>
-0097                 <span class="keyword">for</span> i=1:length(SV)
-0098                     Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-0099                 <span class="keyword">end</span>
-0100             <span class="keyword">case</span> <span class="string">'T2'</span>
-0101                 <span class="keyword">for</span> i=1:length(SV)
-0102                     Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-0103                 <span class="keyword">end</span>
-0104         <span class="keyword">end</span>
-0105         
-0106         K = Kf;
-0107         <span class="comment">% Kernel matrix times saturation matrix</span>
-0108         XX = K.*IPS;
-0109         
-0110     <span class="keyword">case</span> {<span class="string">'ang'</span>,<span class="string">'poly'</span>}        
-0111         <span class="comment">% new PSD with updated rhos</span>
-0112         ipsddata.r = x.*igeom.a.*rhos;
-0113         ipsddata.psd = f;
-0114         igeom.radius = ipsddata.r';
-0115         <span class="comment">% new saturation state</span>
-0116         igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
-0117         iSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(igeom,p,ipsddata,constants,wbopts);        
-0118         IPS = <a href="../../../nucleus/functions/modeling/getPartialSaturationMatrix.html" class="code" title="function IPS = getPartialSaturationMatrix(SatData,indt,imbdrain)">getPartialSaturationMatrix</a>(iSAT,indt,SatImbDrain);
-0119         
-0120         <span class="comment">% get the amplitudes and surface-to-volume ratios for the partially</span>
-0121         <span class="comment">% saturated corners</span>
-0122         SVdata = <a href="../../../nucleus/functions/modeling/getCornerNMRparameter.html" class="code" title="function out = getCornerNMRparameter(geometry,SatData,indt,imbdrain)">getCornerNMRparameter</a>(igeom,iSAT,indt,SatImbDrain);
-0123         SVdata.TT = repmat(t',[1 length(SVdata.SVF)]);
-0124         
-0125         SV  = SVdata.SVF';
-0126         SVC = SVdata.SVC;
-0127         Amp = SVdata.Ampl;
-0128         TT  = SVdata.TT;
-0129         
-0130         <span class="comment">% Kernel matrix</span>
-0131         Kf = zeros(length(t),length(SV)); 
-0132         <span class="keyword">switch</span> T1T2
-0133             <span class="keyword">case</span> <span class="string">'T1'</span>
-0134                 <span class="keyword">for</span> i=1:length(SV)
-0135                     Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-0136                 <span class="keyword">end</span>
-0137                 <span class="comment">% Kernel matrix for partial saturation</span>
-0138                 Kc = zeros(length(t),length(SV));
-0139                 <span class="keyword">for</span> i=1:size(SVC,1)
-0140                     Kc = Kc + ( squeeze(Amp(i,:,:)) .*<span class="keyword">...</span>
-0141                         ( 1-T1IRfac.*exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) ));
+0078 <span class="comment">%% surface relaxivity as log10 value</span>
+0079 rhos = 10^X(1);
+0080 
+0081 <span class="comment">%% switch depending on geometry</span>
+0082 <span class="keyword">switch</span> igeom.type
+0083     <span class="keyword">case</span> <span class="string">'cyl'</span>
+0084         <span class="comment">% new PSD with updated rhos</span>
+0085         ipsddata.r = x.*2.*rhos;
+0086         ipsddata.psd = f';
+0087 
+0088         <span class="comment">% new saturation state</span>
+0089         igeom.radius = ipsddata.r;
+0090         igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
+0091         iSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(igeom,p,ipsddata,constants,wbopts);
+0092         IPS = <a href="../../../nucleus/functions/modeling/getPartialSaturationMatrix.html" class="code" title="function IPS = getPartialSaturationMatrix(SatData,indt,imbdrain)">getPartialSaturationMatrix</a>(iSAT,indt,SatImbDrain);
+0093 
+0094         <span class="comment">% get the surface-to-volume ratio</span>
+0095         SV = igeom.P0./igeom.A0;
+0096         SV = SV(:);
+0097 
+0098         <span class="comment">% Kernel matrix</span>
+0099         Kf = zeros(length(t),length(SV));
+0100         <span class="keyword">switch</span> T1T2
+0101             <span class="keyword">case</span> <span class="string">'T1'</span>
+0102                 <span class="keyword">for</span> i = 1:length(SV)
+0103                     Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
+0104                 <span class="keyword">end</span>
+0105             <span class="keyword">case</span> <span class="string">'T2'</span>
+0106                 <span class="keyword">for</span> i = 1:length(SV)
+0107                     Kf(:,i) = exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
+0108                 <span class="keyword">end</span>
+0109         <span class="keyword">end</span>
+0110         <span class="comment">% Kernel matrix times saturation matrix</span>
+0111         K = Kf;
+0112         XX = K .* IPS;
+0113 
+0114     <span class="keyword">case</span> {<span class="string">'ang'</span>,<span class="string">'poly'</span>}
+0115         <span class="comment">% new PSD with updated rhos</span>
+0116         ipsddata.r = x.*igeom.a.*rhos;
+0117         ipsddata.psd = f';
+0118 
+0119         <span class="comment">% new saturation state</span>
+0120         igeom.radius = ipsddata.r;
+0121         igeom = <a href="../../../nucleus/functions/modeling/getGeometryParameter.html" class="code" title="function geom = getGeometryParameter(geom)">getGeometryParameter</a>(igeom);
+0122         iSAT = <a href="../../../nucleus/functions/modeling/getSaturationFromPressureBatch.html" class="code" title="function SAT = getSaturationFromPressureBatch(GEOM,pressure,inpsd,constants,wbopts)">getSaturationFromPressureBatch</a>(igeom,p,ipsddata,constants,wbopts);
+0123         IPS = <a href="../../../nucleus/functions/modeling/getPartialSaturationMatrix.html" class="code" title="function IPS = getPartialSaturationMatrix(SatData,indt,imbdrain)">getPartialSaturationMatrix</a>(iSAT,indt,SatImbDrain);
+0124 
+0125         <span class="comment">% get amplitudes and surface-to-volume ratios</span>
+0126         <span class="comment">%  for partially saturated corners</span>
+0127         SVdata = <a href="../../../nucleus/functions/modeling/getCornerNMRparameter.html" class="code" title="function out = getCornerNMRparameter(geometry,SatData,indt,imbdrain)">getCornerNMRparameter</a>(igeom,iSAT,indt,SatImbDrain);
+0128         SVdata.TT = repmat(t,[1 length(SVdata.SVF)]);
+0129 
+0130         SV  = SVdata.SVF';
+0131         SVC = SVdata.SVC;
+0132         Amp = SVdata.Ampl;
+0133         TT  = SVdata.TT;
+0134         SV = SV(:);
+0135 
+0136         <span class="comment">% Kernel matrix for fully saturated pores</span>
+0137         Kf = zeros(length(t),length(SV));
+0138         <span class="keyword">switch</span> T1T2
+0139             <span class="keyword">case</span> <span class="string">'T1'</span>
+0140                 <span class="keyword">for</span> i = 1:length(SV)
+0141                     Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
 0142                 <span class="keyword">end</span>
-0143             <span class="keyword">case</span> <span class="string">'T2'</span>
-0144                 <span class="keyword">for</span> i=1:length(SV)
-0145                     Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-0146                 <span class="keyword">end</span>
-0147                 <span class="comment">% Kernel matrix for partial saturation</span>
-0148                 Kc = zeros(length(t),length(SV));
-0149                 <span class="keyword">for</span> i=1:size(SVC,1)
-0150                     Kc = Kc + ( squeeze(Amp(i,:,:)) .*<span class="keyword">...</span>
-0151                         exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
-0152                 <span class="keyword">end</span>
-0153         <span class="keyword">end</span>
-0154         
-0155         K = Kf;
-0156         K(IPS~=1) = Kc(IPS~=1);
-0157         <span class="comment">% Kernel matrix times saturation matrix</span>
-0158         XX = K;
-0159         
-0160     <span class="keyword">otherwise</span>
-0161         <span class="comment">% nothing to do</span>
-0162 <span class="keyword">end</span>
-0163 
-0164 <span class="comment">%% weighting</span>
-0165 <span class="keyword">if</span> isfield(iparam,<span class="string">'W'</span>)
-0166     e = 1./diag(iparam.W);
-0167     W = diag(e);
-0168     g = W*g';
-0169     XX = W*XX;
-0170     g = g';
-0171 <span class="keyword">end</span>
+0143                 <span class="comment">% Kernel matrix for partial saturation</span>
+0144                 Kc = zeros(length(t),length(SV));
+0145                 <span class="keyword">for</span> i = 1:size(SVC,1)
+0146                     svc = squeeze(SVC(i,:,:));
+0147                     amp = squeeze(Amp(i,:,:));
+0148                     Kc = Kc + amp.*(1-T1IRfac.*exp(-TT.*(rhos.*svc+1/Tb+1/Td)));
+0149                 <span class="keyword">end</span>
+0150             <span class="keyword">case</span> <span class="string">'T2'</span>
+0151                 <span class="keyword">for</span> i = 1:length(SV)
+0152                     Kf(:,i) = exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
+0153                 <span class="keyword">end</span>
+0154                 <span class="comment">% Kernel matrix for partial saturation</span>
+0155                 Kc = zeros(length(t),length(SV));
+0156                 <span class="keyword">for</span> i = 1:size(SVC,1)
+0157                     svc = squeeze(SVC(i,:,:));
+0158                     amp = squeeze(Amp(i,:,:));
+0159                     Kc = Kc + amp.*exp(-TT.*(rhos.*svc+1/Tb+1/Td));
+0160                 <span class="keyword">end</span>
+0161         <span class="keyword">end</span>
+0162         <span class="comment">% select full or partially saturated kernel</span>
+0163         K = Kf;
+0164         K(IPS~=1) = Kc(IPS~=1);
+0165         XX = K;
+0166 <span class="keyword">end</span>
+0167 
+0168 <span class="comment">%% corresponding physical NMR signal</span>
+0169 <span class="comment">%  IMPORTANT:</span>
+0170 <span class="comment">%  XX and ig remain unweighted physical quantities.</span>
+0171 ig = XX*f;
 0172 
-0173 <span class="comment">%% corresponding signal g = Kf</span>
-0174 ig = XX*f';
+0173 <span class="comment">%% residual</span>
+0174 res = ig - g;
 0175 
-0176 <span class="comment">%% residual</span>
-0177 F = norm(ig - g');
-0178 
-0179 <span class="comment">%% output</span>
-0180 <span class="keyword">if</span> nargout &gt; 1
-0181     varargout{1} = ig;
-0182     varargout{2} = XX;
-0183     varargout{3} = igeom;
-0184     varargout{4} = iSAT;
-0185 <span class="keyword">end</span>
-0186 
-0187 <span class="keyword">return</span>
-0188 
-0189 <span class="comment">%------------- END OF CODE --------------</span>
-0190 
-0191 <span class="comment">%% License:</span>
-0192 <span class="comment">% MIT License</span>
-0193 <span class="comment">%</span>
-0194 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0195 <span class="comment">%</span>
-0196 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0197 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0198 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0199 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0200 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0201 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0202 <span class="comment">%</span>
-0203 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0204 <span class="comment">% copies or substantial portions of the Software.</span>
-0205 <span class="comment">%</span>
-0206 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0207 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0208 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0209 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0210 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0211 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0212 <span class="comment">% SOFTWARE.</span></pre></div>
+0176 <span class="comment">%% weighting</span>
+0177 <span class="comment">%  iparam.W contains the standard deviations:</span>
+0178 <span class="comment">%       W = diag(sigma)</span>
+0179 <span class="comment">%  Hence the weighted residual is</span>
+0180 <span class="comment">%       res_i = (ig_i - g_i)/sigma_i</span>
+0181 <span class="comment">%  Weighting is applied ONLY to the residual. The physical</span>
+0182 <span class="comment">%  signal ig and kernel XX remain unchanged.</span>
+0183 
+0184 <span class="keyword">if</span> isfield(iparam,<span class="string">'W'</span>) &amp;&amp; ~isempty(iparam.W)
+0185 
+0186     sigma = diag(iparam.W);
+0187 
+0188     <span class="keyword">if</span> length(sigma) ~= length(res)
+0189         error([<span class="string">'Number of standard deviations does not match '</span>, <span class="keyword">...</span>
+0190                <span class="string">'the number of NMR data points.'</span>]);
+0191     <span class="keyword">end</span>
+0192     <span class="keyword">if</span> any(~isfinite(sigma)) || any(sigma &lt;= 0)
+0193         error(<span class="string">'All standard deviations must be finite and &gt; 0.'</span>);
+0194     <span class="keyword">end</span>
+0195 
+0196     res = res ./ sigma;
+0197 <span class="keyword">end</span>
+0198 
+0199 <span class="comment">%% scalar objective function for fminsearchbnd</span>
+0200 F = norm(res);
+0201 
+0202 <span class="comment">% output</span>
+0203 <span class="keyword">if</span> nargout &gt; 1
+0204     <span class="comment">% physical, unweighted fitted NMR signal</span>
+0205     varargout{1} = ig;
+0206     <span class="comment">% physical, unweighted kernel matrix</span>
+0207     varargout{2} = XX;
+0208     <span class="comment">% final geometry</span>
+0209     varargout{3} = igeom;
+0210     <span class="comment">% final pressure/saturation state</span>
+0211     varargout{4} = iSAT;
+0212 <span class="keyword">end</span>
+0213 
+0214 <span class="keyword">return</span>
+0215 
+0216 <span class="comment">%------------- END OF CODE --------------</span>
+0217 
+0218 <span class="comment">%% License:</span>
+0219 <span class="comment">% MIT License</span>
+0220 <span class="comment">%</span>
+0221 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0222 <span class="comment">%</span>
+0223 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0224 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0225 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0226 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0227 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0228 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0229 <span class="comment">%</span>
+0230 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0231 <span class="comment">% copies or substantial portions of the Software.</span>
+0232 <span class="comment">%</span>
+0233 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0234 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0235 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0236 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0237 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0238 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0239 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

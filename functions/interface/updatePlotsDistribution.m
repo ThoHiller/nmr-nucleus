@@ -249,8 +249,8 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
             end
             
             % x-limits
-            ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
-            set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+            ticks = floor(log10(min(invstd.T1T2me))) :1: ceil(log10(max(invstd.T1T2me)));
+            set(ax,'XScale','log','XLim',[min(invstd.T1T2me) max(invstd.T1T2me)],'XTick',10.^ticks);
             % x-label
             set(get(ax,'XLabel'),'String',xlstring);
             % grid
@@ -410,8 +410,8 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
             end
             
             % x-limits
-            ticks = round(log10(min(invstd.T1T2me)) :1: log10(max(invstd.T1T2me)));
-            set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
+            ticks = floor(log10(min(invstd.T1T2me))) :1: ceil(log10(max(invstd.T1T2me)));
+            set(ax,'XScale','log','XLim',[min(invstd.T1T2me) max(invstd.T1T2me)],'XTick',10.^ticks);
             % x-label
             set(get(ax,'XLabel'),'String',xlstring);
             % grid
@@ -517,7 +517,6 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
             
             % x-limits
             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
-            % set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
             set(ax,'XScale','log','XLim',[min(requiv) max(requiv)],'XTick',10.^ticks);
             % x-label
             set(get(ax,'XLabel'),'String',xlstring);
@@ -565,7 +564,6 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
             
             % x-limits
             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
-            %         set(ax,'XScale','log','XLim',[10^(ticks(1)) 10^(ticks(end))],'XTick',10.^ticks);
             set(ax,'XScale','log','XLim',[min(requiv) max(requiv)],'XTick',10.^ticks);
             % x-label
             set(get(ax,'XLabel'),'String',xlstring);

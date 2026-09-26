@@ -4,8 +4,11 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %otherwise the default built-in LSQNONNEG is used; the 'Regularization Toolbox'
 %from P. Hansen can be used for automatic regularization based on the SVD
 %
+% The physical signal and kernel are kept unchanged. Error weighting and
+% numerical scaling are applied only to the inversion system.
+%
 % Syntax:
-%       fitDataLSQ(time,signal,parameter)
+%       fitdata = fitDataLSQ(time,signal,parameter)
 %
 % Inputs:
 %       time - time vector
@@ -23,7 +26,7 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 %                   noise    : noise level needed for 'discrep' discrepancy
 %                              principle
 %                   W        : error weighting matrix (optional)
-%                   solver   : LSQ solver ('lsqlin' or 'lsqnonneg')
+%                   solver   : LSQ solver ('optimTB' or 'internal')
 %                   EchoFlag : Echo flag ('on' or 'off')
 %                   bounds   : predefined lower and upper bounds and start
 %                              model (optional and only for 'lsqlin')
@@ -71,135 +74,205 @@ function fitdata = fitDataLSQ(time,signal,parameter)
 % Author: see AUTHORS.md
 % email: see AUTHORS.md
 % License: MIT License (at end)
-
+%
 %------------- BEGIN CODE --------------
 
-% make input column vectors
+%% input vectors
 time = time(:);
 signal = signal(:);
 
-% temporary variables
+if length(time) ~= length(signal)
+    error('time and signal must have the same number of elements.');
+end
+if any(~isfinite(time)) || any(~isfinite(signal))
+    error('time and signal must contain finite values only.');
+end
+
+% physical data
 t = time;
 g = signal;
 
-% get the input parameters
-flag = parameter.T1T2;           % T1/T2 switch
-T1IRfac = parameter.T1IRfac;     % T1 Sat/Inv Recovery factor
-Tb = parameter.Tb;               % bulk relaxation time
-Td = parameter.Td;               % diffusion relaxation time
-tstart = parameter.Tint(1);      % log10 value
-tend = parameter.Tint(2);        % log10 value
-N = parameter.Tint(3);           % N per decade
-regMethod = parameter.regMethod; % regularization method
-order = parameter.Lorder;        % smoothness constraint
-lambda = parameter.lambda;       % regularization parameter
-noise = parameter.noise;         % noise
+%% input parameters
+flag      = parameter.T1T2;
+T1IRfac   = parameter.T1IRfac;
+Tb        = parameter.Tb;
+Td        = parameter.Td;
+tstart    = parameter.Tint(1);
+tend      = parameter.Tint(2);
+N         = parameter.Tint(3);
+regMethod = parameter.regMethod;
+order     = parameter.Lorder;
+lambda    = parameter.lambda;
+noise     = parameter.noise;
 
-% create the relaxation time vector
-T1T2me = logspace(tstart,tend,(tend-tstart)*N);
+%% relaxation-time vector
+nT = round((tend-tstart)*N);
+if nT < 2
+    error('Relaxation-time discretization must contain at least 2 points.');
+end
+T1T2me = logspace(tstart,tend,nT);
+T1T2me = T1T2me(:);
 
-% create the Kernel matrix for inversion
-K = createKernelMatrix(t,T1T2me,Tb,Td,flag,T1IRfac);
+%% physical kernel matrix
+% If gated data are supplied, create the kernel first on the original
+% time vector and apply exactly the same arithmetic gating operator as
+% used for the measured NMR signal.
+hasGates = isfield(parameter,'gate') && ~isempty(parameter.gate);
+if hasGates
+    gate = parameter.gate;
+    if ~isfield(gate,'time_raw') || isempty(gate.time_raw)
+        error('parameter.gate.time_raw is required for kernel gating.');
+    end
+    if ~isfield(gate,'indices') || isempty(gate.indices)
+        error('parameter.gate.indices is required for kernel gating.');
+    end
 
-% set bounds, if applicable
-if strcmp(parameter.solver,'lsqlin')
-    if isfield(parameter,'bounds')
-        f0 = parameter.bounds.f0;
-        f0_lb = parameter.bounds.lb;
-        f0_ub = parameter.bounds.ub;
+    time_raw = gate.time_raw(:);
+    % physical kernel on original echo times
+    Kraw = createKernelMatrix(time_raw,T1T2me,Tb,Td,flag,T1IRfac);
+
+    nGates = length(gate.indices);
+    if nGates ~= length(g)
+        error(['Number of gates does not match the number ', ...
+               'of input data points.']);
+    end
+    K = zeros(nGates,length(T1T2me));
+    % apply exactly the same arithmetic gating to kernel
+    for i = 1:nGates
+        ind = gate.indices{i};
+        K(i,:) = mean(Kraw(ind,:),1);
+    end
+else
+    K = createKernelMatrix(t,T1T2me,Tb,Td,flag,T1IRfac);
+end
+
+%% bounds for LSQLIN
+if strcmp(parameter.solver,'optimTB')
+    if isfield(parameter,'bounds') && ~isempty(parameter.bounds)
+        f0    = parameter.bounds.f0(:);
+        f0_lb = parameter.bounds.lb(:);
+        f0_ub = parameter.bounds.ub(:);
     else
-        % initial amplitudes
-        f0 = zeros(size(T1T2me));
-        f0_lb = f0;
-        f0_ub = 1.5*max(g)*ones(size(T1T2me));
-        % force certain RTs to 0 (switch in EXTRA menu)
+        f0    = zeros(size(T1T2me));
+        f0_lb = zeros(size(T1T2me));
+        % upper bound in physical signal units
+        f0_ub = 1.5*max(abs(g))*ones(size(T1T2me));
+        % optionally suppress relaxation times below TE/5 or TR/5
         if strcmp(parameter.EchoFlag,'on')
-            % force everything smaller than the smallest TE/5 (or TR/5 in
-            % case of T1) to 0
             f0_ub(T1T2me < time(1)/5) = 0;
         end
     end
 end
 
-% derivative (smoothness) matrix
+%% derivative / smoothness matrix
 L = get_l(length(T1T2me),order);
 
-% if data is gated, apply error weight matrix
-if isfield(parameter,'W')
-    e = 1./diag(parameter.W);
-    W = diag(e);
-    g = W*g;
-    K = W*K;
+%% prepare inversion system - statistical weighting / scaling
+% K and g always remain physical
+% Kinv and ginv are used only by the inversion
+hasWeights = isfield(parameter,'W') && ~isempty(parameter.W);
+if hasWeights
+    % error-weighted / whitened inversion
+    % W contains the standard error of each gated data point:
+    % sigma_k = e / sqrt(N_k)
+    % with
+    % e = standard deviation of the raw NMR noise
+    % N_k = number of raw data points averaged in gate k
+    sigma = diag(parameter.W);
+    sigma = sigma(:);
+
+    if length(sigma) ~= length(g)
+        error(['Number of standard deviations in parameter.W does not ', ...
+               'match the number of NMR data points.']);
+    end
+    if any(~isfinite(sigma)) || any(sigma <= 0)
+        error('All standard deviations must be finite and > 0.');
+    end
+    % whiten data and kernel
+    ginv = g ./ sigma;
+    Kinv = K ./ sigma;
+    % no additional amplitude scaling after whitening
+    scale = 1;
+    % expected standard deviation of whitened residual
+    noise_inv = 1;
+else
+    % unweighted inversion
+    sigma = [];
+    % constant numerical scaling derived from physical data
+    scale = max(abs(g));
+    if ~isfinite(scale) || scale <= 0
+        scale = 1;
+    end
+    ginv = g ./ scale;
+    Kinv = K ./ scale;
+    % scale global noise estimate consistently
+    noise_inv = noise ./ scale;
 end
 
-% scale everything between [0,1]
-maxS = max(g);
-g = g./maxS;
-K = K./maxS;
 
-% extend K and apply regularization
-% 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'
-[KK,lambda_out] = applyRegularization(K,g,L,lambda,regMethod,order,noise./maxS);
+%% Regularization
+% applyRegularization receives exactly the system that will be solved.
+[KK,lambda_out] = applyRegularization(Kinv,ginv,L,lambda,regMethod,order,noise_inv);
 
-% extend g accordingly
-gg = g;
-gg(length(g)+1:length(g)+size(L,1),1) = 0;
+%% extended data vector
+gg = [ginv; zeros(size(L,1),1)];
 
-% solve LSE depending on the chosen solver
+%% solve least-squares problem
 switch parameter.solver
-    case 'lsqlin'
-        options = optimoptions('lsqlin');
-        options.Display = parameter.info;
-        options.OptimalityTolerance = 1e-16;
-        options.StepTolerance = 1e-16;
-        [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
+    case 'optimTB'
+        % For older vrsions "Algorithm" maybe needs to be set to "interior-point" 
+        options = optimoptions('lsqlin','Algorithm','active-set', ...
+            'Display',parameter.info,'OptimalityTolerance',1e-10, ...
+            'StepTolerance',1e-12,'MaxIterations',2000);
 
-    case 'lsqnonneg'
+        f = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
+
+    case 'internal'
         options = optimset('Display',parameter.info,'TolX',1e-12);
-        [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
+
+        f = lsqnonneg(KK,gg,options);
+    otherwise
+        error('Unknown LSQ solver "%s".',parameter.solver);
 end
 
-% rescale f so that the sum(f) = unscaled E0
-% f = (f.*maxS);
+%% physical fitted signal
+% K and f are both in physical amplitude units.
+% No weighting or scaling is applied here.
+s_fit = K*f;
 
-% get the 'inverted' signal from the rescaled RTD
-gg_fit = KK*(f.*maxS);
-% cut off the end which was needed for regularization
-s_fit = gg_fit(1:length(t),1);
-
-% get residuals and error measures
-if isfield(parameter,'W')
-    % rescale the fit because the input signal was error weighted for the
-    % inversion
-    s_fit = parameter.W * s_fit;
-    
-    % because signal and s_fit are now no longer error weighted, the
-    % initial values for noise and W are used to get the error estimates
+%% error measures in physical signal space
+if hasWeights
     out = getFitErrors(signal,s_fit,noise,parameter.W);
 else
-    % if data is not gated, use global noise estimate
     out = getFitErrors(signal,s_fit,noise);
 end
 
-% L-curve parameters
-% model norm |L*x|_2
+%% L-curve quantities
+% model norm
 xn = norm(L*f,2);
-% residual norm |A*x-b|_2
-rn = norm(out.residual,2);
+% residual norm in the metric actually used by the inversion
+if hasWeights
+    res_inv = (K*f-g) ./ sigma;
+else
+    res_inv = (K*f-g) ./ scale;
+end
+% rn = norm(res_inv,2);
+rn = norm(Kinv*f - ginv,2);
 
-% get "initial" value E0
-if strcmp(flag,'T1')
-    K0 = createKernelMatrix(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
-elseif strcmp(flag,'T2')
-    K0 = createKernelMatrix(0,T1T2me,Tb,Td,flag,T1IRfac);
+%% initial / equilibrium amplitude E0
+switch flag
+    case 'T1'
+        K0 = createKernelMatrix(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+    case 'T2'
+        K0 = createKernelMatrix(0,T1T2me,Tb,Td,flag,T1IRfac);
 end
 E0 = K0*f;
 
-% output struct
-fitdata.fit_t = time(:);
-fitdata.fit_s = s_fit(:);
-fitdata.T1T2me = T1T2me(:);
-fitdata.T1T2f = f(:);
+%% output struct
+fitdata.fit_t = time;
+fitdata.fit_s = s_fit;
+fitdata.T1T2me = T1T2me;
+fitdata.T1T2f = f;
 fitdata.Tlgm = getTLogMean(T1T2me,f);
 fitdata.E0 = E0;
 fitdata.ciE0 = NaN;
@@ -208,12 +281,17 @@ fitdata.residual = out.residual;
 fitdata.chi2 = out.chi2;
 fitdata.rms = out.rms;
 fitdata.lambda_out = lambda_out;
+% regularized inversion kernel
 fitdata.KK = KK;
+% physical kernel
+fitdata.K = K;
 fitdata.L = L;
 fitdata.xn = xn;
 fitdata.rn = rn;
 fitdata.invtype = 'NNLS';
 fitdata.invparams = parameter;
+% inversion diagnostics
+fitdata.scale = scale;
 
 return
 

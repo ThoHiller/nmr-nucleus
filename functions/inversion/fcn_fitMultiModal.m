@@ -1,6 +1,6 @@
 function F = fcn_fitMultiModal(x,iparam)
-%fcn_fitMultiModal is the objective function for N free distribution
-%fitting that is minimized with 'lsqnonlin'
+%fcn_fitMultiModal is the objective function for multimodal RTD fitting
+%with 'lsqnonlin'.
 %
 % Syntax:
 %       fcn_fitMultiModal(x,iparam)
@@ -14,16 +14,21 @@ function F = fcn_fitMultiModal(x,iparam)
 %                t : time vector
 %                s : signal vector
 %                T : relaxation times
-%                e : noise vector / error weights (optional)
+%                K : relaxivity kernel
+%            sigma : standard error
 %
 % Outputs:
-%       F - residual
+%       For lsqnonlin:
+%       F = weighted/scaled residual vector
+%
+%       For fminsearchbnd:
+%       F = sum of squared weighted/scaled residuals
 %
 % Example:
 %       F = fcn_fitMultiModal(x,params)
 %
 % Other m-files required:
-%       createKernelMatrix
+%       none
 %
 % Subfunctions:
 %       none
@@ -38,54 +43,55 @@ function F = fcn_fitMultiModal(x,iparam)
 
 %------------- BEGIN CODE --------------
 
-% get all neccessary parameters
-flag = iparam.flag;
-T1IRfac = iparam.T1IRfac;
+%% input parameters
 nModes = iparam.nModes;
-t = iparam.t;
 s = iparam.s;
 T = iparam.T;
-Tb = iparam.Tb;
-Td = iparam.Td;
+K = iparam.K;
 
-% get the global (combined) RTD distribution
-Tdist = 0;
+% make sure orientation is consistent
+s = s(:);
+T = T(:);
+
+%% assemble multimodal RTD
+Tdist = zeros(size(T));
 for i = 1:nModes
     mu = exp(x(3*i-2));
     sigma = x(3*i-1);
     amp = x(3*i);
-    
-    % get the temporary RTD with current mu and sigma
-    tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(T) - log(mu))/ sqrt(2)/sigma).^2);
-    
-    % scale the temporary RDT to current amplitude
-    tmp = (tmp/sum(tmp)) * amp;
-    
-    % add the current temporary RTD to the global Tdist
-    Tdist = Tdist + tmp;   
+
+    % Gaussian distribution in log(T) space
+    tmp = 1./(sigma*sqrt(2*pi)) .* ...
+        exp(-((log(T)-log(mu))./(sqrt(2)*sigma)).^2);
+
+    % normalize discrete distribution and scale to amplitude
+    tmp = tmp ./ sum(tmp);
+    tmp = tmp .* amp;
+    % add mode to total RTD
+    Tdist = Tdist + tmp;
 end
 
-% get the kernel function to calculate the signal out of the global RTD
-K = createKernelMatrix(t,T,Tb,Td,flag,T1IRfac);
-si = K*Tdist';
+%% forward model -- always physical/unweighted
+si = K*Tdist;
 
+% physical residual
+res = si - s;
 
-% get error weights if available
-if isfield(iparam,'e')
-    e = iparam.e;
+%% weighting / scaling for inversion only
+if ~isempty(iparam.sigma)
+    % sigma contains standard error of each gated data point
+    res = res./iparam.sigma;
 else
-    e = ones(size(s));
+    % constant data-derived scaling
+    res = res./iparam.scale;
 end
 
-% change output depending on solver
-switch iparam.optim
-    case 'on' % lsqnonlin
-        % scale the residual
-        F = e.*(si - s);
-    case 'off' % fminsearchbnd
-        F = e.*(si - s);
-        SSE = sum(F.^2);
-        F = SSE;
+%% solver-dependent output
+switch iparam.solver
+    case 'optimTB' % lsqnonlin
+    F = res;
+    case 'internal' % fminsearchbnd
+    F = sum(res.^2);
 end
 
 return

@@ -1,21 +1,22 @@
 function CI = getConfInterval(resnorm,J,alpha)
-%getConfInterval calculates the confidence interval for the inversion
-%result from 'fitDataFree'
+%getConfInterval Calculates approximate confidence intervals from the
+%Jacobian of a nonlinear least-squares problem.
 %NOTE: for an increased number of free relaxation times 'T' and corresponding
 %amplitudes 'Ex' the individual CI for the 'Ex' will get larger (e.g. worse).
 %With more free parameters the fit is much more 'sensitive' and therefore
 %the combined sum of CI('Ex') for 'E0' can become quite large.
 %
 % Syntax:
-%       getConfInterval(resnorm,Jac,alpha)
+%       CI = getConfInterval(resnorm,J,alpha)
 %
 % Inputs:
-%       resnorm - residual norm (output from lsqcurvefit)
-%       J - Jacobian matrix (output from lsqcurvefit)
-%       alpha - alpha value for student distribution
+%       resnorm - sum of squared residuals
+%       J       - Jacobian of the same residual vector
+%       alpha   - significance level
+%                 alpha = 0.05 -> 95% confidence interval
 %
 % Outputs:
-%       CI - confidence interval for the individual fit parameters
+%       CI      - half-width of confidence interval for each parameter
 %
 % Example:
 %       CI = getConfInterval(resnorm,J,alpha)
@@ -29,6 +30,14 @@ function CI = getConfInterval(resnorm,J,alpha)
 % MAT-files required:
 %       none
 %
+% Notes:
+% The calculation is based on a local linearization of the model around
+% the optimum.
+%
+% If weighted residuals
+%       r_k = (model_k-data_k)/sigma_k
+% are used, both resnorm and J must refer to these weighted residuals.
+%
 % See also: "Parameter Estimation and Inverse Problems", 2nd Ed.
 %           by Aster et. al p.32 ff
 % Author: see AUTHORS.md
@@ -37,46 +46,72 @@ function CI = getConfInterval(resnorm,J,alpha)
 
 %------------- BEGIN CODE --------------
 
-%% degrees of freedom DOF
-[i,j]    = size(J);
-deg_free = abs(i-j);
-
-%% mean squared error MSE:
-mse = sqrt(resnorm/deg_free);
-
-%% covariance matrix:
-cov = mse^2*inv(J'*J); %#ok<*MINV>
-
-%% diagonal elements of covariance matrix
-diag_cov = diag(full(cov));
-
-%% check if 'Statistical Toolbox' is installed
-vv = ver;
-StatBox = 0;
-for i = 1:size(vv,2)
-    if strfind(vv(i).Name,'Statistics')
-        StatBox = 1;
-        break;
-    end
+%% dimensions and degrees of freedom
+[nData,nParam] = size(J);
+deg_free = nData - nParam;
+if deg_free <= 0
+    warning('Cannot calculate confidence intervals: non-positive degrees of freedom.');
+    CI = NaN(nParam,1);
+    return
 end
 
-%% correction factor for the error estimation of the parameter
+%% residual variance estimate
+% resnorm = sum(r.^2)
+s2 = resnorm / deg_free;
+
+%% covariance matrix
+% Use SVD instead of explicitly calculating inv(J''*J).
+[~,S,V] = svd(J,'econ');
+sv = diag(S);
+
+% numerical rank tolerance
+tol = max(size(J)) * eps(max(sv));
+valid = sv > tol;
+if sum(valid) < nParam
+    warning(['Jacobian is rank deficient. Confidence intervals may ', ...
+             'not be uniquely defined.']);
+end
+
+% covariance from pseudo-inverse of J''*J
+Vv = V(:,valid);
+sv = sv(valid);
+
+covariance = s2 * Vv * diag(1./sv.^2) * Vv';
+
+%% parameter standard errors
+var_param = diag(covariance);
+
+% protect against tiny negative values due to round-off
+var_param(var_param < 0) = 0;
+
+SE = sqrt(var_param);
+
+%% Student-t factor for two-sided confidence interval
 % alpha 0.025 -> 97.5%
 % alpha 0.05  -> 95.0%
 % if yes use 'tinv' directly
 % if not use my own function to calculate the Student's t inverse CDF
-if StatBox == 1
-    stud_fac = tinv(1-alpha,deg_free);
+vv = ver;
+StatBox = false;
+for k = 1:length(vv)
+    if contains(vv(k).Name,'Statistics')
+        StatBox = true;
+        break
+    end
+end
+if StatBox
+    stud_fac = tinv(1-alpha/2,deg_free);
 else
-    if deg_free > 0 && deg_free <= 1000
-        stud_fac = getStudentInvCDF(1-alpha,deg_free);
+    if deg_free <= 1000
+        stud_fac = getStudentInvCDF(1-alpha/2,deg_free);
     else
-        stud_fac = 1;%NaN;
+        % normal approximation for large DOF
+        stud_fac = 1.96;
     end
 end
 
-%% confidence intervals:
-CI = sqrt(diag_cov)*stud_fac;
+%% confidence interval half-width
+CI = SE * stud_fac;
 
 return
 

@@ -31,8 +31,11 @@ if the Optimization Toolbox is available the user can select LSQLIN,
 otherwise the default built-in LSQNONNEG is used; the 'Regularization Toolbox'
 from P. Hansen can be used for automatic regularization based on the SVD
 
+ The physical signal and kernel are kept unchanged. Error weighting and
+ numerical scaling are applied only to the inversion system.
+
  Syntax:
-       fitDataLSQ(time,signal,parameter)
+       fitdata = fitDataLSQ(time,signal,parameter)
 
  Inputs:
        time - time vector
@@ -50,7 +53,7 @@ from P. Hansen can be used for automatic regularization based on the SVD
                    noise    : noise level needed for 'discrep' discrepancy
                               principle
                    W        : error weighting matrix (optional)
-                   solver   : LSQ solver ('lsqlin' or 'lsqnonneg')
+                   solver   : LSQ solver ('optimTB' or 'internal')
                    EchoFlag : Echo flag ('on' or 'off')
                    bounds   : predefined lower and upper bounds and start
                               model (optional and only for 'lsqlin')
@@ -97,7 +100,9 @@ from P. Hansen can be used for automatic regularization based on the SVD
  See also:
  Author: see AUTHORS.md
  email: see AUTHORS.md
- License: MIT License (at end)</pre></div>
+ License: MIT License (at end)
+
+------------- BEGIN CODE --------------</pre></div>
 
 <!-- crossreference -->
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
@@ -118,243 +123,321 @@ This function is called by:
 0004 <span class="comment">%otherwise the default built-in LSQNONNEG is used; the 'Regularization Toolbox'</span>
 0005 <span class="comment">%from P. Hansen can be used for automatic regularization based on the SVD</span>
 0006 <span class="comment">%</span>
-0007 <span class="comment">% Syntax:</span>
-0008 <span class="comment">%       fitDataLSQ(time,signal,parameter)</span>
+0007 <span class="comment">% The physical signal and kernel are kept unchanged. Error weighting and</span>
+0008 <span class="comment">% numerical scaling are applied only to the inversion system.</span>
 0009 <span class="comment">%</span>
-0010 <span class="comment">% Inputs:</span>
-0011 <span class="comment">%       time - time vector</span>
-0012 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
-0013 <span class="comment">%       parameter - struct that holds additional settings:</span>
-0014 <span class="comment">%                   T1T2     : flag between 'T1' or 'T2' inversion</span>
-0015 <span class="comment">%                   T1IRfac  : either '1' or '2' depending on T1 method</span>
-0016 <span class="comment">%                   Tb       : bulk relaxation time</span>
-0017 <span class="comment">%                   Td       : diffusion relaxation time</span>
-0018 <span class="comment">%                   Tint     : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
-0019 <span class="comment">%                   regMethod: 'manual', 'gcv_tikh', 'gcv_trunc',</span>
-0020 <span class="comment">%                              'gcv_damp', 'discrep'</span>
-0021 <span class="comment">%                   Lorder   : smoothness constraint (derivative matrix)</span>
-0022 <span class="comment">%                   lambda   : regularization parameter (for 'manual')</span>
-0023 <span class="comment">%                   noise    : noise level needed for 'discrep' discrepancy</span>
-0024 <span class="comment">%                              principle</span>
-0025 <span class="comment">%                   W        : error weighting matrix (optional)</span>
-0026 <span class="comment">%                   solver   : LSQ solver ('lsqlin' or 'lsqnonneg')</span>
-0027 <span class="comment">%                   EchoFlag : Echo flag ('on' or 'off')</span>
-0028 <span class="comment">%                   bounds   : predefined lower and upper bounds and start</span>
-0029 <span class="comment">%                              model (optional and only for 'lsqlin')</span>
-0030 <span class="comment">%</span>
-0031 <span class="comment">% Outputs:</span>
-0032 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
-0033 <span class="comment">%                   fit_t      : time vector for plotting</span>
-0034 <span class="comment">%                   fit_s      : signal vector for plotting</span>
-0035 <span class="comment">%                   T1T2me     : relaxation time values</span>
-0036 <span class="comment">%                   T1T2f      : relaxation time spectrum</span>
-0037 <span class="comment">%                   Tlgm       : T log-mean</span>
-0038 <span class="comment">%                   E0         : initial amplitude at t=0 (T2) or t=inf (T1)</span>
-0039 <span class="comment">%                   resnorm    : residual norm</span>
-0040 <span class="comment">%                   residual   : vector of residuals</span>
-0041 <span class="comment">%                   chi2       : chi square error</span>
-0042 <span class="comment">%                   rms        : RMS error</span>
-0043 <span class="comment">%                   lambda_out : regularization parameter lambda determined</span>
-0044 <span class="comment">%                                by the different options from the 'regu'</span>
-0045 <span class="comment">%                                toolbox</span>
-0046 <span class="comment">%                   KK         : Kernel matrix</span>
-0047 <span class="comment">%                   L          : derivative matrix</span>
-0048 <span class="comment">%                   xn         : model norm |L*x|_2</span>
-0049 <span class="comment">%                   rn         : residual norm |A*x-b|_2</span>
-0050 <span class="comment">%</span>
-0051 <span class="comment">% Example:</span>
-0052 <span class="comment">%       [fitdata] = fitDataLSQ(t,s,parameter)</span>
+0010 <span class="comment">% Syntax:</span>
+0011 <span class="comment">%       fitdata = fitDataLSQ(time,signal,parameter)</span>
+0012 <span class="comment">%</span>
+0013 <span class="comment">% Inputs:</span>
+0014 <span class="comment">%       time - time vector</span>
+0015 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
+0016 <span class="comment">%       parameter - struct that holds additional settings:</span>
+0017 <span class="comment">%                   T1T2     : flag between 'T1' or 'T2' inversion</span>
+0018 <span class="comment">%                   T1IRfac  : either '1' or '2' depending on T1 method</span>
+0019 <span class="comment">%                   Tb       : bulk relaxation time</span>
+0020 <span class="comment">%                   Td       : diffusion relaxation time</span>
+0021 <span class="comment">%                   Tint     : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
+0022 <span class="comment">%                   regMethod: 'manual', 'gcv_tikh', 'gcv_trunc',</span>
+0023 <span class="comment">%                              'gcv_damp', 'discrep'</span>
+0024 <span class="comment">%                   Lorder   : smoothness constraint (derivative matrix)</span>
+0025 <span class="comment">%                   lambda   : regularization parameter (for 'manual')</span>
+0026 <span class="comment">%                   noise    : noise level needed for 'discrep' discrepancy</span>
+0027 <span class="comment">%                              principle</span>
+0028 <span class="comment">%                   W        : error weighting matrix (optional)</span>
+0029 <span class="comment">%                   solver   : LSQ solver ('optimTB' or 'internal')</span>
+0030 <span class="comment">%                   EchoFlag : Echo flag ('on' or 'off')</span>
+0031 <span class="comment">%                   bounds   : predefined lower and upper bounds and start</span>
+0032 <span class="comment">%                              model (optional and only for 'lsqlin')</span>
+0033 <span class="comment">%</span>
+0034 <span class="comment">% Outputs:</span>
+0035 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
+0036 <span class="comment">%                   fit_t      : time vector for plotting</span>
+0037 <span class="comment">%                   fit_s      : signal vector for plotting</span>
+0038 <span class="comment">%                   T1T2me     : relaxation time values</span>
+0039 <span class="comment">%                   T1T2f      : relaxation time spectrum</span>
+0040 <span class="comment">%                   Tlgm       : T log-mean</span>
+0041 <span class="comment">%                   E0         : initial amplitude at t=0 (T2) or t=inf (T1)</span>
+0042 <span class="comment">%                   resnorm    : residual norm</span>
+0043 <span class="comment">%                   residual   : vector of residuals</span>
+0044 <span class="comment">%                   chi2       : chi square error</span>
+0045 <span class="comment">%                   rms        : RMS error</span>
+0046 <span class="comment">%                   lambda_out : regularization parameter lambda determined</span>
+0047 <span class="comment">%                                by the different options from the 'regu'</span>
+0048 <span class="comment">%                                toolbox</span>
+0049 <span class="comment">%                   KK         : Kernel matrix</span>
+0050 <span class="comment">%                   L          : derivative matrix</span>
+0051 <span class="comment">%                   xn         : model norm |L*x|_2</span>
+0052 <span class="comment">%                   rn         : residual norm |A*x-b|_2</span>
 0053 <span class="comment">%</span>
-0054 <span class="comment">% Other m-files required:</span>
-0055 <span class="comment">%       Optimization Toolbox from Mathworks (optional)</span>
-0056 <span class="comment">%       Regularization Toolbox</span>
-0057 <span class="comment">%       applyRegularization</span>
-0058 <span class="comment">%       createKernelMatrix</span>
-0059 <span class="comment">%       getFitErrors</span>
-0060 <span class="comment">%       getTLogMean</span>
-0061 <span class="comment">%       lsqnonneg</span>
-0062 <span class="comment">%       lsqlin (optional)</span>
-0063 <span class="comment">%</span>
-0064 <span class="comment">% Subfunctions:</span>
-0065 <span class="comment">%       none</span>
+0054 <span class="comment">% Example:</span>
+0055 <span class="comment">%       [fitdata] = fitDataLSQ(t,s,parameter)</span>
+0056 <span class="comment">%</span>
+0057 <span class="comment">% Other m-files required:</span>
+0058 <span class="comment">%       Optimization Toolbox from Mathworks (optional)</span>
+0059 <span class="comment">%       Regularization Toolbox</span>
+0060 <span class="comment">%       applyRegularization</span>
+0061 <span class="comment">%       createKernelMatrix</span>
+0062 <span class="comment">%       getFitErrors</span>
+0063 <span class="comment">%       getTLogMean</span>
+0064 <span class="comment">%       lsqnonneg</span>
+0065 <span class="comment">%       lsqlin (optional)</span>
 0066 <span class="comment">%</span>
-0067 <span class="comment">% MAT-files required:</span>
+0067 <span class="comment">% Subfunctions:</span>
 0068 <span class="comment">%       none</span>
 0069 <span class="comment">%</span>
-0070 <span class="comment">% See also:</span>
-0071 <span class="comment">% Author: see AUTHORS.md</span>
-0072 <span class="comment">% email: see AUTHORS.md</span>
-0073 <span class="comment">% License: MIT License (at end)</span>
-0074 
-0075 <span class="comment">%------------- BEGIN CODE --------------</span>
-0076 
-0077 <span class="comment">% make input column vectors</span>
-0078 time = time(:);
-0079 signal = signal(:);
-0080 
-0081 <span class="comment">% temporary variables</span>
-0082 t = time;
-0083 g = signal;
-0084 
-0085 <span class="comment">% get the input parameters</span>
-0086 flag = parameter.T1T2;           <span class="comment">% T1/T2 switch</span>
-0087 T1IRfac = parameter.T1IRfac;     <span class="comment">% T1 Sat/Inv Recovery factor</span>
-0088 Tb = parameter.Tb;               <span class="comment">% bulk relaxation time</span>
-0089 Td = parameter.Td;               <span class="comment">% diffusion relaxation time</span>
-0090 tstart = parameter.Tint(1);      <span class="comment">% log10 value</span>
-0091 tend = parameter.Tint(2);        <span class="comment">% log10 value</span>
-0092 N = parameter.Tint(3);           <span class="comment">% N per decade</span>
-0093 regMethod = parameter.regMethod; <span class="comment">% regularization method</span>
-0094 order = parameter.Lorder;        <span class="comment">% smoothness constraint</span>
-0095 lambda = parameter.lambda;       <span class="comment">% regularization parameter</span>
-0096 noise = parameter.noise;         <span class="comment">% noise</span>
-0097 
-0098 <span class="comment">% create the relaxation time vector</span>
-0099 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0100 
-0101 <span class="comment">% create the Kernel matrix for inversion</span>
-0102 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
-0103 
-0104 <span class="comment">% set bounds, if applicable</span>
-0105 <span class="keyword">if</span> strcmp(parameter.solver,<span class="string">'lsqlin'</span>)
-0106     <span class="keyword">if</span> isfield(parameter,<span class="string">'bounds'</span>)
-0107         f0 = parameter.bounds.f0;
-0108         f0_lb = parameter.bounds.lb;
-0109         f0_ub = parameter.bounds.ub;
-0110     <span class="keyword">else</span>
-0111         <span class="comment">% initial amplitudes</span>
-0112         f0 = zeros(size(T1T2me));
-0113         f0_lb = f0;
-0114         f0_ub = 1.5*max(g)*ones(size(T1T2me));
-0115         <span class="comment">% force certain RTs to 0 (switch in EXTRA menu)</span>
-0116         <span class="keyword">if</span> strcmp(parameter.EchoFlag,<span class="string">'on'</span>)
-0117             <span class="comment">% force everything smaller than the smallest TE/5 (or TR/5 in</span>
-0118             <span class="comment">% case of T1) to 0</span>
-0119             f0_ub(T1T2me &lt; time(1)/5) = 0;
-0120         <span class="keyword">end</span>
-0121     <span class="keyword">end</span>
-0122 <span class="keyword">end</span>
-0123 
-0124 <span class="comment">% derivative (smoothness) matrix</span>
-0125 L = get_l(length(T1T2me),order);
-0126 
-0127 <span class="comment">% if data is gated, apply error weight matrix</span>
-0128 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0129     e = 1./diag(parameter.W);
-0130     W = diag(e);
-0131     g = W*g;
-0132     K = W*K;
-0133 <span class="keyword">end</span>
-0134 
-0135 <span class="comment">% scale everything between [0,1]</span>
-0136 maxS = max(g);
-0137 g = g./maxS;
-0138 K = K./maxS;
-0139 
-0140 <span class="comment">% extend K and apply regularization</span>
-0141 <span class="comment">% 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'</span>
-0142 [KK,lambda_out] = <a href="applyRegularization.html" class="code" title="function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)">applyRegularization</a>(K,g,L,lambda,regMethod,order,noise./maxS);
-0143 
-0144 <span class="comment">% extend g accordingly</span>
-0145 gg = g;
-0146 gg(length(g)+1:length(g)+size(L,1),1) = 0;
-0147 
-0148 <span class="comment">% solve LSE depending on the chosen solver</span>
-0149 <span class="keyword">switch</span> parameter.solver
-0150     <span class="keyword">case</span> <span class="string">'lsqlin'</span>
-0151         options = optimoptions(<span class="string">'lsqlin'</span>);
-0152         options.Display = parameter.info;
-0153         options.OptimalityTolerance = 1e-16;
-0154         options.StepTolerance = 1e-16;
-0155         [f,~,~,~,~,~] = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
-0156 
-0157     <span class="keyword">case</span> <span class="string">'lsqnonneg'</span>
-0158         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'TolX'</span>,1e-12);
-0159         [f,~,~,~,~,~] = lsqnonneg(KK,gg,options);
-0160 <span class="keyword">end</span>
-0161 
-0162 <span class="comment">% rescale f so that the sum(f) = unscaled E0</span>
-0163 <span class="comment">% f = (f.*maxS);</span>
-0164 
-0165 <span class="comment">% get the 'inverted' signal from the rescaled RTD</span>
-0166 gg_fit = KK*(f.*maxS);
-0167 <span class="comment">% cut off the end which was needed for regularization</span>
-0168 s_fit = gg_fit(1:length(t),1);
+0070 <span class="comment">% MAT-files required:</span>
+0071 <span class="comment">%       none</span>
+0072 <span class="comment">%</span>
+0073 <span class="comment">% See also:</span>
+0074 <span class="comment">% Author: see AUTHORS.md</span>
+0075 <span class="comment">% email: see AUTHORS.md</span>
+0076 <span class="comment">% License: MIT License (at end)</span>
+0077 <span class="comment">%</span>
+0078 <span class="comment">%------------- BEGIN CODE --------------</span>
+0079 
+0080 <span class="comment">%% input vectors</span>
+0081 time = time(:);
+0082 signal = signal(:);
+0083 
+0084 <span class="keyword">if</span> length(time) ~= length(signal)
+0085     error(<span class="string">'time and signal must have the same number of elements.'</span>);
+0086 <span class="keyword">end</span>
+0087 <span class="keyword">if</span> any(~isfinite(time)) || any(~isfinite(signal))
+0088     error(<span class="string">'time and signal must contain finite values only.'</span>);
+0089 <span class="keyword">end</span>
+0090 
+0091 <span class="comment">% physical data</span>
+0092 t = time;
+0093 g = signal;
+0094 
+0095 <span class="comment">%% input parameters</span>
+0096 flag      = parameter.T1T2;
+0097 T1IRfac   = parameter.T1IRfac;
+0098 Tb        = parameter.Tb;
+0099 Td        = parameter.Td;
+0100 tstart    = parameter.Tint(1);
+0101 tend      = parameter.Tint(2);
+0102 N         = parameter.Tint(3);
+0103 regMethod = parameter.regMethod;
+0104 order     = parameter.Lorder;
+0105 lambda    = parameter.lambda;
+0106 noise     = parameter.noise;
+0107 
+0108 <span class="comment">%% relaxation-time vector</span>
+0109 nT = round((tend-tstart)*N);
+0110 <span class="keyword">if</span> nT &lt; 2
+0111     error(<span class="string">'Relaxation-time discretization must contain at least 2 points.'</span>);
+0112 <span class="keyword">end</span>
+0113 T1T2me = logspace(tstart,tend,nT);
+0114 T1T2me = T1T2me(:);
+0115 
+0116 <span class="comment">%% physical kernel matrix</span>
+0117 <span class="comment">% If gated data are supplied, create the kernel first on the original</span>
+0118 <span class="comment">% time vector and apply exactly the same arithmetic gating operator as</span>
+0119 <span class="comment">% used for the measured NMR signal.</span>
+0120 hasGates = isfield(parameter,<span class="string">'gate'</span>) &amp;&amp; ~isempty(parameter.gate);
+0121 <span class="keyword">if</span> hasGates
+0122     gate = parameter.gate;
+0123     <span class="keyword">if</span> ~isfield(gate,<span class="string">'time_raw'</span>) || isempty(gate.time_raw)
+0124         error(<span class="string">'parameter.gate.time_raw is required for kernel gating.'</span>);
+0125     <span class="keyword">end</span>
+0126     <span class="keyword">if</span> ~isfield(gate,<span class="string">'indices'</span>) || isempty(gate.indices)
+0127         error(<span class="string">'parameter.gate.indices is required for kernel gating.'</span>);
+0128     <span class="keyword">end</span>
+0129 
+0130     time_raw = gate.time_raw(:);
+0131     <span class="comment">% physical kernel on original echo times</span>
+0132     Kraw = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(time_raw,T1T2me,Tb,Td,flag,T1IRfac);
+0133 
+0134     nGates = length(gate.indices);
+0135     <span class="keyword">if</span> nGates ~= length(g)
+0136         error([<span class="string">'Number of gates does not match the number '</span>, <span class="keyword">...</span>
+0137                <span class="string">'of input data points.'</span>]);
+0138     <span class="keyword">end</span>
+0139     K = zeros(nGates,length(T1T2me));
+0140     <span class="comment">% apply exactly the same arithmetic gating to kernel</span>
+0141     <span class="keyword">for</span> i = 1:nGates
+0142         ind = gate.indices{i};
+0143         K(i,:) = mean(Kraw(ind,:),1);
+0144     <span class="keyword">end</span>
+0145 <span class="keyword">else</span>
+0146     K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0147 <span class="keyword">end</span>
+0148 
+0149 <span class="comment">%% bounds for LSQLIN</span>
+0150 <span class="keyword">if</span> strcmp(parameter.solver,<span class="string">'optimTB'</span>)
+0151     <span class="keyword">if</span> isfield(parameter,<span class="string">'bounds'</span>) &amp;&amp; ~isempty(parameter.bounds)
+0152         f0    = parameter.bounds.f0(:);
+0153         f0_lb = parameter.bounds.lb(:);
+0154         f0_ub = parameter.bounds.ub(:);
+0155     <span class="keyword">else</span>
+0156         f0    = zeros(size(T1T2me));
+0157         f0_lb = zeros(size(T1T2me));
+0158         <span class="comment">% upper bound in physical signal units</span>
+0159         f0_ub = 1.5*max(abs(g))*ones(size(T1T2me));
+0160         <span class="comment">% optionally suppress relaxation times below TE/5 or TR/5</span>
+0161         <span class="keyword">if</span> strcmp(parameter.EchoFlag,<span class="string">'on'</span>)
+0162             f0_ub(T1T2me &lt; time(1)/5) = 0;
+0163         <span class="keyword">end</span>
+0164     <span class="keyword">end</span>
+0165 <span class="keyword">end</span>
+0166 
+0167 <span class="comment">%% derivative / smoothness matrix</span>
+0168 L = get_l(length(T1T2me),order);
 0169 
-0170 <span class="comment">% get residuals and error measures</span>
-0171 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0172     <span class="comment">% rescale the fit because the input signal was error weighted for the</span>
-0173     <span class="comment">% inversion</span>
-0174     s_fit = parameter.W * s_fit;
-0175     
-0176     <span class="comment">% because signal and s_fit are now no longer error weighted, the</span>
-0177     <span class="comment">% initial values for noise and W are used to get the error estimates</span>
-0178     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
-0179 <span class="keyword">else</span>
-0180     <span class="comment">% if data is not gated, use global noise estimate</span>
-0181     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
-0182 <span class="keyword">end</span>
+0170 <span class="comment">%% prepare inversion system - statistical weighting / scaling</span>
+0171 <span class="comment">% K and g always remain physical</span>
+0172 <span class="comment">% Kinv and ginv are used only by the inversion</span>
+0173 hasWeights = isfield(parameter,<span class="string">'W'</span>) &amp;&amp; ~isempty(parameter.W);
+0174 <span class="keyword">if</span> hasWeights
+0175     <span class="comment">% error-weighted / whitened inversion</span>
+0176     <span class="comment">% W contains the standard error of each gated data point:</span>
+0177     <span class="comment">% sigma_k = e / sqrt(N_k)</span>
+0178     <span class="comment">% with</span>
+0179     <span class="comment">% e = standard deviation of the raw NMR noise</span>
+0180     <span class="comment">% N_k = number of raw data points averaged in gate k</span>
+0181     sigma = diag(parameter.W);
+0182     sigma = sigma(:);
 0183 
-0184 <span class="comment">% L-curve parameters</span>
-0185 <span class="comment">% model norm |L*x|_2</span>
-0186 xn = norm(L*f,2);
-0187 <span class="comment">% residual norm |A*x-b|_2</span>
-0188 rn = norm(out.residual,2);
-0189 
-0190 <span class="comment">% get &quot;initial&quot; value E0</span>
-0191 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
-0192     K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
-0193 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
-0194     K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
-0195 <span class="keyword">end</span>
-0196 E0 = K0*f;
-0197 
-0198 <span class="comment">% output struct</span>
-0199 fitdata.fit_t = time(:);
-0200 fitdata.fit_s = s_fit(:);
-0201 fitdata.T1T2me = T1T2me(:);
-0202 fitdata.T1T2f = f(:);
-0203 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
-0204 fitdata.E0 = E0;
-0205 fitdata.ciE0 = NaN;
-0206 fitdata.resnorm = out.resnorm;
-0207 fitdata.residual = out.residual;
-0208 fitdata.chi2 = out.chi2;
-0209 fitdata.rms = out.rms;
-0210 fitdata.lambda_out = lambda_out;
-0211 fitdata.KK = KK;
-0212 fitdata.L = L;
-0213 fitdata.xn = xn;
-0214 fitdata.rn = rn;
-0215 fitdata.invtype = <span class="string">'NNLS'</span>;
-0216 fitdata.invparams = parameter;
-0217 
-0218 <span class="keyword">return</span>
+0184     <span class="keyword">if</span> length(sigma) ~= length(g)
+0185         error([<span class="string">'Number of standard deviations in parameter.W does not '</span>, <span class="keyword">...</span>
+0186                <span class="string">'match the number of NMR data points.'</span>]);
+0187     <span class="keyword">end</span>
+0188     <span class="keyword">if</span> any(~isfinite(sigma)) || any(sigma &lt;= 0)
+0189         error(<span class="string">'All standard deviations must be finite and &gt; 0.'</span>);
+0190     <span class="keyword">end</span>
+0191     <span class="comment">% whiten data and kernel</span>
+0192     ginv = g ./ sigma;
+0193     Kinv = K ./ sigma;
+0194     <span class="comment">% no additional amplitude scaling after whitening</span>
+0195     scale = 1;
+0196     <span class="comment">% expected standard deviation of whitened residual</span>
+0197     noise_inv = 1;
+0198 <span class="keyword">else</span>
+0199     <span class="comment">% unweighted inversion</span>
+0200     sigma = [];
+0201     <span class="comment">% constant numerical scaling derived from physical data</span>
+0202     scale = max(abs(g));
+0203     <span class="keyword">if</span> ~isfinite(scale) || scale &lt;= 0
+0204         scale = 1;
+0205     <span class="keyword">end</span>
+0206     ginv = g ./ scale;
+0207     Kinv = K ./ scale;
+0208     <span class="comment">% scale global noise estimate consistently</span>
+0209     noise_inv = noise ./ scale;
+0210 <span class="keyword">end</span>
+0211 
+0212 
+0213 <span class="comment">%% Regularization</span>
+0214 <span class="comment">% applyRegularization receives exactly the system that will be solved.</span>
+0215 [KK,lambda_out] = <a href="applyRegularization.html" class="code" title="function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)">applyRegularization</a>(Kinv,ginv,L,lambda,regMethod,order,noise_inv);
+0216 
+0217 <span class="comment">%% extended data vector</span>
+0218 gg = [ginv; zeros(size(L,1),1)];
 0219 
-0220 <span class="comment">%------------- END OF CODE --------------</span>
-0221 
-0222 <span class="comment">%% License:</span>
-0223 <span class="comment">% MIT License</span>
-0224 <span class="comment">%</span>
-0225 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0226 <span class="comment">%</span>
-0227 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0228 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0229 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0230 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0231 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0232 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0233 <span class="comment">%</span>
-0234 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0235 <span class="comment">% copies or substantial portions of the Software.</span>
-0236 <span class="comment">%</span>
-0237 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0238 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0239 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0240 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0241 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0242 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0243 <span class="comment">% SOFTWARE.</span></pre></div>
+0220 <span class="comment">%% solve least-squares problem</span>
+0221 <span class="keyword">switch</span> parameter.solver
+0222     <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0223         <span class="comment">% For older vrsions &quot;Algorithm&quot; maybe needs to be set to &quot;interior-point&quot;</span>
+0224         options = optimoptions(<span class="string">'lsqlin'</span>,<span class="string">'Algorithm'</span>,<span class="string">'active-set'</span>, <span class="keyword">...</span>
+0225             <span class="string">'Display'</span>,parameter.info,<span class="string">'OptimalityTolerance'</span>,1e-10, <span class="keyword">...</span>
+0226             <span class="string">'StepTolerance'</span>,1e-12,<span class="string">'MaxIterations'</span>,2000);
+0227 
+0228         f = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
+0229 
+0230     <span class="keyword">case</span> <span class="string">'internal'</span>
+0231         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'TolX'</span>,1e-12);
+0232 
+0233         f = lsqnonneg(KK,gg,options);
+0234     <span class="keyword">otherwise</span>
+0235         error(<span class="string">'Unknown LSQ solver &quot;%s&quot;.'</span>,parameter.solver);
+0236 <span class="keyword">end</span>
+0237 
+0238 <span class="comment">%% physical fitted signal</span>
+0239 <span class="comment">% K and f are both in physical amplitude units.</span>
+0240 <span class="comment">% No weighting or scaling is applied here.</span>
+0241 s_fit = K*f;
+0242 
+0243 <span class="comment">%% error measures in physical signal space</span>
+0244 <span class="keyword">if</span> hasWeights
+0245     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
+0246 <span class="keyword">else</span>
+0247     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
+0248 <span class="keyword">end</span>
+0249 
+0250 <span class="comment">%% L-curve quantities</span>
+0251 <span class="comment">% model norm</span>
+0252 xn = norm(L*f,2);
+0253 <span class="comment">% residual norm in the metric actually used by the inversion</span>
+0254 <span class="keyword">if</span> hasWeights
+0255     res_inv = (K*f-g) ./ sigma;
+0256 <span class="keyword">else</span>
+0257     res_inv = (K*f-g) ./ scale;
+0258 <span class="keyword">end</span>
+0259 <span class="comment">% rn = norm(res_inv,2);</span>
+0260 rn = norm(Kinv*f - ginv,2);
+0261 
+0262 <span class="comment">%% initial / equilibrium amplitude E0</span>
+0263 <span class="keyword">switch</span> flag
+0264     <span class="keyword">case</span> <span class="string">'T1'</span>
+0265         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+0266     <span class="keyword">case</span> <span class="string">'T2'</span>
+0267         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
+0268 <span class="keyword">end</span>
+0269 E0 = K0*f;
+0270 
+0271 <span class="comment">%% output struct</span>
+0272 fitdata.fit_t = time;
+0273 fitdata.fit_s = s_fit;
+0274 fitdata.T1T2me = T1T2me;
+0275 fitdata.T1T2f = f;
+0276 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
+0277 fitdata.E0 = E0;
+0278 fitdata.ciE0 = NaN;
+0279 fitdata.resnorm = out.resnorm;
+0280 fitdata.residual = out.residual;
+0281 fitdata.chi2 = out.chi2;
+0282 fitdata.rms = out.rms;
+0283 fitdata.lambda_out = lambda_out;
+0284 <span class="comment">% regularized inversion kernel</span>
+0285 fitdata.KK = KK;
+0286 <span class="comment">% physical kernel</span>
+0287 fitdata.K = K;
+0288 fitdata.L = L;
+0289 fitdata.xn = xn;
+0290 fitdata.rn = rn;
+0291 fitdata.invtype = <span class="string">'NNLS'</span>;
+0292 fitdata.invparams = parameter;
+0293 <span class="comment">% inversion diagnostics</span>
+0294 fitdata.scale = scale;
+0295 
+0296 <span class="keyword">return</span>
+0297 
+0298 <span class="comment">%------------- END OF CODE --------------</span>
+0299 
+0300 <span class="comment">%% License:</span>
+0301 <span class="comment">% MIT License</span>
+0302 <span class="comment">%</span>
+0303 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0304 <span class="comment">%</span>
+0305 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0306 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0307 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0308 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0309 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0310 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0311 <span class="comment">%</span>
+0312 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0313 <span class="comment">% copies or substantial portions of the Software.</span>
+0314 <span class="comment">%</span>
+0315 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0316 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0317 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0318 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0319 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0320 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0321 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

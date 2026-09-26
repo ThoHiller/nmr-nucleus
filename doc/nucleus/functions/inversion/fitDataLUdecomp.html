@@ -4,7 +4,7 @@
 <head>
   <title>Description of fitDataLUdecomp</title>
   <meta name="keywords" content="fitDataLUdecomp">
-  <meta name="description" content=" is a control routine that uses a LU decomposition and the">
+  <meta name="description" content=" retrieves an NMR relaxation-time distribution using">
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
   <meta name="robots" content="index, follow">
@@ -20,14 +20,15 @@
 </h1>
 
 <h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong> is a control routine that uses a LU decomposition and the</strong></div>
+<div class="box"><strong> retrieves an NMR relaxation-time distribution using</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="box"><strong>function fitdata = fitDataLUdecomp(time,signal,parameter) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre class="comment">fitDataLUdecomp is a control routine that uses a LU decomposition and the
-Matlab &quot;\&quot;-operator to fit NMR data multi-exponentially
+<div class="fragment"><pre class="comment">fitDataLUdecomp retrieves an NMR relaxation-time distribution using
+regularized normal equations followed by a projected-gradient iteration
+to enforce non-negativity.
 
  Syntax:
        fitDataLUdecomp(time,signal,parameter)
@@ -58,10 +59,8 @@ Matlab &quot;\&quot;-operator to fit NMR data multi-exponentially
                    residual   : vector of residuals
                    chi2       : chi square error
                    rms        : RMS error
-                   lambda_out : regularization parameter lambda determined
-                                by the different options from the 'regu'
-                                toolbox                   
-                   KK         : Kernel matrix
+                   lambda_out : regularization parameter lambda                  
+                   KK         : inversion kernel matrix
                    L          : derivative matrix
                    xn         : model norm |L*x|_2
                    rn         : residual norm |A*x-b|_2
@@ -101,195 +100,271 @@ This function is called by:
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function fitdata = fitDataLUdecomp(time,signal,parameter)</a>
-0002 <span class="comment">%fitDataLUdecomp is a control routine that uses a LU decomposition and the</span>
-0003 <span class="comment">%Matlab &quot;\&quot;-operator to fit NMR data multi-exponentially</span>
-0004 <span class="comment">%</span>
-0005 <span class="comment">% Syntax:</span>
-0006 <span class="comment">%       fitDataLUdecomp(time,signal,parameter)</span>
-0007 <span class="comment">%</span>
-0008 <span class="comment">% Inputs:</span>
-0009 <span class="comment">%       time - time vector</span>
-0010 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
-0011 <span class="comment">%       parameter - struct that hold additional settings:</span>
-0012 <span class="comment">%                   T1T2    : flag between 'T1' or 'T2' inversion</span>
-0013 <span class="comment">%                   T1IRfac : either '1' or '2' depending on T1 method</span>
-0014 <span class="comment">%                   Tb      : bulk relaxation time</span>
-0015 <span class="comment">%                   Td      : diffusion relaxation time</span>
-0016 <span class="comment">%                   Tint    : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
-0017 <span class="comment">%                   Lorder  : smoothness constraint (derivative matrix)</span>
-0018 <span class="comment">%                   lambda  : regularization parameter (if -1 automatic</span>
-0019 <span class="comment">%                             regularization)</span>
-0020 <span class="comment">%                   noise   : noise level</span>
-0021 <span class="comment">%</span>
-0022 <span class="comment">% Outputs:</span>
-0023 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
-0024 <span class="comment">%                   fit_t      : time vector for plotting</span>
-0025 <span class="comment">%                   fit_s      : signal vector for plotting</span>
-0026 <span class="comment">%                   T1T2me     : relaxation time values</span>
-0027 <span class="comment">%                   T1T2f      : relaxation time spectrum</span>
-0028 <span class="comment">%                   Tlgm       : T logmean</span>
-0029 <span class="comment">%                   E0         : initial amplitude at t=0 (T2) or t=max (T1)</span>
-0030 <span class="comment">%                   resnorm    : residual norm</span>
-0031 <span class="comment">%                   residual   : vector of residuals</span>
-0032 <span class="comment">%                   chi2       : chi square error</span>
-0033 <span class="comment">%                   rms        : RMS error</span>
-0034 <span class="comment">%                   lambda_out : regularization parameter lambda determined</span>
-0035 <span class="comment">%                                by the different options from the 'regu'</span>
-0036 <span class="comment">%                                toolbox</span>
-0037 <span class="comment">%                   KK         : Kernel matrix</span>
-0038 <span class="comment">%                   L          : derivative matrix</span>
-0039 <span class="comment">%                   xn         : model norm |L*x|_2</span>
-0040 <span class="comment">%                   rn         : residual norm |A*x-b|_2</span>
-0041 <span class="comment">%</span>
-0042 <span class="comment">% Example:</span>
-0043 <span class="comment">%       [fitdata] = fitDataLUdecomp(t,s,parameter)</span>
-0044 <span class="comment">%</span>
-0045 <span class="comment">% Other m-files required:</span>
-0046 <span class="comment">%       createKernelMatrix</span>
-0047 <span class="comment">%       getFitErrors</span>
-0048 <span class="comment">%       getTLogMean</span>
-0049 <span class="comment">%       get_l (from 'Regularization Toolbox')</span>
-0050 <span class="comment">%</span>
-0051 <span class="comment">% Subfunctions:</span>
-0052 <span class="comment">%       none</span>
-0053 <span class="comment">%</span>
-0054 <span class="comment">% MAT-files required:</span>
-0055 <span class="comment">%       none</span>
-0056 <span class="comment">%</span>
-0057 <span class="comment">% See also:</span>
-0058 <span class="comment">% Author: see AUTHORS.md</span>
-0059 <span class="comment">% email: see AUTHORS.md</span>
-0060 <span class="comment">% NOTE: I harvested this routine partly from the Internet but forgot where</span>
-0061 <span class="comment">% I found the routines ... so there is no warranty at all</span>
-0062 
-0063 <span class="comment">%------------- BEGIN CODE --------------</span>
-0064 
-0065 <span class="comment">% make input column vectors</span>
-0066 time = time(:);
-0067 signal = signal(:);
-0068 
-0069 <span class="comment">% temporary variables</span>
-0070 t = time;
-0071 g = signal;
-0072 
-0073 <span class="comment">% get the input parameters</span>
-0074 flag = parameter.T1T2;       <span class="comment">% T1/T2 switch</span>
-0075 T1IRfac = parameter.T1IRfac; <span class="comment">% T1 Sat/Inv Recovery factor</span>
-0076 Tb = parameter.Tb;           <span class="comment">% bulk relaxation time</span>
-0077 Td = parameter.Td;           <span class="comment">% diffusion relaxation time</span>
-0078 tstart = parameter.Tint(1);  <span class="comment">% log10 value</span>
-0079 tend = parameter.Tint(2);    <span class="comment">% log10 value</span>
-0080 N = parameter.Tint(3);       <span class="comment">% N per decade</span>
-0081 order = parameter.Lorder;    <span class="comment">% smoothness constraint</span>
-0082 lambda = parameter.lambda;   <span class="comment">% regularization parameter</span>
-0083 noise = parameter.noise;     <span class="comment">% noise</span>
-0084 
-0085 <span class="comment">% create the relaxation time vector</span>
-0086 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0087 
-0088 <span class="comment">% create the Kernel matrix</span>
-0089 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0002 <span class="comment">%fitDataLUdecomp retrieves an NMR relaxation-time distribution using</span>
+0003 <span class="comment">%regularized normal equations followed by a projected-gradient iteration</span>
+0004 <span class="comment">%to enforce non-negativity.</span>
+0005 <span class="comment">%</span>
+0006 <span class="comment">% Syntax:</span>
+0007 <span class="comment">%       fitDataLUdecomp(time,signal,parameter)</span>
+0008 <span class="comment">%</span>
+0009 <span class="comment">% Inputs:</span>
+0010 <span class="comment">%       time - time vector</span>
+0011 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
+0012 <span class="comment">%       parameter - struct that hold additional settings:</span>
+0013 <span class="comment">%                   T1T2    : flag between 'T1' or 'T2' inversion</span>
+0014 <span class="comment">%                   T1IRfac : either '1' or '2' depending on T1 method</span>
+0015 <span class="comment">%                   Tb      : bulk relaxation time</span>
+0016 <span class="comment">%                   Td      : diffusion relaxation time</span>
+0017 <span class="comment">%                   Tint    : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
+0018 <span class="comment">%                   Lorder  : smoothness constraint (derivative matrix)</span>
+0019 <span class="comment">%                   lambda  : regularization parameter (if -1 automatic</span>
+0020 <span class="comment">%                             regularization)</span>
+0021 <span class="comment">%                   noise   : noise level</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">% Outputs:</span>
+0024 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
+0025 <span class="comment">%                   fit_t      : time vector for plotting</span>
+0026 <span class="comment">%                   fit_s      : signal vector for plotting</span>
+0027 <span class="comment">%                   T1T2me     : relaxation time values</span>
+0028 <span class="comment">%                   T1T2f      : relaxation time spectrum</span>
+0029 <span class="comment">%                   Tlgm       : T logmean</span>
+0030 <span class="comment">%                   E0         : initial amplitude at t=0 (T2) or t=max (T1)</span>
+0031 <span class="comment">%                   resnorm    : residual norm</span>
+0032 <span class="comment">%                   residual   : vector of residuals</span>
+0033 <span class="comment">%                   chi2       : chi square error</span>
+0034 <span class="comment">%                   rms        : RMS error</span>
+0035 <span class="comment">%                   lambda_out : regularization parameter lambda</span>
+0036 <span class="comment">%                   KK         : inversion kernel matrix</span>
+0037 <span class="comment">%                   L          : derivative matrix</span>
+0038 <span class="comment">%                   xn         : model norm |L*x|_2</span>
+0039 <span class="comment">%                   rn         : residual norm |A*x-b|_2</span>
+0040 <span class="comment">%</span>
+0041 <span class="comment">% Example:</span>
+0042 <span class="comment">%       [fitdata] = fitDataLUdecomp(t,s,parameter)</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% Other m-files required:</span>
+0045 <span class="comment">%       createKernelMatrix</span>
+0046 <span class="comment">%       getFitErrors</span>
+0047 <span class="comment">%       getTLogMean</span>
+0048 <span class="comment">%       get_l (from 'Regularization Toolbox')</span>
+0049 <span class="comment">%</span>
+0050 <span class="comment">% Subfunctions:</span>
+0051 <span class="comment">%       none</span>
+0052 <span class="comment">%</span>
+0053 <span class="comment">% MAT-files required:</span>
+0054 <span class="comment">%       none</span>
+0055 <span class="comment">%</span>
+0056 <span class="comment">% See also:</span>
+0057 <span class="comment">% Author: see AUTHORS.md</span>
+0058 <span class="comment">% email: see AUTHORS.md</span>
+0059 <span class="comment">% NOTE: I harvested this routine partly from the Internet but forgot where</span>
+0060 <span class="comment">% I found the routines ... so there is no warranty at all</span>
+0061 
+0062 <span class="comment">%------------- BEGIN CODE --------------</span>
+0063 
+0064 <span class="comment">%% input vectors</span>
+0065 time   = time(:);
+0066 signal = signal(:);
+0067 
+0068 <span class="keyword">if</span> length(time) ~= length(signal)
+0069     error(<span class="string">'time and signal must have the same number of elements.'</span>);
+0070 <span class="keyword">end</span>
+0071 <span class="keyword">if</span> any(~isfinite(time)) || any(~isfinite(signal))
+0072     error(<span class="string">'time and signal must contain finite values only.'</span>);
+0073 <span class="keyword">end</span>
+0074 
+0075 <span class="comment">% physical data</span>
+0076 t = time;
+0077 g = signal;
+0078 
+0079 <span class="comment">%% parameters</span>
+0080 flag    = parameter.T1T2;
+0081 T1IRfac = parameter.T1IRfac;
+0082 Tb      = parameter.Tb;
+0083 Td      = parameter.Td;
+0084 tstart = parameter.Tint(1);
+0085 tend   = parameter.Tint(2);
+0086 N      = parameter.Tint(3);
+0087 order  = parameter.Lorder;
+0088 lambda = parameter.lambda;
+0089 noise  = parameter.noise;
 0090 
-0091 <span class="comment">% calculate reg matrix H</span>
-0092 m  = length(T1T2me);
-0093 B = get_l(m,order);
-0094 H = B'*B;
-0095 
-0096 <span class="comment">% apply error weight matrix</span>
-0097 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0098    e = 1./diag(parameter.W);
-0099    W = diag(e);
-0100    g = W*g;
-0101    K = W*K;
-0102 <span class="keyword">end</span>
-0103 
-0104 <span class="comment">% scale everything between [0,1]</span>
-0105 maxS = max(g);
-0106 g = g./maxS;
-0107 K = K./maxS;
-0108 
-0109 <span class="comment">% automatic regularization</span>
-0110 <span class="keyword">if</span> lambda == -1
-0111     lambda = trace(K'*K)/trace(H);
-0112 <span class="keyword">end</span>
-0113 
-0114 <span class="comment">% calculate A = K'*K + lambda*H</span>
-0115 A = K'*K + lambda*H;
-0116 <span class="comment">% calculate y = K'*g</span>
-0117 y = K'*g;
-0118 <span class="comment">% calculate f by LU decomposition</span>
-0119 [L,U] = lu(A);
-0120 f = U\(L\y);
-0121 
-0122 <span class="comment">% now iterate, mapping negative values to zero.</span>
-0123 e = 2/max(eig(A));
-0124 A = K'*K;  <span class="comment">% no regularization now</span>
-0125 <span class="keyword">for</span> i = 1:1000
-0126     f = (f&gt;0).*f; <span class="comment">% map neg to zero</span>
-0127     f =(eye(m)-e*A)*f+e*y;
-0128 <span class="keyword">end</span>
-0129 f = (f&gt;0).*f; <span class="comment">% map neg to zero again</span>
-0130 
-0131 <span class="comment">% rescale f so that the sum(f)= unscaled E0</span>
-0132 <span class="comment">% f = (f.*maxS);</span>
-0133 
-0134 <span class="comment">% get the 'inverted' signal from the rescaled RTD</span>
-0135 s_fit = K*(f.*maxS);
-0136 <span class="comment">% cut off the end which was needed for regularization</span>
-0137 s_fit = s_fit(1:length(t),1);
-0138 
-0139 <span class="comment">% get residuals and error measures</span>
-0140 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0141     <span class="comment">% rescale the fit because the input signal was error weighted for the</span>
-0142     <span class="comment">% inversion</span>
-0143     s_fit = parameter.W * s_fit;
-0144     
-0145     <span class="comment">% because signal and s_fit are unscaled the initial values for noise</span>
-0146     <span class="comment">% and W are used to get the error estimates</span>
-0147     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
-0148 <span class="keyword">else</span>
-0149     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
-0150 <span class="keyword">end</span>
-0151 
-0152 <span class="comment">% derivative matrix</span>
-0153 L = get_l(length(T1T2me),order);
-0154 <span class="comment">% L-curve parameter</span>
-0155 <span class="comment">% model norm |L*x|_2</span>
-0156 xn = norm(L*f,2);
-0157 <span class="comment">% residual norm |A*x-b|_2</span>
-0158 rn = norm(out.residual,2);
-0159 
-0160 <span class="comment">% get &quot;initial&quot; value E0</span>
-0161 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
-0162     t2 = 10*time(end);
-0163     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
-0164 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
-0165     t2 = 0;
-0166     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t2,T1T2me,Tb,Td,flag,T1IRfac);
-0167 <span class="keyword">end</span>
-0168 E0 = K2*f;
-0169 
-0170 <span class="comment">% output struct</span>
-0171 fitdata.fit_t = time(:);
-0172 fitdata.fit_s = s_fit(:);
-0173 fitdata.T1T2me = T1T2me(:);
-0174 fitdata.T1T2f = f(:);
-0175 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
-0176 fitdata.E0 = E0;
-0177 fitdata.residual = out.residual;
-0178 fitdata.chi2 = out.chi2;
-0179 fitdata.rms = out.rms;
-0180 fitdata.lambda_out = lambda;
-0181 fitdata.KK = K;
-0182 fitdata.L = L;
-0183 fitdata.xn = xn;
-0184 fitdata.rn = rn;
-0185 fitdata.invtype = <span class="string">'LU'</span>;
-0186 fitdata.invparams = parameter;
-0187 
-0188 <span class="keyword">return</span>
+0091 <span class="comment">%% relaxation-time vector</span>
+0092 nT = round((tend-tstart)*N);
+0093 <span class="keyword">if</span> nT &lt; 2
+0094     error(<span class="string">'Relaxation-time discretization must contain at least 2 points.'</span>);
+0095 <span class="keyword">end</span>
+0096 T1T2me = logspace(tstart,tend,nT);
+0097 T1T2me = T1T2me(:);
+0098 
+0099 <span class="comment">%% physical kernel matrix</span>
+0100 <span class="comment">% If gated data are supplied, create the kernel first on the original</span>
+0101 <span class="comment">% time vector and apply exactly the same arithmetic gating operator as</span>
+0102 <span class="comment">% used for the measured NMR signal.</span>
+0103 hasGates = isfield(parameter,<span class="string">'gate'</span>) &amp;&amp; ~isempty(parameter.gate);
+0104 <span class="keyword">if</span> hasGates
+0105     gate = parameter.gate;
+0106     <span class="keyword">if</span> ~isfield(gate,<span class="string">'time_raw'</span>) || isempty(gate.time_raw)
+0107         error(<span class="string">'parameter.gate.time_raw is required for kernel gating.'</span>);
+0108     <span class="keyword">end</span>
+0109     <span class="keyword">if</span> ~isfield(gate,<span class="string">'indices'</span>) || isempty(gate.indices)
+0110         error(<span class="string">'parameter.gate.indices is required for kernel gating.'</span>);
+0111     <span class="keyword">end</span>
+0112 
+0113     time_raw = gate.time_raw(:);
+0114     <span class="comment">% physical kernel on original echo times</span>
+0115     Kraw = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(time_raw,T1T2me,Tb,Td,flag,T1IRfac);
+0116 
+0117     nGates = length(gate.indices);
+0118     <span class="keyword">if</span> nGates ~= length(g)
+0119         error([<span class="string">'Number of gates does not match the number '</span>, <span class="keyword">...</span>
+0120                <span class="string">'of input data points.'</span>]);
+0121     <span class="keyword">end</span>
+0122     K = zeros(nGates,length(T1T2me));
+0123     <span class="comment">% apply exactly the same arithmetic gating to kernel</span>
+0124     <span class="keyword">for</span> i = 1:nGates
+0125         ind = gate.indices{i};
+0126         K(i,:) = mean(Kraw(ind,:),1);
+0127     <span class="keyword">end</span>
+0128 <span class="keyword">else</span>
+0129     K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0130 <span class="keyword">end</span>
+0131 
+0132 <span class="comment">%% regularization (derivative / smoothness) matrix</span>
+0133 m = length(T1T2me);
+0134 L = get_l(m,order);
+0135 H = L'*L;
+0136 
+0137 <span class="comment">%% prepare inversion system - statistical weighting / scaling</span>
+0138 <span class="comment">% K and g always remain physical</span>
+0139 <span class="comment">% Kinv and ginv are used only by the inversion</span>
+0140 hasWeights = isfield(parameter,<span class="string">'W'</span>) &amp;&amp; ~isempty(parameter.W);
+0141 <span class="keyword">if</span> hasWeights
+0142     <span class="comment">% error-weighted / whitened inversion</span>
+0143     <span class="comment">% W contains the standard error of each gated data point:</span>
+0144     <span class="comment">% sigma_k = e / sqrt(N_k)</span>
+0145     <span class="comment">% with</span>
+0146     <span class="comment">% e = standard deviation of the raw NMR noise</span>
+0147     <span class="comment">% N_k = number of raw data points averaged in gate k</span>
+0148     sigma = diag(parameter.W);
+0149     sigma = sigma(:);
+0150 
+0151     <span class="keyword">if</span> length(sigma) ~= length(g)
+0152         error([<span class="string">'Number of standard deviations in parameter.W does not '</span>, <span class="keyword">...</span>
+0153                <span class="string">'match the number of NMR data points.'</span>]);
+0154     <span class="keyword">end</span>
+0155     <span class="keyword">if</span> any(~isfinite(sigma)) || any(sigma &lt;= 0)
+0156         error(<span class="string">'All standard deviations must be finite and &gt; 0.'</span>);
+0157     <span class="keyword">end</span>
+0158     <span class="comment">% whiten data and kernel</span>
+0159     ginv = g ./ sigma;
+0160     Kinv = K ./ sigma;
+0161     <span class="comment">% no additional amplitude scaling after whitening</span>
+0162     scale = 1;
+0163 <span class="keyword">else</span>
+0164     <span class="comment">% unweighted inversion</span>
+0165     sigma = [];
+0166     <span class="comment">% sigma = noise * ones(size(g));</span>
+0167     <span class="comment">% constant numerical scaling derived from physical data</span>
+0168     scale = max(abs(g));
+0169     <span class="keyword">if</span> ~isfinite(scale) || scale &lt;= 0
+0170         scale = 1;
+0171     <span class="keyword">end</span>
+0172     ginv = g ./ scale;
+0173     Kinv = K ./ scale;
+0174     <span class="comment">% whitened inversion system</span>
+0175     <span class="comment">% ginv = g ./ sigma;</span>
+0176     <span class="comment">% Kinv = K ./ sigma;</span>
+0177 <span class="keyword">end</span>
+0178 
+0179 <span class="comment">%% automatic regularization</span>
+0180 <span class="keyword">if</span> lambda == -1
+0181     lambda = trace(Kinv'*Kinv) / trace(H);
+0182 <span class="keyword">end</span>
+0183 
+0184 
+0185 <span class="comment">%% regularized normal equations</span>
+0186 <span class="comment">% (K'K + lambda L'L) f = K'g</span>
+0187 A = Kinv'*Kinv + lambda*H;
+0188 y = Kinv'*ginv;
 0189 
-0190 <span class="comment">%------------- END OF CODE --------------</span></pre></div>
+0190 <span class="comment">%% initial regularized solution</span>
+0191 [Llu,Ulu] = lu(A);
+0192 f = Ulu\(Llu\y);
+0193 
+0194 <span class="comment">% positivity iteration</span>
+0195 <span class="comment">% Important:</span>
+0196 <span class="comment">% regularization is intentionally only used for the start solution</span>
+0197 Als = Kinv'*Kinv;
+0198 <span class="comment">% Keep original step-size concept for now</span>
+0199 e = 2/max(eig(A));
+0200 iter = 1000;
+0201 <span class="keyword">for</span> i = 1:iter
+0202     <span class="comment">% project negative values to zero</span>
+0203     f = max(f,0);
+0204     <span class="comment">% unregularized LS iteration</span>
+0205     f = (eye(m)-e*Als)*f + e*y;
+0206 <span class="keyword">end</span>
+0207 f = max(f,0);
+0208 
+0209 <span class="comment">%% physical fitted signal</span>
+0210 <span class="comment">% K and f are both in physical amplitude units.</span>
+0211 <span class="comment">% No weighting or scaling is applied here.</span>
+0212 s_fit = K*f;
+0213 
+0214 <span class="comment">%% fit errors in physical data space</span>
+0215 <span class="keyword">if</span> hasWeights
+0216     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
+0217 <span class="keyword">else</span>
+0218     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
+0219 <span class="keyword">end</span>
+0220 
+0221 <span class="comment">%% L-curve quantities</span>
+0222 <span class="comment">% model norm</span>
+0223 xn = norm(L*f,2);
+0224 <span class="comment">% residual norm in the metric actually used by inversion</span>
+0225 <span class="keyword">if</span> hasWeights
+0226     res_inv = (K*f-g)./sigma;
+0227 <span class="keyword">else</span>
+0228     res_inv = (K*f-g)./scale;
+0229 <span class="keyword">end</span>
+0230 rn = norm(res_inv,2);
+0231 
+0232 <span class="comment">%% initial / equilibrium amplitude E0</span>
+0233 <span class="keyword">if</span> strcmp(flag,<span class="string">'T1'</span>)
+0234     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+0235 
+0236 <span class="keyword">elseif</span> strcmp(flag,<span class="string">'T2'</span>)
+0237     K2 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
+0238 <span class="keyword">end</span>
+0239 E0 = K2*f;
+0240 
+0241 <span class="comment">%% output</span>
+0242 fitdata.fit_t = time;
+0243 fitdata.fit_s = s_fit;
+0244 fitdata.T1T2me = T1T2me;
+0245 fitdata.T1T2f = f;
+0246 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
+0247 fitdata.E0 = E0;
+0248 fitdata.residual = out.residual;
+0249 fitdata.chi2 = out.chi2;
+0250 fitdata.rms = out.rms;
+0251 fitdata.lambda_out = lambda;
+0252 <span class="comment">% inversion kernel</span>
+0253 fitdata.KK = Kinv;
+0254 <span class="comment">% physical kernel</span>
+0255 fitdata.K = K;
+0256 fitdata.L = L;
+0257 fitdata.xn = xn;
+0258 fitdata.rn = rn;
+0259 fitdata.scale = scale;
+0260 fitdata.iterations = iter;
+0261 fitdata.invtype = <span class="string">'LU'</span>;
+0262 fitdata.invparams = parameter;
+0263 
+0264 <span class="keyword">return</span>
+0265 
+0266 <span class="comment">%------------- END OF CODE --------------</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

@@ -80,11 +80,10 @@ switch onoff
         set(gui.menu.extra_T1T2map,'Enable','off');
         
         % deactivate solver menu and set to default
-        switch data.info.has_optim
-            case 'on'
-                onMenuSolver(gui.menu.extra_solver_lsqlin);
-            case 'off'
-                onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+        if data.info.has_optim
+            onMenuSolver(gui.menu.extra_solver_lsqlin);
+        else
+            onMenuSolver(gui.menu.extra_solver_lsqnonneg);
         end
         % get changed GUI data
         data = getappdata(fig,'data');
@@ -131,16 +130,15 @@ switch onoff
         set(gui.menu.extra_T1T2map,'Enable','on');
 
         % activate solver menu if optimization toolbox is available
-        switch data.info.has_optim
-            case 'on'
-                set(gui.menu.extra_solver,'Enable','on');
-            case 'off'
-                set(gui.menu.extra_solver,'Enable','off');
+        if data.info.has_optim
+            set(gui.menu.extra_solver,'Enable','on');
+        else
+            set(gui.menu.extra_solver,'Enable','off');
         end
         switch data.info.solver
-            case 'lsqlin'
+            case 'optimTB'
                 set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
-            case 'lsqnonneg'
+            case 'internal'
                 set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
         end
 

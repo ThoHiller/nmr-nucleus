@@ -50,9 +50,9 @@ out.info.InvInfo = 'on';
 out.info.ToolTips = 'off';
 % Optimization and Statistics toolbox availability is checked later 
 % lsqnonneg is the default lsq-solver
-out.info.has_optim = 'off';
-out.info.solver = 'lsqnonneg';
-out.info.stat = 'off';
+out.info.has_optim = false;
+out.info.solver = 'internal';
+out.info.has_stat = false;
 % LSQLIN Echo flag: RTDs<TE/5=0 (default is off)
 out.info.EchoFlag = 'off';
 % Lcurve method 'iterative'(default) or 'discrete'

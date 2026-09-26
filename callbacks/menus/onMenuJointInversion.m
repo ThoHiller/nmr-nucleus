@@ -142,11 +142,10 @@ switch onoff
         set(gui.popup_handles.invjoint_geometry_type,'Enable','on');
         set(gui.push_handles.invjoint_run,'Enable','on');
         % choose default inversion method
-        switch data.info.has_optim
-            case 'on'
-                data.invjoint.invtype = 'free';
-            case 'off'
-                data.invjoint.invtype = 'fixed';
+        if data.info.has_optim
+            data.invjoint.invtype = 'free';
+        else
+            data.invjoint.invtype = 'fixed';
         end
         
         % cps panel

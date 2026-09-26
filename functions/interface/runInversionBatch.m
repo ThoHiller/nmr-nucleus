@@ -115,6 +115,8 @@ if ~isempty(INVdata)
     end
     
     % proccess all signals
+    % create temporary process struct
+    tmp_process = data.process;
     for id = 1:size(INVdata,1)
         % only if the User didn't cancel
         if get(gui.push_handles.invstd_run,'UserData') == 1 % STOP was not pressed
@@ -127,7 +129,13 @@ if ~isempty(INVdata)
                 data.process.gatetype = 'raw';
             else
                 % always full signal (maybe signals have a varying number of echoes)
-                data.process.end = length(data.import.NMR.data{id}.signal);
+                % data.process.end = length(data.import.NMR.data{id}.signal);
+                % if process.end is longer than the signal, use full signal
+                if tmp_process.end > length(data.import.NMR.data{id}.signal)
+                    data.process.end = length(data.import.NMR.data{id}.signal);
+                else
+                    data.process.end = tmp_process.end;
+                end
             end            
             % update GUI data
             setappdata(fig,'data',data);
@@ -142,7 +150,7 @@ if ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.has_optim;
+                    param.solver = data.info.solver;
                     param.Tfixed_bool = data.invstd.Tfixed_bool;
                     param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
@@ -161,7 +169,7 @@ if ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.has_optim;
+                    param.solver = data.info.solver;
                     param.Tfixed_bool = data.invstd.Tfixed_bool;
                     param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
@@ -188,9 +196,11 @@ if ~isempty(INVdata)
                     param.noise = data.results.nmrproc.noise;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                        param.gate = data.results.nmrproc.gate;
                     else
                         if isfield(param,'W')
                             param = rmfield(param,'W');
+                            param = rmfield(param,'gate');
                         end
                     end
 
@@ -211,9 +221,11 @@ if ~isempty(INVdata)
                     param.EchoFlag = data.info.EchoFlag;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                        param.gate = data.results.nmrproc.gate;
                     else
                         if isfield(param,'W')
                             param = rmfield(param,'W');
+                            param = rmfield(param,'gate');
                         end
                     end
                     
@@ -229,20 +241,22 @@ if ~isempty(INVdata)
                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
                     param.noise = data.results.nmrproc.noise;
                     param.solver = data.info.solver;
-                    param.optim = data.info.has_optim;
+                    param.has_optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                        param.gate = data.results.nmrproc.gate;
                     else
                         if isfield(param,'W')
                             param = rmfield(param,'W');
+                            param = rmfield(param,'gate');
                         end
                     end
                     
                     % status bar information
                     switch data.info.solver
-                        case 'lsqlin'
+                        case 'optimTB'
                             infostring = 'Inversion using ''Optimization Toolbox'' ... ';
-                        case 'lsqnonneg'
+                        case 'internal'
                             infostring = 'Inversion using ''fminsearchbnd'' ... ';
                     end
                     displayStatusText(gui,infostring);

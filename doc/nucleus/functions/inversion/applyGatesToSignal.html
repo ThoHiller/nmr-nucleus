@@ -4,7 +4,7 @@
 <head>
   <title>Description of applyGatesToSignal</title>
   <meta name="keywords" content="applyGatesToSignal">
-  <meta name="description" content=" re-samples (gates) a NMR signal to speedup the">
+  <meta name="description" content=" re-samples (gates) an NMR signal to speed up the">
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
   <meta name="robots" content="index, follow">
@@ -20,31 +20,66 @@
 </h1>
 
 <h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong> re-samples (gates) a NMR signal to speedup the</strong></div>
+<div class="box"><strong> re-samples (gates) an NMR signal to speed up the</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong>function data = applyGatesToSignal(time,signal,varargin) </strong></div>
+<div class="box"><strong>function [data,gate] = applyGatesToSignal(time,signal,varargin) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre class="comment">applyGatesToSignal re-samples (gates) a NMR signal to speedup the
-inversion
+<div class="fragment"><pre class="comment">applyGatesToSignal re-samples (gates) an NMR signal to speed up the
+inversion.
+
+ The signal within each gate is averaged arithmetically. In addition to
+ the gated data, the function returns the indices of the original data
+ points belonging to each gate. This allows the forward kernel to be
+ gated consistently with the measured signal.
 
  Syntax:
-       applyGatesToSignal(time,signal,varargin)
+       data = applyGatesToSignal(time,signal)
+       data = applyGatesToSignal(time,signal,'type','log')
+       [data,gate] = applyGatesToSignal(time,signal,...)
 
  Inputs:
-       time - time vector
-       signal - NMR signal vector (no complex data allowed!)
-       varargin - PROPERTY - VALUE OPTIONS:
-                    'type' - 'log', 'logv2' or 'lin' (default is 'log')
-                      'Ng' - No. of gates (default is 100)
-                      'Ne' - max. No. of echoes per gate (default is 50)
-                  'plotit' - '0' or '1' (default is 0)
-                 'special' - 'rwth' or '' (default is '')
+       time   - time vector
+       signal - NMR signal vector; complex data are allowed. If complex,
+                the real part is gated and the imaginary part is used
+                to estimate the noise within each gate.
+       varargin - PROPERTY / VALUE options:%
+                   'type'    : 'log', 'logv2' or 'lin'
+                               default: 'log'%
+                   'Ng'      : number of gates / logarithmic sampling
+                               parameter
+                               default: 100%
+                   'Ne'      : maximum number of echoes per gate
+                               default: 500%
+                   'plotit'  : 0 or 1
+                               default: 0%
+                   'special' : 'rwth' or ''
+                               default: ''
+
  Outputs:
-       data(:,1) - re-sampled time t
-       data(:,2) - re-sampled signal
-       data(:,3) - No. of echoes per gate
+       data(:,1) - mean time of each gate
+       data(:,2) - arithmetic mean signal of each gate
+       data(:,3) - number of echoes in each gate
+       data(:,4) - noise std within each gate, if complex input
+       gate.indices{i} - indices of original data belonging to gate i
+       gate.N          - number of echoes per gate
+       gate.time       - mean time per gate
+       gate.type       - applied gating method
+
+ Notes:
+       The arithmetic mean is used intentionally. For independent,
+       identically distributed noise with standard deviation e, the
+       standard deviation of a gated data point is
+
+               sigma_i = e / sqrt(N_i)
+
+       where N_i is the number of echoes in gate i.
+
+       The explicit gate indices can additionally be used to calculate
+       an exactly gated forward kernel:
+
+               K_gate(i,:) = mean(K_raw(indices{i},:),1)
 
  Example:
        applyGatesToSignal(time,signal,'type','log')
@@ -76,319 +111,413 @@ This function is called by:
 
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function data = applyGatesToSignal(time,signal,varargin)</a>
-0002 <span class="comment">%applyGatesToSignal re-samples (gates) a NMR signal to speedup the</span>
-0003 <span class="comment">%inversion</span>
+<div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [data,gate] = applyGatesToSignal(time,signal,varargin)</a>
+0002 <span class="comment">%applyGatesToSignal re-samples (gates) an NMR signal to speed up the</span>
+0003 <span class="comment">%inversion.</span>
 0004 <span class="comment">%</span>
-0005 <span class="comment">% Syntax:</span>
-0006 <span class="comment">%       applyGatesToSignal(time,signal,varargin)</span>
-0007 <span class="comment">%</span>
-0008 <span class="comment">% Inputs:</span>
-0009 <span class="comment">%       time - time vector</span>
-0010 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
-0011 <span class="comment">%       varargin - PROPERTY - VALUE OPTIONS:</span>
-0012 <span class="comment">%                    'type' - 'log', 'logv2' or 'lin' (default is 'log')</span>
-0013 <span class="comment">%                      'Ng' - No. of gates (default is 100)</span>
-0014 <span class="comment">%                      'Ne' - max. No. of echoes per gate (default is 50)</span>
-0015 <span class="comment">%                  'plotit' - '0' or '1' (default is 0)</span>
-0016 <span class="comment">%                 'special' - 'rwth' or '' (default is '')</span>
-0017 <span class="comment">% Outputs:</span>
-0018 <span class="comment">%       data(:,1) - re-sampled time t</span>
-0019 <span class="comment">%       data(:,2) - re-sampled signal</span>
-0020 <span class="comment">%       data(:,3) - No. of echoes per gate</span>
-0021 <span class="comment">%</span>
-0022 <span class="comment">% Example:</span>
-0023 <span class="comment">%       applyGatesToSignal(time,signal,'type','log')</span>
-0024 <span class="comment">%</span>
-0025 <span class="comment">% Other m-files required:</span>
-0026 <span class="comment">%       none</span>
-0027 <span class="comment">%</span>
-0028 <span class="comment">% Subfunctions:</span>
-0029 <span class="comment">%       none</span>
-0030 <span class="comment">%</span>
-0031 <span class="comment">% MAT-files required:</span>
-0032 <span class="comment">%       none</span>
-0033 <span class="comment">%</span>
-0034 <span class="comment">% See also:</span>
-0035 <span class="comment">% Author: see AUTHORS.md</span>
-0036 <span class="comment">% email: see AUTHORS.md</span>
-0037 <span class="comment">% License: MIT License (at end)</span>
-0038 
-0039 <span class="comment">%------------- BEGIN CODE --------------</span>
-0040 
-0041 <span class="comment">%% default settings</span>
-0042 type = <span class="string">'log'</span>;
-0043 Ne = 500;
-0044 Ng = 100;
-0045 plotit = 0;
-0046 special = <span class="string">''</span>;
-0047 
-0048 <span class="comment">%% input argument checking</span>
-0049 <span class="keyword">if</span> nargin &gt; 2
-0050     lv = length(varargin);
-0051     <span class="keyword">if</span> mod(lv,2)~=0
-0052         disp(<span class="string">'applyGatesToSignal: Check you input Property/Value!'</span>);
-0053         disp(<span class="string">'applyGatesToSignal: Using defaults.'</span>);
-0054     <span class="keyword">else</span>
-0055         <span class="keyword">for</span> i = 1:lv/2
-0056             prop = varargin{2*i-1};
-0057             value = varargin{2*i};
-0058             <span class="keyword">if</span> strcmpi(prop,<span class="string">'type'</span>) || strcmpi(prop,<span class="string">'flag'</span>)
-0059                 <span class="keyword">if</span> ischar(value) &amp;&amp; (strcmpi(value,<span class="string">'log'</span>) ||<span class="keyword">...</span>
-0060                         strcmpi(value,<span class="string">'logv2'</span>) || strcmpi(value,<span class="string">'lin'</span>))
-0061                     type = value;
-0062                 <span class="keyword">else</span>
-0063                     disp(<span class="string">'applyGatesToSignal: ''type'' must be either ''log'', ''logv2'' or ''lin'''</span>);
-0064                     disp(<span class="string">'applyGatesToSignal: Using default: log.'</span>);
-0065                 <span class="keyword">end</span>
-0066             <span class="keyword">end</span>
-0067             <span class="keyword">if</span> strcmpi(prop,<span class="string">'Ng'</span>)|| strcmpi(prop,<span class="string">'No'</span>)
-0068                 <span class="keyword">if</span> isnumeric(value)
-0069                     Ng = value;
-0070                 <span class="keyword">else</span>
-0071                     disp(<span class="string">'applyGatesToSignal: ''Ng'' must be a scalar value.'</span>);
-0072                     disp(<span class="string">'applyGatesToSignal: Using default: 100.'</span>);
-0073                 <span class="keyword">end</span>
-0074             <span class="keyword">end</span>
-0075             <span class="keyword">if</span> strcmpi(prop,<span class="string">'Nechoes'</span>)|| strcmpi(prop,<span class="string">'Ne'</span>)
-0076                 <span class="keyword">if</span> isnumeric(value)
-0077                     Ne = value;
-0078                 <span class="keyword">else</span>
-0079                     disp(<span class="string">'applyGatesToSignal: ''Nechoes'' must be a scalar value.'</span>);
-0080                     disp(<span class="string">'applyGatesToSignal: Using default: 50.'</span>);
-0081                 <span class="keyword">end</span>
-0082             <span class="keyword">end</span>
-0083             <span class="keyword">if</span> strcmpi(prop,<span class="string">'plot'</span>)|| strcmpi(prop,<span class="string">'plotit'</span>)
-0084                 <span class="keyword">if</span> isnumeric(value)
-0085                     plotit = value;
-0086                 <span class="keyword">else</span>
-0087                     disp(<span class="string">'applyGatesToSignal: ''plotit'' must be a scalar value.'</span>);
-0088                     disp(<span class="string">'applyGatesToSignal: Using default: 0.'</span>);
-0089                 <span class="keyword">end</span>
-0090             <span class="keyword">end</span>
-0091             <span class="keyword">if</span> strcmpi(prop,<span class="string">'special'</span>)
-0092                 <span class="keyword">if</span> ischar(value) &amp;&amp; strcmpi(value,<span class="string">'rwth'</span>)
-0093                     special = value;
-0094                 <span class="keyword">else</span>
-0095                     disp(<span class="string">'applyGatesToSignal: ''special'' can only be ''rwth''.'</span>);
-0096                     disp(<span class="string">'applyGatesToSignal: Using default: none'</span>);
-0097                 <span class="keyword">end</span>
-0098             <span class="keyword">end</span>
-0099         <span class="keyword">end</span>
-0100     <span class="keyword">end</span>
-0101 <span class="keyword">end</span>
-0102 
-0103 <span class="comment">%% complex signal -&gt; noise per gate</span>
-0104 isimag = false;
-0105 <span class="keyword">if</span> ~isreal(signal)
-0106     isimag = true;
-0107     Ipart = imag(signal);
-0108     signal = real(signal);
-0109 <span class="keyword">end</span>
-0110 
-0111 <span class="comment">%% shift correction from MMP:</span>
-0112 VbaseCorr = abs(10*min(signal)); <span class="comment">% necessary for log to be real</span>
-0113 signal = signal + VbaseCorr;  <span class="comment">% shift signal into positive</span>
-0114 
-0115 <span class="comment">%% get time range 'ms' or 's'</span>
-0116 tfak = 1;
-0117 <span class="keyword">if</span> max(time) &gt; 30
-0118     tfak = 1e3;
-0119 <span class="keyword">end</span>
-0120 
-0121 <span class="comment">%% applying the gates</span>
-0122 <span class="keyword">switch</span> type
-0123     <span class="keyword">case</span> <span class="string">'log'</span>
-0124         <span class="comment">% get a log-spaced vector with numbers of echoes per gate</span>
-0125         index = round(logspace(0,3,Ng));
-0126         
-0127         <span class="keyword">if</span> strcmp(special,<span class="string">'rwth'</span>)
-0128             <span class="comment">% merge the first 3 data points if they are below 0.001 s</span>
-0129             <span class="keyword">if</span> all(time(1:3)&lt;1e-3*tfak)
-0130                 index(1) = 3;
-0131             <span class="keyword">end</span>
-0132         <span class="keyword">end</span>
-0133         <span class="comment">% the maximal No of echoes per time gates is set to M=50</span>
-0134         <span class="comment">% this stabilizes / improves the RMS estimation</span>
-0135 <span class="comment">%         if numel(time) &lt; 20000</span>
-0136 <span class="comment">%             M = 50;</span>
-0137 <span class="comment">%         else</span>
-0138 <span class="comment">%             M = 150;</span>
-0139 <span class="comment">%         end</span>
-0140         M = Ne;
-0141         <span class="comment">% find the first one where the number of echoes is M</span>
-0142         ind = find(abs(index-M)==min(abs(index-M)),1,<span class="string">'first'</span>);
-0143         <span class="comment">% maybe M is not exactly within index due to rounding issues</span>
-0144         <span class="comment">% then take the closest one</span>
-0145         M = index(ind);
-0146         i1 = find(index==M,1,<span class="string">'last'</span>);
-0147         <span class="comment">% sum up all gates up to M</span>
-0148         s1 = cumsum(index(1:i1));
-0149         <span class="comment">% how many gates with M echoes we need to add to get the whole</span>
-0150         <span class="comment">% signal</span>
-0151         N = ceil((length(time)-s1(end))/M);
-0152         <span class="comment">% make a new index vector</span>
-0153         index = [index(1:i1) M*ones(1,N)];
-0154         <span class="comment">% sum up all gates</span>
-0155         ci = cumsum(index);
-0156         <span class="comment">% find the last one we need to re-sample the whole signal</span>
-0157         indc = find(ci&gt;=length(time),1,<span class="string">'first'</span>);
-0158         
-0159         t = zeros(indc,1);
-0160         signal_g = zeros(indc,1);
-0161         Nechos = zeros(indc,1);
-0162         Noise = zeros(indc,1);
-0163         <span class="comment">% now loop over all gates</span>
-0164         <span class="keyword">for</span> i = 1:indc
-0165             <span class="keyword">if</span> i == 1                
-0166                 t(i) = mean(time(1:ci(i)));
-0167                 signal_g(i) = exp(mean(log(signal(1:ci(i)))));
-0168                 Nechos(i) = index(i);
-0169                 <span class="keyword">if</span> isimag
-0170                     <span class="keyword">if</span> numel(1:ci(i)) == 1
-0171                         Noise(i) = Ipart(1:ci(i));
-0172                     <span class="keyword">else</span>
-0173                         Noise(i) = std(Ipart(1:ci(i)));
-0174                     <span class="keyword">end</span>
-0175                 <span class="keyword">end</span>
-0176             <span class="keyword">elseif</span> i &gt; 1 &amp;&amp; i &lt; indc
-0177                 t(i) = mean(time(ci(i-1)+1:ci(i)));
-0178                 signal_g(i) = exp(mean(log(signal(ci(i-1)+1:ci(i)))));
-0179                 Nechos(i) = index(i);
-0180                 <span class="keyword">if</span> isimag
-0181                     <span class="keyword">if</span> numel(ci(i-1)+1:ci(i)) == 1
-0182                         Noise(i) = Ipart(ci(i-1)+1:ci(i));
-0183                     <span class="keyword">else</span>
-0184                         Noise(i) = std(Ipart(ci(i-1)+1:ci(i)));
-0185                     <span class="keyword">end</span>
-0186                     
-0187                 <span class="keyword">end</span>
-0188             <span class="keyword">end</span>
-0189             <span class="keyword">if</span> i == indc
-0190                 t(i) = mean(time(ci(i-1):end));
-0191                 signal_g(i) = exp(mean(log(signal(ci(i-1):end))));
-0192                 Nechos(i) = length(time)-ci(i-1)+1;
-0193                 <span class="keyword">if</span> isimag                    
-0194                     Noise(i) = std(Ipart(ci(i-1):end));
-0195                 <span class="keyword">end</span>
-0196             <span class="keyword">end</span>
-0197         <span class="keyword">end</span>
-0198 
-0199     <span class="keyword">case</span> <span class="string">'logv2'</span>
-0200         <span class="comment">% gateing routine from MRSMatlab by MMP</span>
-0201         
-0202         <span class="comment">% new log spaced time vector</span>
-0203         t1 = abs(logspace(log10(time(2)),log10(time(end)+time(2)),Ng) - time(2));
-0204 
-0205         <span class="comment">% get indices</span>
-0206         tInd = ones(1,length(t1));
-0207         <span class="keyword">for</span> n=2:length(t1)-1
-0208             tInd(n) = find(t1(n)&lt;=time,1);
-0209         <span class="keyword">end</span>
-0210         <span class="keyword">if</span> ~isempty(find(t1(end)&lt;=time,1)) <span class="comment">% avoid crash</span>
-0211             tInd(end) = find(t1(end)&lt;=time,1);
-0212         <span class="keyword">else</span>
-0213             tInd(end) = length(t1);
-0214         <span class="keyword">end</span>
-0215         
-0216         <span class="comment">% find unique indecies</span>
-0217         tInd = unique(tInd);
-0218         tInd = cumsum([0 sort(diff(tInd))])+1;
-0219         
-0220         <span class="comment">% prepare output data</span>
-0221         signal_g = zeros(1,length(tInd)-1);
-0222         t = zeros(1,length(tInd)-1);
-0223         Nechos = zeros(1,length(tInd)-1);
-0224 
-0225         <span class="comment">% calculate mean within a gate in logspace</span>
-0226         <span class="keyword">for</span> n=2:length(tInd)
-0227             signal_g(n-1) = exp(mean(log(signal(tInd(n-1):tInd(n)-1))));
-0228             t(n-1) = mean(time(tInd(n-1):tInd(n)-1));
-0229             Nechos(n-1) = length(time(tInd(n-1):tInd(n)-1));
-0230         <span class="keyword">end</span>
-0231         
-0232     <span class="keyword">case</span> <span class="string">'lin'</span>
-0233         
-0234         <span class="comment">% if more echoes per gate are desired, than the number of gates</span>
-0235         <span class="comment">% gives: update the number of gates ;-)</span>
-0236 <span class="comment">%         if numel(time)/Ng &gt; Ne</span>
-0237             Ng = round(numel(time)/Ne);            
-0238 <span class="comment">%         end</span>
-0239         
-0240         <span class="comment">% get a lin-spaced time vector</span>
-0241         timeg = linspace(time(2),time(end),Ng);
-0242         t = zeros(Ng,1);
-0243         signal_g = zeros(Ng,1);
-0244         signal_std = zeros(Ng,1);
-0245         Nechos = zeros(Ng,1);
-0246         <span class="keyword">for</span> i = 1:Ng
-0247             <span class="keyword">if</span> i == 1
-0248                 signal_g(i,1)= mean( signal(time&lt;=timeg(i)) );
-0249                 signal_std(i,1) = std( signal(time&lt;=timeg(i)) );
-0250                 Nechos(i,1) = length( signal(time&lt;=timeg(i)) );
-0251                 t(i,1) = 0 + timeg(1)/2;
-0252             <span class="keyword">else</span>
-0253                 signal_g(i,1) = mean( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
-0254                 signal_std(i,1) = std( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
-0255                 Nechos(i,1) = length( signal(time&lt;=timeg(i) &amp; time&gt;timeg(i-1)) );
-0256                 t(i,1) = timeg(i-1) + (timeg(i)-timeg(i-1))/2;
-0257             <span class="keyword">end</span>
-0258         <span class="keyword">end</span>
-0259 <span class="keyword">end</span>
-0260 
-0261 <span class="comment">% shift correction from MMP:</span>
-0262 signal = signal - VbaseCorr; <span class="comment">% subtract shift</span>
-0263 signal_g = signal_g - VbaseCorr; <span class="comment">% subtract shift</span>
-0264 
-0265 <span class="comment">% output struct</span>
-0266 data(:,1) = t;
-0267 data(:,2) = signal_g;
-0268 data(:,3) = Nechos;
-0269 <span class="keyword">if</span> isimag
-0270  data(:,4) = Noise;
-0271 <span class="keyword">end</span>
-0272 
-0273 <span class="comment">% if plotit is set to 1</span>
-0274 <span class="keyword">if</span> plotit == 1
-0275     figure;
-0276     subplot(211)
-0277     plot(time,signal); hold on
-0278     <span class="keyword">if</span> strcmp(type,<span class="string">'lin'</span>)
-0279         errorbar(t,signal_g,signal_std,<span class="string">'ko'</span>);
-0280     <span class="keyword">else</span>
-0281         plot(t,signal_g,<span class="string">'ko'</span>);
-0282     <span class="keyword">end</span>    
-0283     subplot(212);
-0284     semilogx(time,signal,<span class="string">'+-'</span>); hold on
-0285     semilogx(t,signal_g,<span class="string">'ko'</span>);
-0286 <span class="keyword">end</span>
-0287 
-0288 <span class="keyword">return</span>
-0289 
-0290 <span class="comment">%------------- END OF CODE --------------</span>
-0291 
-0292 <span class="comment">%% License:</span>
-0293 <span class="comment">% MIT License</span>
-0294 <span class="comment">%</span>
-0295 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0296 <span class="comment">%</span>
-0297 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0298 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0299 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0300 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0301 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0302 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0303 <span class="comment">%</span>
-0304 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0305 <span class="comment">% copies or substantial portions of the Software.</span>
-0306 <span class="comment">%</span>
-0307 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0308 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0309 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0310 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0311 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0312 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0313 <span class="comment">% SOFTWARE.</span></pre></div>
+0005 <span class="comment">% The signal within each gate is averaged arithmetically. In addition to</span>
+0006 <span class="comment">% the gated data, the function returns the indices of the original data</span>
+0007 <span class="comment">% points belonging to each gate. This allows the forward kernel to be</span>
+0008 <span class="comment">% gated consistently with the measured signal.</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">% Syntax:</span>
+0011 <span class="comment">%       data = applyGatesToSignal(time,signal)</span>
+0012 <span class="comment">%       data = applyGatesToSignal(time,signal,'type','log')</span>
+0013 <span class="comment">%       [data,gate] = applyGatesToSignal(time,signal,...)</span>
+0014 <span class="comment">%</span>
+0015 <span class="comment">% Inputs:</span>
+0016 <span class="comment">%       time   - time vector</span>
+0017 <span class="comment">%       signal - NMR signal vector; complex data are allowed. If complex,</span>
+0018 <span class="comment">%                the real part is gated and the imaginary part is used</span>
+0019 <span class="comment">%                to estimate the noise within each gate.</span>
+0020 <span class="comment">%       varargin - PROPERTY / VALUE options:%</span>
+0021 <span class="comment">%                   'type'    : 'log', 'logv2' or 'lin'</span>
+0022 <span class="comment">%                               default: 'log'%</span>
+0023 <span class="comment">%                   'Ng'      : number of gates / logarithmic sampling</span>
+0024 <span class="comment">%                               parameter</span>
+0025 <span class="comment">%                               default: 100%</span>
+0026 <span class="comment">%                   'Ne'      : maximum number of echoes per gate</span>
+0027 <span class="comment">%                               default: 500%</span>
+0028 <span class="comment">%                   'plotit'  : 0 or 1</span>
+0029 <span class="comment">%                               default: 0%</span>
+0030 <span class="comment">%                   'special' : 'rwth' or ''</span>
+0031 <span class="comment">%                               default: ''</span>
+0032 <span class="comment">%</span>
+0033 <span class="comment">% Outputs:</span>
+0034 <span class="comment">%       data(:,1) - mean time of each gate</span>
+0035 <span class="comment">%       data(:,2) - arithmetic mean signal of each gate</span>
+0036 <span class="comment">%       data(:,3) - number of echoes in each gate</span>
+0037 <span class="comment">%       data(:,4) - noise std within each gate, if complex input</span>
+0038 <span class="comment">%       gate.indices{i} - indices of original data belonging to gate i</span>
+0039 <span class="comment">%       gate.N          - number of echoes per gate</span>
+0040 <span class="comment">%       gate.time       - mean time per gate</span>
+0041 <span class="comment">%       gate.type       - applied gating method</span>
+0042 <span class="comment">%</span>
+0043 <span class="comment">% Notes:</span>
+0044 <span class="comment">%       The arithmetic mean is used intentionally. For independent,</span>
+0045 <span class="comment">%       identically distributed noise with standard deviation e, the</span>
+0046 <span class="comment">%       standard deviation of a gated data point is</span>
+0047 <span class="comment">%</span>
+0048 <span class="comment">%               sigma_i = e / sqrt(N_i)</span>
+0049 <span class="comment">%</span>
+0050 <span class="comment">%       where N_i is the number of echoes in gate i.</span>
+0051 <span class="comment">%</span>
+0052 <span class="comment">%       The explicit gate indices can additionally be used to calculate</span>
+0053 <span class="comment">%       an exactly gated forward kernel:</span>
+0054 <span class="comment">%</span>
+0055 <span class="comment">%               K_gate(i,:) = mean(K_raw(indices{i},:),1)</span>
+0056 <span class="comment">%</span>
+0057 <span class="comment">% Example:</span>
+0058 <span class="comment">%       applyGatesToSignal(time,signal,'type','log')</span>
+0059 <span class="comment">%</span>
+0060 <span class="comment">% Other m-files required:</span>
+0061 <span class="comment">%       none</span>
+0062 <span class="comment">%</span>
+0063 <span class="comment">% Subfunctions:</span>
+0064 <span class="comment">%       none</span>
+0065 <span class="comment">%</span>
+0066 <span class="comment">% MAT-files required:</span>
+0067 <span class="comment">%       none</span>
+0068 <span class="comment">%</span>
+0069 <span class="comment">% See also:</span>
+0070 <span class="comment">% Author: see AUTHORS.md</span>
+0071 <span class="comment">% email: see AUTHORS.md</span>
+0072 <span class="comment">% License: MIT License (at end)</span>
+0073 
+0074 <span class="comment">%------------- BEGIN CODE --------------</span>
+0075 
+0076 <span class="comment">%% default settings</span>
+0077 type    = <span class="string">'log'</span>;
+0078 Ne      = 500;
+0079 Ng      = 100;
+0080 plotit  = 0;
+0081 special = <span class="string">''</span>;
+0082 
+0083 <span class="comment">%% input vectors</span>
+0084 time = time(:);
+0085 signal = signal(:);
+0086 
+0087 <span class="keyword">if</span> length(time) ~= length(signal)
+0088     error(<span class="string">'time and signal must have the same number of elements.'</span>);
+0089 <span class="keyword">end</span>
+0090 <span class="keyword">if</span> isempty(time)
+0091     error(<span class="string">'time and signal must not be empty.'</span>);
+0092 <span class="keyword">end</span>
+0093 <span class="keyword">if</span> any(~isfinite(time))
+0094     error(<span class="string">'time must contain finite values only.'</span>);
+0095 <span class="keyword">end</span>
+0096 <span class="keyword">if</span> any(~isfinite(real(signal))) || any(~isfinite(imag(signal)))
+0097     error(<span class="string">'signal must contain finite values only.'</span>);
+0098 <span class="keyword">end</span>
+0099 
+0100 <span class="comment">%% property / value input</span>
+0101 <span class="keyword">if</span> mod(length(varargin),2) ~= 0
+0102     error(<span class="string">'Optional inputs must be PROPERTY / VALUE pairs.'</span>);
+0103 <span class="keyword">end</span>
+0104 <span class="keyword">for</span> i = 1:2:length(varargin)
+0105     prop  = varargin{i};
+0106     value = varargin{i+1};
+0107     <span class="keyword">switch</span> lower(prop)
+0108         <span class="keyword">case</span> {<span class="string">'type'</span>,<span class="string">'flag'</span>}
+0109             <span class="keyword">if</span> ischar(value) || isstring(value)
+0110                 value = lower(char(value));
+0111                 <span class="keyword">if</span> any(strcmp(value,{<span class="string">'log'</span>,<span class="string">'logv2'</span>,<span class="string">'lin'</span>}))
+0112                     type = value;
+0113                 <span class="keyword">else</span>
+0114                     error(<span class="string">'''type'' must be ''log'', ''logv2'' or ''lin''.'</span>);
+0115                 <span class="keyword">end</span>
+0116             <span class="keyword">else</span>
+0117                 error(<span class="string">'''type'' must be a character vector or string.'</span>);
+0118             <span class="keyword">end</span>
+0119         <span class="keyword">case</span> {<span class="string">'ng'</span>,<span class="string">'no'</span>}
+0120             <span class="keyword">if</span> isnumeric(value) &amp;&amp; isscalar(value) &amp;&amp; <span class="keyword">...</span>
+0121                     isfinite(value) &amp;&amp; value &gt;= 1
+0122                 Ng = round(value);
+0123             <span class="keyword">else</span>
+0124                 error(<span class="string">'''Ng'' must be a positive scalar value.'</span>);
+0125             <span class="keyword">end</span>
+0126         <span class="keyword">case</span> {<span class="string">'nechoes'</span>,<span class="string">'ne'</span>}
+0127             <span class="keyword">if</span> isnumeric(value) &amp;&amp; isscalar(value) &amp;&amp; <span class="keyword">...</span>
+0128                     isfinite(value) &amp;&amp; value &gt;= 1
+0129                 Ne = round(value);
+0130             <span class="keyword">else</span>
+0131                 error(<span class="string">'''Ne'' must be a positive scalar value.'</span>);
+0132             <span class="keyword">end</span>
+0133         <span class="keyword">case</span> {<span class="string">'plot'</span>,<span class="string">'plotit'</span>}
+0134             <span class="keyword">if</span> isnumeric(value) &amp;&amp; isscalar(value)
+0135                 plotit = logical(value);
+0136             <span class="keyword">else</span>
+0137                 error(<span class="string">'''plotit'' must be a scalar value.'</span>);
+0138             <span class="keyword">end</span>
+0139         <span class="keyword">case</span> <span class="string">'special'</span>
+0140             <span class="keyword">if</span> isempty(value)
+0141                 special = <span class="string">''</span>;
+0142             <span class="keyword">elseif</span> (ischar(value) || isstring(value)) &amp;&amp; <span class="keyword">...</span>
+0143                     strcmpi(value,<span class="string">'rwth'</span>)
+0144                 special = <span class="string">'rwth'</span>;
+0145             <span class="keyword">else</span>
+0146                 error(<span class="string">'''special'' can only be ''rwth'' or empty.'</span>);
+0147             <span class="keyword">end</span>
+0148         <span class="keyword">otherwise</span>
+0149             warning(<span class="string">'applyGatesToSignal:UnknownOption'</span>, <span class="keyword">...</span>
+0150                 <span class="string">'Unknown option &quot;%s&quot;.'</span>,prop);
+0151     <span class="keyword">end</span>
+0152 <span class="keyword">end</span>
+0153 
+0154 <span class="comment">%% complex signal</span>
+0155 <span class="comment">%  The real part is the NMR signal.</span>
+0156 <span class="comment">%  The imaginary part is retained for noise estimation.</span>
+0157 iscomplex = ~isreal(signal);
+0158 
+0159 <span class="keyword">if</span> iscomplex
+0160     Ipart = imag(signal);
+0161     signal = real(signal);
+0162 <span class="keyword">else</span>
+0163     Ipart = [];
+0164 <span class="keyword">end</span>
+0165 
+0166 <span class="comment">%% time unit</span>
+0167 <span class="comment">% Kept for compatibility with the original RWTH special handling.</span>
+0168 tfak = 1;
+0169 <span class="keyword">if</span> max(time) &gt; 30
+0170     tfak = 1e3;
+0171 <span class="keyword">end</span>
+0172 
+0173 <span class="comment">%% construct gate indices</span>
+0174 <span class="comment">%  All three methods generate gate.indices. The actual averaging is then</span>
+0175 <span class="comment">%  performed in one common section below.</span>
+0176 gate.indices = {};
+0177 <span class="keyword">switch</span> lower(type)
+0178     <span class="comment">% LOG</span>
+0179     <span class="comment">% Increasing number of echoes per gate:</span>
+0180     <span class="comment">%       1, ..., Ne</span>
+0181     <span class="comment">% followed by gates containing at most Ne echoes.</span>
+0182     <span class="keyword">case</span> <span class="string">'log'</span>
+0183         <span class="comment">% logarithmically increasing number of echoes per gate</span>
+0184         index = round(logspace(0,3,Ng));
+0185 
+0186         <span class="comment">% optional RWTH handling:</span>
+0187         <span class="comment">% merge first three data points if they are below 0.001 s</span>
+0188         <span class="keyword">if</span> strcmpi(special,<span class="string">'rwth'</span>) &amp;&amp; length(time) &gt;= 3
+0189             <span class="keyword">if</span> all(time(1:3) &lt; 1e-3*tfak)
+0190                 index(1) = 3;
+0191             <span class="keyword">end</span>
+0192         <span class="keyword">end</span>
+0193         <span class="comment">% find value closest to requested maximum Ne</span>
+0194         [~,ind] = min(abs(index-Ne));
+0195         M = index(ind);
+0196 
+0197         <span class="comment">% keep increasing gates up to M</span>
+0198         index = index(1:ind);
+0199 
+0200         <span class="comment">% create gates sequentially</span>
+0201         iStart = 1;
+0202         iGate  = 0;
+0203         <span class="keyword">while</span> iStart &lt;= length(time)
+0204             iGate = iGate + 1;
+0205             <span class="keyword">if</span> iGate &lt;= length(index)
+0206                 nThis = index(iGate);
+0207             <span class="keyword">else</span>
+0208                 <span class="comment">% after reaching M, use constant gate size</span>
+0209                 nThis = M;
+0210             <span class="keyword">end</span>
+0211 
+0212             iEnd = min(iStart+nThis-1,length(time));
+0213             gate.indices{iGate,1} = (iStart:iEnd)';
+0214             iStart = iEnd+1;
+0215         <span class="keyword">end</span>
+0216 
+0217     <span class="comment">% LOGV2</span>
+0218     <span class="comment">% Logarithmically spaced gate boundaries in time.</span>
+0219     <span class="comment">% This retains the basic concept of the original MRSMatlab routine,</span>
+0220     <span class="comment">% but explicitly creates non-overlapping index sets.</span>
+0221     <span class="keyword">case</span> <span class="string">'logv2'</span>
+0222         <span class="keyword">if</span> length(time) &lt; 2
+0223             error(<span class="string">'''logv2'' requires at least two time points.'</span>);
+0224         <span class="keyword">end</span>
+0225 
+0226         <span class="comment">% The original implementation used time(2) as the logarithmic</span>
+0227         <span class="comment">% offset. Retain this behavior.</span>
+0228         dt0 = time(2);
+0229         <span class="keyword">if</span> dt0 &lt;= 0
+0230             error([<span class="string">'''logv2'' requires time(2) &gt; 0 for logarithmic '</span>, <span class="keyword">...</span>
+0231                    <span class="string">'gate construction.'</span>]);
+0232         <span class="keyword">end</span>
+0233 
+0234         <span class="comment">% logarithmically spaced representative boundaries</span>
+0235         t1 = abs(logspace(log10(dt0),log10(time(end)+dt0),Ng)-dt0);
+0236 
+0237         <span class="comment">% convert time boundaries to indices</span>
+0238         tInd = zeros(size(t1));
+0239         <span class="keyword">for</span> n = 1:length(t1)
+0240             ind = find(time &gt;= t1(n),1,<span class="string">'first'</span>);
+0241             <span class="keyword">if</span> isempty(ind)
+0242                 ind = length(time);
+0243             <span class="keyword">end</span>
+0244             tInd(n) = ind;
+0245         <span class="keyword">end</span>
+0246 
+0247         <span class="comment">% enforce valid and unique boundaries</span>
+0248         tInd = unique(tInd,<span class="string">'stable'</span>);
+0249         tInd(tInd &lt; 1) = [];
+0250         tInd(tInd &gt; length(time)) = [];
+0251 
+0252         <span class="comment">% make sure first point is included</span>
+0253         <span class="keyword">if</span> isempty(tInd) || tInd(1) ~= 1
+0254             tInd = [1 tInd];
+0255         <span class="keyword">end</span>
+0256 
+0257         <span class="comment">% use boundaries to construct non-overlapping gates</span>
+0258         iGate = 0;
+0259         <span class="keyword">for</span> n = 1:length(tInd)-1
+0260             iStart = tInd(n);
+0261             iEnd = tInd(n+1)-1;
+0262 
+0263             <span class="keyword">if</span> iEnd &gt;= iStart
+0264                 iGate = iGate+1;
+0265                 gate.indices{iGate,1} = (iStart:iEnd)';
+0266             <span class="keyword">end</span>
+0267         <span class="keyword">end</span>
+0268 
+0269         <span class="comment">% final gate includes all remaining points</span>
+0270         iStart = tInd(end);
+0271         <span class="keyword">if</span> iStart &lt;= length(time)
+0272             iGate = iGate+1;
+0273             gate.indices{iGate,1} = (iStart:length(time))';
+0274         <span class="keyword">end</span>
+0275 
+0276     <span class="comment">% LIN</span>
+0277     <span class="comment">% Approximately constant number Ne of echoes per gate.</span>
+0278     <span class="comment">%</span>
+0279     <span class="comment">% This replaces the previous time-mask implementation by explicit,</span>
+0280     <span class="comment">% consecutive index ranges. This prevents empty gates and guarantees</span>
+0281     <span class="comment">% that every data point belongs to exactly one gate</span>
+0282     <span class="keyword">case</span> <span class="string">'lin'</span>
+0283         <span class="comment">% retain original interpretation:</span>
+0284         <span class="comment">% Ne controls approximately how many echoes belong to one gate</span>
+0285         NgLin = max(1,round(length(time)/Ne));
+0286         <span class="comment">% distribute all data points as evenly as possible over NgLin gates</span>
+0287         edges = round(linspace(0,length(time),NgLin+1));
+0288 
+0289         iGate = 0;
+0290         <span class="keyword">for</span> n = 1:NgLin
+0291             iStart = edges(n)+1;
+0292             iEnd   = edges(n+1);
+0293             <span class="keyword">if</span> iEnd &gt;= iStart
+0294                 iGate = iGate+1;
+0295                 gate.indices{iGate,1} = (iStart:iEnd)';
+0296             <span class="keyword">end</span>
+0297         <span class="keyword">end</span>
+0298 <span class="keyword">end</span>
+0299 
+0300 <span class="comment">%% consistency check of gate indices</span>
+0301 <span class="comment">%  Every raw data point must occur exactly once.</span>
+0302 <span class="keyword">if</span> isempty(gate.indices)
+0303     error(<span class="string">'No valid gates could be generated.'</span>);
+0304 <span class="keyword">end</span>
+0305 
+0306 allInd = vertcat(gate.indices{:});
+0307 <span class="keyword">if</span> length(allInd) ~= length(time) || <span class="keyword">...</span>
+0308         any(sort(allInd) ~= (1:length(time))')
+0309     error([<span class="string">'Invalid gate definition: every input data point must '</span>, <span class="keyword">...</span>
+0310            <span class="string">'belong to exactly one gate.'</span>]);
+0311 <span class="keyword">end</span>
+0312 
+0313 <span class="comment">%% calculate gated data</span>
+0314 <span class="comment">%  IMPORTANT:</span>
+0315 <span class="comment">%  arithmetic averaging is used for ALL gating methods</span>
+0316 nGates = length(gate.indices);
+0317 t = zeros(nGates,1);
+0318 signal_g = zeros(nGates,1);
+0319 Nechos   = zeros(nGates,1);
+0320 
+0321 <span class="keyword">if</span> iscomplex
+0322     Noise = zeros(nGates,1);
+0323 <span class="keyword">end</span>
+0324 
+0325 <span class="keyword">for</span> i = 1:nGates
+0326     ind = gate.indices{i};
+0327     <span class="comment">% representative time</span>
+0328     t(i) = mean(time(ind));
+0329     <span class="comment">% arithmetic mean of NMR signal</span>
+0330     signal_g(i) = mean(signal(ind));
+0331     <span class="comment">% actual number of echoes in this gate</span>
+0332     Nechos(i) = length(ind);
+0333     <span class="comment">% local estimate from imaginary channel</span>
+0334     <span class="keyword">if</span> iscomplex
+0335         <span class="keyword">if</span> length(ind) &gt; 1
+0336             Noise(i) = std(Ipart(ind));
+0337         <span class="keyword">else</span>
+0338             <span class="comment">% standard deviation cannot be estimated from one sample</span>
+0339             Noise(i) = NaN;
+0340         <span class="keyword">end</span>
+0341     <span class="keyword">end</span>
+0342 <span class="keyword">end</span>
+0343 
+0344 <span class="comment">%% output data</span>
+0345 <span class="keyword">if</span> iscomplex
+0346     data = zeros(nGates,4);
+0347 <span class="keyword">else</span>
+0348     data = zeros(nGates,3);
+0349 <span class="keyword">end</span>
+0350 data(:,1) = t;
+0351 data(:,2) = signal_g;
+0352 data(:,3) = Nechos;
+0353 <span class="keyword">if</span> iscomplex
+0354     data(:,4) = Noise;
+0355 <span class="keyword">end</span>
+0356 
+0357 <span class="comment">%% additional gate information</span>
+0358 gate.N    = Nechos;
+0359 gate.time = t;
+0360 gate.time_raw = time;
+0361 gate.type = type;
+0362 
+0363 <span class="comment">%% plot (optional)</span>
+0364 <span class="keyword">if</span> plotit
+0365     figure;
+0366     subplot(2,1,1);
+0367     plot(time,signal,<span class="string">'-'</span>);
+0368     hold on;
+0369     plot(t,signal_g,<span class="string">'ko'</span>);
+0370     xlabel(<span class="string">'Time'</span>);
+0371     ylabel(<span class="string">'Signal'</span>);
+0372     title([<span class="string">'Gating: '</span>,type]);
+0373 
+0374     subplot(2,1,2);
+0375     semilogx(time,signal,<span class="string">'+-'</span>);
+0376     hold on;
+0377     semilogx(t,signal_g,<span class="string">'ko'</span>);
+0378     xlabel(<span class="string">'Time'</span>);
+0379     ylabel(<span class="string">'Signal'</span>);
+0380 <span class="keyword">end</span>
+0381 
+0382 <span class="keyword">return</span>
+0383 
+0384 <span class="comment">%------------- END OF CODE --------------</span>
+0385 
+0386 <span class="comment">%% License:</span>
+0387 <span class="comment">% MIT License</span>
+0388 <span class="comment">%</span>
+0389 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0390 <span class="comment">%</span>
+0391 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0392 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0393 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0394 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0395 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0396 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0397 <span class="comment">%</span>
+0398 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0399 <span class="comment">% copies or substantial portions of the Software.</span>
+0400 <span class="comment">%</span>
+0401 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0402 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0403 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0404 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0405 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0406 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0407 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

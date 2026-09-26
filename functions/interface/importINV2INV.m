@@ -171,7 +171,7 @@ if sum(Sessionpath) > 0
                             case {'mono','free'}
                                 invparams.T1IRfac = savedata.INVdata{i}.results.nmrproc.T1IRfac;
                                 invparams.noise = savedata.INVdata{i}.results.nmrproc.noise;
-                                invparams.optim = data.info.has_optim;
+                                invparams.has_optim = data.info.has_optim;
                                 invparams.Tfixed_bool = savedata.INVdata{i}.invstd.Tfixed_bool;
                                 invparams.Tfixed_val = savedata.INVdata{i}.invstd.Tfixed_val;
                                 if isfield(savedata.INVdata{i}.results.nmrproc,'W')
@@ -201,7 +201,7 @@ if sum(Sessionpath) > 0
                                         invparams.solver = savedata.data.info.solver;
                                     case 'MUMO'
                                         invparams.nModes = savedata.INVdata{i}.invstd.freeDT;
-                                        invparams.optim = data.info.has_optim;
+                                        invparams.has_optim = data.info.has_optim;
                                 end
                         end
                         % add the new field to the inversion results
@@ -263,6 +263,29 @@ if sum(Sessionpath) > 0
                         savedata.INVdata{i}.results.nmrproc.imag_chi2 = nmrproc_out.imag_chi2;
                     end
                 end
+            end
+            if version_in < 420 % changes introduced with v.0.4.2
+                % has_optim from 'on'/'off' to true/false
+                if strcmp(savedata.data.info.has_optim,'on')
+                    savedata.data.info.has_optim = true;
+                else
+                    savedata.data.info.has_optim = false;
+                end
+                % solver names changed
+                if strcmp(savedata.data.info.solver,'lsqlin')
+                    savedata.data.info.solver = 'optimTB';
+                else
+                    savedata.data.info.solver = 'internal';
+                end
+                % stat from 'on'/'off' to true/false
+                if strcmp(savedata.data.info.stat,'on')
+                    savedata.data.info.has_stat = true;
+                else
+                    savedata.data.info.has_stat = false;
+                end
+                % remove old stat field
+                savedata.data.info = rmfield(savedata.data.info,'stat');
+
             end
         end
 
@@ -343,32 +366,31 @@ if sum(Sessionpath) > 0
 
         % adjust menu entry for LSQ solver
         % first check if we have the optimization toolbox
-        switch data0.info.has_optim
-            case 'on'
-                % if yes, set the solver accordingly
-                switch savedata.data.info.solver
-                    case 'lsqlin'
-                        set(gui.menu.extra_solver_lsqlin,'Checked','on');
-                        onMenuSolver(gui.menu.extra_solver_lsqlin);
-                    case 'lsqnonneg'
-                        set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
-                        onMenuSolver(gui.menu.extra_solver_lsqnonneg);
-                end
-                % check if the EchoFlag was set and set it agin if
-                % neccessary
-                switch savedata.data.info.EchoFlag
-                    case 'on'
-                        set(gui.menu.extra_lsqlin_echoflag,'Checked','on');
-                    case 'off'
-                        set(gui.menu.extra_lsqlin_echoflag,'Checked','off');
-                end
-            case 'off'
-                % if not set solver to LSQNONNEG
-                data.info.has_optim = 'off';
-                set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
-                onMenuSolver(gui.menu.extra_solver_lsqnonneg);
-                set(gui.menu.extra_solver,'Enable','off');
-        end        
+        if data0.info.has_optim
+            % if yes, set the solver accordingly
+            switch savedata.data.info.solver
+                case 'optimTB'
+                    set(gui.menu.extra_solver_lsqlin,'Checked','on');
+                    onMenuSolver(gui.menu.extra_solver_lsqlin);
+                case 'internal'
+                    set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+                    onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+            end
+            % check if the EchoFlag was set and set it agin if
+            % neccessary
+            switch savedata.data.info.EchoFlag
+                case 'on'
+                    set(gui.menu.extra_lsqlin_echoflag,'Checked','on');
+                case 'off'
+                    set(gui.menu.extra_lsqlin_echoflag,'Checked','off');
+            end
+        else
+            % if not set solver to internal
+            data.info.has_optim = false;
+            set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+            onMenuSolver(gui.menu.extra_solver_lsqnonneg);
+            set(gui.menu.extra_solver,'Enable','off');
+        end
         
         % adjust menu entry for L-curve method
         switch savedata.data.info.LcurveMethod

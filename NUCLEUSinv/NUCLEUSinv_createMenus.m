@@ -374,28 +374,26 @@ switch gui.myui.inidata.expertmode
 end
 
 % 3.2 optimization toolbox (on/off)
-gui.menu.extra_solver = uimenu(gui.menu.extra,'Label','LSQ Solver');
+gui.menu.extra_solver = uimenu(gui.menu.extra,'Label','Numerical Solver');
 gui.menu.extra_solver_lsqlin = uimenu(gui.menu.extra_solver,...
-    'Label','LSQLIN (Optim. TB)','Checked','on','Callback',@onMenuSolver);
+    'Label','Optimization TB','Checked','on','Callback',@onMenuSolver);
 gui.menu.extra_solver_lsqnonneg = uimenu(gui.menu.extra_solver,...
-    'Label','LSQNONNEG','Callback',@onMenuSolver);
-switch data.info.has_optim
-    case 'on'
-        set(gui.menu.extra_solver_lsqlin,'Checked','on');
-        set(gui.menu.extra_solver_lsqnonneg,'Checked','off');
-    case 'off'
-        set(gui.menu.extra_solver_lsqlin,'Checked','off');
-        set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
+    'Label','Matlab Internal','Callback',@onMenuSolver);
+if data.info.has_optim
+    set(gui.menu.extra_solver_lsqlin,'Checked','on');
+    set(gui.menu.extra_solver_lsqnonneg,'Checked','off');
+else
+    set(gui.menu.extra_solver_lsqlin,'Checked','off');
+    set(gui.menu.extra_solver_lsqnonneg,'Checked','on');
 end
 
 switch gui.myui.inidata.expertmode
     case 'on'
-        switch data.info.has_optim
-            case 'on'
-                set(gui.menu.extra_solver,'Enable','on');
-            case 'off'
-                set(gui.menu.extra_solver,'Enable','off');
-        end        
+        if data.info.has_optim
+            set(gui.menu.extra_solver,'Enable','on');
+        else
+            set(gui.menu.extra_solver,'Enable','off');
+        end
     case 'off'
         set(gui.menu.extra_solver,'Enable','off');
 end
@@ -405,12 +403,11 @@ gui.menu.extra_lsqlin_echoflag = uimenu(gui.menu.extra,...
     'Label','RTD<TE/5=0','Callback',@onMenuExtraEchoFlag);
 switch gui.myui.inidata.expertmode
     case 'on'
-        switch data.info.has_optim
-            case 'on'
-                set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
-            case 'off'
-                set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
-        end        
+        if data.info.has_optim
+            set(gui.menu.extra_lsqlin_echoflag,'Enable','on');
+        else
+            set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
+        end
     case 'off'
         set(gui.menu.extra_lsqlin_echoflag,'Enable','off');
 end

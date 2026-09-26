@@ -31,6 +31,8 @@ function J = estimateJacobian(f,x)
 
 %------------- BEGIN CODE --------------
 
+% get dimensions of x
+[dimx,dimy] = size(x);
 % define increment
 delta = 1e-7*sqrt(norm(x));
 % evaluate function at point x
@@ -42,7 +44,7 @@ m = length(x);
 J = zeros(n,m);
 % loop over paramters
 for i = 1:m
-    dx = zeros(1,m);
+    dx = zeros(dimx,dimy);
     dx(i) = delta/2;
     % evaluate single parameters at x+dx and x-dx
     % and divide the differenece by the increment

@@ -34,8 +34,7 @@ function runInversionJoint
 %       removeInversionFields	
 %       updateInfo
 %       updatePlotsJointInversion	
-%       updatePlotsLcurve	
-
+%       updatePlotsLcurve
 %
 % Subfunctions:
 %       none
@@ -274,6 +273,10 @@ if foundINV
                                 iparam.g = g;
                                 if useW
                                     iparam.W = W;
+                                    sigma = diag(W);
+                                    iparam.scale = max(abs(g(:)./sigma));
+                                else
+                                    iparam.scale = max(g);
                                 end
                                 iparam.Tb = data.invstd.Tbulk;
                                 iparam.Td = data.invstd.Tdiff;
@@ -293,20 +296,15 @@ if foundINV
                                 lb = [zeros(size(igeom.radius))' rhobounds(1)];
                                 ub = [ones(size(igeom.radius))' rhobounds(2)];
                                 
-                                options = optimset('Display',info,'TolFun',1e-12,'TolX',1e-12,...
-                                    'Jacobian','on','DerivativeCheck','off','FinDiffType','central',...
-                                    'Algorithm','levenberg-marquardt',...
-                                    'MaxIter',1000);
-                                
+                                % optimization settings
+                                options = optimoptions('lsqnonlin', ...
+                                    'Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',true, ...
+                                    'ScaleProblem','jacobian','Display',info,'MaxIterations',500, ...
+                                    'MaxFunctionEvaluations',10000,'FunctionTolerance',1e-12, ...
+                                    'StepTolerance',1e-10, 'OptimalityTolerance',1e-8);                                
                                 [X,~,~,~] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
                                 [~,~,ig,~] = fcn_JointInvfree(X,iparam);
-                                
-                                if useW
-                                    % normalize the fit because the signal was error
-                                    % weighted for the inversion
-                                    ig = iparam.W * ig;
-                                end
-                        
+
                                 residual = ig - g';
                                 iF = X(1:length(X)-1);
                                 
@@ -374,6 +372,10 @@ if foundINV
                         iparam.g = g;
                         if useW
                             iparam.W = W;
+                            sigma = diag(W);
+                            iparam.scale = max(abs(g(:)./sigma));
+                        else
+                            iparam.scale = max(g);
                         end
                         iparam.Tb = data.invstd.Tbulk;
                         iparam.Td = data.invstd.Tdiff;
@@ -398,22 +400,17 @@ if foundINV
                         displayStatusText(gui,infostring);
                         
                         % optimization settings
-                        options = optimset('Display',info,'TolFun',1e-12,'TolX',1e-12,...
-                            'Jacobian','on','DerivativeCheck','off','FinDiffType','central',...
-                            'Algorithm','levenberg-marquardt',...
-                            'MaxIter',1000);
+                        options = optimoptions('lsqnonlin', ...
+                            'Algorithm','levenberg-marquardt','SpecifyObjectiveGradient',true, ...
+                            'ScaleProblem','jacobian','Display',info,'MaxIterations',500, ...
+                            'MaxFunctionEvaluations',10000,'FunctionTolerance',1e-12, ...
+                            'StepTolerance',1e-10, 'OptimalityTolerance',1e-8);
                         [X,~,~,exitflag] = lsqnonlin(@(X)fcn_JointInvfree(X,iparam),x0,lb,ub,options);
                         
                         % status bar information
                         displayStatusText(gui,[infostring,'done']);
                         % get the final fit
                         [~,~,ig,KK] = fcn_JointInvfree(X,iparam);
-                        
-                        if useW
-                            % normalize the fit because the signal was error
-                            % weighted for the inversion
-                            ig = iparam.W * ig;
-                        end
                 
                         % the inverted surface relaxivity and PSD
                         iF = X(1:length(X)-1);
@@ -511,18 +508,12 @@ if foundINV
                 displayStatusText(gui,infostring);
                 
                 options = optimset('Display',info,'TolFun',1e-12,'TolX',1e-12,...
-                    'MaxFunEvals',300,'MaxIter',300);
+                    'MaxFunEvals',1000,'MaxIter',500);
                 X = fminsearchbnd(@(X) fcn_JointInvfixed(X,iparam),x0,lb,ub,options);
                 
                 [errnorm,ig,XX,iGEOM,iSAT] = fcn_JointInvfixed(X,iparam);
                 
-                displayStatusText(gui,[infostring,'done']);
-                
-                if useW
-                    % normalize the fit because the signal was error
-                    % weighted for the inversion
-                    ig = iparam.W * ig;
-                end                
+                displayStatusText(gui,[infostring,'done']); 
                 
                 % inverted surface relaxivity
                 irho = 10^X(1);
@@ -614,33 +605,24 @@ if foundINV
                 % old way
                 x0 = [log10(data.invjoint.rhostart/1e6) data.invjoint.anglestart];
                 rhobounds = log10(data.invjoint.rhobounds/1e6);
-                lb = [rhobounds(1) 0.1];
+                lb = [rhobounds(1) 0.01];
                 ub = [rhobounds(2) 45];
                 
                 infostring = 'Joint Inversion (shape) using ''fminsearchbnd'' ... ';
                 displayStatusText(gui,infostring);
-                options = optimset('Display','iter','TolFun',1e-12,'TolX',1e-12,'MaxIter',500);
-                options.Algorithm = 'levenberg-marquardt';
-                options.MaxFunEvals = 500;
-                options.DiffMinChange = 1;
                 
                 options = optimset('Display',info,'TolFun',1e-9,'TolX',1e-9,...
-                    'MaxFunEvals',300,'MaxIter',300);
-                X = fminsearchbnd(@(X) fcn_JointInvshape(X,iparam),x0,lb,ub,options);
+                    'MaxFunEvals',1000,'MaxIter',500);
+                X = fminsearchbnd(@(X) fcn_JointInvshape_clean(X,iparam),x0,lb,ub,options);
                 
-                [errnorm,ig,XX,iGEOM,iSAT] = fcn_JointInvshape(X,iparam);
+                [errnorm,ig,XX,iGEOM,iSAT] = fcn_JointInvshape_clean(X,iparam);
                 
                 displayStatusText(gui,[infostring,'done']);
                 
-                if useW
-                    % normalize the fit because the signal was error
-                    % weighted for the inversion
-                    ig = iparam.W * ig;
-                end
-                
+                % inverted surface relaxivity and angle beta
                 irho = 10^X(1);
                 ibeta = X(2);
-                
+                % output data
                 data.results.invjoint.p0 = p0;
                 data.results.invjoint.S0 = S0;
                 data.results.invjoint.levels = levels;

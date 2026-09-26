@@ -155,7 +155,7 @@ if sum(ASCIIpath) > 0
                     % try saturation recovery (SR) first
                     param.T1IRfac = 1;
                     param.noise = 0;
-                    param.optim = data.info.has_optim;
+                    param.has_optim = data.info.has_optim;
                     param.Tfixed_bool = [0 0 0 0 0];
                     param.Tfixed_val = [0 0 0 0 0];
                     noise1 = zeros(5,2);
@@ -169,7 +169,7 @@ if sum(ASCIIpath) > 0
                     % now inversion recovery (IR)
                     param.T1IRfac = 2;
                     param.noise = 0;
-                    param.optim = data.info.has_optim;
+                    param.has_optim = data.info.has_optim;
                     param.Tfixed_bool = [0 0 0 0 0];
                     param.Tfixed_val = [0 0 0 0 0];
                     noise2 = zeros(5,2);
@@ -199,7 +199,7 @@ if sum(ASCIIpath) > 0
                     end
                     param.T1IRfac = T1IRfac;
                     param.noise = 0;
-                    param.optim = data.info.has_optim;
+                    param.has_optim = data.info.has_optim;
                     param.Tfixed_bool = [0 0 0 0 0];
                     param.Tfixed_val = [0 0 0 0 0];
                     invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
@@ -221,7 +221,7 @@ if sum(ASCIIpath) > 0
                         % noise estimate
                         param.T1IRfac = 1;
                         param.noise = 0;
-                        param.optim = data.info.has_optim;
+                        param.has_optim = data.info.has_optim;
                         param.Tfixed_bool = [0 0 0 0 0];
                         param.Tfixed_val = [0 0 0 0 0];
                         invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...

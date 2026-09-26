@@ -143,7 +143,7 @@ for j1 = 1:numel(pardata.T1Axis)
     % fit the data to estimate a dummy imag part
     param.T1IRfac = 1;
     param.noise = 0;
-    param.optim = 'off';
+    param.has_optim = false;
     param.Tfixed_bool = [0 0 0 0 0];
     param.Tfixed_val = [0 0 0 0 0];
     invstd_tmp = fitDataFree(time,re,'T2',param,5);

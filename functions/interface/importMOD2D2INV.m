@@ -167,7 +167,7 @@ if isfield(data.import,'NMRMOD')
     disp('NUCLUESinv import: Estimating noise from exponential fit ...');
     param.T1IRfac = 2;
     param.noise = 0;
-    param.optim = 'off';
+    param.has_optim = false;
     param.Tfixed_bool = [0 0 0 0 0];
     param.Tfixed_val = [0 0 0 0 0];
     for i1 = 1:5

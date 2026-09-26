@@ -43,30 +43,28 @@ switch fig_tag
                 set(gui.textMode,'String','Expert Mode: OFF');
         end
         
-        switch data.info.has_optim
-            case 'on'
-                set(gui.textOptim,'String','Optim. Toolbox: ON');
-            case 'off'
-                set(gui.textOptim,'String','Optim. Toolbox: OFF');
+        if data.info.has_optim
+            set(gui.textOptim,'String','Optim. Toolbox: ON');
+        else
+            set(gui.textOptim,'String','Optim. Toolbox: OFF');
         end
         
         switch data.info.solver
-            case 'lsqnonneg'
-                set(gui.textSolver,'String','LSQNONNEG');
-            case 'lsqlin'
+            case 'internal'
+                set(gui.textSolver,'String','INTERNAL');
+            case 'optimTB'
                 switch data.info.EchoFlag
                     case 'on'
-                        set(gui.textSolver,'String','LSQLIN(<TE/5=0)');
+                        set(gui.textSolver,'String','OPTIM TB (<TE/5=0)');
                     case 'off'
-                        set(gui.textSolver,'String','LSQLIN');
+                        set(gui.textSolver,'String','OPTIM TB');
                 end
         end
         
-        switch data.info.stat
-            case 'on'
-                set(gui.textStats,'String','Stat. Toolbox: ON');
-            case 'off'
-                set(gui.textStats,'String','Stat. Toolbox: OFF');
+        if data.info.has_stat
+            set(gui.textStats,'String','Stat. Toolbox: ON');
+        else
+            set(gui.textStats,'String','Stat. Toolbox: OFF');
         end
         
         switch data.info.JointInv

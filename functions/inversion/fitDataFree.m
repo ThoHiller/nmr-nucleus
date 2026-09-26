@@ -13,7 +13,7 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 %                   info : command line output switch
 %                   noise: NMR data noise
 %                   W    : error weighting matrix (optional)
-%                   optim: switch for Optimization Toolbox
+%                 solver : 'optimTB' or 'internal'
 %       nExp - No. of free exponential(s)
 %
 % Outputs:
@@ -131,8 +131,8 @@ else % if not proceed with the standard version
     end
 end
 
-switch parameter.optim
-    case 'on'
+switch parameter.solver
+    case 'optimTB'
         switch flag
             case 'T1'
                 % solver options
@@ -158,7 +158,7 @@ switch parameter.optim
                 % [x,~,~,~,output,~,jacobian] = lsqcurvefit(@fcn_fitFreeT2,...
                 %     x0,t,s,zeros(size(x0)),[],options);
         end
-    case 'off'
+    case 'internal'
         % solver options
         options = optimset('Display',parameter.info,'MaxFunEvals',10^6,...
             'MaxIter',5000,'TolFun',1e-12,'TolX',1e-12);
@@ -192,16 +192,16 @@ else
 end
 
 % get Jacobian
-switch parameter.optim
-    case 'on'
+switch parameter.solver
+    case 'optimTB'
         % nothing to do because the Optim. Toolbox gives the jacobian as
         % output
-    case 'off'
+    case 'internal'
         jacobian = getFitFreeJacobian(x,t,flag,IRfac);
 end
 
 % confidence interval
-ci = getConfInterval(out.resnorm,jacobian,0.05);
+ci = getConfInterval(out.resnorm,full(jacobian),0.05);
 
 % sort the relaxation times in ascending order
 E0 = x(1:2:end);

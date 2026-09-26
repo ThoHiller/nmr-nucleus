@@ -4,7 +4,7 @@
 <head>
   <title>Description of fitDataMultiModal</title>
   <meta name="keywords" content="fitDataMultiModal">
-  <meta name="description" content=" is a control routine that uses either 'lsqnonlin' or">
+  <meta name="description" content=" Fit NMR data using a superposition of multiple">
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
   <meta name="generator" content="m2html &copy; 2005 Guillaume Flandin">
   <meta name="robots" content="index, follow">
@@ -20,33 +20,47 @@
 </h1>
 
 <h2><a name="_name"></a>PURPOSE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="box"><strong> is a control routine that uses either 'lsqnonlin' or</strong></div>
+<div class="box"><strong> Fit NMR data using a superposition of multiple</strong></div>
 
 <h2><a name="_synopsis"></a>SYNOPSIS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="box"><strong>function [fitdata] = fitDataMultiModal(time,signal,parameter) </strong></div>
 
 <h2><a name="_description"></a>DESCRIPTION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
-<div class="fragment"><pre class="comment">fitDataMultiModal is a control routine that uses either 'lsqnonlin' or
-'fminsearchbnd' to fit NMR data with 'nModes' multi modal relaxation time
-distributions (T1 or T2)
+<div class="fragment"><pre class="comment">fitDataMultiModal Fit NMR data using a superposition of multiple
+relaxation-time distributions.
+
+ The RTD is represented by nModes Gaussian distributions on a
+ logarithmically equidistant relaxation-time axis.
+
+ The nonlinear model parameters of each mode are
+
+   x(3*i-2) = log(mu_i)   logarithm of modal relaxation time
+   x(3*i-1) = sigma_i     width in log(T) space
+   x(3*i)   = E_i         amplitude
+
+ The routine uses either LSQNONLIN or FMINSEARCHBND.
 
  Syntax:
-       fitDataMultiModal(time,signal,flag,parameter,nExp)
+       fitdata = fitDataMultiModal(time,signal,parameter)
 
- InputsR:
-       time - time vector
-       signal - NMR signal vector (no complex data allowed!)
-       parameter - struct that holds additional settings:
-                   nModes   : No. of free distributions
-                   T1T2     : flag between 'T1' or 'T2' inversion
-                   T1IRfac  : either '1' or '2' depending on T1 method
-                   Tb       : bulk relaxation time
-                   Td       : diffusion relaxation time
-                   Tint     : relaxation times [log10(tmin) log10(tmax) Ndec]
-                   noise    : noise level needed for 'discrep' discrepancy
-                              principle
-                   optim    : 'on' or 'off' (Optimization Toolbox)
-                   W        : error weighting matrix (optional)
+ Inputs:
+       time      - time vector
+       signal    - NMR signal vector
+
+       parameter - struct containing:
+           nModes   : number of distributions
+           T1T2     : 'T1' or 'T2'
+           T1IRfac  : T1 saturation/inversion recovery factor
+           Tb       : bulk relaxation time
+           Td       : diffusion relaxation time
+           Tint     : [log10(tmin) log10(tmax) Ndec]
+           noise    : raw noise level
+           solver   : 'optimTB' or 'internal'
+           W        : optional diagonal matrix containing standard
+                      errors sigma_k of the data points
+           gate     : optional gate structure containing
+                      gate.indices and gate.time_raw
+           info     : optimizer display option (optional)
 
  Outputs:
        fitdata - struct that holds the inversion results:
@@ -63,6 +77,7 @@ distributions (T1 or T2)
                    lambda_out : dummy 0
                    rms     : RMS error
                    chi2    : chi square error
+                   reducedchi2 : reduced chi square error
                    ci      : confidence interval
                    T       : relaxation times per mode
                    S       : width per mode
@@ -72,9 +87,9 @@ distributions (T1 or T2)
                    ub      : upper bounds
                    output  : output struct (output from 'lsqnonlin' or
                              'fminsearchbnd')
-
- Example:
-       [fitdata] = fitDataMultiModal(t,s,parameter,2)
+                  exitflag : inversion solver exit flag
+                   invtype : 'MUMO'
+                 invparams : used inversion parameter
 
  Other m-files required:
        createKernelMatrix
@@ -83,26 +98,20 @@ distributions (T1 or T2)
        fitDataFree
        fminsearchbnd
        getFitErrors
-       getFitFreeJacobian
        getConfInterval
+       getTLogMean
        lsqnonlin (Optimization Toolbox)
-
- Subfunctions
-       none
-
- MAT-files required::
-       none
 
  See also:
  Author: see AUTHORS.md
  email: see AUTHORS.md
- License: MIT License (at end)</pre></div>
+ License: MIT License</pre></div>
 
 <!-- crossreference -->
 <h2><a name="_cross"></a>CROSS-REFERENCE INFORMATION <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 This function calls:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>	 creates a Kernel matrix from signal time vector "t"</li><li><a href="estimateJacobian.html" class="code" title="function J = estimateJacobian(f,x)">estimateJacobian</a>	 numerically estimates (in a very simple manner) a</li><li><a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>	 is the objective function for N free distribution</li><li><a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>	 calculates the confidence interval for the inversion</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>	 calculates the T logmean value out of a relaxation time</li></ul>
+<li><a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>	 creates a Kernel matrix from signal time vector "t"</li><li><a href="estimateJacobian.html" class="code" title="function J = estimateJacobian(f,x)">estimateJacobian</a>	 numerically estimates (in a very simple manner) a</li><li><a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>	 is the objective function for multimodal RTD fitting</li><li><a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>	 is a control routine that uses 'lsqcurvefit' to fit NMR data</li><li><a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>	 Calculates approximate confidence intervals from the</li><li><a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>	 calculates all relevant fitting errors for the NMR inversion</li><li><a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>	 calculates the T logmean value out of a relaxation time</li></ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
 <li><a href="../../../nucleus/functions/interface/runInversionBatch.html" class="code" title="function runInversionBatch">runInversionBatch</a>	 batch processes the inversion using for all NMR signals</li><li><a href="../../../nucleus/functions/interface/runInversionStd.html" class="code" title="function runInversionStd">runInversionStd</a>	 controls the standard inversion process to invert a</li><li><a href="estimateUncertainty.html" class="code" title="function [invstd,uncert] = estimateUncertainty(invtype,invstd,iparam,parameter)">estimateUncertainty</a>	 calculates pseudo uncertainty estimates for multi</li></ul>
@@ -112,318 +121,464 @@ This function is called by:
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [fitdata] = fitDataMultiModal(time,signal,parameter)</a>
-0002 <span class="comment">%fitDataMultiModal is a control routine that uses either 'lsqnonlin' or</span>
-0003 <span class="comment">%'fminsearchbnd' to fit NMR data with 'nModes' multi modal relaxation time</span>
-0004 <span class="comment">%distributions (T1 or T2)</span>
-0005 <span class="comment">%</span>
-0006 <span class="comment">% Syntax:</span>
-0007 <span class="comment">%       fitDataMultiModal(time,signal,flag,parameter,nExp)</span>
-0008 <span class="comment">%</span>
-0009 <span class="comment">% InputsR:</span>
-0010 <span class="comment">%       time - time vector</span>
-0011 <span class="comment">%       signal - NMR signal vector (no complex data allowed!)</span>
-0012 <span class="comment">%       parameter - struct that holds additional settings:</span>
-0013 <span class="comment">%                   nModes   : No. of free distributions</span>
-0014 <span class="comment">%                   T1T2     : flag between 'T1' or 'T2' inversion</span>
-0015 <span class="comment">%                   T1IRfac  : either '1' or '2' depending on T1 method</span>
-0016 <span class="comment">%                   Tb       : bulk relaxation time</span>
-0017 <span class="comment">%                   Td       : diffusion relaxation time</span>
-0018 <span class="comment">%                   Tint     : relaxation times [log10(tmin) log10(tmax) Ndec]</span>
-0019 <span class="comment">%                   noise    : noise level needed for 'discrep' discrepancy</span>
-0020 <span class="comment">%                              principle</span>
-0021 <span class="comment">%                   optim    : 'on' or 'off' (Optimization Toolbox)</span>
-0022 <span class="comment">%                   W        : error weighting matrix (optional)</span>
-0023 <span class="comment">%</span>
-0024 <span class="comment">% Outputs:</span>
-0025 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
-0026 <span class="comment">%                   fit_t   : time vector for plotting</span>
-0027 <span class="comment">%                   fit_s   : signal vector for plotting</span>
-0028 <span class="comment">%                   T1T2me  : relaxation time values</span>
-0029 <span class="comment">%                   T1T2f   : relaxation time spectrum</span>
-0030 <span class="comment">%                   Tlgm    : T log-mean</span>
-0031 <span class="comment">%                   E0      : initial amplitude at t=0 (T2) or t=max (T1)</span>
-0032 <span class="comment">%                   ciE     : E0 confidence interval (NaN as placeholder)</span>
-0033 <span class="comment">%                   resnorm : residual norm</span>
-0034 <span class="comment">%                   residual: vector of residuals</span>
-0035 <span class="comment">%                   errnorm : error norm</span>
-0036 <span class="comment">%                   lambda_out : dummy 0</span>
-0037 <span class="comment">%                   rms     : RMS error</span>
-0038 <span class="comment">%                   chi2    : chi square error</span>
-0039 <span class="comment">%                   ci      : confidence interval</span>
-0040 <span class="comment">%                   T       : relaxation times per mode</span>
-0041 <span class="comment">%                   S       : width per mode</span>
-0042 <span class="comment">%                   E       : amplitude per mode;</span>
-0043 <span class="comment">%                   x       : all parameters combined</span>
-0044 <span class="comment">%                   lb      : lower bounds</span>
-0045 <span class="comment">%                   ub      : upper bounds</span>
-0046 <span class="comment">%                   output  : output struct (output from 'lsqnonlin' or</span>
-0047 <span class="comment">%                             'fminsearchbnd')</span>
-0048 <span class="comment">%</span>
-0049 <span class="comment">% Example:</span>
-0050 <span class="comment">%       [fitdata] = fitDataMultiModal(t,s,parameter,2)</span>
-0051 <span class="comment">%</span>
-0052 <span class="comment">% Other m-files required:</span>
-0053 <span class="comment">%       createKernelMatrix</span>
-0054 <span class="comment">%       estimateJacobian</span>
-0055 <span class="comment">%       fcn_fitMultiModal</span>
-0056 <span class="comment">%       fitDataFree</span>
-0057 <span class="comment">%       fminsearchbnd</span>
-0058 <span class="comment">%       getFitErrors</span>
-0059 <span class="comment">%       getFitFreeJacobian</span>
-0060 <span class="comment">%       getConfInterval</span>
-0061 <span class="comment">%       lsqnonlin (Optimization Toolbox)</span>
-0062 <span class="comment">%</span>
-0063 <span class="comment">% Subfunctions</span>
-0064 <span class="comment">%       none</span>
-0065 <span class="comment">%</span>
-0066 <span class="comment">% MAT-files required::</span>
-0067 <span class="comment">%       none</span>
-0068 <span class="comment">%</span>
-0069 <span class="comment">% See also:</span>
-0070 <span class="comment">% Author: see AUTHORS.md</span>
-0071 <span class="comment">% email: see AUTHORS.md</span>
-0072 <span class="comment">% License: MIT License (at end)</span>
-0073 
-0074 <span class="comment">%------------- BEGIN CODE --------------</span>
-0075 
-0076 <span class="comment">% make column vector</span>
-0077 t = time(:);
-0078 s = signal(:);
-0079 
-0080 <span class="comment">% error weights after gating</span>
-0081 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0082     e = diag(parameter.W);
-0083     iparam.e = sqrt(1./e);
-0084 <span class="keyword">end</span>
-0085 
-0086 <span class="comment">% get the input parameters</span>
-0087 nModes = parameter.nModes;
-0088 <span class="comment">% T1/T2 switch</span>
-0089 flag = parameter.T1T2;
-0090 <span class="comment">% T1 Sat/Inv Recovery factor</span>
-0091 T1IRfac = parameter.T1IRfac;
-0092 <span class="comment">% bulk relaxation time</span>
-0093 Tb = parameter.Tb;
-0094 <span class="comment">% diffusion relaxation time</span>
-0095 Td = parameter.Td;
-0096 <span class="comment">% smallest value in RTD (log10 value)</span>
-0097 tstart = parameter.Tint(1);
-0098 <span class="comment">% largest value in RTD (log10 value)</span>
-0099 tend = parameter.Tint(2);
-0100 <span class="comment">% N per decade in RTD</span>
-0101 N = parameter.Tint(3);
+0002 <span class="comment">%fitDataMultiModal Fit NMR data using a superposition of multiple</span>
+0003 <span class="comment">%relaxation-time distributions.</span>
+0004 <span class="comment">%</span>
+0005 <span class="comment">% The RTD is represented by nModes Gaussian distributions on a</span>
+0006 <span class="comment">% logarithmically equidistant relaxation-time axis.</span>
+0007 <span class="comment">%</span>
+0008 <span class="comment">% The nonlinear model parameters of each mode are</span>
+0009 <span class="comment">%</span>
+0010 <span class="comment">%   x(3*i-2) = log(mu_i)   logarithm of modal relaxation time</span>
+0011 <span class="comment">%   x(3*i-1) = sigma_i     width in log(T) space</span>
+0012 <span class="comment">%   x(3*i)   = E_i         amplitude</span>
+0013 <span class="comment">%</span>
+0014 <span class="comment">% The routine uses either LSQNONLIN or FMINSEARCHBND.</span>
+0015 <span class="comment">%</span>
+0016 <span class="comment">% Syntax:</span>
+0017 <span class="comment">%       fitdata = fitDataMultiModal(time,signal,parameter)</span>
+0018 <span class="comment">%</span>
+0019 <span class="comment">% Inputs:</span>
+0020 <span class="comment">%       time      - time vector</span>
+0021 <span class="comment">%       signal    - NMR signal vector</span>
+0022 <span class="comment">%</span>
+0023 <span class="comment">%       parameter - struct containing:</span>
+0024 <span class="comment">%           nModes   : number of distributions</span>
+0025 <span class="comment">%           T1T2     : 'T1' or 'T2'</span>
+0026 <span class="comment">%           T1IRfac  : T1 saturation/inversion recovery factor</span>
+0027 <span class="comment">%           Tb       : bulk relaxation time</span>
+0028 <span class="comment">%           Td       : diffusion relaxation time</span>
+0029 <span class="comment">%           Tint     : [log10(tmin) log10(tmax) Ndec]</span>
+0030 <span class="comment">%           noise    : raw noise level</span>
+0031 <span class="comment">%           solver   : 'optimTB' or 'internal'</span>
+0032 <span class="comment">%           W        : optional diagonal matrix containing standard</span>
+0033 <span class="comment">%                      errors sigma_k of the data points</span>
+0034 <span class="comment">%           gate     : optional gate structure containing</span>
+0035 <span class="comment">%                      gate.indices and gate.time_raw</span>
+0036 <span class="comment">%           info     : optimizer display option (optional)</span>
+0037 <span class="comment">%</span>
+0038 <span class="comment">% Outputs:</span>
+0039 <span class="comment">%       fitdata - struct that holds the inversion results:</span>
+0040 <span class="comment">%                   fit_t   : time vector for plotting</span>
+0041 <span class="comment">%                   fit_s   : signal vector for plotting</span>
+0042 <span class="comment">%                   T1T2me  : relaxation time values</span>
+0043 <span class="comment">%                   T1T2f   : relaxation time spectrum</span>
+0044 <span class="comment">%                   Tlgm    : T log-mean</span>
+0045 <span class="comment">%                   E0      : initial amplitude at t=0 (T2) or t=max (T1)</span>
+0046 <span class="comment">%                   ciE     : E0 confidence interval (NaN as placeholder)</span>
+0047 <span class="comment">%                   resnorm : residual norm</span>
+0048 <span class="comment">%                   residual: vector of residuals</span>
+0049 <span class="comment">%                   errnorm : error norm</span>
+0050 <span class="comment">%                   lambda_out : dummy 0</span>
+0051 <span class="comment">%                   rms     : RMS error</span>
+0052 <span class="comment">%                   chi2    : chi square error</span>
+0053 <span class="comment">%                   reducedchi2 : reduced chi square error</span>
+0054 <span class="comment">%                   ci      : confidence interval</span>
+0055 <span class="comment">%                   T       : relaxation times per mode</span>
+0056 <span class="comment">%                   S       : width per mode</span>
+0057 <span class="comment">%                   E       : amplitude per mode;</span>
+0058 <span class="comment">%                   x       : all parameters combined</span>
+0059 <span class="comment">%                   lb      : lower bounds</span>
+0060 <span class="comment">%                   ub      : upper bounds</span>
+0061 <span class="comment">%                   output  : output struct (output from 'lsqnonlin' or</span>
+0062 <span class="comment">%                             'fminsearchbnd')</span>
+0063 <span class="comment">%                  exitflag : inversion solver exit flag</span>
+0064 <span class="comment">%                   invtype : 'MUMO'</span>
+0065 <span class="comment">%                 invparams : used inversion parameter</span>
+0066 <span class="comment">%</span>
+0067 <span class="comment">% Other m-files required:</span>
+0068 <span class="comment">%       createKernelMatrix</span>
+0069 <span class="comment">%       estimateJacobian</span>
+0070 <span class="comment">%       fcn_fitMultiModal</span>
+0071 <span class="comment">%       fitDataFree</span>
+0072 <span class="comment">%       fminsearchbnd</span>
+0073 <span class="comment">%       getFitErrors</span>
+0074 <span class="comment">%       getConfInterval</span>
+0075 <span class="comment">%       getTLogMean</span>
+0076 <span class="comment">%       lsqnonlin (Optimization Toolbox)</span>
+0077 <span class="comment">%</span>
+0078 <span class="comment">% See also:</span>
+0079 <span class="comment">% Author: see AUTHORS.md</span>
+0080 <span class="comment">% email: see AUTHORS.md</span>
+0081 <span class="comment">% License: MIT License</span>
+0082 
+0083 <span class="comment">%------------- BEGIN CODE --------------</span>
+0084 
+0085 <span class="comment">%% input vectors</span>
+0086 time = time(:);
+0087 signal = signal(:);
+0088 
+0089 <span class="keyword">if</span> length(time) ~= length(signal)
+0090     error(<span class="string">'time and signal must have the same number of elements.'</span>);
+0091 <span class="keyword">end</span>
+0092 <span class="keyword">if</span> any(~isfinite(time)) || any(~isfinite(signal))
+0093     error(<span class="string">'time and signal must contain finite values only.'</span>);
+0094 <span class="keyword">end</span>
+0095 
+0096 <span class="comment">% physical data</span>
+0097 t = time;
+0098 s = signal;
+0099 
+0100 <span class="comment">% number of modes</span>
+0101 nModes = parameter.nModes;
 0102 
-0103 <span class="comment">% get boundary values for mu, sigma and amp by first applying a free</span>
-0104 <span class="comment">% exponential fit</span>
-0105 param0.T1IRfac = T1IRfac;
-0106 param0.noise = parameter.noise;
-0107 param0.optim = parameter.optim;
-0108 param0.Tfixed_bool = [0 0 0 0 0];
-0109 param0.Tfixed_val = [0 0 0 0 0];
-0110 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0111     param0.W = parameter.W;
-0112 <span class="keyword">end</span>
-0113 <span class="comment">% free exponential fit to get some reasonable start values</span>
-0114 invstd0 = <a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(t,s,flag,param0,nModes);
-0115 
-0116 <span class="comment">% start values for E and T</span>
-0117 x0 = zeros(1,3*nModes);
-0118 lb = zeros(1,3*nModes);
-0119 ub = zeros(1,3*nModes);
-0120 <span class="keyword">for</span> i = 1:nModes
-0121     <span class="comment">% initial values for T, sigma and E</span>
-0122     x0(3*i-2) = log(invstd0.x(2*i));
-0123     x0(3*i-1) = 1;
-0124     x0(3*i) = invstd0.x(2*i-1);
-0125     
-0126     <span class="comment">% lower bounds for T, sigma and E</span>
-0127     <span class="comment">%lb(3*i-2) = log(1e-6);%log(invstd0.x(2*i)*0.8);%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));</span>
-0128     lb(3*i-2) = log(invstd0.x(2*i)/100);<span class="comment">%log(invstd0.x(2*i) - 10*invstd0.ci(2*i));</span>
-0129     lb(3*i-1) = 0.01;
-0130     lb(3*i) = invstd0.x(2*i-1)*0.8;<span class="comment">%invstd0.x(2*i-1) - 10*invstd0.ci(2*i-1);</span>
-0131     
-0132     <span class="comment">% upper bounds for T, sigma and E</span>
-0133     <span class="comment">%ub(3*i-2) = log(10);%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));</span>
-0134     ub(3*i-2) = log(invstd0.x(2*i)*100);<span class="comment">%log(invstd0.x(2*i) + 50*invstd0.ci(2*i));</span>
-0135     ub(3*i-1) = 3.5;
-0136     ub(3*i) = max(invstd0.E0)*1.1;<span class="comment">%invstd0.x(2*i-1) + 50*invstd0.ci(2*i-1);</span>
-0137 <span class="keyword">end</span>
-0138 
-0139 <span class="comment">% switch off output if no option is given via 'parameter'</span>
-0140 <span class="keyword">if</span> ~isfield(parameter,<span class="string">'info'</span>)
-0141     parameter.info = <span class="string">'off'</span>;
-0142 <span class="keyword">end</span>
-0143 
-0144 <span class="comment">% create the relaxation time vector</span>
-0145 T1T2me = logspace(tstart,tend,(tend-tstart)*N);
-0146 
-0147 <span class="comment">% just needed for debugging the Optimization Toolbox availability</span>
-0148 <span class="comment">% parameter.optim = 'off';</span>
-0149 
-0150 <span class="keyword">switch</span> parameter.optim
-0151     <span class="keyword">case</span> <span class="string">'on'</span>
-0152         <span class="comment">% solver options</span>
-0153         options = optimoptions(<span class="string">'lsqnonlin'</span>);
-0154         options.Algorithm = <span class="string">'levenberg-marquardt'</span>;
-0155         options.Display = parameter.info;
-0156         options.OptimalityTolerance = 1e-12;
-0157         options.StepTolerance = 1e-12;
-0158         
-0159         iparam.optim = parameter.optim;
-0160         iparam.flag = flag;
-0161         iparam.T1IRfac = T1IRfac;
-0162         iparam.nModes = nModes;
-0163         iparam.t = t;
-0164         iparam.s = s;
-0165         iparam.T = T1T2me;
-0166         iparam.Tb = Tb;
-0167         iparam.Td = Td;
-0168         [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)<a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),<span class="keyword">...</span>
-0169             x0,lb,ub,options);
-0170         
-0171     <span class="keyword">case</span> <span class="string">'off'</span>
-0172         <span class="comment">% solver options</span>
-0173         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'MaxFunEvals'</span>,10^6,<span class="keyword">...</span>
-0174             <span class="string">'MaxIter'</span>,5000,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-12);
-0175         
-0176         iparam.optim = parameter.optim;
-0177         iparam.flag = flag;
-0178         iparam.T1IRfac = T1IRfac;
-0179         iparam.nModes = nModes;
-0180         iparam.t = t;
-0181         iparam.s = s;
-0182         iparam.T = T1T2me;
-0183         iparam.Tb = Tb;
-0184         iparam.Td = Td;
-0185         [x,~,~,output] = fminsearchbnd(@(x) <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),<span class="keyword">...</span>
-0186             x0,lb,ub,options);
-0187         
-0188         <span class="comment">% get Jacobian</span>
-0189         <span class="comment">% therefore we need to switch the 'optim' on to get the correct</span>
-0190         <span class="comment">% output of 'fcn_fitMultiModal'</span>
-0191         iparam.optim = <span class="string">'on'</span>;
-0192         jacobian = <a href="estimateJacobian.html" class="code" title="function J = estimateJacobian(f,x)">estimateJacobian</a>(@(x)<a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),x);
-0193 <span class="keyword">end</span>
-0194 
-0195 <span class="comment">% assemble the final RTD</span>
-0196 Tdist = 0;
-0197 <span class="keyword">for</span> i = 1:length(x)/3
-0198     mu = exp(x(3*i-2)); <span class="comment">% T</span>
-0199     sigma = x(3*i-1); <span class="comment">% S</span>
-0200     amp = x(3*i); <span class="comment">% E</span>
-0201     
-0202     tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(T1T2me) - log(mu))/ sqrt(2)/sigma).^2);
-0203     
-0204     <span class="comment">% scale to amplitude</span>
-0205     tmp = (tmp/sum(tmp)) * amp;
-0206     <span class="comment">% add the tmp per mu to Tdist</span>
-0207     Tdist = Tdist + tmp;
-0208 <span class="keyword">end</span>
-0209 f = Tdist;
-0210 <span class="comment">% the fitted signal</span>
-0211 K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,1);
-0212 si = K*f';
-0213 
-0214 <span class="comment">% get the fit</span>
-0215 fit_t = t;
-0216 fit_s = si;
+0103 <span class="comment">% NMR flags &amp; parameter</span>
+0104 flag = parameter.T1T2;
+0105 T1IRfac = parameter.T1IRfac;
+0106 Tb = parameter.Tb;
+0107 Td = parameter.Td;
+0108 
+0109 <span class="comment">% relaxation time distribution parameter</span>
+0110 tstart = parameter.Tint(1);
+0111 tend = parameter.Tint(2);
+0112 N = parameter.Tint(3);
+0113 
+0114 <span class="comment">% if 'info' is not there, switch it off</span>
+0115 <span class="keyword">if</span> ~isfield(parameter,<span class="string">'info'</span>)
+0116     parameter.info = <span class="string">'off'</span>;
+0117 <span class="keyword">end</span>
+0118 
+0119 <span class="comment">%% relaxation-time vector</span>
+0120 nT = round((tend-tstart)*N);
+0121 <span class="keyword">if</span> nT &lt; 2
+0122     error(<span class="string">'Relaxation-time discretization must contain at least 2 points.'</span>);
+0123 <span class="keyword">end</span>
+0124 T1T2me = logspace(tstart,tend,nT);
+0125 T1T2me = T1T2me(:);
+0126 
+0127 <span class="comment">%% initial estimate using free exponential fit</span>
+0128 param0.T1IRfac = T1IRfac;
+0129 param0.noise = parameter.noise;
+0130 param0.solver = parameter.solver;
+0131 param0.Tfixed_bool = [0 0 0 0 0];
+0132 param0.Tfixed_val = [0 0 0 0 0];
+0133 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
+0134     param0.W = parameter.W;
+0135 <span class="keyword">end</span>
+0136 invstd0 = <a href="fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(t,s,flag,param0,nModes);
+0137 
+0138 <span class="comment">%% initial values and bounds</span>
+0139 x0 = zeros(3*nModes,1);
+0140 lb = zeros(3*nModes,1);
+0141 ub = zeros(3*nModes,1);
+0142 
+0143 <span class="keyword">for</span> i = 1:nModes
+0144     T0 = invstd0.x(2*i);
+0145     E0 = invstd0.x(2*i-1);
+0146     <span class="comment">% initial values for T, sigma and E</span>
+0147     x0(3*i-2) = log(T0);
+0148     x0(3*i-1) = 1;
+0149     x0(3*i)   = E0;
+0150     <span class="comment">% lower bounds</span>
+0151     lb(3*i-2) = log(T0/100);
+0152     lb(3*i-1) = 0.01;
+0153     lb(3*i)   = 0;
+0154     <span class="comment">% upper bounds</span>
+0155     ub(3*i-2) = log(T0*100);
+0156     ub(3*i-1) = 3.5;
+0157     ub(3*i)   = max(invstd0.E0)*1.5;
+0158 <span class="keyword">end</span>
+0159 
+0160 <span class="comment">%% physical forward kernel</span>
+0161 <span class="comment">% K always remains physical and unweighted.</span>
+0162 <span class="comment">% If gated data are supplied, create the kernel first on the original</span>
+0163 <span class="comment">% time vector and apply exactly the same arithmetic gating operator as</span>
+0164 <span class="comment">% used for the measured NMR signal.</span>
+0165 hasGates = isfield(parameter,<span class="string">'gate'</span>) &amp;&amp; ~isempty(parameter.gate);
+0166 <span class="keyword">if</span> hasGates
+0167     gate = parameter.gate;
+0168     <span class="keyword">if</span> ~isfield(gate,<span class="string">'time_raw'</span>) || isempty(gate.time_raw)
+0169         error(<span class="string">'parameter.gate.time_raw is required for kernel gating.'</span>);
+0170     <span class="keyword">end</span>
+0171     <span class="keyword">if</span> ~isfield(gate,<span class="string">'indices'</span>) || isempty(gate.indices)
+0172         error(<span class="string">'parameter.gate.indices is required for kernel gating.'</span>);
+0173     <span class="keyword">end</span>
+0174     time_raw = gate.time_raw(:);
+0175     <span class="comment">% physical kernel on original echo times</span>
+0176     Kraw = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(time_raw,T1T2me,Tb,Td,flag,T1IRfac);
+0177 
+0178     nGates = numel(gate.indices);
+0179     <span class="keyword">if</span> nGates ~= length(s)
+0180         error([<span class="string">'Number of gates does not match the number '</span>, <span class="keyword">...</span>
+0181                <span class="string">'of input data points.'</span>]);
+0182     <span class="keyword">end</span>
+0183     K = zeros(nGates,length(T1T2me));
+0184     <span class="comment">% apply exactly the same arithmetic gating to kernel</span>
+0185     <span class="keyword">for</span> i = 1:nGates
+0186         ind = gate.indices{i};
+0187         K(i,:) = mean(Kraw(ind,:),1);
+0188     <span class="keyword">end</span>
+0189 <span class="keyword">else</span>
+0190     K = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(t,T1T2me,Tb,Td,flag,T1IRfac);
+0191 <span class="keyword">end</span>
+0192 
+0193 <span class="comment">%% prepare inversion system - statistical weighting / scaling</span>
+0194 <span class="comment">% parameter.W contains the standard error sigma_k of each data point:</span>
+0195 <span class="comment">%  sigma_k = e_raw / sqrt(N_k)</span>
+0196 <span class="comment">% Hence the inversion residual is</span>
+0197 <span class="comment">%  r_k = (s_model,k - s_data,k) / sigma_k</span>
+0198 <span class="comment">% No weighting is applied to the physical signal or kernel.</span>
+0199 hasWeights = isfield(parameter,<span class="string">'W'</span>) &amp;&amp; ~isempty(parameter.W);
+0200 <span class="keyword">if</span> hasWeights
+0201     sigma = diag(parameter.W);
+0202     sigma = sigma(:);
+0203     <span class="keyword">if</span> length(sigma) ~= length(s)
+0204         error(<span class="string">'Size of parameter.W does not agree with signal length.'</span>);
+0205     <span class="keyword">end</span>
+0206     <span class="keyword">if</span> any(~isfinite(sigma)) || any(sigma &lt;= 0)
+0207         error(<span class="string">'parameter.W contains invalid standard errors.'</span>);
+0208     <span class="keyword">end</span>
+0209     scale = 1;
+0210 <span class="keyword">else</span>
+0211     sigma = [];
+0212     scale = max(abs(s));
+0213     <span class="keyword">if</span> isempty(scale) || ~isfinite(scale) || scale &lt;= 0
+0214         scale = 1;
+0215     <span class="keyword">end</span>
+0216 <span class="keyword">end</span>
 0217 
-0218 <span class="comment">% get residuals and error measures</span>
-0219 <span class="keyword">if</span> isfield(parameter,<span class="string">'W'</span>)
-0220     <span class="comment">% when signal gating was used the error estimates need to be adjusted</span>
-0221     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise,parameter.W);
-0222 <span class="keyword">else</span>
-0223     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise);
-0224 <span class="keyword">end</span>
-0225 
-0226 <span class="comment">% confidence interval</span>
-0227 ci = <a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>(out.resnorm,jacobian,0.05);
+0218 <span class="comment">%% parameters passed to objective function</span>
+0219 iparam.solver = parameter.solver;
+0220 iparam.nModes = nModes;
+0221 iparam.s = s;
+0222 iparam.T = T1T2me;
+0223 <span class="comment">% physical kernel</span>
+0224 iparam.K = K;
+0225 <span class="comment">% inversion weighting/scaling</span>
+0226 iparam.sigma = sigma;
+0227 iparam.scale = scale;
 0228 
-0229 <span class="comment">% sort the relaxation times in ascending order and adjust the confidence</span>
-0230 <span class="comment">% interval accordingly</span>
-0231 T = exp(x(1:3:end));
-0232 S = x(2:3:end);
-0233 E = x(3:3:end);
-0234 [T,idx] = sort(T);
-0235 S  = S(idx);
-0236 E  = E(idx);
-0237 ciT = ci(1:3:end);
-0238 ciS = ci(2:3:end);
-0239 ciE = ci(3:3:end);
-0240 ciT = ciT(idx);
-0241 ciS = ciS(idx);
-0242 ciE = ciE(idx);
-0243 ci(1:3:end) = ciT;
-0244 ci(2:3:end) = ciS;
-0245 ci(3:3:end) = ciE;
-0246 
-0247 <span class="comment">% get &quot;initial&quot; value E0</span>
-0248 <span class="keyword">switch</span> flag
-0249     <span class="keyword">case</span> <span class="string">'T1'</span>
-0250         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
-0251     <span class="keyword">case</span> <span class="string">'T2'</span>
-0252         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
-0253 <span class="keyword">end</span>
-0254 E0 = K0*f';
-0255 
-0256 <span class="comment">% model norm |L*x|_2</span>
-0257 xn = norm(f,2);
-0258 <span class="comment">% residual norm |A*x-b|_2</span>
-0259 rn = norm(out.residual,2);
-0260 
-0261 <span class="comment">% output struct</span>
-0262 fitdata.fit_t = fit_t;
-0263 fitdata.fit_s = fit_s;
-0264 fitdata.T1T2me = T1T2me(:);
-0265 fitdata.T1T2f = f(:);
-0266 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
-0267 fitdata.E0 = E0;
-0268 fitdata.ciE0 = NaN;
-0269 fitdata.resnorm = out.resnorm;
-0270 fitdata.residual = out.residual;
-0271 fitdata.errornorm = out.errnorm1;
-0272 fitdata.lambda_out = 0;
-0273 fitdata.rms = out.rms;
-0274 fitdata.chi2 = out.chi2;
-0275 fitdata.xn = xn;
-0276 fitdata.rn = rn;
-0277 fitdata.ci = ci;
-0278 fitdata.T = T;
-0279 fitdata.S = S;
-0280 fitdata.E = E;
-0281 fitdata.x = x;
-0282 fitdata.lb = lb;
-0283 fitdata.ub = ub;
-0284 fitdata.output = output;
-0285 fitdata.invtype = <span class="string">'MUMO'</span>;
-0286 fitdata.invparams = parameter;
+0229 <span class="comment">%% nonlinear optimization</span>
+0230 <span class="keyword">switch</span> parameter.solver
+0231     <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0232         <span class="comment">% LSQNONLIN</span>
+0233         options = optimoptions(<span class="string">'lsqnonlin'</span>,<span class="string">'Algorithm'</span>,<span class="string">'levenberg-marquardt'</span>, <span class="keyword">...</span>
+0234             <span class="string">'Display'</span>,parameter.info,<span class="string">'FunctionTolerance'</span>,1e-12, <span class="keyword">...</span>
+0235             <span class="string">'StepTolerance'</span>,1e-10,<span class="string">'MaxIterations'</span>,500, <span class="keyword">...</span>
+0236             <span class="string">'MaxFunctionEvaluations'</span>,5000,<span class="string">'ScaleProblem'</span>,<span class="string">'jacobian'</span>);
+0237 
+0238         [x,resnorm_opt,residual_opt,exitflag,output,~,jacobian] = <span class="keyword">...</span>
+0239             lsqnonlin(@(x) <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),x0,lb,ub,options);
+0240     <span class="keyword">case</span> <span class="string">'internal'</span>
+0241         <span class="comment">% FMINSEARCHBND</span>
+0242         options = optimset(<span class="string">'Display'</span>,parameter.info, <span class="keyword">...</span>
+0243             <span class="string">'MaxFunEvals'</span>,10000,<span class="string">'MaxIter'</span>,2000,<span class="string">'TolFun'</span>,1e-12,<span class="string">'TolX'</span>,1e-10);
+0244 
+0245         [x,~,exitflag,output] = <span class="keyword">...</span>
+0246             fminsearchbnd(@(x) <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),x0,lb,ub,options);
+0247 
+0248         <span class="comment">% Calculate numerical Jacobian of the residual vector.</span>
+0249         <span class="comment">% therefore we need to switch the 'has_optim' on to get the correct</span>
+0250         <span class="comment">% output of 'fcn_fitMultiModal'</span>
+0251         iparam.solver = <span class="string">'optimTB'</span>;
+0252         jacobian = <a href="estimateJacobian.html" class="code" title="function J = estimateJacobian(f,x)">estimateJacobian</a>(@(x) <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam),x);
+0253         residual_opt = <a href="fcn_fitMultiModal.html" class="code" title="function F = fcn_fitMultiModal(x,iparam)">fcn_fitMultiModal</a>(x,iparam);
+0254         <span class="comment">% Make sure resnorm has exactly the same definition as for</span>
+0255         <span class="comment">% LSQNONLIN.</span>
+0256         resnorm_opt = sum(residual_opt.^2);
+0257 <span class="keyword">end</span>
+0258 
+0259 <span class="comment">%% assemble final multimodal RTD</span>
+0260 Tdist = zeros(size(T1T2me));
+0261 <span class="keyword">for</span> i = 1:nModes
+0262     mu = exp(x(3*i-2));
+0263     sig = x(3*i-1);
+0264     amp = x(3*i);
+0265 
+0266     <span class="comment">% Gaussian distribution in log(T) space</span>
+0267     tmp = 1./(sig*sqrt(2*pi)) .* <span class="keyword">...</span>
+0268         exp(-((log(T1T2me)-log(mu))./(sqrt(2)*sig)).^2);
+0269 
+0270     stmp = sum(tmp);
+0271     <span class="keyword">if</span> ~isfinite(stmp) || stmp &lt;= 0
+0272         error(<span class="string">'Invalid RTD generated for mode %d.'</span>,i);
+0273     <span class="keyword">end</span>
+0274 
+0275     <span class="comment">% discrete normalization on logarithmically equidistant T classes</span>
+0276     tmp = tmp ./ stmp;
+0277     <span class="comment">% scale to modal amplitude</span>
+0278     tmp = tmp .* amp;
+0279     <span class="comment">% add mode to total RTD</span>
+0280     Tdist = Tdist + tmp;
+0281 <span class="keyword">end</span>
+0282 f = Tdist;
+0283 
+0284 <span class="comment">%% physical fitted signal</span>
+0285 fit_t = t;
+0286 fit_s = K*f;
 0287 
-0288 <span class="keyword">return</span>
-0289 
-0290 <span class="comment">%------------- END OF CODE --------------</span>
-0291 
-0292 <span class="comment">%% License:</span>
-0293 <span class="comment">% MIT License</span>
-0294 <span class="comment">%</span>
-0295 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
-0296 <span class="comment">%</span>
-0297 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0298 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0299 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0300 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0301 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0302 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0303 <span class="comment">%</span>
-0304 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0305 <span class="comment">% copies or substantial portions of the Software.</span>
-0306 <span class="comment">%</span>
-0307 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0308 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0309 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0310 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0311 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0312 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0313 <span class="comment">% SOFTWARE.</span></pre></div>
+0288 <span class="comment">%% fit errors in physical signal units</span>
+0289 <span class="keyword">if</span> hasWeights
+0290     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise,parameter.W);
+0291 <span class="keyword">else</span>
+0292     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,fit_s,parameter.noise);
+0293 <span class="keyword">end</span>
+0294 
+0295 <span class="comment">%% confidence intervals in optimization parameter space</span>
+0296 <span class="comment">% x consists of:</span>
+0297 <span class="comment">%  log(T), sigma, E</span>
+0298 <span class="comment">% Therefore the CI belonging to x(3*i-2) is a CI in log(T), NOT in the</span>
+0299 <span class="comment">% physical relaxation-time unit.</span>
+0300 <span class="keyword">try</span>
+0301     ci_x = <a href="getConfInterval.html" class="code" title="function CI = getConfInterval(resnorm,J,alpha)">getConfInterval</a>(resnorm_opt,jacobian,0.05);
+0302 <span class="keyword">catch</span>
+0303     ci_x = NaN(size(x));
+0304 <span class="keyword">end</span>
+0305 ci_x = ci_x(:);
+0306 
+0307 <span class="comment">%% extract modal parameters</span>
+0308 T = exp(x(1:3:end));
+0309 S = x(2:3:end);
+0310 E = x(3:3:end);
+0311 
+0312 <span class="comment">% CI half-widths in optimization coordinates</span>
+0313 ciT_log = ci_x(1:3:end);
+0314 ciS     = ci_x(2:3:end);
+0315 ciE     = ci_x(3:3:end);
+0316 
+0317 <span class="comment">%% transform log(T) confidence intervals to physical T</span>
+0318 <span class="comment">%  x_T = log(T)</span>
+0319 <span class="comment">% If</span>
+0320 <span class="comment">%  x_T +/- CI_log</span>
+0321 <span class="comment">% is the confidence interval in optimization space, then the corresponding</span>
+0322 <span class="comment">% physical bounds are</span>
+0323 <span class="comment">%  T_lower = exp(x_T - CI_log)</span>
+0324 <span class="comment">%  T_upper = exp(x_T + CI_log)</span>
+0325 <span class="comment">% consequently the confidence interval in T is asymmetric.</span>
+0326 logT = x(1:3:end);
+0327 T_ci_lower = exp(logT - ciT_log);
+0328 T_ci_upper = exp(logT + ciT_log);
+0329 
+0330 <span class="comment">%% sort modes by increasing relaxation time</span>
+0331 [T,idx] = sort(T);
+0332 
+0333 S = S(idx);
+0334 E = E(idx);
+0335 ciT_log = ciT_log(idx);
+0336 ciS = ciS(idx);
+0337 ciE = ciE(idx);
+0338 T_ci_lower = T_ci_lower(idx);
+0339 T_ci_upper = T_ci_upper(idx);
+0340 
+0341 <span class="comment">% also retain the complete CI vector in the same mode order.</span>
+0342 ci = zeros(size(ci_x));
+0343 ci(1:3:end) = ciT_log;
+0344 ci(2:3:end) = ciS;
+0345 ci(3:3:end) = ciE;
+0346 
+0347 <span class="comment">%% initial / equilibrium amplitude E0</span>
+0348 <span class="keyword">switch</span> flag
+0349     <span class="keyword">case</span> <span class="string">'T1'</span>
+0350         <span class="comment">% Approximation of equilibrium signal.</span>
+0351         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+0352     <span class="keyword">case</span> <span class="string">'T2'</span>
+0353         <span class="comment">% Signal at t = 0.</span>
+0354         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
+0355 <span class="keyword">end</span>
+0356 E0 = K0*f;
+0357 
+0358 <span class="comment">%% norms and inversion statistics</span>
+0359 <span class="comment">% RTD norm</span>
+0360 xn = norm(f,2);
+0361 <span class="comment">% physical residual</span>
+0362 res_phys = fit_s-s;
+0363 <span class="comment">% residual in inversion metric</span>
+0364 <span class="keyword">if</span> ~isempty(sigma)
+0365     res_inv = res_phys ./ sigma;
+0366 <span class="keyword">else</span>
+0367     res_inv = res_phys ./ scale;
+0368 <span class="keyword">end</span>
+0369 rn = norm(res_inv,2);
+0370 
+0371 <span class="comment">% degrees of freedom</span>
+0372 nData = length(res_inv);
+0373 nParam = length(x);
+0374 dof = nData-nParam;
+0375 
+0376 <span class="comment">% reduced chi-square / normalized residual variance</span>
+0377 <span class="keyword">if</span> dof &gt; 0
+0378     reducedchi2 = sum(res_inv.^2)/dof;
+0379 <span class="keyword">else</span>
+0380     reducedchi2 = NaN;
+0381 <span class="keyword">end</span>
+0382 
+0383 <span class="comment">%% output structure</span>
+0384 fitdata.fit_t = fit_t;
+0385 fitdata.fit_s = fit_s;
+0386 fitdata.T1T2me = T1T2me;
+0387 fitdata.T1T2f = f;
+0388 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
+0389 fitdata.E0 = E0;
+0390 fitdata.ciE0 = NaN;
+0391 <span class="comment">% physical fit-error quantities</span>
+0392 fitdata.resnorm  = out.resnorm;
+0393 fitdata.residual = out.residual;
+0394 fitdata.errornorm = out.errnorm1;
+0395 fitdata.rms = out.rms;
+0396 fitdata.chi2 = out.chi2;
+0397 <span class="comment">% inversion-space quantities</span>
+0398 fitdata.rn = rn;
+0399 fitdata.xn = xn;
+0400 fitdata.reducedchi2 = reducedchi2;
+0401 <span class="comment">% no regularization parameter</span>
+0402 fitdata.lambda_out = 0;
+0403 <span class="comment">% modal parameters</span>
+0404 fitdata.T = T;
+0405 fitdata.S = S;
+0406 fitdata.E = E;
+0407 <span class="comment">% Confidence intervals</span>
+0408 <span class="comment">% fitdata.ci:</span>
+0409 <span class="comment">%  half-widths in the actual optimization coordinates</span>
+0410 <span class="comment">% fitdata.ciT_log:</span>
+0411 <span class="comment">%  half-width for log(T)</span>
+0412 <span class="comment">% fitdata.T_ci_lower / upper:</span>
+0413 <span class="comment">%  actual physical confidence limits for T</span>
+0414 <span class="comment">% fitdata.ciS / ciE:</span>
+0415 <span class="comment">%  symmetric CI half-widths for sigma and amplitude</span>
+0416 fitdata.ci = ci;
+0417 fitdata.ciT_log = ciT_log;
+0418 fitdata.T_ci_lower = T_ci_lower;
+0419 fitdata.T_ci_upper = T_ci_upper;
+0420 fitdata.ciS = ciS;
+0421 fitdata.ciE = ciE;
+0422 <span class="comment">% optimizer parameters</span>
+0423 fitdata.x = x;
+0424 fitdata.lb = lb;
+0425 fitdata.ub = ub;
+0426 fitdata.exitflag = exitflag;
+0427 fitdata.output = output;
+0428 <span class="comment">% optimizer residual information</span>
+0429 fitdata.optim_resnorm = resnorm_opt;
+0430 fitdata.optim_residual = residual_opt;
+0431 fitdata.invtype = <span class="string">'MUMO'</span>;
+0432 fitdata.invparams = parameter;
+0433 
+0434 <span class="keyword">return</span>
+0435 
+0436 <span class="comment">%------------- END OF CODE --------------</span>
+0437 
+0438 <span class="comment">%% License:</span>
+0439 <span class="comment">% MIT License</span>
+0440 <span class="comment">%</span>
+0441 <span class="comment">% Copyright (c) 2022 Thomas Hiller</span>
+0442 <span class="comment">%</span>
+0443 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0444 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0445 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0446 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0447 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0448 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0449 <span class="comment">%</span>
+0450 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0451 <span class="comment">% copies or substantial portions of the Software.</span>
+0452 <span class="comment">%</span>
+0453 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0454 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0455 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0456 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0457 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0458 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0459 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

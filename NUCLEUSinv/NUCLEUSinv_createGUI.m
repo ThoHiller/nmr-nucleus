@@ -154,11 +154,10 @@ if wbon
 end
 % adjust the default joint inversion method depending on Optimization
 % toolbox availability
-switch data.info.has_optim
-    case 'on'
-        data.invjoint.invtype = 'free';
-    case 'off'
-        data.invjoint.invtype = 'fixed';
+if data.info.has_optim
+    data.invjoint.invtype = 'free';
+else
+    data.invjoint.invtype = 'fixed';
 end
 [gui,myui] = NUCLEUSinv_createPanelInversionJoint(data,gui,myui);
 

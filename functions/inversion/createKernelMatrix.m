@@ -36,8 +36,11 @@ function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)
 %------------- BEGIN CODE --------------
 
 %% init data
+t = t(:);
+T = T(:); T = T';
+
 K = zeros(length(t),length(T));
-tr = repmat(t(:),[1,numel(T)]);
+tr = repmat(t,[1,numel(T)]);
 Tr = repmat(T,[numel(t),1]);
 
 %% calculate K

@@ -88,7 +88,7 @@ end
 % gating
 switch nmrproc.gatetype
     case {'log','lin'}
-        tmp = applyGatesToSignal(t,s,'type',nmrproc.gatetype,...
+        [tmp,gate] = applyGatesToSignal(t,s,'type',nmrproc.gatetype,...
             'Ng',min([numel(s) 300]),'Ne',nmrproc.Nechoes);
         if ~isreal(nmrraw.s)
             tmpI = applyGatesToSignal(t,imag(nmrraw.s),'type',nmrproc.gatetype,...
@@ -97,6 +97,7 @@ switch nmrproc.gatetype
         t = tmp(:,1);
         s = tmp(:,2);
         N = tmp(:,3);
+        nmrproc.gate = gate;
     case 'raw'
         N = ones(size(t));
     otherwise

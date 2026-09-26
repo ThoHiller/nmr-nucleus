@@ -1,23 +1,58 @@
-function data = applyGatesToSignal(time,signal,varargin)
-%applyGatesToSignal re-samples (gates) a NMR signal to speedup the
-%inversion
+function [data,gate] = applyGatesToSignal(time,signal,varargin)
+%applyGatesToSignal re-samples (gates) an NMR signal to speed up the
+%inversion.
+%
+% The signal within each gate is averaged arithmetically. In addition to
+% the gated data, the function returns the indices of the original data
+% points belonging to each gate. This allows the forward kernel to be
+% gated consistently with the measured signal.
 %
 % Syntax:
-%       applyGatesToSignal(time,signal,varargin)
+%       data = applyGatesToSignal(time,signal)
+%       data = applyGatesToSignal(time,signal,'type','log')
+%       [data,gate] = applyGatesToSignal(time,signal,...)
 %
 % Inputs:
-%       time - time vector
-%       signal - NMR signal vector (no complex data allowed!)
-%       varargin - PROPERTY - VALUE OPTIONS:
-%                    'type' - 'log', 'logv2' or 'lin' (default is 'log')
-%                      'Ng' - No. of gates (default is 100)
-%                      'Ne' - max. No. of echoes per gate (default is 50)
-%                  'plotit' - '0' or '1' (default is 0)
-%                 'special' - 'rwth' or '' (default is '')
+%       time   - time vector
+%       signal - NMR signal vector; complex data are allowed. If complex,
+%                the real part is gated and the imaginary part is used
+%                to estimate the noise within each gate.
+%       varargin - PROPERTY / VALUE options:%
+%                   'type'    : 'log', 'logv2' or 'lin'
+%                               default: 'log'%
+%                   'Ng'      : number of gates / logarithmic sampling
+%                               parameter
+%                               default: 100%
+%                   'Ne'      : maximum number of echoes per gate
+%                               default: 500%
+%                   'plotit'  : 0 or 1
+%                               default: 0%
+%                   'special' : 'rwth' or ''
+%                               default: ''
+%
 % Outputs:
-%       data(:,1) - re-sampled time t
-%       data(:,2) - re-sampled signal
-%       data(:,3) - No. of echoes per gate
+%       data(:,1) - mean time of each gate
+%       data(:,2) - arithmetic mean signal of each gate
+%       data(:,3) - number of echoes in each gate
+%       data(:,4) - noise std within each gate, if complex input
+%       gate.indices{i} - indices of original data belonging to gate i
+%       gate.N          - number of echoes per gate
+%       gate.time       - mean time per gate
+%       gate.type       - applied gating method
+%
+% Notes:
+%       The arithmetic mean is used intentionally. For independent,
+%       identically distributed noise with standard deviation e, the
+%       standard deviation of a gated data point is
+%
+%               sigma_i = e / sqrt(N_i)
+%
+%       where N_i is the number of echoes in gate i.
+%
+%       The explicit gate indices can additionally be used to calculate
+%       an exactly gated forward kernel:
+%
+%               K_gate(i,:) = mean(K_raw(indices{i},:),1)
 %
 % Example:
 %       applyGatesToSignal(time,signal,'type','log')
@@ -39,250 +74,309 @@ function data = applyGatesToSignal(time,signal,varargin)
 %------------- BEGIN CODE --------------
 
 %% default settings
-type = 'log';
-Ne = 500;
-Ng = 100;
-plotit = 0;
+type    = 'log';
+Ne      = 500;
+Ng      = 100;
+plotit  = 0;
 special = '';
 
-%% input argument checking
-if nargin > 2
-    lv = length(varargin);
-    if mod(lv,2)~=0
-        disp('applyGatesToSignal: Check you input Property/Value!');
-        disp('applyGatesToSignal: Using defaults.');
-    else
-        for i = 1:lv/2
-            prop = varargin{2*i-1};
-            value = varargin{2*i};
-            if strcmpi(prop,'type') || strcmpi(prop,'flag')
-                if ischar(value) && (strcmpi(value,'log') ||...
-                        strcmpi(value,'logv2') || strcmpi(value,'lin'))
+%% input vectors
+time = time(:);
+signal = signal(:);
+
+if length(time) ~= length(signal)
+    error('time and signal must have the same number of elements.');
+end
+if isempty(time)
+    error('time and signal must not be empty.');
+end
+if any(~isfinite(time))
+    error('time must contain finite values only.');
+end
+if any(~isfinite(real(signal))) || any(~isfinite(imag(signal)))
+    error('signal must contain finite values only.');
+end
+
+%% property / value input
+if mod(length(varargin),2) ~= 0
+    error('Optional inputs must be PROPERTY / VALUE pairs.');
+end
+for i = 1:2:length(varargin)
+    prop  = varargin{i};
+    value = varargin{i+1};
+    switch lower(prop)
+        case {'type','flag'}
+            if ischar(value) || isstring(value)
+                value = lower(char(value));
+                if any(strcmp(value,{'log','logv2','lin'}))
                     type = value;
                 else
-                    disp('applyGatesToSignal: ''type'' must be either ''log'', ''logv2'' or ''lin''');
-                    disp('applyGatesToSignal: Using default: log.');
+                    error('''type'' must be ''log'', ''logv2'' or ''lin''.');
                 end
+            else
+                error('''type'' must be a character vector or string.');
             end
-            if strcmpi(prop,'Ng')|| strcmpi(prop,'No')
-                if isnumeric(value)
-                    Ng = value;
-                else
-                    disp('applyGatesToSignal: ''Ng'' must be a scalar value.');
-                    disp('applyGatesToSignal: Using default: 100.');
-                end
+        case {'ng','no'}
+            if isnumeric(value) && isscalar(value) && ...
+                    isfinite(value) && value >= 1
+                Ng = round(value);
+            else
+                error('''Ng'' must be a positive scalar value.');
             end
-            if strcmpi(prop,'Nechoes')|| strcmpi(prop,'Ne')
-                if isnumeric(value)
-                    Ne = value;
-                else
-                    disp('applyGatesToSignal: ''Nechoes'' must be a scalar value.');
-                    disp('applyGatesToSignal: Using default: 50.');
-                end
+        case {'nechoes','ne'}
+            if isnumeric(value) && isscalar(value) && ...
+                    isfinite(value) && value >= 1
+                Ne = round(value);
+            else
+                error('''Ne'' must be a positive scalar value.');
             end
-            if strcmpi(prop,'plot')|| strcmpi(prop,'plotit')
-                if isnumeric(value)
-                    plotit = value;
-                else
-                    disp('applyGatesToSignal: ''plotit'' must be a scalar value.');
-                    disp('applyGatesToSignal: Using default: 0.');
-                end
+        case {'plot','plotit'}
+            if isnumeric(value) && isscalar(value)
+                plotit = logical(value);
+            else
+                error('''plotit'' must be a scalar value.');
             end
-            if strcmpi(prop,'special')
-                if ischar(value) && strcmpi(value,'rwth')
-                    special = value;
-                else
-                    disp('applyGatesToSignal: ''special'' can only be ''rwth''.');
-                    disp('applyGatesToSignal: Using default: none');
-                end
+        case 'special'
+            if isempty(value)
+                special = '';
+            elseif (ischar(value) || isstring(value)) && ...
+                    strcmpi(value,'rwth')
+                special = 'rwth';
+            else
+                error('''special'' can only be ''rwth'' or empty.');
             end
-        end
+        otherwise
+            warning('applyGatesToSignal:UnknownOption', ...
+                'Unknown option "%s".',prop);
     end
 end
 
-%% complex signal -> noise per gate
-isimag = false;
-if ~isreal(signal)
-    isimag = true;
+%% complex signal
+%  The real part is the NMR signal.
+%  The imaginary part is retained for noise estimation.
+iscomplex = ~isreal(signal);
+
+if iscomplex
     Ipart = imag(signal);
     signal = real(signal);
+else
+    Ipart = [];
 end
 
-%% shift correction from MMP:
-VbaseCorr = abs(10*min(signal)); % necessary for log to be real
-signal = signal + VbaseCorr;  % shift signal into positive
-
-%% get time range 'ms' or 's'
+%% time unit
+% Kept for compatibility with the original RWTH special handling.
 tfak = 1;
 if max(time) > 30
     tfak = 1e3;
 end
 
-%% applying the gates
-switch type
+%% construct gate indices
+%  All three methods generate gate.indices. The actual averaging is then
+%  performed in one common section below.
+gate.indices = {};
+switch lower(type)
+    % LOG
+    % Increasing number of echoes per gate:
+    %       1, ..., Ne
+    % followed by gates containing at most Ne echoes.
     case 'log'
-        % get a log-spaced vector with numbers of echoes per gate
+        % logarithmically increasing number of echoes per gate
         index = round(logspace(0,3,Ng));
-        
-        if strcmp(special,'rwth')
-            % merge the first 3 data points if they are below 0.001 s
-            if all(time(1:3)<1e-3*tfak)
+
+        % optional RWTH handling:
+        % merge first three data points if they are below 0.001 s
+        if strcmpi(special,'rwth') && length(time) >= 3
+            if all(time(1:3) < 1e-3*tfak)
                 index(1) = 3;
             end
         end
-        % the maximal No of echoes per time gates is set to M=50
-        % this stabilizes / improves the RMS estimation
-%         if numel(time) < 20000
-%             M = 50;
-%         else
-%             M = 150;
-%         end
-        M = Ne;
-        % find the first one where the number of echoes is M
-        ind = find(abs(index-M)==min(abs(index-M)),1,'first');
-        % maybe M is not exactly within index due to rounding issues
-        % then take the closest one
+        % find value closest to requested maximum Ne
+        [~,ind] = min(abs(index-Ne));
         M = index(ind);
-        i1 = find(index==M,1,'last');
-        % sum up all gates up to M
-        s1 = cumsum(index(1:i1));
-        % how many gates with M echoes we need to add to get the whole
-        % signal
-        N = ceil((length(time)-s1(end))/M);
-        % make a new index vector
-        index = [index(1:i1) M*ones(1,N)];
-        % sum up all gates
-        ci = cumsum(index);
-        % find the last one we need to re-sample the whole signal
-        indc = find(ci>=length(time),1,'first');
-        
-        t = zeros(indc,1);
-        signal_g = zeros(indc,1);
-        Nechos = zeros(indc,1);
-        Noise = zeros(indc,1);
-        % now loop over all gates
-        for i = 1:indc
-            if i == 1                
-                t(i) = mean(time(1:ci(i)));
-                signal_g(i) = exp(mean(log(signal(1:ci(i)))));
-                Nechos(i) = index(i);
-                if isimag
-                    if numel(1:ci(i)) == 1
-                        Noise(i) = Ipart(1:ci(i));
-                    else
-                        Noise(i) = std(Ipart(1:ci(i)));
-                    end
-                end
-            elseif i > 1 && i < indc
-                t(i) = mean(time(ci(i-1)+1:ci(i)));
-                signal_g(i) = exp(mean(log(signal(ci(i-1)+1:ci(i)))));
-                Nechos(i) = index(i);
-                if isimag
-                    if numel(ci(i-1)+1:ci(i)) == 1
-                        Noise(i) = Ipart(ci(i-1)+1:ci(i));
-                    else
-                        Noise(i) = std(Ipart(ci(i-1)+1:ci(i)));
-                    end
-                    
-                end
-            end
-            if i == indc
-                t(i) = mean(time(ci(i-1):end));
-                signal_g(i) = exp(mean(log(signal(ci(i-1):end))));
-                Nechos(i) = length(time)-ci(i-1)+1;
-                if isimag                    
-                    Noise(i) = std(Ipart(ci(i-1):end));
-                end
-            end
-        end
 
-    case 'logv2'
-        % gateing routine from MRSMatlab by MMP
-        
-        % new log spaced time vector
-        t1 = abs(logspace(log10(time(2)),log10(time(end)+time(2)),Ng) - time(2));
+        % keep increasing gates up to M
+        index = index(1:ind);
 
-        % get indices
-        tInd = ones(1,length(t1));
-        for n=2:length(t1)-1
-            tInd(n) = find(t1(n)<=time,1);
-        end
-        if ~isempty(find(t1(end)<=time,1)) % avoid crash
-            tInd(end) = find(t1(end)<=time,1);
-        else
-            tInd(end) = length(t1);
-        end
-        
-        % find unique indecies
-        tInd = unique(tInd);
-        tInd = cumsum([0 sort(diff(tInd))])+1;
-        
-        % prepare output data
-        signal_g = zeros(1,length(tInd)-1);
-        t = zeros(1,length(tInd)-1);
-        Nechos = zeros(1,length(tInd)-1);
-
-        % calculate mean within a gate in logspace
-        for n=2:length(tInd)
-            signal_g(n-1) = exp(mean(log(signal(tInd(n-1):tInd(n)-1))));
-            t(n-1) = mean(time(tInd(n-1):tInd(n)-1));
-            Nechos(n-1) = length(time(tInd(n-1):tInd(n)-1));
-        end
-        
-    case 'lin'
-        
-        % if more echoes per gate are desired, than the number of gates
-        % gives: update the number of gates ;-)
-%         if numel(time)/Ng > Ne
-            Ng = round(numel(time)/Ne);            
-%         end
-        
-        % get a lin-spaced time vector
-        timeg = linspace(time(2),time(end),Ng);
-        t = zeros(Ng,1);
-        signal_g = zeros(Ng,1);
-        signal_std = zeros(Ng,1);
-        Nechos = zeros(Ng,1);
-        for i = 1:Ng
-            if i == 1
-                signal_g(i,1)= mean( signal(time<=timeg(i)) );
-                signal_std(i,1) = std( signal(time<=timeg(i)) );
-                Nechos(i,1) = length( signal(time<=timeg(i)) );
-                t(i,1) = 0 + timeg(1)/2;
+        % create gates sequentially
+        iStart = 1;
+        iGate  = 0;
+        while iStart <= length(time)
+            iGate = iGate + 1;
+            if iGate <= length(index)
+                nThis = index(iGate);
             else
-                signal_g(i,1) = mean( signal(time<=timeg(i) & time>timeg(i-1)) );
-                signal_std(i,1) = std( signal(time<=timeg(i) & time>timeg(i-1)) );
-                Nechos(i,1) = length( signal(time<=timeg(i) & time>timeg(i-1)) );
-                t(i,1) = timeg(i-1) + (timeg(i)-timeg(i-1))/2;
+                % after reaching M, use constant gate size
+                nThis = M;
+            end
+
+            iEnd = min(iStart+nThis-1,length(time));
+            gate.indices{iGate,1} = (iStart:iEnd)';
+            iStart = iEnd+1;
+        end
+
+    % LOGV2
+    % Logarithmically spaced gate boundaries in time.
+    % This retains the basic concept of the original MRSMatlab routine,
+    % but explicitly creates non-overlapping index sets.
+    case 'logv2'
+        if length(time) < 2
+            error('''logv2'' requires at least two time points.');
+        end
+
+        % The original implementation used time(2) as the logarithmic
+        % offset. Retain this behavior.
+        dt0 = time(2);
+        if dt0 <= 0
+            error(['''logv2'' requires time(2) > 0 for logarithmic ', ...
+                   'gate construction.']);
+        end
+
+        % logarithmically spaced representative boundaries
+        t1 = abs(logspace(log10(dt0),log10(time(end)+dt0),Ng)-dt0);
+
+        % convert time boundaries to indices
+        tInd = zeros(size(t1));
+        for n = 1:length(t1)
+            ind = find(time >= t1(n),1,'first');
+            if isempty(ind)
+                ind = length(time);
+            end
+            tInd(n) = ind;
+        end
+
+        % enforce valid and unique boundaries
+        tInd = unique(tInd,'stable');
+        tInd(tInd < 1) = [];
+        tInd(tInd > length(time)) = [];
+
+        % make sure first point is included
+        if isempty(tInd) || tInd(1) ~= 1
+            tInd = [1 tInd];
+        end
+
+        % use boundaries to construct non-overlapping gates
+        iGate = 0;
+        for n = 1:length(tInd)-1
+            iStart = tInd(n);
+            iEnd = tInd(n+1)-1;
+
+            if iEnd >= iStart
+                iGate = iGate+1;
+                gate.indices{iGate,1} = (iStart:iEnd)';
+            end
+        end
+
+        % final gate includes all remaining points
+        iStart = tInd(end);
+        if iStart <= length(time)
+            iGate = iGate+1;
+            gate.indices{iGate,1} = (iStart:length(time))';
+        end
+
+    % LIN
+    % Approximately constant number Ne of echoes per gate.
+    %
+    % This replaces the previous time-mask implementation by explicit,
+    % consecutive index ranges. This prevents empty gates and guarantees
+    % that every data point belongs to exactly one gate
+    case 'lin'
+        % retain original interpretation:
+        % Ne controls approximately how many echoes belong to one gate
+        NgLin = max(1,round(length(time)/Ne));
+        % distribute all data points as evenly as possible over NgLin gates
+        edges = round(linspace(0,length(time),NgLin+1));
+
+        iGate = 0;
+        for n = 1:NgLin
+            iStart = edges(n)+1;
+            iEnd   = edges(n+1);
+            if iEnd >= iStart
+                iGate = iGate+1;
+                gate.indices{iGate,1} = (iStart:iEnd)';
             end
         end
 end
 
-% shift correction from MMP:
-signal = signal - VbaseCorr; % subtract shift
-signal_g = signal_g - VbaseCorr; % subtract shift
+%% consistency check of gate indices
+%  Every raw data point must occur exactly once.
+if isempty(gate.indices)
+    error('No valid gates could be generated.');
+end
 
-% output struct
+allInd = vertcat(gate.indices{:});
+if length(allInd) ~= length(time) || ...
+        any(sort(allInd) ~= (1:length(time))')
+    error(['Invalid gate definition: every input data point must ', ...
+           'belong to exactly one gate.']);
+end
+
+%% calculate gated data
+%  IMPORTANT:
+%  arithmetic averaging is used for ALL gating methods
+nGates = length(gate.indices);
+t = zeros(nGates,1);
+signal_g = zeros(nGates,1);
+Nechos   = zeros(nGates,1);
+
+if iscomplex
+    Noise = zeros(nGates,1);
+end
+
+for i = 1:nGates
+    ind = gate.indices{i};
+    % representative time
+    t(i) = mean(time(ind));
+    % arithmetic mean of NMR signal
+    signal_g(i) = mean(signal(ind));
+    % actual number of echoes in this gate
+    Nechos(i) = length(ind);
+    % local estimate from imaginary channel
+    if iscomplex
+        if length(ind) > 1
+            Noise(i) = std(Ipart(ind));
+        else
+            % standard deviation cannot be estimated from one sample
+            Noise(i) = NaN;
+        end
+    end
+end
+
+%% output data
+if iscomplex
+    data = zeros(nGates,4);
+else
+    data = zeros(nGates,3);
+end
 data(:,1) = t;
 data(:,2) = signal_g;
 data(:,3) = Nechos;
-if isimag
- data(:,4) = Noise;
+if iscomplex
+    data(:,4) = Noise;
 end
 
-% if plotit is set to 1
-if plotit == 1
+%% additional gate information
+gate.N    = Nechos;
+gate.time = t;
+gate.time_raw = time;
+gate.type = type;
+
+%% plot (optional)
+if plotit
     figure;
-    subplot(211)
-    plot(time,signal); hold on
-    if strcmp(type,'lin')
-        errorbar(t,signal_g,signal_std,'ko');
-    else
-        plot(t,signal_g,'ko');
-    end    
-    subplot(212);
-    semilogx(time,signal,'+-'); hold on
+    subplot(2,1,1);
+    plot(time,signal,'-');
+    hold on;
+    plot(t,signal_g,'ko');
+    xlabel('Time');
+    ylabel('Signal');
+    title(['Gating: ',type]);
+
+    subplot(2,1,2);
+    semilogx(time,signal,'+-');
+    hold on;
     semilogx(t,signal_g,'ko');
+    xlabel('Time');
+    ylabel('Signal');
 end
 
 return

@@ -41,8 +41,8 @@ h0  = findobj('Tag','INV');
 if ~isempty(h0); close(h0); end
 
 %% GUI 'header' info and defaults
-myui.version = '0.4.1';
-myui.date = '31.03.2026';
+myui.version = '0.4.2';
+myui.date = '26.09.2026';
 myui.author = {'Stephan Costabel','Thomas Hiller'};
 myui.email = 'thomas.hiller[at]bgr.de';
 myui.fontsize = 10;
@@ -81,18 +81,17 @@ gui.myui = myui;
 Mver = ver;
 for i = 1:size(Mver,2)
     if strcmp(Mver(i).Name,'Optimization Toolbox')
-        data.info.has_optim = 'on';
+        data.info.has_optim = true;
     end
     if strfind(Mver(i).Name,'Statistics')
-        data.info.stat = 'on';
+        data.info.has_stat = true;
     end
 end
-% set solver default (LSQLIN if available)
-switch data.info.has_optim
-    case 'on'
-        data.info.solver = 'lsqlin';
-    case 'off'
-        data.info.solver = 'lsqnonneg';
+% use optimization toolbox if available
+if data.info.has_optim
+    data.info.solver = 'optimTB';
+else
+    data.info.solver = 'internal';
 end
 
 % save the data struct within the GUI

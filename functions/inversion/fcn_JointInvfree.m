@@ -1,12 +1,14 @@
-function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
+function [F,J,ig,K] = fcn_JointInvfree(X,iparam)
 %fcn_JointInvfree jointly estimates the pore size distribution and surface
 %relaxivity "rho" via a non-linear multi-exponential fit
+%This is a clean restructured rewrite, initiated from the migration of the
+%code to python with Claude Code
 %
 % Syntax:
-%       fcn_JointInvfree(T,f)
+%       fcn_JointInvfree(X,iparam)
 %
 % Inputs:
-%       X - [PSD; rho]
+%       X - X(1:N) = PSD; X(N+1) = log10(rho)
 %       iparam - struct that hold additional parameters:
 %                t : augmented time vector
 %                g : augmented signal vector
@@ -46,172 +48,210 @@ function [F,J,ig,XX] = fcn_JointInvfree(X,iparam)
 %------------- BEGIN CODE --------------
 
 %% input parameters
-t = iparam.t;
-g = iparam.g;
+t = iparam.t(:);
+g = iparam.g(:);
+
 Tb = iparam.Tb;
 Td = iparam.Td;
-T1T2 = iparam.T1T2;
-T1IRfac = iparam.T1IRfac;
+mode = iparam.T1T2;
+geom = iparam.igeom.type;
+
 L = iparam.L;
 lambda = iparam.lambda;
-igeom = iparam.igeom;
+
 IPS = iparam.IPS;
 
-% length of relaxation time distr.
-n = length(X)-1;
-% amplitude of relaxation time distr.
-x = X(1:n);
-% surface relaxivity as scaled log10 value
-rhos = 10^X(n+1);
+N = numel(X)-1;
+f = X(1:N).';
 
-%% switch depending on geometry
-switch igeom.type
+eta = X(end);
+rho = 10.^eta;
+% d(rho)/d(log10(rho))
+drho_deta = log(10)*rho;
+
+% full saturated surface-to-volume ratio
+SV = iparam.SVdata.SVF(:).';
+
+% combine Tb and Td
+Rb = 1/Tb + 1/Td;
+
+Nt = numel(t);
+Nr = numel(SV);
+
+%% 1. fully saturated kernel
+rateFull = rho.*SV + Rb;
+Efull = exp(-t .* rateFull);
+
+switch mode
+    case 'T2'
+        % kernel
+        Kf = Efull;
+
+        % derivative dK / d(log10(rho))
+        dKf = -drho_deta .* (t .* SV) .* Efull;
+
+    case 'T1'
+        q = iparam.T1IRfac;
+        % kernel
+        Kf = 1 - q.*Efull;
+
+        % derivative dK / d(log10(rho))
+        dKf = q .* drho_deta .* (t .* SV) .* Efull;
+end
+
+%% 2. geometry
+switch geom
+    % Cylindrical pores:
+    % either completely water filled or completely empty
     case 'cyl'
-        % for cylindrical pores SV is simply the full saturated S/V ratio
-        SV = iparam.SVdata.SVF;
-        
-        % Kernel matrix
-        Kf = zeros(length(t),length(SV));
-        switch T1T2
-            case 'T1'
-                for i=1:length(SV)
-                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-                end
-            case 'T2'
-                for i=1:length(SV)
-                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-                end
-        end
-        K = Kf;
-        % Kernel matrix times saturation matrix
-        XX = K.*IPS;
-        
+        K  = Kf .* IPS;
+        dKdEta = dKf .* IPS;
+
+        % Angular / polygonal pores:
+        % partial saturation possible
     case {'ang','poly'}
-        % for angular and polygonal pores there are full saturation S/V and
-        % partial saturation S/V ratios and amplitudes
-        SV = iparam.SVdata.SVF;
+
         SVC = iparam.SVdata.SVC;
         Amp = iparam.SVdata.Ampl;
         TT = iparam.SVdata.TT;
-        
-        % Kernel matrix
-        Kf = zeros(length(t),length(SV));
-        switch T1T2
-            case 'T1'
-                for i=1:length(SV)
-                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-                end
-                % Kernel matrix for partial saturation
-                Kc = zeros(length(t),length(SV));
-                for i=1:size(SVC,1)
-                    Kc = Kc + ( squeeze(Amp(i,:,:)) .*...
-                        ( 1-T1IRfac.*exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) ));
-                end
-            case 'T2'
-                for i=1:length(SV)
-                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-                end
-                % Kernel matrix for partial saturation
-                Kc = zeros(length(t),length(SV));
-                for i=1:size(SVC,1)
-                    Kc = Kc + ( squeeze(Amp(i,:,:)) .*...
-                        exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
-                end
+        % initialize final partial saturation corner kernel and its
+        % derivative
+        Kc = zeros(Nt,Nr);
+        dKcEta = zeros(Nt,Nr);
+
+        Nc = size(SVC,1);
+        % Sum individual corner contributions
+        for c = 1:Nc
+            svc = squeeze(SVC(c,:,:));
+            amp = squeeze(Amp(c,:,:));
+            rateCorner = rho.*svc + Rb;
+            % relaxivity within a corner
+            Ecorner = exp(-TT .* rateCorner);
+
+            switch mode
+                case 'T2'
+                    % kernel scaled by individual amplitudes
+                    Kcorner = amp .* Ecorner;
+                    % derivative
+                    dKcorner = -drho_deta .* amp .* TT .* svc .* Ecorner;
+
+                case 'T1'
+                    q = iparam.T1IRfac;
+                    % kernel scaled by individual amplitudes
+                    Kcorner = amp .* (1 - q.*Ecorner);
+                    % derivative
+                    dKcorner = q .* drho_deta .* amp .* TT .* svc .* Ecorner;
+            end
+
+            % partial saturation corner kernel and its derivative
+            Kc = Kc + Kcorner;
+            dKcEta = dKcEta + dKcorner;
         end
-        % full saturation matrix
+
+        % Initially assume full saturation
         K = Kf;
-        % for partial saturation points use the Kc values
-        K(IPS~=1) = Kc(IPS~=1);
-        % Kernel matrix times saturation matrix
-        XX = K;
+        dKdEta = dKf;
+
+        % if any, replace partially saturated points by corner water
+        idxPartial = (IPS ~= 1);
+        K(idxPartial) = Kc(idxPartial);
+        dKdEta(idxPartial) = dKcEta(idxPartial);
 end
 
-% error weighing
-if isfield(iparam,'W')
-    e = 1./diag(iparam.W);
-    W = diag(e);
-    g = W*g';
-    XX = W*XX;
-    g = g';
+%% 3. Physical NMR forward model
+ig = K*f;
+
+%% 4. Physical Jacobian
+if nargout > 1
+    % PSD amplitudes; upper left part of the Jacobian is simply the kernel
+    Jf = K;
+    % log10(surface relaxivity)
+    % upper right part is the GAMMA fcn in Mohnke, 2014 WRR
+    Jrho = dKdEta*f;
+    % combined physical Jacobian
+    Jphys = [Jf, Jrho];
 end
 
-% scale everything between [0,1]
-maxS = max(g);
-g = g./maxS;
-XX = XX./maxS;
 
-% corresponding signal g = Kf
-ig = XX*x';
-% residual
-F1 = (ig - g');
-% regularization
-F2 = (lambda*L)*x';
+%% 5. Raw NMR residual
+resNMR = ig - g;
+
+%% 6. Weight residuals by measurement uncertainty
+% iparam.W contains standard deviations:
+% Wsigma = diag(sigma)
+% We therefore need
+%  r_weighted = r./sigma
+% and
+%  J_weighted = J./sigma
+if isfield(iparam,'W') && ~isempty(iparam.W)
+
+    % Extract standard deviations
+    sigma = diag(iparam.W);
+
+    % Safety checks
+    if numel(sigma) ~= numel(resNMR)
+        error(['Number of standard deviations does not match ', ...
+            'number of NMR residuals.']);
+    end
+    if any(~isfinite(sigma))
+        error('Standard deviations contain NaN or Inf.');
+    end
+    if any(sigma <= 0)
+        error('All standard deviations must be > 0.');
+    end
+
+    % Weighted least-squares residual
+    resNMR = resNMR./sigma;
+
+    % Same operation must be applied to Jacobian rows
+    if nargout > 1
+        Jphys = Jphys./sigma;
+    end
+end
+
+%% 7. Optional CONSTANT numerical scaling
+% IMPORTANT:
+% "scale" must be calculated OUTSIDE this function.
+% Never use:
+% scale = max(signal) 
+% here. This was one of the former bugs.
+if isfield(iparam,'scale') && ~isempty(iparam.scale)
+    scale = iparam.scale;
+else
+    scale = 1;
+end
+
+if ~isscalar(scale) || ~isfinite(scale) || scale <= 0
+    error('iparam.scale must be a finite positive scalar.');
+end
+
+% apply the scaling
+resNMR = resNMR / scale;
+
+% Same operation must be applied to Jacobian
+if nargout > 1
+    JNMR = Jphys / scale;
+end
+
+%% 8. Regularization
+resReg = lambda * L * f;
+
+%% 9. Complete residual
 % fcn should return the residual as output for lsqnonlin
 % see e.g. Aster et al. S. 240 eq.10.4
-F  = [F1; F2];
+F = [resNMR;
+    resReg];
 
-% jacobian - speeds up inversion!
-J = 0;
+%% 10. Complete Jacobian
 if nargout > 1
-    % see Mohnke, 2014 WRR paper for info
-    
-    % J = dGAMMA/df
-    J = XX;
-    
-    switch T1T2
-        case 'T1'
-            % Jr = dGAMMA/drho
-            % for T1 it's a bit more tricky because
-            % d/drho 1-IR*exp(-t*rho*SV) = IR*t*SV * exp(-t*rho*SV)
-            % where exp(-t*rho*SV) is essentially the T2 Kernel matrix
-            
-            % DD = exp(-t*rho*SV)
-            switch igeom.type
-                case 'cyl'
-                    DD = zeros(length(t),length(SV));
-                    for i=1:length(SV)
-                        DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-                    end
-                    
-                case {'ang','poly'}
-                    % Kernel matrix for full saturation
-                    DD = zeros(length(t),length(SV));
-                    for i=1:length(SV)
-                        DD(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
-                    end
-                    % Kernel matrix for partial saturation
-                    D = zeros(length(t),length(SV));
-                    for i=1:size(SVC,1)
-                        D = D + ( squeeze(Amp(i,:,:)).*...
-                            exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
-                    end
-                    DD(IPS~=1) = D(IPS~=1);
-            end
-            
-            % and now using DD in the derivative:
-            Jr = zeros(1,length(t));
-            for i = 1:length(t)
-                Jr(i) = t(i).*sum(x.*T1IRfac.*SV.*rhos.*DD(i,:));
-            end
-            
-        case 'T2'
-            % Jr = dGAMMA/drho
-            % in the case of T2 the derivate of dGAMMA/drho is simple
-            Jr = zeros(1,length(t));
-            for i = 1:length(t)
-                Jr(i) = t(i).*sum(-x.*SV.*rhos.*XX(i,:));
-            end
-    end
-    
-    JJ = [J Jr'];
-    LL = [lambda*L 0*L(:,1)];
-    J = [JJ;LL];
-    
-    % for final output scale the fitted signal back
-    ig = XX*(x'.*maxS);
+    % rho is currently not regularized, hence the zeros on the right
+    JReg = [lambda*L, zeros(size(L,1),1)];
+
+    J = [JNMR;
+        JReg];
 end
 
-return
+end
 
 %------------- END OF CODE --------------
 

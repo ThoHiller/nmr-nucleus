@@ -43,11 +43,10 @@ switch value
     case 1 % free
         % if the optimization toolbox is not there then the fixed
         % inversion is the default
-        switch data.info.has_optim
-            case 'on'
-                data.invjoint.invtype = 'free';
-            case 'off'
-                data.invjoint.invtype = 'fixed';
+        if data.info.has_optim
+            data.invjoint.invtype = 'free';
+        else
+            data.invjoint.invtype = 'fixed';
         end
         data.invjoint.regtype = 'manual';
         data.invjoint.lambda = 1;

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.2] - 2026-09-26
+
+### Changed
+- Heavy clean-up of the **NUCLEUSinv** (joint) inversion routines (`fitDataLSQ`, `applyGatesToSignal`, `fcn_Joint[...]`, etc.); i.e. stricter separation of gating, weighting and scaling within the corresponding functions
+- renamed the **NUCLEUSinv** menu *LSQ solver* into *Numerical Solver* because one can now select the solver routines used for inversion (switch between *Optimization TB* (if available) and *Matlab Internal* routines)
+
+### Fixed
+- Fixed a bug in **NUCLEUSinv** joint inversion routine `fcn_JointInvFree` (the Jacobian was not correct; luckily this only increased the convergence time and not the final result)
+
 ## [0.4.1] - 2026-03-31
 
 ### Added
@@ -269,6 +278,7 @@
 
 Initial Version
 
+[0.4.2]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.4.1...v.0.4.2
 [0.4.1]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.4.0...v.0.4.1
 [0.4.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.3.0...v.0.4.0
 [0.3.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.2.1...v.0.3.0

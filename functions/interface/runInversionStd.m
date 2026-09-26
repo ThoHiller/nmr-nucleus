@@ -160,17 +160,17 @@ if ~isempty(id) && ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.has_optim;
+                    param.solver = data.info.solver;
                     param.Tfixed_bool = data.invstd.Tfixed_bool;
                     param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     % status bar information
-                    switch data.info.has_optim
-                        case 'on'
-                            infostring = 'Inversion using ''Optimization Toolbox'' ... ';
-                        case 'off'
+                    switch data.info.solver
+                        case 'optimTB'
+                            infostring = 'Inversion using ''lsqnonlin'' ... ';
+                        case 'internal'
                             infostring = 'Inversion using ''fminsearchbnd'' ... ';
                     end
                     displayStatusText(gui,infostring);
@@ -184,17 +184,17 @@ if ~isempty(id) && ~isempty(INVdata)
                     flag = data.results.nmrproc.T1T2;
                     param.T1IRfac = data.results.nmrproc.T1IRfac;
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.has_optim;
+                    param.solver = data.info.solver;
                     param.Tfixed_bool = data.invstd.Tfixed_bool;
                     param.Tfixed_val = data.invstd.Tfixed_val;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                     end
                     % status bar information
-                    switch data.info.has_optim
-                        case 'on'
-                            infostring = 'Inversion using ''Optimization Toolbox'' ... ';
-                        case 'off'
+                    switch data.info.solver
+                        case 'optimTB'
+                            infostring = 'Inversion using ''lsqnonlin'' ... ';
+                        case 'internal'
                             infostring = 'Inversion using ''fminsearchbnd'' ... ';
                     end
                     displayStatusText(gui,infostring);
@@ -215,6 +215,7 @@ if ~isempty(id) && ~isempty(INVdata)
                     param.noise = data.results.nmrproc.noise;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                        param.gate = data.results.nmrproc.gate;
                     end
                     % status bar information
                     infostring = 'Inversion using LU decomposition ... ';
@@ -237,13 +238,14 @@ if ~isempty(id) && ~isempty(INVdata)
                     param.EchoFlag = data.info.EchoFlag;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
-                    end
+                        param.gate = data.results.nmrproc.gate;
+                    end                    
 
                     % status bar information
                     switch data.info.solver
-                        case 'lsqlin'
-                            infostring = 'Inversion using ''Optimization Toolbox'' ... ';
-                        case 'lsqnonneg'
+                        case 'optimTB'
+                            infostring = 'Inversion using ''lsqlin'' ... ';
+                        case 'internal'
                             infostring = 'Inversion using ''lsqnonneg'' ... ';
                     end
                     displayStatusText(gui,infostring);
@@ -258,16 +260,17 @@ if ~isempty(id) && ~isempty(INVdata)
                     param.Td = data.invstd.Tdiff;
                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
                     param.noise = data.results.nmrproc.noise;
-                    param.optim = data.info.has_optim;
+                    param.solver = data.info.solver;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
+                        param.gate = data.results.nmrproc.gate;
                     end
 
                     % status bar information
                     switch data.info.solver
-                        case 'lsqlin'
-                            infostring = 'Inversion using ''Optimization Toolbox'' ... ';
-                        case 'lsqnonneg'
+                        case 'optimTB'
+                            infostring = 'Inversion using ''lsqnonlin'' ... ';
+                        case 'internal'
                             infostring = 'Inversion using ''fminsearchbnd'' ... ';
                     end
                     displayStatusText(gui,infostring);

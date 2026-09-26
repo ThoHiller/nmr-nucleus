@@ -80,7 +80,7 @@ If you do not have the Optimization or Statistics toolboxes then not all feature
 
 ### Operating System
 
-I tested it successfully under Windows 7 (64bit), 10 (64bit)  and 11 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is afaik v2.4.1 but I used v2.3.9)
+I tested it successfully under Windows 7 (64bit), 10 (64bit)  and 11 (64bit) with Matlab R2016b and newer. Always with the latest version of the GUI Layout Toolbox (current version is afaik v2.4.2 but I used v2.3.9)
 
 **NOTE:** So far I did not test anything on Linux or a Mac. If you get it to work on either of the two systems (which it basically should I guess) please let me know.
 
@@ -141,7 +141,7 @@ Hiller, T. and Costabel, S., NUCLEUS – A Matlab-based graphical user interface
 
 ## References
 
-1. Beisembina, G.T., Splith, T., Costabel, S., Hiller, T. and Müller-Petke, M. "Comparison of prepolarized surface NMR and conventional laboratory NMR in a peatland area", submitted to *Journal of Applied Geophysics*, 2026
+1. Beisembina, G.T., Splith, T., Costabel, S., Hiller, T. and Müller-Petke, M. "Comparison of prepolarized surface NMR and conventional laboratory NMR in a peatland area", *Journal of Applied Geophysics*, 2026, **255**, 106536, [DOI](https://doi.org/10.1016/j.jappgeo.2026.106536) 
 2. Lorenzoni,R., Cunningham, P., Fritsch, T., Schmidt, W., Kruschwitz, S. and Bruno, G. "Microstructure analysis of cement-biochar composites", *Materials and Structures*, 2024, **57**, 175, [DOI](https://doi.org/10.1617/s11527-024-02452-5)
 3. Kruschwitz, S., Munsch, S., Telong, M., Schmidt, W., Bintz, T., Fladt, M. and Stelzner, L., "The NMR core analyzing tomograph: a multi-functional tool for non-destructive testing of building materials", *Magnetic Resonance Letters*. 2023, **3**(3), 207-219, [DOI](https://doi.org/10.1016/j.mrl.2023.03.004)
 4. Costabel, S., Hiller, T. and Houben, G. "Nuclear magnetic resonance at the laboratory and field scale as a tool for detecting redox fronts in aquifers", *GEOPHYSICS*, 2023, **88**(2), KS13-KS25, [DOI](https://doi.org/10.1190/geo2022-0127.1)

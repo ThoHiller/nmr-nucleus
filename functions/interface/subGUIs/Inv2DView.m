@@ -1203,9 +1203,9 @@ param.EchoFlag = dataN.info.EchoFlag;
 
 % status bar information
 switch dataN.info.solver
-    case 'lsqlin'
+    case 'optimTB'
         infostring = '2D Inversion using ''Optimization Toolbox'' ... ';
-    case 'lsqnonneg'
+    case 'internal'
         infostring = '2D Inversion using ''lsqnonneg'' ... ';
 end
 displayStatusText(guiN,infostring);
@@ -1266,9 +1266,9 @@ param.EchoFlag = dataN.info.EchoFlag;
 
 % status bar information
 switch dataN.info.solver
-    case 'lsqlin'
+    case 'optimTB'
         infostring = '2D L-curve using ''Optimization Toolbox'' ... ';
-    case 'lsqnonneg'
+    case 'internal'
         infostring = '2D L-curve using ''lsqnonneg'' ... ';
 end
 displayStatusText(guiN,infostring);

@@ -22,14 +22,16 @@ function [F,varargout] = fcn_JointInvfixed(X,iparam)
 %                   igeom       : geometry struct
 %                   x           : relaxation time vector
 %                   f           : relaxation time distribution (RTD)
+%                   W           : diagonal matrix containing standard
+%                                 deviations of the NMR data (optional)
 %
 % Outputs:
-%       F - norm of the residual vector
+%       F - norm of the weighted residual vector
 %       varargout - cell that holds several more data
-%                   ig      : fitted NMR signals
-%                   XX      : Kernel matrix
+%                   ig      : fitted NMR signals (physical, unweighted)
+%                   XX      : Kernel matrix (physical, unweighted)
 %                   igeom   : final geometry struct
-%                   iSAT    : final pressure/saturation struct       
+%                   iSAT    : final pressure/saturation struct
 %
 % Example:
 %       F = fcn_JointInvfixed(X,iparam)
@@ -41,16 +43,11 @@ function [F,varargout] = fcn_JointInvfixed(X,iparam)
 %       getPartialSaturationMatrix
 %       getSaturationFromPressureBatch
 %
-% Subfunctions:
-%       none
-%
-% MAT-files required:
-%       none
-%
 % See also:
+%
 % Author: see AUTHORS.md
 % email: see AUTHORS.md
-% License: MIT License (at end)
+% License: MIT License
 
 %------------- BEGIN CODE --------------
 
@@ -69,6 +66,12 @@ x = iparam.x;
 f = iparam.f;
 constants = getConstants;
 
+% make vectors orientation consistent
+t = t(:);
+g = g(:);
+x = x(:);
+f = f(:);
+
 %% wait-bar option
 wbopts.show = false;
 
@@ -76,111 +79,135 @@ wbopts.show = false;
 rhos = 10^X(1);
 
 %% switch depending on geometry
-switch igeom.type    
-    case 'cyl'        
+switch igeom.type
+    case 'cyl'
         % new PSD with updated rhos
         ipsddata.r = x.*2.*rhos;
-        ipsddata.psd = f;
+        ipsddata.psd = f';
+
         % new saturation state
-        igeom.radius = ipsddata.r';
+        igeom.radius = ipsddata.r;
         igeom = getGeometryParameter(igeom);
         iSAT = getSaturationFromPressureBatch(igeom,p,ipsddata,constants,wbopts);
         IPS = getPartialSaturationMatrix(iSAT,indt,SatImbDrain);
-        
+
         % get the surface-to-volume ratio
         SV = igeom.P0./igeom.A0;
-        
+        SV = SV(:);
+
         % Kernel matrix
-        Kf = zeros(length(t),length(SV));        
+        Kf = zeros(length(t),length(SV));
         switch T1T2
             case 'T1'
-                for i=1:length(SV)
-                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
+                for i = 1:length(SV)
+                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
                 end
             case 'T2'
-                for i=1:length(SV)
-                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
+                for i = 1:length(SV)
+                    Kf(:,i) = exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
                 end
         end
-        
-        K = Kf;
         % Kernel matrix times saturation matrix
-        XX = K.*IPS;
-        
-    case {'ang','poly'}        
+        K = Kf;
+        XX = K .* IPS;
+
+    case {'ang','poly'}
         % new PSD with updated rhos
         ipsddata.r = x.*igeom.a.*rhos;
-        ipsddata.psd = f;
-        igeom.radius = ipsddata.r';
+        ipsddata.psd = f';
+
         % new saturation state
+        igeom.radius = ipsddata.r;
         igeom = getGeometryParameter(igeom);
-        iSAT = getSaturationFromPressureBatch(igeom,p,ipsddata,constants,wbopts);        
+        iSAT = getSaturationFromPressureBatch(igeom,p,ipsddata,constants,wbopts);
         IPS = getPartialSaturationMatrix(iSAT,indt,SatImbDrain);
-        
-        % get the amplitudes and surface-to-volume ratios for the partially
-        % saturated corners
+
+        % get amplitudes and surface-to-volume ratios
+        %  for partially saturated corners
         SVdata = getCornerNMRparameter(igeom,iSAT,indt,SatImbDrain);
-        SVdata.TT = repmat(t',[1 length(SVdata.SVF)]);
-        
+        SVdata.TT = repmat(t,[1 length(SVdata.SVF)]);
+
         SV  = SVdata.SVF';
         SVC = SVdata.SVC;
         Amp = SVdata.Ampl;
         TT  = SVdata.TT;
-        
-        % Kernel matrix
-        Kf = zeros(length(t),length(SV)); 
+        SV = SV(:);
+
+        % Kernel matrix for fully saturated pores
+        Kf = zeros(length(t),length(SV));
         switch T1T2
             case 'T1'
-                for i=1:length(SV)
-                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
+                for i = 1:length(SV)
+                    Kf(:,i) = 1-T1IRfac.*exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
                 end
                 % Kernel matrix for partial saturation
                 Kc = zeros(length(t),length(SV));
-                for i=1:size(SVC,1)
-                    Kc = Kc + ( squeeze(Amp(i,:,:)) .*...
-                        ( 1-T1IRfac.*exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) ));
+                for i = 1:size(SVC,1)
+                    svc = squeeze(SVC(i,:,:));
+                    amp = squeeze(Amp(i,:,:));
+                    Kc = Kc + amp.*(1-T1IRfac.*exp(-TT.*(rhos.*svc+1/Tb+1/Td)));
                 end
             case 'T2'
-                for i=1:length(SV)
-                    Kf(:,i) = exp(-t.*(rhos*SV(i) + 1/Tb + 1/Td));
+                for i = 1:length(SV)
+                    Kf(:,i) = exp(-t.*(rhos*SV(i)+1/Tb+1/Td));
                 end
                 % Kernel matrix for partial saturation
                 Kc = zeros(length(t),length(SV));
-                for i=1:size(SVC,1)
-                    Kc = Kc + ( squeeze(Amp(i,:,:)) .*...
-                        exp(-TT.*(rhos*squeeze(SVC(i,:,:)) + 1/Tb + 1/Td)) );
+                for i = 1:size(SVC,1)
+                    svc = squeeze(SVC(i,:,:));
+                    amp = squeeze(Amp(i,:,:));
+                    Kc = Kc + amp.*exp(-TT.*(rhos.*svc+1/Tb+1/Td));
                 end
         end
-        
+        % select full or partially saturated kernel
         K = Kf;
         K(IPS~=1) = Kc(IPS~=1);
-        % Kernel matrix times saturation matrix
         XX = K;
-        
-    otherwise
-        % nothing to do
 end
 
-%% weighting
-if isfield(iparam,'W')
-    e = 1./diag(iparam.W);
-    W = diag(e);
-    g = W*g';
-    XX = W*XX;
-    g = g';
-end
-
-%% corresponding signal g = Kf
-ig = XX*f';
+%% corresponding physical NMR signal
+%  IMPORTANT:
+%  XX and ig remain unweighted physical quantities.
+ig = XX*f;
 
 %% residual
-F = norm(ig - g');
+res = ig - g;
 
-%% output
+%% weighting
+%  iparam.W contains the standard deviations:
+%       W = diag(sigma)
+%  Hence the weighted residual is
+%       res_i = (ig_i - g_i)/sigma_i
+%  Weighting is applied ONLY to the residual. The physical
+%  signal ig and kernel XX remain unchanged.
+
+if isfield(iparam,'W') && ~isempty(iparam.W)
+
+    sigma = diag(iparam.W);
+
+    if length(sigma) ~= length(res)
+        error(['Number of standard deviations does not match ', ...
+               'the number of NMR data points.']);
+    end
+    if any(~isfinite(sigma)) || any(sigma <= 0)
+        error('All standard deviations must be finite and > 0.');
+    end
+
+    res = res ./ sigma;
+end
+
+%% scalar objective function for fminsearchbnd
+F = norm(res);
+
+% output
 if nargout > 1
+    % physical, unweighted fitted NMR signal
     varargout{1} = ig;
+    % physical, unweighted kernel matrix
     varargout{2} = XX;
+    % final geometry
     varargout{3} = igeom;
+    % final pressure/saturation state
     varargout{4} = iSAT;
 end
 

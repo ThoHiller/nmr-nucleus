@@ -136,7 +136,7 @@ regMethod = parameter.regMethod;
 % solve LSE
 t1 = toc;
 switch parameter.solver
-    case 'lsqlin'
+    case 'optimTB'
         % only the Optimization toolbox allows using bounds
         x0 = zeros(size(KK,2),1);
         lb = zeros(size(KK,2),1);
@@ -164,7 +164,7 @@ switch parameter.solver
         [f_vec,RESNORM,RESIDUAL,EXITFLAG,OUTPUT] = lsqlin(KK,dat_inp,[],[],[],[],...
             lb,ub,x0,options);
 
-    case 'lsqnonneg'
+    case 'internal'
         % native Matlab built-in LSQ-solver
         options = optimset('lsqnonneg');
         options.Display = parameter.info;

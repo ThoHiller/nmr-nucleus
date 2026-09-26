@@ -28,10 +28,15 @@ function [invstd,uncert] = estimateUncertainty(invtype,invstd,iparam,parameter)
 %       [invstd] = estimateUncertainty('MUMO',invstd,iparam,uparam)
 %
 % Other m-files required:
+%       addNoiseToSignal
+%       applyGatesToSignal
 %       createKernelMatrix
 %       displayStatusText
+%       fitDataLUdecomp
 %       fitDataLSQ
+%       fitDataMultiModal
 %       getFitErrors
+%       getUncertaintyStatistics
 %
 % Subfunctions:
 %       none

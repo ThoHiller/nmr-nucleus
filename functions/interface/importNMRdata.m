@@ -788,7 +788,7 @@ else
         disp('NUCLUESinv import: Estimating noise from exponential fit ...');
         param.T1IRfac = 1;
         param.noise = 0;
-        param.optim = 'off';
+        param.has_optim = false;
         param.Tfixed_bool = [0 0 0 0 0];
         param.Tfixed_val = [0 0 0 0 0];
         for i1 = 1:5
@@ -911,7 +911,7 @@ if ~is_T1
             fieldsize = [1 40];
             definput = {'16'};
             answer2 = inputdlg(prompt,dlgtitle,fieldsize,definput);
-            if ~isempty(answer2)
+            if ~isempty(answer2{1,1})
                 nstacks = str2double(answer2{1,1});
             else
                 doStack = false;
@@ -1041,7 +1041,7 @@ if ~isempty(datpath)
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = 2;
             param.noise = 0;
-            param.optim = data.info.has_optim;
+            param.has_optim = data.info.has_optim;
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5
@@ -1096,7 +1096,7 @@ if ~isempty(datpath)
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = 2;
             param.noise = 0;
-            param.optim = 'off';
+            param.has_optim = false;
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5
@@ -1146,6 +1146,15 @@ if ~isempty(datpath)
             fnames = fnames(ix);
             shownames = {shownames{ix'}};
 
+            % stack all signals
+            if nstacks == 0 || nstacks > numel(fnames)
+                nstacks = numel(fnames);
+            end
+            
+            % stack with (true) or without (false) individual phase
+            % (hard coded here, needs to be a menu)
+            doPhasestack = false;
+
             c = 0;
             % prepare data variables
             datanew = cell(1,1);
@@ -1156,11 +1165,28 @@ if ~isempty(datpath)
             % loop over all already imported files
             for i1 = 1:numel(fnames)
                 % stack up files
-                tmp_signal = tmp_signal + data.import.NMR.data{i1}.signal;
+                if doPhasestack
+                    tmp_signal = tmp_signal + data.import.NMR.data{i1}.signal;
+                else
+                    % phase from import-fit
+                    % data.phase_default = rad2deg(nucleus.data.results.nmrraw.phase);
+                    % original unrotated signal
+                    signal_raw = data.import.NMR.data{i1}.signal * ...
+                        exp(1i*(-data.import.NMR.data{i1}.phase));
+                    tmp_signal = tmp_signal + signal_raw;
+                end
+                
                 % check if stack count is reached
                 if mod(i1,nstacks)==0
                     % current stack has finished
                     c = c + 1;
+                    % get new phase angle
+                    if ~doPhasestack
+                        [pdata.signal,pdata.phase] = rotateT2phase(tmp_signal,'stdIm',...
+                            [deg2rad(90) deg2rad(155)]);
+                        tmp_signal = pdata.signal;
+                        datanew{c}.phase = pdata.phase;
+                    end
                     % save data
                     datanew{c} = data.import.NMR.data{i1};
                     datanew{c}.signal = tmp_signal./nstacks;
@@ -1175,6 +1201,30 @@ if ~isempty(datpath)
 
                     % reset the tmp_signal to zero
                     tmp_signal = zeros(size(data.import.NMR.data{1}.signal));
+                elseif i1 == numel(fnames)
+                    % depending on the number of files, the last chunk of
+                    % stacks has a lower number of stacks
+                    nstacks = rem(i1,nstacks);
+                    % current stack has finished
+                    c = c + 1;
+                    % get new phase angle
+                    if ~doPhasestack
+                        [pdata.signal,pdata.phase] = rotateT2phase(tmp_signal,'stdIm',...
+                            [deg2rad(90) deg2rad(155)]);
+                        tmp_signal = pdata.signal;
+                        datanew{c}.phase = pdata.phase;
+                    end
+                    % save data
+                    datanew{c} = data.import.NMR.data{i1};
+                    datanew{c}.signal = tmp_signal./nstacks;
+                    datanew{c}.raw.signal = tmp_signal./nstacks;
+
+                    paranew{c} = data.import.NMR.para{i1};
+                    paranew{c}.Nscans = paranew{c}.Nscans*nstacks;
+                    paranew{c}.all{1,1}{6} = ['Nscans = ',num2str(paranew{c}.Nscans)];
+
+                    fnamesnew(c) = fnames(i1);
+                    shownamesnew{c} = [shownames{i1},'_',num2str(nstacks)];
                 end
             end
             data.import.NMR.data = datanew;
@@ -1424,7 +1474,7 @@ if ~isempty(datpath)
         disp('NUCLUESinv import: Estimating noise from exponential fit ...');
         param.T1IRfac = 1;
         param.noise = 0;
-        param.optim = 'off';
+        param.has_optim = false;
         param.Tfixed_bool = [0 0 0 0 0];
         param.Tfixed_val = [0 0 0 0 0];
         for i1 = 1:5
@@ -1598,7 +1648,7 @@ if ~isempty(datpath)
     disp('NUCLUESinv import: Estimating noise from exponential fit ...');
     param.T1IRfac = 2;
     param.noise = 0;
-    param.optim = 'off';
+    param.has_optim = false;
     param.Tfixed_bool = [0 0 0 0 0];
     param.Tfixed_val = [0 0 0 0 0];
     for i1 = 1:5
