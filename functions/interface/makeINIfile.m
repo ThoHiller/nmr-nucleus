@@ -45,7 +45,7 @@ switch method
         ind = strfind(gui.myui.inipath,'nucleus');
         importpath = [gui.myui.inipath(1:ind+6) filesep 'example_data'];
         inidata.importpath = importpath;
-        inidata.lastimport = 'Lab_RWTH ascii';
+        inidata.lastimport = 'GGE ascii';
         inidata.lastexport = 'NUCLEUSinv (session)';
         gui.myui.inidata = inidata;
         

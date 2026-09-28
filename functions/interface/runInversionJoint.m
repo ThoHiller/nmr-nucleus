@@ -613,9 +613,9 @@ if foundINV
                 
                 options = optimset('Display',info,'TolFun',1e-9,'TolX',1e-9,...
                     'MaxFunEvals',1000,'MaxIter',500);
-                X = fminsearchbnd(@(X) fcn_JointInvshape_clean(X,iparam),x0,lb,ub,options);
+                X = fminsearchbnd(@(X) fcn_JointInvshape(X,iparam),x0,lb,ub,options);
                 
-                [errnorm,ig,XX,iGEOM,iSAT] = fcn_JointInvshape_clean(X,iparam);
+                [errnorm,ig,XX,iGEOM,iSAT] = fcn_JointInvshape(X,iparam);
                 
                 displayStatusText(gui,[infostring,'done']);
                 

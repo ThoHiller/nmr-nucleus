@@ -133,6 +133,7 @@ if isfield(data,'results') && isfield(data.results,'invstd') && is1D
                 end
                 ylims = [0 max(F)*1.05];
             else
+                F = F0;
                 ylims = [-1 1];
             end
             if data.invstd.porosity == 1

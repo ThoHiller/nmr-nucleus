@@ -60,29 +60,60 @@ function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)
 
 %------------- BEGIN CODE --------------
 
-% make column vector
-t = time(:);
-s = signal(:);
+%% input vectors
+time = time(:);
+signal = signal(:);
 
-% T1 saturation/inversion recovery factor
-IRfac = parameter.T1IRfac;
-
-% error weights after gating
-if isfield(parameter,'W')
-    e = 1./diag(parameter.W);
-    iparam.e = sqrt(e);
-else
-    e = ones(size(s));
+if length(time) ~= length(signal)
+    error('time and signal must have the same number of elements.');
 end
+if any(~isfinite(time)) || any(~isfinite(signal))
+    error('time and signal must contain finite values only.');
+end
+
+% physical data
+t = time;
+s = signal;
 
 % switch off output if no option is given via 'parameter'
 if ~isfield(parameter,'info')
     parameter.info = 'off';
 end
+% if no solver is choosen, use the intenal one
+if ~isfield(parameter,'solver')
+    parameter.solver = 'internal';
+end
 
+%% T1 saturation/inversion recovery factor
+IRfac = parameter.T1IRfac;
+
+%% error weights after gating
+% parameter.W contains the standard error sigma_k of each (gated) data
+% point: sigma_k = noise / sqrt(N_k). The whitened residual is therefore
+%   r_k = (s_model,k - s_data,k) / sigma_k
+% i.e. the weights are e = 1./sigma (formerly sqrt(1./sigma) for
+% lsqnonlin and 1./sigma for fminsearchbnd -- inconsistent, and the T1
+% paths were not weighted at all)
+hasWeights = isfield(parameter,'W') && ~isempty(parameter.W);
+if hasWeights
+    sigma = diag(parameter.W);
+    sigma = sigma(:);
+    if length(sigma) ~= length(s)
+        error(['Number of standard deviations in parameter.W does not ', ...
+               'match the number of NMR data points.']);
+    end
+    if any(~isfinite(sigma)) || any(sigma <= 0)
+        error('All standard deviations must be finite and > 0.');
+    end
+    e = 1./sigma;
+else
+    e = ones(size(s));
+end
+iparam.e = e;
+
+%% bounds for inversion
 % check if any relaxation time is fixed
 if any(parameter.Tfixed_bool)
-
     % start values for E and T
     x0 = zeros(1,2*nExp);
     % E
@@ -95,7 +126,6 @@ if any(parameter.Tfixed_bool)
             x0(2*i) = parameter.Tfixed_val(i);
         end
     end
-
     % bounds for E and T
     lb = zeros(1,2*nExp);
     ub = zeros(1,2*nExp);
@@ -110,9 +140,7 @@ if any(parameter.Tfixed_bool)
             ub(2*i) = 100*i*max(t);
         end
     end
-
 else % if not proceed with the standard version
-
     % start values for E and T
     x0 = zeros(1,2*nExp);
     % E
@@ -131,6 +159,7 @@ else % if not proceed with the standard version
     end
 end
 
+%% solve inversion problem
 switch parameter.solver
     case 'optimTB'
         switch flag
@@ -141,8 +170,10 @@ switch parameter.solver
                 % options.OptimalityTolerance = 1e-18;
                 % options.StepTolerance = 1e-18;
                 % options.MaxIterations = 1e3;
-                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)fcn_fitFreeT1(x,t,IRfac),...
-                    x0,t,s,lb,ub,options);
+                % whitened model and data (e = 1 if unweighted); the
+                % returned Jacobian therefore is the whitened one as well
+                [x,~,~,~,output,~,jacobian] = lsqcurvefit(@(x,t)e.*fcn_fitFreeT1(x,t,IRfac),...
+                    x0,t,e.*s,lb,ub,options);
             case 'T2'
                 % solver options
                 options = optimoptions('lsqnonlin');
@@ -150,7 +181,6 @@ switch parameter.solver
                 % options.OptimalityTolerance = 1e-18;
                 % options.StepTolerance = 1e-18;
                 % options.MaxIterations = 1e3;
-
                 iparam.t = t;
                 iparam.s = s;
                 [x,~,~,~,output,~,jacobian] = lsqnonlin(@(x)fcn_fitFreeT2w(x,iparam),...
@@ -166,7 +196,7 @@ switch parameter.solver
             case 'T1'
                 % set all start values to 0 (if something is not working as expected, comment it and try again)
                 % x0 = zeros(size(lb));
-                [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s,IRfac),...
+                [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT1_fmin(x,t,s,IRfac,e),...
                     x0,lb,ub,options);
             case 'T2'
                 [x,~,~,output] = fminsearchbnd(@(x) fcn_fitFreeT2_fmin(x,t,s,e),...
@@ -174,6 +204,7 @@ switch parameter.solver
         end
 end
 
+%% physical fitted signal
 % get the fit
 fit_t = t;
 switch flag
@@ -183,25 +214,27 @@ switch flag
         fit_s = fcn_fitFreeT2(x,fit_t);
 end
 
-% get residuals and error measures
-if isfield(parameter,'W')
+%% error measures in physical signal space
+if hasWeights
     % when signal gating was used the error estimates need to be adjusted
     out = getFitErrors(signal,fit_s,parameter.noise,parameter.W);
 else
     out = getFitErrors(signal,fit_s,parameter.noise);
 end
 
-% get Jacobian
+% get Jacobian of the whitened residual e.*(model - data)
 switch parameter.solver
     case 'optimTB'
         % nothing to do because the Optim. Toolbox gives the jacobian as
-        % output
+        % output (already whitened, see above)
     case 'internal'
-        jacobian = getFitFreeJacobian(x,t,flag,IRfac);
+        jacobian = e .* getFitFreeJacobian(x,t,flag,IRfac);
 end
 
-% confidence interval
-ci = getConfInterval(out.resnorm,full(jacobian),0.05);
+%% confidence interval
+% resnorm and Jacobian must refer to the SAME (whitened) residual
+resnorm_w = sum((e .* (fit_s(:) - s)).^2);
+ci = getConfInterval(resnorm_w,full(jacobian),0.05);
 
 % sort the relaxation times in ascending order
 E0 = x(1:2:end);
@@ -219,7 +252,7 @@ ciE = ciE(idx);
 ci(2:2:end) = ciT;
 ci(1:2:end) = ciE;
 
-% output struct
+%% output struct
 fitdata.E0 = E0;
 switch flag
     case 'T1'

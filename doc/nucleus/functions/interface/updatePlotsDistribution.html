@@ -204,486 +204,487 @@ This function is called by:
 0133                 <span class="keyword">end</span>
 0134                 ylims = [0 max(F)*1.05];
 0135             <span class="keyword">else</span>
-0136                 ylims = [-1 1];
-0137             <span class="keyword">end</span>
-0138             <span class="keyword">if</span> data.invstd.porosity == 1
-0139                 ylab1 = <span class="string">'amplitudes [-]'</span>;
-0140                 ylab2 = <span class="string">'cumulative amplitudes [-]'</span>;
-0141             <span class="keyword">else</span>
-0142                 ylab1 = <span class="string">'water content [vol. %]'</span>;
-0143                 ylab2 = <span class="string">'cumulative water content [vol. %]'</span>;
-0144             <span class="keyword">end</span>
-0145             <span class="comment">% F = data.invstd.porosity.*F./trapz(invstd.T1T2me,F);</span>
-0146             
-0147             <span class="keyword">switch</span> data.info.RTDflag
-0148                 <span class="keyword">case</span> <span class="string">'freq'</span>
-0149                     <span class="comment">% check if there is uncertainty data</span>
-0150                     <span class="keyword">if</span> hasUncert
-0151                         <span class="comment">% plot uncertainty models</span>
-0152                         f_max = 0;
-0153                         FDIST = uncert.interp_f;
-0154                         <span class="comment">% scaling</span>
-0155                         <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0156                             FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
-0157                         <span class="keyword">end</span>
-0158 
-0159                         <span class="keyword">switch</span> data.info.RTDuncert
-0160                             <span class="keyword">case</span> <span class="string">'lines'</span>
-0161                                 f_max = max([ylims(2) max(FDIST(:))]);
-0162                                 <span class="comment">% need to plot transpose of FDIST because 'x'</span>
-0163                                 <span class="comment">% is a column vector otherwise plot goes</span>
-0164                                 <span class="comment">% bananas if numel(x) = #models</span>
-0165                                 plot(invstd.T1T2me,FDIST(1,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
-0166                                     <span class="string">'LineWidth'</span>,1,<span class="keyword">...</span>
-0167                                     <span class="string">'DisplayName'</span>,<span class="string">'uncert models'</span>,<span class="string">'Parent'</span>,ax);
-0168                                 plot(invstd.T1T2me,FDIST(2:<span class="keyword">end</span>,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
-0169                                     <span class="string">'LineWidth'</span>,1,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0170                                     <span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
-0171                             <span class="keyword">case</span> <span class="string">'patch'</span>
-0172                                 <span class="comment">% get mean and std of all uncert models</span>
-0173                                 mean_f = mean(FDIST);
-0174                                 std_f = std(FDIST);
-0175 
-0176                                 <span class="comment">% patch lower and upper bounds</span>
-0177                                 patch_f_std1 = [mean_f+std_f;mean_f-std_f];
-0178                                 patch_f_std2 = [mean_f+2*std_f;mean_f-2*std_f];
-0179                                 patch_f_std3 = [mean_f+3*std_f;mean_f-3*std_f];
-0180                                 patch_f_std1(patch_f_std1&lt;0) = 0;
-0181                                 patch_f_std2(patch_f_std2&lt;0) = 0;
-0182                                 patch_f_std3(patch_f_std3&lt;0) = 0;
-0183                                 f_max = max([ylims(2) max(patch_f_std1)<span class="keyword">...</span>
-0184                                     max(patch_f_std2) max(patch_f_std3)]);
-0185 
-0186                                 <span class="comment">% draw all three patches on top of each other</span>
-0187                                 verts = [invstd.T1T2me patch_f_std3(2,:)';<span class="keyword">...</span><span class="comment">.</span>
-0188                                     flipud(invstd.T1T2me) flipud(patch_f_std3(1,:)')];
-0189                                 faces = 1:1:size(verts,1);
-0190                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
-0191                                     <span class="string">'FaceColor'</span>,[0.6 0.6 0.6],<span class="keyword">...</span>
-0192                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0193                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (3*std)'</span>,<span class="string">'Parent'</span>,ax);
-0194                                 verts = [invstd.T1T2me patch_f_std2(2,:)';<span class="keyword">...</span>
-0195                                     flipud(invstd.T1T2me) flipud(patch_f_std2(1,:)')];
-0196                                 faces = 1:1:size(verts,1);
-0197                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
-0198                                     <span class="string">'FaceColor'</span>,[0.4 0.4 0.4],<span class="keyword">...</span>
-0199                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0200                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (2*std)'</span>,<span class="string">'Parent'</span>,ax);
-0201                                 verts = [invstd.T1T2me patch_f_std1(2,:)';<span class="keyword">...</span>
-0202                                     flipud(invstd.T1T2me) flipud(patch_f_std1(1,:)')];
-0203                                 faces = 1:1:size(verts,1);
-0204                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
-0205                                     <span class="string">'FaceColor'</span>,[0.2 0.2 0.2],<span class="keyword">...</span>
-0206                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0207                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (std)'</span>,<span class="string">'Parent'</span>,ax);
-0208                         <span class="keyword">end</span>                        
-0209                         <span class="comment">% adjust y-limits</span>
-0210                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
-0211                         
-0212                         <span class="comment">% plot original solution</span>
-0213                         plot(invstd.T1T2me,F,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0214                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0215                     <span class="keyword">else</span>
-0216                         plot(invstd.T1T2me,F,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0217                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0218                     <span class="keyword">end</span>                    
-0219                     
-0220                     <span class="comment">% find approx. TLGM amplitude</span>
-0221                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,F,invstd.Tlgm);
-0222                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0223                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0224                     
-0225                     <span class="comment">% y-limits</span>
-0226                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
-0227                     <span class="comment">% y-label</span>
-0228                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
-0229                     <span class="comment">% legend</span>
-0230                     lgh = legend(ax,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>);
-0231                     set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="keyword">...</span>
-0232                         <span class="string">'TextColor'</span>,gui.myui.colors.panelFG);
-0233                     
-0234                 <span class="keyword">case</span> <span class="string">'cum'</span>
-0235                     <span class="comment">% in the case of the cumulative plot, no uncertainty is</span>
-0236                     <span class="comment">% shown</span>
-0237                     plot(invstd.T1T2me,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0238                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0239 
-0240                     <span class="comment">% find approx. TLGM amplitude</span>
-0241                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,cumsum(F),invstd.Tlgm);
-0242                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0243                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0244                     
-0245                     <span class="comment">% y-limits</span>
-0246                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
-0247                     <span class="comment">% y-label</span>
-0248                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
-0249             <span class="keyword">end</span>
-0250             
-0251             <span class="comment">% x-limits</span>
-0252             ticks = floor(log10(min(invstd.T1T2me))) :1: ceil(log10(max(invstd.T1T2me)));
-0253             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(invstd.T1T2me) max(invstd.T1T2me)],<span class="string">'XTick'</span>,10.^ticks);
-0254             <span class="comment">% x-label</span>
-0255             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0256             <span class="comment">% grid</span>
-0257             grid(ax,<span class="string">'on'</span>);    
-0258             
-0259         <span class="keyword">case</span> {<span class="string">'MUMO'</span>}
-0260             <span class="comment">% single distributions for different T, sigma and amplitude</span>
-0261             dist = zeros(length(invstd.x)/3,numel(invstd.T1T2me));
-0262             <span class="keyword">for</span> i = 1:length(invstd.x)/3
-0263                 mu = invstd.T(i);
-0264                 sigma = invstd.S(i);
-0265                 amp = invstd.E(i);
-0266                 
-0267                 tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(invstd.T1T2me) - log(mu))/ sqrt(2)/sigma).^2);
-0268                 
-0269                 <span class="comment">% scale to amplitude</span>
-0270                 dist(i,:) = (tmp/sum(tmp)) * amp;
-0271             <span class="keyword">end</span>
-0272             
-0273             <span class="comment">% scale RTD(s) by porosity</span>
-0274             F0 = invstd.T1T2f;
-0275             <span class="keyword">if</span> sum(F0)&gt;0
-0276                 <span class="comment">% individual RTDs</span>
-0277                 <span class="keyword">for</span> i = 1:length(invstd.x)/3
-0278                     <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0279                         dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F0);
-0280                     <span class="keyword">end</span>
-0281                 <span class="keyword">end</span>
-0282                 <span class="comment">% combined (total) RTD</span>
-0283                 <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0284                     F = (data.invstd.porosity*100).*F0./sum(F0);
-0285                 <span class="keyword">else</span>
-0286                     F = F0;
-0287                 <span class="keyword">end</span>
-0288                 
-0289                 ylims = [0 max(F)*1.05];
-0290             <span class="keyword">else</span>
-0291                 ylims = [-1 1];
-0292             <span class="keyword">end</span>
-0293             <span class="keyword">if</span> data.invstd.porosity == 1
-0294                 ylab1 = <span class="string">'amplitudes [-]'</span>;
-0295                 ylab2 = <span class="string">'cumulative amplitudes [-]'</span>;
-0296             <span class="keyword">else</span>
-0297                 ylab1 = <span class="string">'water content [vol. %]'</span>;
-0298                 ylab2 = <span class="string">'cumulative water content [vol. %]'</span>;
-0299             <span class="keyword">end</span>
-0300             <span class="comment">% F = data.invstd.porosity.*F./trapz(T,F);</span>
-0301             
-0302             mycols = [0.2157 0.4941 0.7216;0.3020 0.6863 0.2902;
-0303                 0.5961 0.3059 0.6392;0.6510 0.3373 0.1569;0.8941 0.1020 0.1098];
-0304             
-0305             <span class="keyword">switch</span> data.info.RTDflag
-0306                 <span class="keyword">case</span> <span class="string">'freq'</span>
-0307                     <span class="keyword">if</span> hasUncert
-0308                         <span class="comment">% plot uncertainty models</span>
-0309                         f_max = 0;
-0310                         FDIST = uncert.interp_f;
-0311                         <span class="comment">% scaling</span>
-0312                         <span class="keyword">if</span> data.invstd.porosity &lt; 1
-0313                             FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
-0314                         <span class="keyword">end</span>
-0315 
-0316                         <span class="keyword">switch</span> data.info.RTDuncert
-0317                             <span class="keyword">case</span> <span class="string">'lines'</span>
-0318                                 f_max = max([ylims(2) max(FDIST(:))]);
-0319                                 <span class="comment">% need to plot transpose of FDIST because 'x'</span>
-0320                                 <span class="comment">% is a column vector otherwise plot goes</span>
-0321                                 <span class="comment">% bananas if numel(x) = #models</span>
-0322                                 plot(invstd.T1T2me,FDIST(1,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
-0323                                     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'uncert models'</span>,<span class="keyword">...</span>
-0324                                     <span class="string">'Parent'</span>,ax);
-0325                                 plot(invstd.T1T2me,FDIST(2:<span class="keyword">end</span>,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
-0326                                     <span class="string">'LineWidth'</span>,1,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-0327                                     <span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
-0328                             <span class="keyword">case</span> <span class="string">'patch'</span>
-0329                                 <span class="comment">% get mean and std of all uncert models</span>
-0330                                 mean_f = mean(FDIST);
-0331                                 std_f = std(FDIST);
-0332 
-0333                                 <span class="comment">% patch lower and upper bounds</span>
-0334                                 patch_f_std1 = [mean_f+std_f;mean_f-std_f];
-0335                                 patch_f_std2 = [mean_f+2*std_f;mean_f-2*std_f];
-0336                                 patch_f_std3 = [mean_f+3*std_f;mean_f-3*std_f];
-0337                                 patch_f_std1(patch_f_std1&lt;0) = 0;
-0338                                 patch_f_std2(patch_f_std2&lt;0) = 0;
-0339                                 patch_f_std3(patch_f_std3&lt;0) = 0;
-0340                                 f_max = max([ylims(2) max(patch_f_std1)<span class="keyword">...</span>
-0341                                     max(patch_f_std2) max(patch_f_std3)]);
-0342 
-0343                                 <span class="comment">% draw all three patches on top of each other</span>
-0344                                 verts = [invstd.T1T2me patch_f_std3(2,:)';<span class="keyword">...</span><span class="comment">.</span>
-0345                                     flipud(invstd.T1T2me) flipud(patch_f_std3(1,:)')];
-0346                                 faces = 1:1:size(verts,1);
-0347                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
-0348                                     <span class="string">'FaceColor'</span>,[0.6 0.6 0.6],<span class="keyword">...</span>
-0349                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0350                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (3*std)'</span>,<span class="string">'Parent'</span>,ax);
-0351                                 verts = [invstd.T1T2me patch_f_std2(2,:)';<span class="keyword">...</span>
-0352                                     flipud(invstd.T1T2me) flipud(patch_f_std2(1,:)')];
-0353                                 faces = 1:1:size(verts,1);
-0354                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
-0355                                     <span class="string">'FaceColor'</span>,[0.4 0.4 0.4],<span class="keyword">...</span>
-0356                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0357                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (2*std)'</span>,<span class="string">'Parent'</span>,ax);
-0358                                 verts = [invstd.T1T2me patch_f_std1(2,:)';<span class="keyword">...</span>
-0359                                     flipud(invstd.T1T2me) flipud(patch_f_std1(1,:)')];
-0360                                 faces = 1:1:size(verts,1);
-0361                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
-0362                                     <span class="string">'FaceColor'</span>,[0.2 0.2 0.2],<span class="keyword">...</span>
-0363                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-0364                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (std)'</span>,<span class="string">'Parent'</span>,ax);
-0365                         <span class="keyword">end</span>
-0366                         <span class="comment">% adjust y-limits</span>
-0367                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
-0368                     <span class="keyword">end</span>
-0369                     
-0370                     <span class="comment">% plot total RTD</span>
-0371                     plot(invstd.T1T2me,F,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0372                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0373                     <span class="comment">% plot individual RTDs</span>
-0374                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
-0375                         plot(invstd.T1T2me,dist(i,:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
-0376                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0377                     <span class="keyword">end</span>
-0378                     <span class="comment">% find approx. TLGM amplitude</span>
-0379                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,F,invstd.Tlgm);
-0380                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0381                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0382                     
-0383                     <span class="comment">% y-limits</span>
-0384                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
-0385                     <span class="comment">% y-label</span>
-0386                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
-0387                     <span class="comment">% legend</span>
-0388                     lgh = legend(ax,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>);
-0389                     set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="keyword">...</span>
-0390                         <span class="string">'TextColor'</span>,gui.myui.colors.panelFG);
-0391                     
-0392                 <span class="keyword">case</span> <span class="string">'cum'</span>
-0393                     <span class="comment">% in the case of the cumulative plot, no uncertainty is</span>
-0394                     <span class="comment">% shown</span>
-0395                     plot(invstd.T1T2me,cumsum(F),<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0396                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0397                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
-0398                         plot(invstd.T1T2me,cumsum(dist(i,:)),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
-0399                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0400                     <span class="keyword">end</span>
-0401                     <span class="comment">% find approx. TLGM amplitude</span>
-0402                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,cumsum(F),invstd.Tlgm);
-0403                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
-0404                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0405                     
-0406                     <span class="comment">% y-limits</span>
-0407                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
-0408                     <span class="comment">% y-label</span>
-0409                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
-0410             <span class="keyword">end</span>
-0411             
-0412             <span class="comment">% x-limits</span>
-0413             ticks = floor(log10(min(invstd.T1T2me))) :1: ceil(log10(max(invstd.T1T2me)));
-0414             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(invstd.T1T2me) max(invstd.T1T2me)],<span class="string">'XTick'</span>,10.^ticks);
-0415             <span class="comment">% x-label</span>
-0416             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0417             <span class="comment">% grid</span>
-0418             grid(ax,<span class="string">'on'</span>);
-0419     <span class="keyword">end</span>
-0420     
-0421     <span class="comment">%% PSD</span>
-0422     <span class="comment">% PSD axis</span>
-0423     ax = gui.axes_handles.psd;
-0424     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
-0425     hold(ax,<span class="string">'on'</span>);
-0426     set(gui.cm_handles.axes_psd_view,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
-0427     
-0428     <span class="comment">% x-axis label</span>
-0429     <span class="keyword">switch</span> data.process.timescale
-0430         <span class="keyword">case</span> <span class="string">'s'</span>
-0431             xlstring = <span class="string">'equiv. pore size [m]'</span>;
-0432         <span class="keyword">case</span> <span class="string">'ms'</span>
-0433             xlstring = <span class="string">'equiv. pore size [mm]'</span>;
-0434     <span class="keyword">end</span>
-0435     
-0436     rho = data.param.rho/1e6; <span class="comment">% surface relaxivity [m/s]</span>
-0437     a = data.param.a; <span class="comment">% geometry parameter</span>
-0438     
-0439     <span class="keyword">switch</span> data.invstd.invtype
-0440         <span class="keyword">case</span> <span class="string">'mono'</span>
-0441             <span class="keyword">switch</span> nmrproc.T1T2
-0442                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0443                     T = invstd.T1;
-0444                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0445                     T = invstd.T2;
-0446             <span class="keyword">end</span>
-0447             
-0448             stem(T.*rho.*a,invstd.E0,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0449             
-0450             <span class="comment">% limits</span>
-0451             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
-0452             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
-0453             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 invstd.E0*1.05]);
-0454             <span class="comment">% labels</span>
-0455             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0456             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'initial amplitude E0'</span>);
-0457             <span class="comment">% grid</span>
-0458             grid(ax,<span class="string">'on'</span>);
-0459             
-0460         <span class="keyword">case</span> <span class="string">'free'</span>
-0461             mymark = {<span class="string">'o-'</span>,<span class="string">'+-'</span>,<span class="string">'s-'</span>,<span class="string">'d-'</span>,<span class="string">'x-'</span>};
-0462             mycols = [0.8941 0.1020 0.1098;0.3020 0.6863 0.2902;
-0463                 0.2157 0.4941 0.7216;0.5961 0.3059 0.6392;0.6510 0.3373 0.1569];
-0464             <span class="keyword">switch</span> nmrproc.T1T2
-0465                 <span class="keyword">case</span> <span class="string">'T1'</span>
-0466                     T = invstd.T1;
-0467                 <span class="keyword">case</span> <span class="string">'T2'</span>
-0468                     T = invstd.T2;
-0469             <span class="keyword">end</span>
-0470             
-0471             lgdstr = cell(1,1);
-0472             <span class="keyword">for</span> i = 1:data.invstd.freeDT
-0473                 stem(T(i).*rho.*a,invstd.E0(i),mymark{i},<span class="string">'Color'</span>,mycols(i,:),<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0474                 lgdstr{i} = [<span class="string">'T'</span>,num2str(i)];
-0475             <span class="keyword">end</span>
-0476             
-0477             <span class="comment">% limits</span>
-0478             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
-0479             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
-0480             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 max(invstd.E0)*1.05]);
-0481             <span class="comment">% labels</span>
-0482             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0483             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'individual amplitudes Ex [-]'</span>);
-0484             <span class="comment">% grid</span>
-0485             grid(ax,<span class="string">'on'</span>);
-0486             
-0487         <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
-0488             <span class="comment">% very basic RTD to PSD conversion</span>
-0489             requiv = invstd.T1T2me.*rho.*a;
-0490             Rlgm = invstd.Tlgm.*rho.*a;
-0491             
-0492             <span class="keyword">switch</span> data.info.PSDflag
-0493                 <span class="keyword">case</span> <span class="string">'freq'</span>
-0494                     plot(requiv,F,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0495                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0496                     <span class="comment">% find approx. RLGM amplitude</span>
-0497                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,F,Rlgm);
-0498                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0499                     
-0500                     <span class="comment">% y-limits</span>
-0501                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
-0502                     <span class="comment">% y-label</span>
-0503                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
-0504                     
-0505                 <span class="keyword">case</span> <span class="string">'cum'</span>
-0506                     plot(requiv,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0507                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0508                     <span class="comment">% find approx. RLGM amplitude</span>
-0509                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,cumsum(F),Rlgm);
-0510                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0511                     
-0512                     <span class="comment">% y-limits</span>
-0513                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
-0514                     <span class="comment">% y-label</span>
-0515                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
-0516             <span class="keyword">end</span>
-0517             
-0518             <span class="comment">% x-limits</span>
-0519             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
-0520             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(requiv) max(requiv)],<span class="string">'XTick'</span>,10.^ticks);
-0521             <span class="comment">% x-label</span>
-0522             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0523             <span class="comment">% grid</span>
-0524             grid(ax,<span class="string">'on'</span>);
-0525             
-0526         <span class="keyword">case</span> {<span class="string">'MUMO'</span>}
-0527             <span class="comment">% very basic RTD to PSD conversion</span>
-0528             requiv = invstd.T1T2me.*rho.*a;
-0529             Rlgm = invstd.Tlgm.*rho.*a;
-0530             
-0531             <span class="keyword">switch</span> data.info.PSDflag
-0532                 <span class="keyword">case</span> <span class="string">'freq'</span>
-0533                     plot(requiv,F,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0534                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0535                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
-0536                         plot(requiv,dist(i,:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
-0537                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0538                     <span class="keyword">end</span>                    
-0539                     <span class="comment">% find approx. RLGM amplitude</span>
-0540                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,F,Rlgm);
-0541                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0542                     
-0543                     <span class="comment">% y-limits</span>
-0544                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
-0545                     <span class="comment">% y-label</span>
-0546                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
-0547                     
-0548                 <span class="keyword">case</span> <span class="string">'cum'</span>
-0549                     plot(requiv,cumsum(F),<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
-0550                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0551                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
-0552                         plot(requiv,cumsum(dist(i,:)),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
-0553                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
-0554                     <span class="keyword">end</span>                    
-0555                     <span class="comment">% find approx. RLGM amplitude</span>
-0556                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,cumsum(F),Rlgm);
-0557                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
-0558                     
-0559                     <span class="comment">% y-limits</span>
-0560                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
-0561                     <span class="comment">% y-label</span>
-0562                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
-0563             <span class="keyword">end</span>
-0564             
-0565             <span class="comment">% x-limits</span>
-0566             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
-0567             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(requiv) max(requiv)],<span class="string">'XTick'</span>,10.^ticks);
-0568             <span class="comment">% x-label</span>
-0569             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
-0570             <span class="comment">% grid</span>
-0571             grid(ax,<span class="string">'on'</span>);
-0572     <span class="keyword">end</span>
-0573     
-0574     <span class="comment">% show CBW and diffusion regime lines</span>
-0575     <a href="updatePlotsDistributionInfo.html" class="code" title="function updatePlotsDistributionInfo">updatePlotsDistributionInfo</a>;
-0576 <span class="keyword">end</span>
-0577 
-0578 <span class="keyword">end</span>
-0579 
-0580 <span class="comment">%%</span>
-0581 <a name="_sub1" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
-0582 
-0583 <span class="keyword">if</span> isnan(TLGM)
-0584     amp = NaN;
-0585 <span class="keyword">else</span>
-0586     index = find(abs(t-TLGM)==min(abs(t-TLGM)));
-0587     amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
-0588 <span class="keyword">end</span>
-0589 
-0590 <span class="keyword">end</span>
-0591 
-0592 <span class="comment">%------------- END OF CODE --------------</span>
-0593 
-0594 <span class="comment">%% License:</span>
-0595 <span class="comment">% MIT License</span>
-0596 <span class="comment">%</span>
-0597 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0598 <span class="comment">%</span>
-0599 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0600 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0601 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0602 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0603 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0604 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0605 <span class="comment">%</span>
-0606 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0607 <span class="comment">% copies or substantial portions of the Software.</span>
-0608 <span class="comment">%</span>
-0609 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0610 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0611 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0612 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0613 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0614 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0615 <span class="comment">% SOFTWARE.</span></pre></div>
+0136                 F = F0;
+0137                 ylims = [-1 1];
+0138             <span class="keyword">end</span>
+0139             <span class="keyword">if</span> data.invstd.porosity == 1
+0140                 ylab1 = <span class="string">'amplitudes [-]'</span>;
+0141                 ylab2 = <span class="string">'cumulative amplitudes [-]'</span>;
+0142             <span class="keyword">else</span>
+0143                 ylab1 = <span class="string">'water content [vol. %]'</span>;
+0144                 ylab2 = <span class="string">'cumulative water content [vol. %]'</span>;
+0145             <span class="keyword">end</span>
+0146             <span class="comment">% F = data.invstd.porosity.*F./trapz(invstd.T1T2me,F);</span>
+0147             
+0148             <span class="keyword">switch</span> data.info.RTDflag
+0149                 <span class="keyword">case</span> <span class="string">'freq'</span>
+0150                     <span class="comment">% check if there is uncertainty data</span>
+0151                     <span class="keyword">if</span> hasUncert
+0152                         <span class="comment">% plot uncertainty models</span>
+0153                         f_max = 0;
+0154                         FDIST = uncert.interp_f;
+0155                         <span class="comment">% scaling</span>
+0156                         <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0157                             FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+0158                         <span class="keyword">end</span>
+0159 
+0160                         <span class="keyword">switch</span> data.info.RTDuncert
+0161                             <span class="keyword">case</span> <span class="string">'lines'</span>
+0162                                 f_max = max([ylims(2) max(FDIST(:))]);
+0163                                 <span class="comment">% need to plot transpose of FDIST because 'x'</span>
+0164                                 <span class="comment">% is a column vector otherwise plot goes</span>
+0165                                 <span class="comment">% bananas if numel(x) = #models</span>
+0166                                 plot(invstd.T1T2me,FDIST(1,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
+0167                                     <span class="string">'LineWidth'</span>,1,<span class="keyword">...</span>
+0168                                     <span class="string">'DisplayName'</span>,<span class="string">'uncert models'</span>,<span class="string">'Parent'</span>,ax);
+0169                                 plot(invstd.T1T2me,FDIST(2:<span class="keyword">end</span>,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
+0170                                     <span class="string">'LineWidth'</span>,1,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0171                                     <span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
+0172                             <span class="keyword">case</span> <span class="string">'patch'</span>
+0173                                 <span class="comment">% get mean and std of all uncert models</span>
+0174                                 mean_f = mean(FDIST);
+0175                                 std_f = std(FDIST);
+0176 
+0177                                 <span class="comment">% patch lower and upper bounds</span>
+0178                                 patch_f_std1 = [mean_f+std_f;mean_f-std_f];
+0179                                 patch_f_std2 = [mean_f+2*std_f;mean_f-2*std_f];
+0180                                 patch_f_std3 = [mean_f+3*std_f;mean_f-3*std_f];
+0181                                 patch_f_std1(patch_f_std1&lt;0) = 0;
+0182                                 patch_f_std2(patch_f_std2&lt;0) = 0;
+0183                                 patch_f_std3(patch_f_std3&lt;0) = 0;
+0184                                 f_max = max([ylims(2) max(patch_f_std1)<span class="keyword">...</span>
+0185                                     max(patch_f_std2) max(patch_f_std3)]);
+0186 
+0187                                 <span class="comment">% draw all three patches on top of each other</span>
+0188                                 verts = [invstd.T1T2me patch_f_std3(2,:)';<span class="keyword">...</span><span class="comment">.</span>
+0189                                     flipud(invstd.T1T2me) flipud(patch_f_std3(1,:)')];
+0190                                 faces = 1:1:size(verts,1);
+0191                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
+0192                                     <span class="string">'FaceColor'</span>,[0.6 0.6 0.6],<span class="keyword">...</span>
+0193                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0194                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (3*std)'</span>,<span class="string">'Parent'</span>,ax);
+0195                                 verts = [invstd.T1T2me patch_f_std2(2,:)';<span class="keyword">...</span>
+0196                                     flipud(invstd.T1T2me) flipud(patch_f_std2(1,:)')];
+0197                                 faces = 1:1:size(verts,1);
+0198                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
+0199                                     <span class="string">'FaceColor'</span>,[0.4 0.4 0.4],<span class="keyword">...</span>
+0200                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0201                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (2*std)'</span>,<span class="string">'Parent'</span>,ax);
+0202                                 verts = [invstd.T1T2me patch_f_std1(2,:)';<span class="keyword">...</span>
+0203                                     flipud(invstd.T1T2me) flipud(patch_f_std1(1,:)')];
+0204                                 faces = 1:1:size(verts,1);
+0205                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
+0206                                     <span class="string">'FaceColor'</span>,[0.2 0.2 0.2],<span class="keyword">...</span>
+0207                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0208                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (std)'</span>,<span class="string">'Parent'</span>,ax);
+0209                         <span class="keyword">end</span>                        
+0210                         <span class="comment">% adjust y-limits</span>
+0211                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
+0212                         
+0213                         <span class="comment">% plot original solution</span>
+0214                         plot(invstd.T1T2me,F,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0215                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0216                     <span class="keyword">else</span>
+0217                         plot(invstd.T1T2me,F,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0218                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0219                     <span class="keyword">end</span>                    
+0220                     
+0221                     <span class="comment">% find approx. TLGM amplitude</span>
+0222                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,F,invstd.Tlgm);
+0223                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0224                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0225                     
+0226                     <span class="comment">% y-limits</span>
+0227                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
+0228                     <span class="comment">% y-label</span>
+0229                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
+0230                     <span class="comment">% legend</span>
+0231                     lgh = legend(ax,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>);
+0232                     set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="keyword">...</span>
+0233                         <span class="string">'TextColor'</span>,gui.myui.colors.panelFG);
+0234                     
+0235                 <span class="keyword">case</span> <span class="string">'cum'</span>
+0236                     <span class="comment">% in the case of the cumulative plot, no uncertainty is</span>
+0237                     <span class="comment">% shown</span>
+0238                     plot(invstd.T1T2me,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0239                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0240 
+0241                     <span class="comment">% find approx. TLGM amplitude</span>
+0242                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,cumsum(F),invstd.Tlgm);
+0243                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0244                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0245                     
+0246                     <span class="comment">% y-limits</span>
+0247                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
+0248                     <span class="comment">% y-label</span>
+0249                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
+0250             <span class="keyword">end</span>
+0251             
+0252             <span class="comment">% x-limits</span>
+0253             ticks = floor(log10(min(invstd.T1T2me))) :1: ceil(log10(max(invstd.T1T2me)));
+0254             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(invstd.T1T2me) max(invstd.T1T2me)],<span class="string">'XTick'</span>,10.^ticks);
+0255             <span class="comment">% x-label</span>
+0256             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0257             <span class="comment">% grid</span>
+0258             grid(ax,<span class="string">'on'</span>);    
+0259             
+0260         <span class="keyword">case</span> {<span class="string">'MUMO'</span>}
+0261             <span class="comment">% single distributions for different T, sigma and amplitude</span>
+0262             dist = zeros(length(invstd.x)/3,numel(invstd.T1T2me));
+0263             <span class="keyword">for</span> i = 1:length(invstd.x)/3
+0264                 mu = invstd.T(i);
+0265                 sigma = invstd.S(i);
+0266                 amp = invstd.E(i);
+0267                 
+0268                 tmp = 1./( sigma*sqrt(2*pi)).*exp(-((log(invstd.T1T2me) - log(mu))/ sqrt(2)/sigma).^2);
+0269                 
+0270                 <span class="comment">% scale to amplitude</span>
+0271                 dist(i,:) = (tmp/sum(tmp)) * amp;
+0272             <span class="keyword">end</span>
+0273             
+0274             <span class="comment">% scale RTD(s) by porosity</span>
+0275             F0 = invstd.T1T2f;
+0276             <span class="keyword">if</span> sum(F0)&gt;0
+0277                 <span class="comment">% individual RTDs</span>
+0278                 <span class="keyword">for</span> i = 1:length(invstd.x)/3
+0279                     <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0280                         dist(i,:) = (data.invstd.porosity*100).*dist(i,:)./sum(F0);
+0281                     <span class="keyword">end</span>
+0282                 <span class="keyword">end</span>
+0283                 <span class="comment">% combined (total) RTD</span>
+0284                 <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0285                     F = (data.invstd.porosity*100).*F0./sum(F0);
+0286                 <span class="keyword">else</span>
+0287                     F = F0;
+0288                 <span class="keyword">end</span>
+0289                 
+0290                 ylims = [0 max(F)*1.05];
+0291             <span class="keyword">else</span>
+0292                 ylims = [-1 1];
+0293             <span class="keyword">end</span>
+0294             <span class="keyword">if</span> data.invstd.porosity == 1
+0295                 ylab1 = <span class="string">'amplitudes [-]'</span>;
+0296                 ylab2 = <span class="string">'cumulative amplitudes [-]'</span>;
+0297             <span class="keyword">else</span>
+0298                 ylab1 = <span class="string">'water content [vol. %]'</span>;
+0299                 ylab2 = <span class="string">'cumulative water content [vol. %]'</span>;
+0300             <span class="keyword">end</span>
+0301             <span class="comment">% F = data.invstd.porosity.*F./trapz(T,F);</span>
+0302             
+0303             mycols = [0.2157 0.4941 0.7216;0.3020 0.6863 0.2902;
+0304                 0.5961 0.3059 0.6392;0.6510 0.3373 0.1569;0.8941 0.1020 0.1098];
+0305             
+0306             <span class="keyword">switch</span> data.info.RTDflag
+0307                 <span class="keyword">case</span> <span class="string">'freq'</span>
+0308                     <span class="keyword">if</span> hasUncert
+0309                         <span class="comment">% plot uncertainty models</span>
+0310                         f_max = 0;
+0311                         FDIST = uncert.interp_f;
+0312                         <span class="comment">% scaling</span>
+0313                         <span class="keyword">if</span> data.invstd.porosity &lt; 1
+0314                             FDIST = (data.invstd.porosity*100).*FDIST./sum(F0);
+0315                         <span class="keyword">end</span>
+0316 
+0317                         <span class="keyword">switch</span> data.info.RTDuncert
+0318                             <span class="keyword">case</span> <span class="string">'lines'</span>
+0319                                 f_max = max([ylims(2) max(FDIST(:))]);
+0320                                 <span class="comment">% need to plot transpose of FDIST because 'x'</span>
+0321                                 <span class="comment">% is a column vector otherwise plot goes</span>
+0322                                 <span class="comment">% bananas if numel(x) = #models</span>
+0323                                 plot(invstd.T1T2me,FDIST(1,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
+0324                                     <span class="string">'LineWidth'</span>,1,<span class="string">'DisplayName'</span>,<span class="string">'uncert models'</span>,<span class="keyword">...</span>
+0325                                     <span class="string">'Parent'</span>,ax);
+0326                                 plot(invstd.T1T2me,FDIST(2:<span class="keyword">end</span>,:)',<span class="string">'-'</span>,<span class="string">'Color'</span>,[0.5 0.5 0.5],<span class="keyword">...</span>
+0327                                     <span class="string">'LineWidth'</span>,1,<span class="string">'HandleVisibility'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+0328                                     <span class="string">'Tag'</span>,<span class="string">'infolines'</span>,<span class="string">'Parent'</span>,ax);
+0329                             <span class="keyword">case</span> <span class="string">'patch'</span>
+0330                                 <span class="comment">% get mean and std of all uncert models</span>
+0331                                 mean_f = mean(FDIST);
+0332                                 std_f = std(FDIST);
+0333 
+0334                                 <span class="comment">% patch lower and upper bounds</span>
+0335                                 patch_f_std1 = [mean_f+std_f;mean_f-std_f];
+0336                                 patch_f_std2 = [mean_f+2*std_f;mean_f-2*std_f];
+0337                                 patch_f_std3 = [mean_f+3*std_f;mean_f-3*std_f];
+0338                                 patch_f_std1(patch_f_std1&lt;0) = 0;
+0339                                 patch_f_std2(patch_f_std2&lt;0) = 0;
+0340                                 patch_f_std3(patch_f_std3&lt;0) = 0;
+0341                                 f_max = max([ylims(2) max(patch_f_std1)<span class="keyword">...</span>
+0342                                     max(patch_f_std2) max(patch_f_std3)]);
+0343 
+0344                                 <span class="comment">% draw all three patches on top of each other</span>
+0345                                 verts = [invstd.T1T2me patch_f_std3(2,:)';<span class="keyword">...</span><span class="comment">.</span>
+0346                                     flipud(invstd.T1T2me) flipud(patch_f_std3(1,:)')];
+0347                                 faces = 1:1:size(verts,1);
+0348                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
+0349                                     <span class="string">'FaceColor'</span>,[0.6 0.6 0.6],<span class="keyword">...</span>
+0350                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0351                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (3*std)'</span>,<span class="string">'Parent'</span>,ax);
+0352                                 verts = [invstd.T1T2me patch_f_std2(2,:)';<span class="keyword">...</span>
+0353                                     flipud(invstd.T1T2me) flipud(patch_f_std2(1,:)')];
+0354                                 faces = 1:1:size(verts,1);
+0355                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
+0356                                     <span class="string">'FaceColor'</span>,[0.4 0.4 0.4],<span class="keyword">...</span>
+0357                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0358                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (2*std)'</span>,<span class="string">'Parent'</span>,ax);
+0359                                 verts = [invstd.T1T2me patch_f_std1(2,:)';<span class="keyword">...</span>
+0360                                     flipud(invstd.T1T2me) flipud(patch_f_std1(1,:)')];
+0361                                 faces = 1:1:size(verts,1);
+0362                                 patch(<span class="string">'Faces'</span>,faces,<span class="string">'Vertices'</span>,verts,<span class="keyword">...</span>
+0363                                     <span class="string">'FaceColor'</span>,[0.2 0.2 0.2],<span class="keyword">...</span>
+0364                                     <span class="string">'FaceAlpha'</span>,0.75,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+0365                                     <span class="string">'DisplayName'</span>,<span class="string">'mean (std)'</span>,<span class="string">'Parent'</span>,ax);
+0366                         <span class="keyword">end</span>
+0367                         <span class="comment">% adjust y-limits</span>
+0368                         ylims(2) = max([ylims(2) max(f_max)*1.05]);
+0369                     <span class="keyword">end</span>
+0370                     
+0371                     <span class="comment">% plot total RTD</span>
+0372                     plot(invstd.T1T2me,F,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0373                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0374                     <span class="comment">% plot individual RTDs</span>
+0375                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
+0376                         plot(invstd.T1T2me,dist(i,:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0377                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0378                     <span class="keyword">end</span>
+0379                     <span class="comment">% find approx. TLGM amplitude</span>
+0380                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,F,invstd.Tlgm);
+0381                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0382                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0383                     
+0384                     <span class="comment">% y-limits</span>
+0385                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
+0386                     <span class="comment">% y-label</span>
+0387                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
+0388                     <span class="comment">% legend</span>
+0389                     lgh = legend(ax,<span class="string">'Location'</span>,<span class="string">'NorthEast'</span>);
+0390                     set(lgh,<span class="string">'EdgeColor'</span>,gui.myui.colors.axisFG,<span class="keyword">...</span>
+0391                         <span class="string">'TextColor'</span>,gui.myui.colors.panelFG);
+0392                     
+0393                 <span class="keyword">case</span> <span class="string">'cum'</span>
+0394                     <span class="comment">% in the case of the cumulative plot, no uncertainty is</span>
+0395                     <span class="comment">% shown</span>
+0396                     plot(invstd.T1T2me,cumsum(F),<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0397                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0398                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
+0399                         plot(invstd.T1T2me,cumsum(dist(i,:)),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0400                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0401                     <span class="keyword">end</span>
+0402                     <span class="comment">% find approx. TLGM amplitude</span>
+0403                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(invstd.T1T2me,cumsum(F),invstd.Tlgm);
+0404                     stem(invstd.Tlgm,amp,<span class="string">'x-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineStyle'</span>,<span class="string">'--'</span>,<span class="keyword">...</span>
+0405                         <span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'TLGM'</span>,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0406                     
+0407                     <span class="comment">% y-limits</span>
+0408                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
+0409                     <span class="comment">% y-label</span>
+0410                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
+0411             <span class="keyword">end</span>
+0412             
+0413             <span class="comment">% x-limits</span>
+0414             ticks = floor(log10(min(invstd.T1T2me))) :1: ceil(log10(max(invstd.T1T2me)));
+0415             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(invstd.T1T2me) max(invstd.T1T2me)],<span class="string">'XTick'</span>,10.^ticks);
+0416             <span class="comment">% x-label</span>
+0417             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0418             <span class="comment">% grid</span>
+0419             grid(ax,<span class="string">'on'</span>);
+0420     <span class="keyword">end</span>
+0421     
+0422     <span class="comment">%% PSD</span>
+0423     <span class="comment">% PSD axis</span>
+0424     ax = gui.axes_handles.psd;
+0425     <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(ax);
+0426     hold(ax,<span class="string">'on'</span>);
+0427     set(gui.cm_handles.axes_psd_view,<span class="string">'Enable'</span>,<span class="string">'on'</span>);
+0428     
+0429     <span class="comment">% x-axis label</span>
+0430     <span class="keyword">switch</span> data.process.timescale
+0431         <span class="keyword">case</span> <span class="string">'s'</span>
+0432             xlstring = <span class="string">'equiv. pore size [m]'</span>;
+0433         <span class="keyword">case</span> <span class="string">'ms'</span>
+0434             xlstring = <span class="string">'equiv. pore size [mm]'</span>;
+0435     <span class="keyword">end</span>
+0436     
+0437     rho = data.param.rho/1e6; <span class="comment">% surface relaxivity [m/s]</span>
+0438     a = data.param.a; <span class="comment">% geometry parameter</span>
+0439     
+0440     <span class="keyword">switch</span> data.invstd.invtype
+0441         <span class="keyword">case</span> <span class="string">'mono'</span>
+0442             <span class="keyword">switch</span> nmrproc.T1T2
+0443                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0444                     T = invstd.T1;
+0445                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0446                     T = invstd.T2;
+0447             <span class="keyword">end</span>
+0448             
+0449             stem(T.*rho.*a,invstd.E0,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0450             
+0451             <span class="comment">% limits</span>
+0452             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
+0453             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
+0454             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 invstd.E0*1.05]);
+0455             <span class="comment">% labels</span>
+0456             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0457             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'initial amplitude E0'</span>);
+0458             <span class="comment">% grid</span>
+0459             grid(ax,<span class="string">'on'</span>);
+0460             
+0461         <span class="keyword">case</span> <span class="string">'free'</span>
+0462             mymark = {<span class="string">'o-'</span>,<span class="string">'+-'</span>,<span class="string">'s-'</span>,<span class="string">'d-'</span>,<span class="string">'x-'</span>};
+0463             mycols = [0.8941 0.1020 0.1098;0.3020 0.6863 0.2902;
+0464                 0.2157 0.4941 0.7216;0.5961 0.3059 0.6392;0.6510 0.3373 0.1569];
+0465             <span class="keyword">switch</span> nmrproc.T1T2
+0466                 <span class="keyword">case</span> <span class="string">'T1'</span>
+0467                     T = invstd.T1;
+0468                 <span class="keyword">case</span> <span class="string">'T2'</span>
+0469                     T = invstd.T2;
+0470             <span class="keyword">end</span>
+0471             
+0472             lgdstr = cell(1,1);
+0473             <span class="keyword">for</span> i = 1:data.invstd.freeDT
+0474                 stem(T(i).*rho.*a,invstd.E0(i),mymark{i},<span class="string">'Color'</span>,mycols(i,:),<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0475                 lgdstr{i} = [<span class="string">'T'</span>,num2str(i)];
+0476             <span class="keyword">end</span>
+0477             
+0478             <span class="comment">% limits</span>
+0479             ticks = floor(log10(min(T.*rho.*a)))-2 :1: ceil(log10(max(T.*rho.*a)))+2;
+0480             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[10^(ticks(1)) 10^(ticks(end))],<span class="string">'XTick'</span>,10.^ticks);
+0481             set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 max(invstd.E0)*1.05]);
+0482             <span class="comment">% labels</span>
+0483             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0484             set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,<span class="string">'individual amplitudes Ex [-]'</span>);
+0485             <span class="comment">% grid</span>
+0486             grid(ax,<span class="string">'on'</span>);
+0487             
+0488         <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>}
+0489             <span class="comment">% very basic RTD to PSD conversion</span>
+0490             requiv = invstd.T1T2me.*rho.*a;
+0491             Rlgm = invstd.Tlgm.*rho.*a;
+0492             
+0493             <span class="keyword">switch</span> data.info.PSDflag
+0494                 <span class="keyword">case</span> <span class="string">'freq'</span>
+0495                     plot(requiv,F,<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0496                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0497                     <span class="comment">% find approx. RLGM amplitude</span>
+0498                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,F,Rlgm);
+0499                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0500                     
+0501                     <span class="comment">% y-limits</span>
+0502                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
+0503                     <span class="comment">% y-label</span>
+0504                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
+0505                     
+0506                 <span class="keyword">case</span> <span class="string">'cum'</span>
+0507                     plot(requiv,cumsum(F),<span class="string">'o-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0508                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0509                     <span class="comment">% find approx. RLGM amplitude</span>
+0510                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,cumsum(F),Rlgm);
+0511                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0512                     
+0513                     <span class="comment">% y-limits</span>
+0514                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
+0515                     <span class="comment">% y-label</span>
+0516                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
+0517             <span class="keyword">end</span>
+0518             
+0519             <span class="comment">% x-limits</span>
+0520             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
+0521             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(requiv) max(requiv)],<span class="string">'XTick'</span>,10.^ticks);
+0522             <span class="comment">% x-label</span>
+0523             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0524             <span class="comment">% grid</span>
+0525             grid(ax,<span class="string">'on'</span>);
+0526             
+0527         <span class="keyword">case</span> {<span class="string">'MUMO'</span>}
+0528             <span class="comment">% very basic RTD to PSD conversion</span>
+0529             requiv = invstd.T1T2me.*rho.*a;
+0530             Rlgm = invstd.Tlgm.*rho.*a;
+0531             
+0532             <span class="keyword">switch</span> data.info.PSDflag
+0533                 <span class="keyword">case</span> <span class="string">'freq'</span>
+0534                     plot(requiv,F,<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0535                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0536                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
+0537                         plot(requiv,dist(i,:),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0538                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0539                     <span class="keyword">end</span>                    
+0540                     <span class="comment">% find approx. RLGM amplitude</span>
+0541                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,F,Rlgm);
+0542                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0543                     
+0544                     <span class="comment">% y-limits</span>
+0545                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,ylims);
+0546                     <span class="comment">% y-label</span>
+0547                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab1);
+0548                     
+0549                 <span class="keyword">case</span> <span class="string">'cum'</span>
+0550                     plot(requiv,cumsum(F),<span class="string">'-'</span>,<span class="string">'Color'</span>,col.FIT,<span class="keyword">...</span>
+0551                         <span class="string">'DisplayName'</span>,<span class="string">'fit'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0552                     <span class="keyword">for</span> i = 1:length(invstd.x)/3
+0553                         plot(requiv,cumsum(dist(i,:)),<span class="string">'--'</span>,<span class="string">'Color'</span>,mycols(i,:),<span class="keyword">...</span>
+0554                             <span class="string">'DisplayName'</span>,[<span class="string">'fit'</span>,num2str(i)],<span class="string">'LineWidth'</span>,2,<span class="string">'Parent'</span>,ax);
+0555                     <span class="keyword">end</span>                    
+0556                     <span class="comment">% find approx. RLGM amplitude</span>
+0557                     amp = <a href="#_sub1" class="code" title="subfunction amp = findApproxTlgmAmplitude(t,f,TLGM)">findApproxTlgmAmplitude</a>(requiv,cumsum(F),Rlgm);
+0558                     stem(Rlgm,amp,<span class="string">'x--'</span>,<span class="string">'Color'</span>,col.FIT,<span class="string">'LineWidth'</span>,2,<span class="string">'Tag'</span>,<span class="string">'TLGM'</span>,<span class="string">'Parent'</span>,ax);
+0559                     
+0560                     <span class="comment">% y-limits</span>
+0561                     set(ax,<span class="string">'YScale'</span>,<span class="string">'lin'</span>,<span class="string">'YLim'</span>,[0 sum(F)*1.05]);
+0562                     <span class="comment">% y-label</span>
+0563                     set(get(ax,<span class="string">'YLabel'</span>),<span class="string">'String'</span>,ylab2);
+0564             <span class="keyword">end</span>
+0565             
+0566             <span class="comment">% x-limits</span>
+0567             ticks = floor(log10(min(requiv))) :1: ceil(log10(max(requiv)));
+0568             set(ax,<span class="string">'XScale'</span>,<span class="string">'log'</span>,<span class="string">'XLim'</span>,[min(requiv) max(requiv)],<span class="string">'XTick'</span>,10.^ticks);
+0569             <span class="comment">% x-label</span>
+0570             set(get(ax,<span class="string">'XLabel'</span>),<span class="string">'String'</span>,xlstring);
+0571             <span class="comment">% grid</span>
+0572             grid(ax,<span class="string">'on'</span>);
+0573     <span class="keyword">end</span>
+0574     
+0575     <span class="comment">% show CBW and diffusion regime lines</span>
+0576     <a href="updatePlotsDistributionInfo.html" class="code" title="function updatePlotsDistributionInfo">updatePlotsDistributionInfo</a>;
+0577 <span class="keyword">end</span>
+0578 
+0579 <span class="keyword">end</span>
+0580 
+0581 <span class="comment">%%</span>
+0582 <a name="_sub1" href="#_subfunctions" class="code">function amp = findApproxTlgmAmplitude(t,f,TLGM)</a>
+0583 
+0584 <span class="keyword">if</span> isnan(TLGM)
+0585     amp = NaN;
+0586 <span class="keyword">else</span>
+0587     index = find(abs(t-TLGM)==min(abs(t-TLGM)));
+0588     amp = interp1(t(index-1:index+1),f(index-1:index+1),TLGM);
+0589 <span class="keyword">end</span>
+0590 
+0591 <span class="keyword">end</span>
+0592 
+0593 <span class="comment">%------------- END OF CODE --------------</span>
+0594 
+0595 <span class="comment">%% License:</span>
+0596 <span class="comment">% MIT License</span>
+0597 <span class="comment">%</span>
+0598 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0599 <span class="comment">%</span>
+0600 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0601 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0602 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0603 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0604 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0605 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0606 <span class="comment">%</span>
+0607 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0608 <span class="comment">% copies or substantial portions of the Software.</span>
+0609 <span class="comment">%</span>
+0610 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0611 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0612 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0613 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0614 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0615 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0616 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

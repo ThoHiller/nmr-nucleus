@@ -45,8 +45,11 @@ and using a SVD
        noise_level - noise level for 'discrep' method (discrepancy principle)
 
  Outputs:
-       Kreg - expanded (regularized) Kernel matrix
-       lambda - determined lambda
+       Kreg - expanded (regularized) Kernel matrix; the number of extra
+              rows is NOT always size(L,1) (truncated/damped SVD/GSVD),
+              extend the data vector by size(Kreg,1)-length(g) zeros
+       lambda - determined lambda (for 'gcv_trunc': the truncation index
+                k, i.e. the number of retained singular values)
 
  Example:
        [Kr,lam] = applyRegularization(K,s,L,lambda_in,flag,Lorder,noise)
@@ -59,7 +62,11 @@ and using a SVD
        discrep
 
  Subfunctions:
-       none
+       getGCVparameter
+       getTruncatedSystem
+       getDampedSystem
+       getGSVDComponents
+       restoreCurrentFigure
 
  MAT-files required:
        none
@@ -76,10 +83,12 @@ This function calls:
 </ul>
 This function is called by:
 <ul style="list-style-image:url(../../../matlabicon.gif)">
-<li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li></ul>
+<li><a href="applyRegularization2D.html" class="code" title="function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level)">applyRegularization2D</a>	 applies regularization procedures from the</li><li><a href="fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>	 is a control routine that fits NMR data multi-exponentially;</li></ul>
 <!-- crossreference -->
 
-
+<h2><a name="_subfunctions"></a>SUBFUNCTIONS <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
+<ul style="list-style-image:url(../../../matlabicon.gif)">
+<li><a href="#_sub1" class="code">function reg_min = getGCVparameter(U,s,g,method)</a></li><li><a href="#_sub2" class="code">function restoreCurrentFigure(hPrev)</a></li><li><a href="#_sub3" class="code">function Kreg = getTruncatedSystem(K,L,order,k)</a></li><li><a href="#_sub4" class="code">function Kreg = getDampedSystem(K,L,order,lambda)</a></li><li><a href="#_sub5" class="code">function [X,Xinv,sigma,mu,nNull] = getGSVDComponents(K,L)</a></li></ul>
 
 <h2><a name="_source"></a>SOURCE CODE <a href="#_top"><img alt="^" border="0" src="../../../up.png"></a></h2>
 <div class="fragment"><pre>0001 <a name="_sub0" href="#_subfunctions" class="code">function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)</a>
@@ -102,119 +111,249 @@ This function is called by:
 0018 <span class="comment">%       noise_level - noise level for 'discrep' method (discrepancy principle)</span>
 0019 <span class="comment">%</span>
 0020 <span class="comment">% Outputs:</span>
-0021 <span class="comment">%       Kreg - expanded (regularized) Kernel matrix</span>
-0022 <span class="comment">%       lambda - determined lambda</span>
-0023 <span class="comment">%</span>
-0024 <span class="comment">% Example:</span>
-0025 <span class="comment">%       [Kr,lam] = applyRegularization(K,s,L,lambda_in,flag,Lorder,noise)</span>
+0021 <span class="comment">%       Kreg - expanded (regularized) Kernel matrix; the number of extra</span>
+0022 <span class="comment">%              rows is NOT always size(L,1) (truncated/damped SVD/GSVD),</span>
+0023 <span class="comment">%              extend the data vector by size(Kreg,1)-length(g) zeros</span>
+0024 <span class="comment">%       lambda - determined lambda (for 'gcv_trunc': the truncation index</span>
+0025 <span class="comment">%                k, i.e. the number of retained singular values)</span>
 0026 <span class="comment">%</span>
-0027 <span class="comment">% Other m-files required:</span>
-0028 <span class="comment">%       Regularization Toolbox</span>
-0029 <span class="comment">%       csvd</span>
-0030 <span class="comment">%       cgsvd</span>
-0031 <span class="comment">%       gcv</span>
-0032 <span class="comment">%       discrep</span>
-0033 <span class="comment">%</span>
-0034 <span class="comment">% Subfunctions:</span>
-0035 <span class="comment">%       none</span>
+0027 <span class="comment">% Example:</span>
+0028 <span class="comment">%       [Kr,lam] = applyRegularization(K,s,L,lambda_in,flag,Lorder,noise)</span>
+0029 <span class="comment">%</span>
+0030 <span class="comment">% Other m-files required:</span>
+0031 <span class="comment">%       Regularization Toolbox</span>
+0032 <span class="comment">%       csvd</span>
+0033 <span class="comment">%       cgsvd</span>
+0034 <span class="comment">%       gcv</span>
+0035 <span class="comment">%       discrep</span>
 0036 <span class="comment">%</span>
-0037 <span class="comment">% MAT-files required:</span>
-0038 <span class="comment">%       none</span>
-0039 <span class="comment">%</span>
-0040 <span class="comment">% See also:</span>
-0041 <span class="comment">% Author: see AUTHORS.md</span>
-0042 <span class="comment">% email: see AUTHORS.md</span>
-0043 <span class="comment">% License: MIT License (at end)</span>
-0044 
-0045 <span class="comment">%------------- BEGIN CODE --------------</span>
-0046 
-0047 <span class="keyword">switch</span> flag
-0048     <span class="keyword">case</span> <span class="string">'manual'</span>
-0049         Kreg = [K;lambda_in*L];
-0050         lambda = lambda_in;
-0051         
-0052     <span class="keyword">case</span> <span class="string">'gcv_tikh'</span>
-0053         <span class="keyword">if</span> order == 0
-0054             [U,s,~] = csvd(K);
-0055             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);
-0056         <span class="keyword">else</span>
-0057             [U,s,~,~,~] = cgsvd(K,L);
-0058             [lambda,~,~] = gcv(U,s,g,<span class="string">'tikh'</span>,0);
-0059         <span class="keyword">end</span>
-0060         Kreg = [K;lambda*L];
-0061         
-0062     <span class="keyword">case</span> <span class="string">'gcv_trunc'</span>
-0063         <span class="keyword">if</span> order == 0
-0064             [U,s,~] = csvd(K);
-0065             [lambda,~,~] = gcv(U,s,g,<span class="string">'tsvd'</span>,0);
-0066         <span class="keyword">else</span>
-0067             [U,s,~,~,~] = cgsvd(K,L);
-0068             [lambda,~,~] = gcv(U,s,g,<span class="string">'tgsv'</span>,0);
-0069         <span class="keyword">end</span>
-0070         Kreg = [K;lambda*L];
-0071         
-0072     <span class="keyword">case</span> <span class="string">'gcv_damp'</span>
-0073         <span class="keyword">if</span> order == 0
-0074             [U,s,~] = csvd(K);
-0075             [lambda,~,~] = gcv(U,s,g,<span class="string">'dsvd'</span>,0);
-0076         <span class="keyword">else</span>
-0077             [U,s,~,~,~] = cgsvd(K,L);
-0078             [lambda,~,~] = gcv(U,s,g,<span class="string">'dgsv'</span>,0);
-0079         <span class="keyword">end</span>
-0080         Kreg = [K;lambda*L];
-0081         
-0082     <span class="keyword">case</span> <span class="string">'discrep'</span>
-0083         delta = sqrt(length(g))*noise_level;
-0084         <span class="keyword">try</span>
-0085             <span class="keyword">if</span> order == 0
-0086                 [U,s,V] = csvd(K);
-0087                 [~,lambda] = discrep(U,s,V,g,delta);
-0088             <span class="keyword">else</span>
-0089                 [U,s,X,~,~] = cgsvd(K,L);
-0090                 [~,lambda] = discrep(U,s,X,g,delta);
-0091             <span class="keyword">end</span>
-0092             <span class="keyword">if</span> isnan(lambda)
-0093                 lambda = 1;
-0094                 errmsg = {<span class="string">'Regul. Box: discrep.m failed!'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
-0095                 errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
-0096             <span class="keyword">end</span>
-0097             Kreg = [K;lambda*L];
-0098         <span class="keyword">catch</span> ME
-0099             <span class="comment">% show error message in case discrep fails</span>
-0100             errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
-0101                 <span class="string">'Regul. Box: discrep.m failed!'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
-0102             errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
-0103             lambda = 1;
-0104             Kreg = [K;lambda*L];
-0105         <span class="keyword">end</span>
-0106 <span class="keyword">end</span>
-0107 
-0108 <span class="keyword">return</span>
-0109 
-0110 <span class="comment">%------------- END OF CODE --------------</span>
-0111 
-0112 <span class="comment">%% License:</span>
-0113 <span class="comment">% MIT License</span>
-0114 <span class="comment">%</span>
-0115 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0116 <span class="comment">%</span>
-0117 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0118 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0119 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0120 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0121 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0122 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0123 <span class="comment">%</span>
-0124 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0125 <span class="comment">% copies or substantial portions of the Software.</span>
-0126 <span class="comment">%</span>
-0127 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0128 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0129 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0130 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0131 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0132 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0133 <span class="comment">% SOFTWARE.</span></pre></div>
+0037 <span class="comment">% Subfunctions:</span>
+0038 <span class="comment">%       getGCVparameter</span>
+0039 <span class="comment">%       getTruncatedSystem</span>
+0040 <span class="comment">%       getDampedSystem</span>
+0041 <span class="comment">%       getGSVDComponents</span>
+0042 <span class="comment">%       restoreCurrentFigure</span>
+0043 <span class="comment">%</span>
+0044 <span class="comment">% MAT-files required:</span>
+0045 <span class="comment">%       none</span>
+0046 <span class="comment">%</span>
+0047 <span class="comment">% See also:</span>
+0048 <span class="comment">% Author: see AUTHORS.md</span>
+0049 <span class="comment">% email: see AUTHORS.md</span>
+0050 <span class="comment">% License: MIT License (at end)</span>
+0051 
+0052 <span class="comment">%------------- BEGIN CODE --------------</span>
+0053 
+0054 <span class="keyword">switch</span> flag
+0055     <span class="keyword">case</span> <span class="string">'manual'</span>
+0056         Kreg = [K;lambda_in*L];
+0057         lambda = lambda_in;
+0058         
+0059     <span class="keyword">case</span> <span class="string">'gcv_tikh'</span>
+0060         <span class="comment">% Tikhonov: filter factors s^2/(s^2+lambda^2), i.e. [K;lambda*L]</span>
+0061         <span class="keyword">if</span> order == 0
+0062             [U,s,~] = csvd(K);
+0063             lambda = <a href="#_sub1" class="code" title="subfunction reg_min = getGCVparameter(U,s,g,method)">getGCVparameter</a>(U,s,g,<span class="string">'tikh'</span>);
+0064         <span class="keyword">else</span>
+0065             [U,s,~,~,~] = cgsvd(K,L);
+0066             lambda = <a href="#_sub1" class="code" title="subfunction reg_min = getGCVparameter(U,s,g,method)">getGCVparameter</a>(U,s,g,<span class="string">'tikh'</span>);
+0067         <span class="keyword">end</span>
+0068         Kreg = [K;lambda*L];
+0069 
+0070     <span class="keyword">case</span> <span class="string">'gcv_trunc'</span>
+0071         <span class="comment">% truncated SVD / GSVD: GCV returns the NUMBER k of retained</span>
+0072         <span class="comment">% (generalized) singular values - not a Tikhonov lambda. Using k</span>
+0073         <span class="comment">% in [K;k*L] (as done before) mixes two different methods.</span>
+0074         <span class="keyword">if</span> order == 0
+0075             [U,s,~] = csvd(K);
+0076             k = <a href="#_sub1" class="code" title="subfunction reg_min = getGCVparameter(U,s,g,method)">getGCVparameter</a>(U,s,g,<span class="string">'tsvd'</span>);
+0077         <span class="keyword">else</span>
+0078             [U,s,~,~,~] = cgsvd(K,L);
+0079             k = <a href="#_sub1" class="code" title="subfunction reg_min = getGCVparameter(U,s,g,method)">getGCVparameter</a>(U,s,g,<span class="string">'tgsv'</span>);
+0080         <span class="keyword">end</span>
+0081         Kreg = <a href="#_sub3" class="code" title="subfunction Kreg = getTruncatedSystem(K,L,order,k)">getTruncatedSystem</a>(K,L,order,k);
+0082         <span class="comment">% &quot;lambda&quot; output = truncation index k</span>
+0083         lambda = k;
+0084 
+0085     <span class="keyword">case</span> <span class="string">'gcv_damp'</span>
+0086         <span class="comment">% damped SVD / GSVD: filter factors s/(s+lambda) (gamma/(gamma+lambda))</span>
+0087         <span class="comment">% -- a different lambda scale than Tikhonov, so [K;lambda*L] (as</span>
+0088         <span class="comment">% done before) is not the damped solution</span>
+0089         <span class="keyword">if</span> order == 0
+0090             [U,s,~] = csvd(K);
+0091             lambda = <a href="#_sub1" class="code" title="subfunction reg_min = getGCVparameter(U,s,g,method)">getGCVparameter</a>(U,s,g,<span class="string">'dsvd'</span>);
+0092         <span class="keyword">else</span>
+0093             [U,s,~,~,~] = cgsvd(K,L);
+0094             lambda = <a href="#_sub1" class="code" title="subfunction reg_min = getGCVparameter(U,s,g,method)">getGCVparameter</a>(U,s,g,<span class="string">'dgsv'</span>);
+0095         <span class="keyword">end</span>
+0096         Kreg = <a href="#_sub4" class="code" title="subfunction Kreg = getDampedSystem(K,L,order,lambda)">getDampedSystem</a>(K,L,order,lambda);
+0097         
+0098     <span class="keyword">case</span> <span class="string">'discrep'</span>
+0099         delta = sqrt(length(g))*noise_level;
+0100         <span class="keyword">try</span>
+0101             <span class="keyword">if</span> order == 0
+0102                 [U,s,V] = csvd(K);
+0103                 [~,lambda] = discrep(U,s,V,g,delta);
+0104             <span class="keyword">else</span>
+0105                 [U,s,X,~,~] = cgsvd(K,L);
+0106                 [~,lambda] = discrep(U,s,X,g,delta);
+0107             <span class="keyword">end</span>
+0108             <span class="keyword">if</span> isnan(lambda)
+0109                 lambda = 1;
+0110                 errmsg = {<span class="string">'Regul. Box: discrep.m failed!'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
+0111                 errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
+0112             <span class="keyword">end</span>
+0113             Kreg = [K;lambda*L];
+0114         <span class="keyword">catch</span> ME
+0115             <span class="comment">% show error message in case discrep fails</span>
+0116             errmsg = {ME.message;[ME.stack(1).name,<span class="string">' Line: '</span>,num2str(ME.stack(1).line)];<span class="keyword">...</span>
+0117                 <span class="string">'Regul. Box: discrep.m failed!'</span>;<span class="string">'Using Lambda=1 as fall back.'</span>};
+0118             errordlg(errmsg,<span class="string">'applyRegularization: Error!'</span>);
+0119             lambda = 1;
+0120             Kreg = [K;lambda*L];
+0121         <span class="keyword">end</span>
+0122 <span class="keyword">end</span>
+0123 
+0124 <span class="keyword">return</span>
+0125 
+0126 <span class="comment">%%  subfunction: GCV parameter without plotting into the GUI</span>
+0127 <a name="_sub1" href="#_subfunctions" class="code">function reg_min = getGCVparameter(U,s,g,method)</a>
+0128 <span class="comment">% gcv.m of the Regularization Tools takes FOUR input arguments (the</span>
+0129 <span class="comment">% former fifth argument '0' made every gcv_* call fail with &quot;Too many</span>
+0130 <span class="comment">% input arguments&quot;) and always plots the GCV function into the current</span>
+0131 <span class="comment">% axes. The plot is therefore redirected into an invisible temporary</span>
+0132 <span class="comment">% figure so that no GUI axes are overwritten.</span>
+0133 hPrev = get(0,<span class="string">'CurrentFigure'</span>);
+0134 hTmp = figure(<span class="string">'Visible'</span>,<span class="string">'off'</span>);
+0135 <span class="keyword">try</span>
+0136     reg_min = gcv(U,s,g,method);
+0137 <span class="keyword">catch</span> ME
+0138     delete(hTmp);
+0139     <a href="#_sub2" class="code" title="subfunction restoreCurrentFigure(hPrev)">restoreCurrentFigure</a>(hPrev);
+0140     rethrow(ME);
+0141 <span class="keyword">end</span>
+0142 delete(hTmp);
+0143 <a href="#_sub2" class="code" title="subfunction restoreCurrentFigure(hPrev)">restoreCurrentFigure</a>(hPrev);
+0144 <span class="keyword">return</span>
+0145 
+0146 <a name="_sub2" href="#_subfunctions" class="code">function restoreCurrentFigure(hPrev)</a>
+0147 <span class="keyword">if</span> ~isempty(hPrev) &amp;&amp; ishghandle(hPrev)
+0148     set(0,<span class="string">'CurrentFigure'</span>,hPrev);
+0149 <span class="keyword">end</span>
+0150 
+0151 <span class="keyword">return</span>
+0152 
+0153 <span class="comment">%%  subfunction: truncated SVD / GSVD as an augmented LSQ system</span>
+0154 <a name="_sub3" href="#_subfunctions" class="code">function Kreg = getTruncatedSystem(K,L,order,k)</a>
+0155 <span class="comment">% Returns Kreg = [K_k; w*P_d] such that the unconstrained least-squares</span>
+0156 <span class="comment">% solution of Kreg*f = [g; 0] is exactly the truncated SVD (order 0) or</span>
+0157 <span class="comment">% truncated GSVD (order &gt; 0) solution:</span>
+0158 <span class="comment">%   - K_k contains only the k retained (generalized) singular components</span>
+0159 <span class="comment">%     (plus, for the GSVD, the unregularized null space of L)</span>
+0160 <span class="comment">%   - P_d projects onto the discarded components, which are thereby</span>
+0161 <span class="comment">%     forced to zero (any w &gt; 0 gives the TSVD/TGSVD solution)</span>
+0162 <span class="comment">% The weight w is the smallest retained (generalized) singular value, so</span>
+0163 <span class="comment">% that with the non-negativity constraint of LSQNONNEG/LSQLIN discarded</span>
+0164 <span class="comment">% components are penalized at the truncation level.</span>
+0165 <span class="comment">% NOTE: the calling routine has to extend the data vector by</span>
+0166 <span class="comment">% size(Kreg,1)-length(g) zeros.</span>
+0167 [m,n] = size(K);
+0168 <span class="keyword">if</span> order == 0
+0169     [U,S,V] = svd(full(K),<span class="string">'econ'</span>);
+0170     s = diag(S);
+0171     k = max(1,min(k,numel(s)));
+0172     <span class="keyword">if</span> m &lt; n
+0173         <span class="comment">% complete the basis with the null space of K</span>
+0174         V = [V null(V')];
+0175     <span class="keyword">end</span>
+0176     Kk = U(:,1:k)*diag(s(1:k))*V(:,1:k)';
+0177     Kreg = [Kk; s(k)*V(:,k+1:n)'];
+0178 <span class="keyword">else</span>
+0179     [X,Xinv,sigma,mu,nNull] = <a href="#_sub5" class="code" title="subfunction [X,Xinv,sigma,mu,nNull] = getGSVDComponents(K,L)">getGSVDComponents</a>(K,L);
+0180     <span class="comment">% gamma = sigma/mu; the null space of L (mu = 0) has gamma = Inf and</span>
+0181     <span class="comment">% is always retained (like tgsvd.m of the Regularization Tools)</span>
+0182     gamma = sigma./mu;
+0183     [~,ord] = sort(gamma,<span class="string">'descend'</span>);
+0184     nKeep = max(nNull+1,min(n,nNull+k));
+0185     keep = ord(1:nKeep);
+0186     disc = ord(nKeep+1:end);
+0187     Kk = K*X(:,keep)*Xinv(keep,:);
+0188     w = sigma(keep(end));
+0189     Kreg = [Kk; w*Xinv(disc,:)];
+0190 <span class="keyword">end</span>
+0191 
+0192 <span class="keyword">return</span>
+0193 
+0194 <span class="comment">%%  subfunction: damped SVD / GSVD as an augmented LSQ system</span>
+0195 <a name="_sub4" href="#_subfunctions" class="code">function Kreg = getDampedSystem(K,L,order,lambda)</a>
+0196 <span class="comment">% The damped SVD solution f = sum_i s_i/(s_i+lambda) * (u_i'g/s_i) * v_i</span>
+0197 <span class="comment">% is the minimizer of</span>
+0198 <span class="comment">%   ||K*f - g||^2 + lambda*||diag(sqrt(s))*V'*f||^2</span>
+0199 <span class="comment">% i.e. of [K; sqrt(lambda)*diag(sqrt(s))*V']*f = [g; 0].</span>
+0200 <span class="comment">% For the damped GSVD (filter gamma/(gamma+lambda), gamma = sigma/mu)</span>
+0201 <span class="comment">% the penalty is lambda*sum_i sigma_i*mu_i*y_i^2 with y = inv(X)*f.</span>
+0202 <span class="comment">% NOTE: the calling routine has to extend the data vector by</span>
+0203 <span class="comment">% size(Kreg,1)-length(g) zeros.</span>
+0204 [m,n] = size(K);
+0205 <span class="keyword">if</span> order == 0
+0206     [~,S,V] = svd(full(K),<span class="string">'econ'</span>);
+0207     s = diag(S);
+0208     P = diag(sqrt(lambda*s))*V';
+0209     <span class="keyword">if</span> m &lt; n
+0210         <span class="comment">% null space of K: zero component (minimum-norm DSVD solution)</span>
+0211         P = [P; sqrt(lambda*s(end))*null(V')'];
+0212     <span class="keyword">end</span>
+0213     Kreg = [K; P];
+0214 <span class="keyword">else</span>
+0215     [~,Xinv,sigma,mu] = <a href="#_sub5" class="code" title="subfunction [X,Xinv,sigma,mu,nNull] = getGSVDComponents(K,L)">getGSVDComponents</a>(K,L);
+0216     Kreg = [K; diag(sqrt(lambda*sigma.*mu))*Xinv];
+0217 <span class="keyword">end</span>
+0218 
+0219 <span class="keyword">return</span>
+0220 
+0221 <span class="comment">%%  subfunction: GSVD components of the matrix pair (K,L)</span>
+0222 <a name="_sub5" href="#_subfunctions" class="code">function [X,Xinv,sigma,mu,nNull] = getGSVDComponents(K,L)</a>
+0223 <span class="comment">% cgsvd: K = U*C*inv(X), L = V*S*inv(X) (compact GSVD, requires m &gt;= n).</span>
+0224 <span class="comment">% sigma and mu are taken as the column norms of K*X and L*X, which is</span>
+0225 <span class="comment">% independent of the internal ordering of cgsvd's output.</span>
+0226 [m,n] = size(K);
+0227 <span class="keyword">if</span> m &lt; n
+0228     error(<span class="string">'applyRegularization:GSVD'</span>,<span class="keyword">...</span>
+0229         [<span class="string">'Truncated/damped GSVD requires at least as many data points '</span>,<span class="keyword">...</span>
+0230         <span class="string">'as model parameters (%d &lt; %d). Increase #gates or decrease model space.'</span>],m,n);
+0231 <span class="keyword">end</span>
+0232 [~,sm,X,~,Xinv] = cgsvd(K,L);
+0233 sigma = sqrt(sum((K*X).^2,1))';
+0234 mu = sqrt(sum((L*X).^2,1))';
+0235 <span class="comment">% number of components in the null space of L (not regularized)</span>
+0236 nNull = n - size(sm,1);
+0237 
+0238 <span class="keyword">return</span>
+0239 
+0240 <span class="comment">%------------- END OF CODE --------------</span>
+0241 
+0242 <span class="comment">%% License:</span>
+0243 <span class="comment">% MIT License</span>
+0244 <span class="comment">%</span>
+0245 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0246 <span class="comment">%</span>
+0247 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0248 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0249 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0250 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0251 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0252 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0253 <span class="comment">%</span>
+0254 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0255 <span class="comment">% copies or substantial portions of the Software.</span>
+0256 <span class="comment">%</span>
+0257 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0258 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0259 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0260 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0261 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0262 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0263 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

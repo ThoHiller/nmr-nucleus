@@ -22,6 +22,7 @@ function fitdata = fitData2D(data,parameter)
 %       createKernelMatrix2D
 %       getFitErrors
 %       getTLogMean2D
+%       getSmoothness2D
 %       lsqnonneg
 %       lsqlin (optional)
 %
@@ -86,7 +87,9 @@ if parameter.useLogGates
     end
 end
 
-% create the Kernel matrix for inversion
+% create the PHYSICAL Kernel matrix
+% K, s_vec and s_fit always remain physical (unweighted, unscaled);
+% weighting / scaling is applied only to the inversion system below
 p.G0 = G0;
 p.D = D;
 p.te = te;
@@ -94,23 +97,53 @@ p.T1IRfac = T1IRfac;
 p.IRtype = IRtype;
 [K,indices] = createKernelMatrix2D(data,T1vec,T2vec,p);
 
-% weight the data and kernel in case of gateing
-if parameter.useLogGates
-    if parameter.noise == 0
-        W = diag(ones(size(e_vec)));
-    else
-        W = diag(1./e_vec);
+% exact kernel gating: if the gate definitions of the (gated) T2 signals
+% are available, build the kernel on the original echo times and apply
+% exactly the same arithmetic gating as used for the measured signals
+% (instead of evaluating the kernel at the mean gate times)
+hasGates = parameter.useLogGates && isfield(data,'gate') && ...
+    ~isempty(data(1).gate);
+if hasGates
+    for n = 1:Nsignals
+        gate = data(n).gate;
+        if numel(gate.indices) ~= numel(data(n).t)
+            error(['Number of gates does not match the number of ', ...
+                'data points of T2 signal %d.'],n);
+        end
+        datr.t = gate.time_raw(:);
+        datr.T1 = data(n).T1;
+        Kraw = createKernelMatrix2D(datr,T1vec,T2vec,p);
+        rows = indices.lin_1(n):indices.lin_end(n);
+        for i = 1:numel(gate.indices)
+            K(rows(i),:) = mean(Kraw(gate.indices{i},:),1);
+        end
     end
-    dat_vec = W*s_vec;
-    K = W*K;
-else
-    dat_vec = s_vec;
 end
 
-% scale everything between [0,1]
-maxS = max(dat_vec);
-dat_vec = dat_vec./maxS;
-K = K./maxS;
+% prepare inversion system - statistical weighting / scaling
+% e_vec contains the standard error of each gated data point
+%   sigma_k = noise / sqrt(N_k)
+% (formerly: whitening followed by an additional rescaling with the
+% maximum of the WHITENED data, and no weighting at all if noise == 0)
+hasWeights = parameter.useLogGates && all(isfinite(e_vec)) && all(e_vec > 0);
+if hasWeights
+    % whitened inversion, no additional amplitude scaling
+    sigma = e_vec;
+    dat_vec = s_vec./sigma;
+    Kinv = K./sigma;
+    scale = 1;
+    % expected standard deviation of the whitened residual
+    noise_inv = 1;
+else
+    % constant numerical scaling derived from the physical data
+    scale = max(abs(s_vec));
+    if ~isfinite(scale) || scale <= 0
+        scale = 1;
+    end
+    dat_vec = s_vec./scale;
+    Kinv = K./scale;
+    noise_inv = noise./scale;
+end
 
 % regularization
 order = parameter.orderT1;
@@ -126,30 +159,36 @@ regMethod = parameter.regMethod;
 % Kreg = [K;L];
 
 % get smoothness constrain matrices
-[LT2,LT1,dat_inp] = getSmoothness2D(order,T2vec,T1vec,indices,dat_vec);
+[LT2,LT1] = getSmoothness2D(order,T2vec,T1vec,indices,dat_vec);
 
 % extend K and apply regularization
 % 'manual' | 'gcv_tikh' | 'gcv_trunc' | 'gcv_damp' | 'discrep'
-[KK,lambda_out] = applyRegularization2D(K,dat_vec,LT2,LT1,lambda,...
-    regMethod,order,parameter.noise./maxS);
+[KK,lambda_out] = applyRegularization2D(Kinv,dat_vec,LT2,LT1,lambda,...
+    regMethod,order,noise_inv);
+% extended data vector (the number of regularization rows depends on the
+% regularization method)
+dat_inp = [dat_vec; zeros(size(KK,1)-length(dat_vec),1)];
 
 % solve LSE
 t1 = toc;
 switch parameter.solver
     case 'optimTB'
         % only the Optimization toolbox allows using bounds
+        % (f is in physical amplitude units, hence physical bounds;
+        % formerly the maximum of the whitened data was used)
+        fmax = 1.5*max(abs(s_vec));
         x0 = zeros(size(KK,2),1);
         lb = zeros(size(KK,2),1);
-        ub = maxS.*ones(size(KK,2),1);
-        
+        ub = fmax.*ones(size(KK,2),1);
+
         % force certain RTs to 0 (switch in EXTRA menu)
         if strcmp(parameter.EchoFlag,'on')
             T1cut = data(1).T1(1)/5;
             T2cut = parameter.te/5;
             if T1cut < T2cut
                 T1cut = T2cut;
-            end            
-            ub = maxS.*ones(numel(T2vec),numel(T1vec));
+            end
+            ub = fmax.*ones(numel(T2vec),numel(T1vec));
             ub(:,T1vec<T1cut,:) = 0;
             ub(T2vec<T2cut,:) = 0;
             ub = reshape(ub,[numel(T1vec)*numel(T2vec) 1]);
@@ -174,21 +213,14 @@ t2 = toc;
 OUTPUT.solver_time = t2-t1;
 % disp(OUTPUT.solver_time);
 
-% get the fit (rescale the f distribution)
-g_fit = KK*(f_vec.*maxS);
-% cut off the regularization part
-s_fit = g_fit(1:length(s_vec),1);
+% physical fitted signal
+% K and f_vec are both physical -- no weighting or scaling is undone here
+s_fit = K*f_vec;
 
-% get errors
-if parameter.useLogGates
-    % remove the error weights from the fit
-    e = diag(W);
-    einv = 1./e;
-    Winv = diag(einv);
-    s_fit = Winv * s_fit;
-
+% get errors (physical signal space)
+if hasWeights
     % get global fit errors
-    out_global = getFitErrors(s_vec,s_fit,noise,Winv);
+    out_global = getFitErrors(s_vec,s_fit,noise,diag(e_vec));
     % get local fit errors (for every T2 signal)
     for n = 1:numel(data)
         data(n).s_fit = s_fit((n-1)*Nechos+1:n*Nechos);
@@ -217,9 +249,10 @@ end
 % model norm(s) |L*x|_2
 xn = norm([LT2;LT1]*f_vec,2);
 xn_T1 = norm(LT1*f_vec,2);
-xn_T2 = norm(LT2*f_vec,2); 
-% residual norm |A*x-b|_2
-rn = norm(out_global.residual,2);
+xn_T2 = norm(LT2*f_vec,2);
+% residual norm |A*x-b|_2 in the metric actually used by the inversion
+% (data misfit only, not the augmented regularization rows)
+rn = norm(Kinv*f_vec - dat_vec,2);
 
 % create the Kernel matrix for E0
 dat0.t = 0; % shortest T2 echo time [s]
@@ -255,6 +288,8 @@ fitdata.xn_T1 = xn_T1;
 fitdata.xn_T2 = xn_T2;
 fitdata.rn = rn;
 fitdata.lambda_out = lambda_out;
+% numerical scale of the inversion system (1 if whitened)
+fitdata.scale = scale;
 fitdata.solver_out.RESNORM = RESNORM;
 fitdata.solver_out.RESIDUAL = RESIDUAL;
 fitdata.solver_out.EXITFLAG = EXITFLAG;

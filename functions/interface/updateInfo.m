@@ -215,7 +215,16 @@ if showit
                                 info{end+1,1} = ['<HTML><BODY>S/N = ',sprintf('%4d',floor(sum(invstd.E0)/nmrproc.noise)),'</BODY></HTML>'];
                             end
                             
-                            info{end+1,1} = ['<HTML><BODY>&lambda = ',sprintf('%5.3f',invstd.lambda_out),'</BODY></HTML>'];
+                            switch data.invstd.regtype
+                                case 'gcv_trunc'
+                                    info{end+1,1} = ['<HTML><BODY>k = ',sprintf('%3d',invstd.lambda_out),'</BODY></HTML>'];
+                                otherwise
+                                    if invstd.lambda_out < 1e-3
+                                        info{end+1,1} = ['<HTML><BODY>&lambda = ',sprintf('%5.3e',invstd.lambda_out),'</BODY></HTML>'];
+                                    else
+                                        info{end+1,1} = ['<HTML><BODY>&lambda = ',sprintf('%5.3f',invstd.lambda_out),'</BODY></HTML>'];
+                                    end
+                            end
                             info{end+1,1} = ' ';
                         case {'MUMO'}
                             switch nmrproc.T1T2

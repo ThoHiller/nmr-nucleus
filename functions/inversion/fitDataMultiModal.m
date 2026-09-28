@@ -246,7 +246,7 @@ switch parameter.solver
             fminsearchbnd(@(x) fcn_fitMultiModal(x,iparam),x0,lb,ub,options);
 
         % Calculate numerical Jacobian of the residual vector.
-        % therefore we need to switch the 'has_optim' on to get the correct
+        % therefore we need to switch the 'solver' to get the correct
         % output of 'fcn_fitMultiModal'
         iparam.solver = 'optimTB';
         jacobian = estimateJacobian(@(x) fcn_fitMultiModal(x,iparam),x);

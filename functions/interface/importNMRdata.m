@@ -788,7 +788,7 @@ else
         disp('NUCLUESinv import: Estimating noise from exponential fit ...');
         param.T1IRfac = 1;
         param.noise = 0;
-        param.has_optim = false;
+        param.solver = 'internal';
         param.Tfixed_bool = [0 0 0 0 0];
         param.Tfixed_val = [0 0 0 0 0];
         for i1 = 1:5
@@ -1041,7 +1041,7 @@ if ~isempty(datpath)
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = 2;
             param.noise = 0;
-            param.has_optim = data.info.has_optim;
+            param.solvr = data.info.solver;
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5
@@ -1096,7 +1096,7 @@ if ~isempty(datpath)
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = 2;
             param.noise = 0;
-            param.has_optim = false;
+            param.solver = 'internal';
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5
@@ -1474,7 +1474,7 @@ if ~isempty(datpath)
         disp('NUCLUESinv import: Estimating noise from exponential fit ...');
         param.T1IRfac = 1;
         param.noise = 0;
-        param.has_optim = false;
+        param.solver = 'iinternal';
         param.Tfixed_bool = [0 0 0 0 0];
         param.Tfixed_val = [0 0 0 0 0];
         for i1 = 1:5
@@ -1648,7 +1648,7 @@ if ~isempty(datpath)
     disp('NUCLUESinv import: Estimating noise from exponential fit ...');
     param.T1IRfac = 2;
     param.noise = 0;
-    param.has_optim = false;
+    param.solver = 'internal';
     param.Tfixed_bool = [0 0 0 0 0];
     param.Tfixed_val = [0 0 0 0 0];
     for i1 = 1:5

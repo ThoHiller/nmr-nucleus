@@ -94,7 +94,7 @@ if ~strcmp(in.fileformat,'heliosCPMG') && ~strcmp(in.fileformat,'heliosSeries').
             disp('NUCLUESinv import: Estimating noise from exponential fit ...');
             param.T1IRfac = out.nmrData{i}.T1IRfac;
             param.noise = 0;
-            param.has_optim = false;
+            param.solver = 'internal';
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             invstd = fitDataFree(out.nmrData{i}.time,out.nmrData{i}.signal,...

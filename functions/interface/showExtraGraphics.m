@@ -183,7 +183,8 @@ if foundINV
             end
 
             % 2.) signal-to-noise-ratio SNR
-            SNR(id,1) = sum(E0(id)) / INVdata{id}.results.nmrproc.noise;
+            SNR(id,1) = sum(E0(id)) / INVdata{id}.results.nmrproc.normfac /...
+                INVdata{id}.results.nmrproc.noise;
         end
     end
     

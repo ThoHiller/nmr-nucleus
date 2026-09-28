@@ -238,99 +238,98 @@ This function is called by:
 0167     disp(<span class="string">'NUCLUESinv import: Estimating noise from exponential fit ...'</span>);
 0168     param.T1IRfac = 2;
 0169     param.noise = 0;
-0170     param.has_optim = false;
-0171     param.Tfixed_bool = [0 0 0 0 0];
-0172     param.Tfixed_val = [0 0 0 0 0];
-0173     <span class="keyword">for</span> i1 = 1:5
-0174         invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(time,signal,flag,param,i1);
-0175         <span class="keyword">if</span> i1 == 1
-0176             noise = invstd.rms;
-0177         <span class="keyword">else</span>
-0178             noise = min([noise invstd.rms]);
-0179         <span class="keyword">end</span>
-0180     <span class="keyword">end</span>
-0181     disp(<span class="string">'NUCLUESinv import: done.'</span>)
-0182     <span class="comment">% finally create a new &quot;import&quot; data set</span>
-0183     data_new = data.import.NMR.data(1);
-0184     para_new = data.import.NMR.para(1);
-0185 
-0186     data_new{1}.flag = flag;
-0187     data_new{1}.T1IRfac = param.T1IRfac;
-0188     data_new{1}.time = time;
-0189     data_new{1}.signal = signal;
-0190     data_new{1}.noise = noise;
-0191     data_new{1}.raw.time = time;
-0192     data_new{1}.raw.signal = signal;
-0193 
-0194     data.import.NMR.data{numel(time)+1} = data_new{1};
-0195     data.import.NMR.para{numel(time)+1} = para_new{1};
-0196     fnames(numel(time)+1).datafile = <span class="string">'T1_merged.dat'</span>;
-0197     shownames{numel(time)+1} = <span class="string">'T1_merged'</span>;
-0198 
-0199     data.import.NMR.files = fnames;
-0200     data.import.NMR.filesShort = shownames;
-0201 
-0202     <span class="comment">% update the list of file names</span>
-0203     set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
-0204     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
-0205     
-0206     <span class="comment">% create a global INVdata struct for every file in the list</span>
-0207     <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
-0208         setappdata(fig,<span class="string">'INVdata'</span>,[]);
-0209     <span class="keyword">end</span>
-0210     INVdata = cell(length(data.import.NMR.filesShort),1);
-0211     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0212     
-0213     <span class="comment">%  clear all axes</span>
-0214     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
-0215     
-0216     <span class="comment">% enable GUI data and interface</span>
-0217     setappdata(fig,<span class="string">'data'</span>,data);
-0218     setappdata(fig,<span class="string">'gui'</span>,gui);
-0219     <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'MOD'</span>);
-0220     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0221     <span class="comment">% if the 2D window is open, update it</span>
-0222     <span class="keyword">if</span> ~isempty(findobj(<span class="string">'Tag'</span>,<span class="string">'2DINV'</span>))
-0223         <span class="comment">% but only if there is 2D data loaded</span>
-0224         <span class="keyword">if</span> isfield(data.import,<span class="string">'T1T2map'</span>)
-0225             <a href="../../../nucleus/functions/interface/subGUIs/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>(gui.menu.extra_T1T2map);
-0226         <span class="keyword">else</span>
-0227             helpdlg({<span class="string">'function: importNMRdata'</span>,<span class="keyword">...</span>
-0228                 <span class="string">'Careful: 2D GUI is open but 1D data set was imported'</span>},<span class="keyword">...</span>
-0229                 <span class="string">'Import Notification'</span>);
-0230         <span class="keyword">end</span>
-0231     <span class="keyword">end</span>
-0232 <span class="keyword">else</span>
-0233     helpdlg({<span class="string">'importNUCLEUSmod:'</span>,<span class="keyword">...</span>
-0234         <span class="string">'NUCLEUSmod data import unsuccessful.'</span>},<span class="string">'import error'</span>);
-0235 <span class="keyword">end</span>
-0236 
-0237 <span class="keyword">end</span>
-0238 
-0239 <span class="comment">%------------- END OF CODE --------------</span>
-0240 
-0241 <span class="comment">%% License:</span>
-0242 <span class="comment">% MIT License</span>
-0243 <span class="comment">%</span>
-0244 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0245 <span class="comment">%</span>
-0246 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0247 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0248 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0249 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0250 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0251 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0252 <span class="comment">%</span>
-0253 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0254 <span class="comment">% copies or substantial portions of the Software.</span>
-0255 <span class="comment">%</span>
-0256 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0257 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0258 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0259 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0260 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0261 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0262 <span class="comment">% SOFTWARE.</span></pre></div>
+0170     param.Tfixed_bool = [0 0 0 0 0];
+0171     param.Tfixed_val = [0 0 0 0 0];
+0172     <span class="keyword">for</span> i1 = 1:5
+0173         invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(time,signal,flag,param,i1);
+0174         <span class="keyword">if</span> i1 == 1
+0175             noise = invstd.rms;
+0176         <span class="keyword">else</span>
+0177             noise = min([noise invstd.rms]);
+0178         <span class="keyword">end</span>
+0179     <span class="keyword">end</span>
+0180     disp(<span class="string">'NUCLUESinv import: done.'</span>)
+0181     <span class="comment">% finally create a new &quot;import&quot; data set</span>
+0182     data_new = data.import.NMR.data(1);
+0183     para_new = data.import.NMR.para(1);
+0184 
+0185     data_new{1}.flag = flag;
+0186     data_new{1}.T1IRfac = param.T1IRfac;
+0187     data_new{1}.time = time;
+0188     data_new{1}.signal = signal;
+0189     data_new{1}.noise = noise;
+0190     data_new{1}.raw.time = time;
+0191     data_new{1}.raw.signal = signal;
+0192 
+0193     data.import.NMR.data{numel(time)+1} = data_new{1};
+0194     data.import.NMR.para{numel(time)+1} = para_new{1};
+0195     fnames(numel(time)+1).datafile = <span class="string">'T1_merged.dat'</span>;
+0196     shownames{numel(time)+1} = <span class="string">'T1_merged'</span>;
+0197 
+0198     data.import.NMR.files = fnames;
+0199     data.import.NMR.filesShort = shownames;
+0200 
+0201     <span class="comment">% update the list of file names</span>
+0202     set(gui.listbox_handles.signal,<span class="string">'String'</span>,data.import.NMR.filesShort);
+0203     set(gui.listbox_handles.signal,<span class="string">'Value'</span>,[],<span class="string">'Max'</span>,2,<span class="string">'Min'</span>,0);
+0204     
+0205     <span class="comment">% create a global INVdata struct for every file in the list</span>
+0206     <span class="keyword">if</span> isstruct(getappdata(fig,<span class="string">'INVdata'</span>))
+0207         setappdata(fig,<span class="string">'INVdata'</span>,[]);
+0208     <span class="keyword">end</span>
+0209     INVdata = cell(length(data.import.NMR.filesShort),1);
+0210     setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0211     
+0212     <span class="comment">%  clear all axes</span>
+0213     <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
+0214     
+0215     <span class="comment">% enable GUI data and interface</span>
+0216     setappdata(fig,<span class="string">'data'</span>,data);
+0217     setappdata(fig,<span class="string">'gui'</span>,gui);
+0218     <a href="enableGUIelements.html" class="code" title="function enableGUIelements(importtype)">enableGUIelements</a>(<span class="string">'MOD'</span>);
+0219     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0220     <span class="comment">% if the 2D window is open, update it</span>
+0221     <span class="keyword">if</span> ~isempty(findobj(<span class="string">'Tag'</span>,<span class="string">'2DINV'</span>))
+0222         <span class="comment">% but only if there is 2D data loaded</span>
+0223         <span class="keyword">if</span> isfield(data.import,<span class="string">'T1T2map'</span>)
+0224             <a href="../../../nucleus/functions/interface/subGUIs/Inv2DView.html" class="code" title="function Inv2DView(src,~)">Inv2DView</a>(gui.menu.extra_T1T2map);
+0225         <span class="keyword">else</span>
+0226             helpdlg({<span class="string">'function: importNMRdata'</span>,<span class="keyword">...</span>
+0227                 <span class="string">'Careful: 2D GUI is open but 1D data set was imported'</span>},<span class="keyword">...</span>
+0228                 <span class="string">'Import Notification'</span>);
+0229         <span class="keyword">end</span>
+0230     <span class="keyword">end</span>
+0231 <span class="keyword">else</span>
+0232     helpdlg({<span class="string">'importNUCLEUSmod:'</span>,<span class="keyword">...</span>
+0233         <span class="string">'NUCLEUSmod data import unsuccessful.'</span>},<span class="string">'import error'</span>);
+0234 <span class="keyword">end</span>
+0235 
+0236 <span class="keyword">end</span>
+0237 
+0238 <span class="comment">%------------- END OF CODE --------------</span>
+0239 
+0240 <span class="comment">%% License:</span>
+0241 <span class="comment">% MIT License</span>
+0242 <span class="comment">%</span>
+0243 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0244 <span class="comment">%</span>
+0245 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0246 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0247 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0248 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0249 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0250 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0251 <span class="comment">%</span>
+0252 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0253 <span class="comment">% copies or substantial portions of the Software.</span>
+0254 <span class="comment">%</span>
+0255 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0256 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0257 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0258 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0259 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0260 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0261 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

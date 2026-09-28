@@ -1,10 +1,23 @@
 # Changelog
 
+## [0.5.0] - 2026-09-28
+
+Major rework of the inversion routines (triggered by a Claude Code audit) is complete.
+
+### Changed
+- The `fitDataFree` routine in **NUCLEUSinv**  now also hast the correct error weighting; if available error weighting is now also applied to T1 data
+- Rework of the regularization routines in **NUCLEUSinv** `applyRegularization` / `applyRegularization2D`. `*gcv_trunc* now correctly applies a truncated (G)SVD (the GCV parameter is the truncation index k) and *gcv_damp* a damped (G)SVD instead of using these parameters as a kind of Tikhonov lambda
+- 2D inversion routines in **NUCLEUSinv** `fitData2D` and `Inv2DView` now have the same separation of physical and inversion-space quantities as `fitDataLSQ` and an exactly gated 2D kernel when the gate definitions are available
+
+### Fixed
+- In **NUCLEUSinv** `runInversionStd` was missing the kernel gating for the the L-curve calculation
+- minor inconsistencies in some import and plot routines
+
 ## [0.4.2] - 2026-09-26
 
 ### Changed
 - Heavy clean-up of the **NUCLEUSinv** (joint) inversion routines (`fitDataLSQ`, `applyGatesToSignal`, `fcn_Joint[...]`, etc.); i.e. stricter separation of gating, weighting and scaling within the corresponding functions
-- renamed the **NUCLEUSinv** menu *LSQ solver* into *Numerical Solver* because one can now select the solver routines used for inversion (switch between *Optimization TB* (if available) and *Matlab Internal* routines)
+- Renamed the **NUCLEUSinv** menu *LSQ solver* into *Numerical Solver* because one can now select the solver routines used for inversion (switch between *Optimization TB* (if available) and *Matlab Internal* routines)
 
 ### Fixed
 - Fixed a bug in **NUCLEUSinv** joint inversion routine `fcn_JointInvFree` (the Jacobian was not correct; luckily this only increased the convergence time and not the final result)
@@ -278,6 +291,7 @@
 
 Initial Version
 
+[0.5.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.4.2...v.0.5.0
 [0.4.2]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.4.1...v.0.4.2
 [0.4.1]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.4.0...v.0.4.1
 [0.4.0]: https://github.com/ThoHiller/nmr-nucleus/compare/v.0.3.0...v.0.4.0

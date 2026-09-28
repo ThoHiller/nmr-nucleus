@@ -44,6 +44,31 @@ gui = getappdata(fig,'gui');
 data = getappdata(fig,'data');
 INVdata = getappdata(fig,'INVdata');
 
+% before we start anything, check if the inversion would run for a
+% reduced system (truncated or damped SVD regularization with a
+% smoothness orer higher than 0)
+if data.invstd.Lorder > 0 && ...
+        (strcmp(data.invstd.regtype,'gcv_trunc') || ...
+        strcmp(data.invstd.regtype,'gcv_damp'))
+
+    % length of data vector
+    nd = length(data.results.nmrproc.t);
+    % length of model vector
+    tstart = log10(data.invstd.time(1));
+    tend = log10(data.invstd.time(2));
+    N = data.invstd.Ntime;
+    nm = round((tend-tstart)*N);
+
+    if nd < nm
+        warndlg({'Data space < Model space.',...
+            ['            ',num2str(nd),' < ',num2str(nm),],...
+            'Increase the number of gates or',...
+            'decrease RTD points'},...
+             'Change Regularization Method');
+        return
+    end
+end
+
 % only proceed if there is data
 if ~isempty(INVdata)
 
@@ -241,7 +266,6 @@ if ~isempty(INVdata)
                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
                     param.noise = data.results.nmrproc.noise;
                     param.solver = data.info.solver;
-                    param.has_optim = data.info.has_optim;
                     if isfield(data.results.nmrproc,'W')
                         param.W = data.results.nmrproc.W;
                         param.gate = data.results.nmrproc.gate;

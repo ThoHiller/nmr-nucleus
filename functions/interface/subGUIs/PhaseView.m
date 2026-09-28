@@ -546,7 +546,6 @@ switch get(src,'Tag')
             flag = 'T1';
             param.T1IRfac = nucleus.data.import.NMR.data{N}.T1IRfac;
             param.noise = 0;
-            param.has_optim = false;
             param.Tfixed_bool = [0 0 0 0 0];
             param.Tfixed_val = [0 0 0 0 0];
             for i1 = 1:5

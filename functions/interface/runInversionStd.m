@@ -61,6 +61,31 @@ id = get(gui.listbox_handles.signal,'Value');
 % check if joint inversion is activated
 isjoint = strcmp(get(gui.menu.extra_joint,'Checked'),'on');
 
+% before we start anything, check if the inversion would run for a
+% reduced system (truncated or damped SVD regularization with a
+% smoothness orer higher than 0)
+if data.invstd.Lorder > 0 && ...
+        (strcmp(data.invstd.regtype,'gcv_trunc') || ...
+        strcmp(data.invstd.regtype,'gcv_damp'))
+
+    % length of data vector
+    nd = length(data.results.nmrproc.t);
+    % length of model vector
+    tstart = log10(data.invstd.time(1));
+    tend = log10(data.invstd.time(2));
+    N = data.invstd.Ntime;
+    nm = round((tend-tstart)*N);
+
+    if nd < nm
+        warndlg({'Data space < Model space.',...
+            ['            ',num2str(nd),' < ',num2str(nm),],...
+            'Increase the number of gates or',...
+            'decrease RTD points'},...
+             'Change Regularization Method');
+        return
+    end
+end
+
 if ~isempty(id) && ~isempty(INVdata)
     % remove temporary data fields
     data = removeInversionFields(data);
@@ -97,6 +122,9 @@ if ~isempty(id) && ~isempty(INVdata)
             iparam.TE = data.results.nmrraw.t(2)-data.results.nmrraw.t(1);
             if isfield(data.results.nmrproc,'W')
                 iparam.W = data.results.nmrproc.W;
+                % same exactly gated kernel as the final NNLS inversion
+                % (the L-curve must be computed for the same forward model)
+                iparam.gate = data.results.nmrproc.gate;
             end
             iparam.solver = data.info.solver;
             iparam.EchoFlag = data.info.EchoFlag;

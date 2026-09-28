@@ -132,99 +132,106 @@ This function is called by:
 0046 
 0047 <span class="comment">%------------- BEGIN CODE --------------</span>
 0048 
-0049 <span class="comment">%% dimensions and degrees of freedom</span>
-0050 [nData,nParam] = size(J);
-0051 deg_free = nData - nParam;
-0052 <span class="keyword">if</span> deg_free &lt;= 0
-0053     warning(<span class="string">'Cannot calculate confidence intervals: non-positive degrees of freedom.'</span>);
-0054     CI = NaN(nParam,1);
-0055     <span class="keyword">return</span>
-0056 <span class="keyword">end</span>
-0057 
-0058 <span class="comment">%% residual variance estimate</span>
-0059 <span class="comment">% resnorm = sum(r.^2)</span>
-0060 s2 = resnorm / deg_free;
-0061 
-0062 <span class="comment">%% covariance matrix</span>
-0063 <span class="comment">% Use SVD instead of explicitly calculating inv(J''*J).</span>
-0064 [~,S,V] = svd(J,<span class="string">'econ'</span>);
-0065 sv = diag(S);
-0066 
-0067 <span class="comment">% numerical rank tolerance</span>
-0068 tol = max(size(J)) * eps(max(sv));
-0069 valid = sv &gt; tol;
-0070 <span class="keyword">if</span> sum(valid) &lt; nParam
-0071     warning([<span class="string">'Jacobian is rank deficient. Confidence intervals may '</span>, <span class="keyword">...</span>
-0072              <span class="string">'not be uniquely defined.'</span>]);
-0073 <span class="keyword">end</span>
-0074 
-0075 <span class="comment">% covariance from pseudo-inverse of J''*J</span>
-0076 Vv = V(:,valid);
-0077 sv = sv(valid);
-0078 
-0079 covariance = s2 * Vv * diag(1./sv.^2) * Vv';
-0080 
-0081 <span class="comment">%% parameter standard errors</span>
-0082 var_param = diag(covariance);
-0083 
-0084 <span class="comment">% protect against tiny negative values due to round-off</span>
-0085 var_param(var_param &lt; 0) = 0;
-0086 
-0087 SE = sqrt(var_param);
-0088 
-0089 <span class="comment">%% Student-t factor for two-sided confidence interval</span>
-0090 <span class="comment">% alpha 0.025 -&gt; 97.5%</span>
-0091 <span class="comment">% alpha 0.05  -&gt; 95.0%</span>
-0092 <span class="comment">% if yes use 'tinv' directly</span>
-0093 <span class="comment">% if not use my own function to calculate the Student's t inverse CDF</span>
-0094 vv = ver;
-0095 StatBox = false;
-0096 <span class="keyword">for</span> k = 1:length(vv)
-0097     <span class="keyword">if</span> contains(vv(k).Name,<span class="string">'Statistics'</span>)
-0098         StatBox = true;
-0099         <span class="keyword">break</span>
-0100     <span class="keyword">end</span>
-0101 <span class="keyword">end</span>
-0102 <span class="keyword">if</span> StatBox
-0103     stud_fac = tinv(1-alpha/2,deg_free);
-0104 <span class="keyword">else</span>
-0105     <span class="keyword">if</span> deg_free &lt;= 1000
-0106         stud_fac = <a href="getStudentInvCDF.html" class="code" title="function x = getStudentInvCDF(p,dof)">getStudentInvCDF</a>(1-alpha/2,deg_free);
-0107     <span class="keyword">else</span>
-0108         <span class="comment">% normal approximation for large DOF</span>
-0109         stud_fac = 1.96;
-0110     <span class="keyword">end</span>
-0111 <span class="keyword">end</span>
-0112 
-0113 <span class="comment">%% confidence interval half-width</span>
-0114 CI = SE * stud_fac;
-0115 
-0116 <span class="keyword">return</span>
-0117 
-0118 <span class="comment">%------------- END OF CODE --------------</span>
+0049 <span class="comment">%% Jacobian as full matrix</span>
+0050 <span class="comment">% lsqnonlin / lsqcurvefit (trust-region-reflective) return a SPARSE</span>
+0051 <span class="comment">% Jacobian, but svd does not support sparse matrices. Without this</span>
+0052 <span class="comment">% conversion every call with a solver Jacobian fails (and callers that</span>
+0053 <span class="comment">% wrap this function in try/catch silently return NaN intervals).</span>
+0054 J = full(J);
+0055 
+0056 <span class="comment">%% dimensions and degrees of freedom</span>
+0057 [nData,nParam] = size(J);
+0058 deg_free = nData - nParam;
+0059 <span class="keyword">if</span> deg_free &lt;= 0
+0060     warning(<span class="string">'Cannot calculate confidence intervals: non-positive degrees of freedom.'</span>);
+0061     CI = NaN(nParam,1);
+0062     <span class="keyword">return</span>
+0063 <span class="keyword">end</span>
+0064 
+0065 <span class="comment">%% residual variance estimate</span>
+0066 <span class="comment">% resnorm = sum(r.^2)</span>
+0067 s2 = resnorm / deg_free;
+0068 
+0069 <span class="comment">%% covariance matrix</span>
+0070 <span class="comment">% Use SVD instead of explicitly calculating inv(J''*J).</span>
+0071 [~,S,V] = svd(J,<span class="string">'econ'</span>);
+0072 sv = diag(S);
+0073 
+0074 <span class="comment">% numerical rank tolerance</span>
+0075 tol = max(size(J)) * eps(max(sv));
+0076 valid = sv &gt; tol;
+0077 <span class="keyword">if</span> sum(valid) &lt; nParam
+0078     warning([<span class="string">'Jacobian is rank deficient. Confidence intervals may '</span>, <span class="keyword">...</span>
+0079              <span class="string">'not be uniquely defined.'</span>]);
+0080 <span class="keyword">end</span>
+0081 
+0082 <span class="comment">% covariance from pseudo-inverse of J''*J</span>
+0083 Vv = V(:,valid);
+0084 sv = sv(valid);
+0085 
+0086 covariance = s2 * Vv * diag(1./sv.^2) * Vv';
+0087 
+0088 <span class="comment">%% parameter standard errors</span>
+0089 var_param = diag(covariance);
+0090 
+0091 <span class="comment">% protect against tiny negative values due to round-off</span>
+0092 var_param(var_param &lt; 0) = 0;
+0093 
+0094 SE = sqrt(var_param);
+0095 
+0096 <span class="comment">%% Student-t factor for two-sided confidence interval</span>
+0097 <span class="comment">% alpha 0.025 -&gt; 97.5%</span>
+0098 <span class="comment">% alpha 0.05  -&gt; 95.0%</span>
+0099 <span class="comment">% if yes use 'tinv' directly</span>
+0100 <span class="comment">% if not use my own function to calculate the Student's t inverse CDF</span>
+0101 vv = ver;
+0102 StatBox = false;
+0103 <span class="keyword">for</span> k = 1:length(vv)
+0104     <span class="keyword">if</span> contains(vv(k).Name,<span class="string">'Statistics'</span>)
+0105         StatBox = true;
+0106         <span class="keyword">break</span>
+0107     <span class="keyword">end</span>
+0108 <span class="keyword">end</span>
+0109 <span class="keyword">if</span> StatBox
+0110     stud_fac = tinv(1-alpha/2,deg_free);
+0111 <span class="keyword">else</span>
+0112     <span class="keyword">if</span> deg_free &lt;= 1000
+0113         stud_fac = <a href="getStudentInvCDF.html" class="code" title="function x = getStudentInvCDF(p,dof)">getStudentInvCDF</a>(1-alpha/2,deg_free);
+0114     <span class="keyword">else</span>
+0115         <span class="comment">% normal approximation for large DOF</span>
+0116         stud_fac = 1.96;
+0117     <span class="keyword">end</span>
+0118 <span class="keyword">end</span>
 0119 
-0120 <span class="comment">%% License:</span>
-0121 <span class="comment">% MIT License</span>
-0122 <span class="comment">%</span>
-0123 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0124 <span class="comment">%</span>
-0125 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0126 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0127 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0128 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0129 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0130 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0120 <span class="comment">%% confidence interval half-width</span>
+0121 CI = SE * stud_fac;
+0122 
+0123 <span class="keyword">return</span>
+0124 
+0125 <span class="comment">%------------- END OF CODE --------------</span>
+0126 
+0127 <span class="comment">%% License:</span>
+0128 <span class="comment">% MIT License</span>
+0129 <span class="comment">%</span>
+0130 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
 0131 <span class="comment">%</span>
-0132 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0133 <span class="comment">% copies or substantial portions of the Software.</span>
-0134 <span class="comment">%</span>
-0135 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0136 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0137 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0138 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0139 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0140 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0141 <span class="comment">% SOFTWARE.</span></pre></div>
+0132 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0133 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0134 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0135 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0136 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0137 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0138 <span class="comment">%</span>
+0139 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0140 <span class="comment">% copies or substantial portions of the Software.</span>
+0141 <span class="comment">%</span>
+0142 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0143 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0144 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0145 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0146 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0147 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0148 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

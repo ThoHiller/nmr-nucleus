@@ -209,13 +209,14 @@ else
     noise_inv = noise ./ scale;
 end
 
-
 %% Regularization
 % applyRegularization receives exactly the system that will be solved.
 [KK,lambda_out] = applyRegularization(Kinv,ginv,L,lambda,regMethod,order,noise_inv);
 
 %% extended data vector
-gg = [ginv; zeros(size(L,1),1)];
+% the number of regularization rows depends on the method (e.g. the
+% truncated SVD adds one row per discarded component, not size(L,1))
+gg = [ginv; zeros(size(KK,1)-length(ginv),1)];
 
 %% solve least-squares problem
 switch parameter.solver

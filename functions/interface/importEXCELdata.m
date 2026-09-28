@@ -164,7 +164,6 @@ if sum([EXCELpath EXCELfile]) > 0
                         % try saturation recovery first
                         param.T1IRfac = 1;
                         param.noise = 0;
-                        param.has_optim = false;
                         param.Tfixed_bool = [0 0 0 0 0];
                         param.Tfixed_val = [0 0 0 0 0];
                         invstd1 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
@@ -173,7 +172,6 @@ if sum([EXCELpath EXCELfile]) > 0
                         % now inversion recovery
                         param.T1IRfac = 2;
                         param.noise = 0;
-                        param.has_optim = false;
                         param.Tfixed_bool = [0 0 0 0 0];
                         param.Tfixed_val = [0 0 0 0 0];
                         invstd2 = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...
@@ -205,7 +203,6 @@ if sum([EXCELpath EXCELfile]) > 0
                             % noise estimate
                             param.T1IRfac = 1;
                             param.noise = 0;
-                            param.has_optim = false;
                             param.Tfixed_bool = [0 0 0 0 0];
                             param.Tfixed_val = [0 0 0 0 0];
                             invstd = fitDataFree(data.import.NMR.data{c}.time,data.import.NMR.data{c}.signal,...

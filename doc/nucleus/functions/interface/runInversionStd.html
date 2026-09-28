@@ -150,358 +150,386 @@ This function is called by:
 0061 <span class="comment">% check if joint inversion is activated</span>
 0062 isjoint = strcmp(get(gui.menu.extra_joint,<span class="string">'Checked'</span>),<span class="string">'on'</span>);
 0063 
-0064 <span class="keyword">if</span> ~isempty(id) &amp;&amp; ~isempty(INVdata)
-0065     <span class="comment">% remove temporary data fields</span>
-0066     data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
-0067 
-0068     <span class="comment">% if joint inversion is enabled clear joint PSD and CPS axes because a</span>
-0069     <span class="comment">% new std inversion might change E0 and hence the saturation value of</span>
-0070     <span class="comment">% the NMR signal</span>
-0071     <span class="keyword">if</span> isjoint
-0072         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psdj);
-0073         ph = findall(gui.axes_handles.cps,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
-0074         <span class="keyword">if</span> ~isempty(ph)
-0075             set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
-0076             delete(ph);
-0077         <span class="keyword">end</span>
-0078         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
-0079     <span class="keyword">end</span>
-0080 
-0081     <span class="comment">% switch depending on regularization method</span>
-0082     <span class="keyword">switch</span> data.invstd.regtype
-0083         <span class="keyword">case</span> <span class="string">'lcurve'</span> <span class="comment">% L-curve regularization</span>
-0084             <span class="comment">% clear inversion axes</span>
-0085             <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
-0086 
-0087             <span class="comment">% general inversion parameter</span>
-0088             iparam.info = <span class="string">'off'</span>;
-0089             iparam.T1T2 = data.results.nmrproc.T1T2;
-0090             iparam.T1IRfac = data.results.nmrproc.T1IRfac;
-0091             iparam.Tb = data.invstd.Tbulk;
-0092             iparam.Td = data.invstd.Tdiff;
-0093             iparam.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-0094             iparam.regMethod = <span class="string">'manual'</span>;
-0095             iparam.Lorder = data.invstd.Lorder;
-0096             iparam.noise = data.results.nmrproc.noise;
-0097             iparam.TE = data.results.nmrraw.t(2)-data.results.nmrraw.t(1);
-0098             <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0099                 iparam.W = data.results.nmrproc.W;
-0100             <span class="keyword">end</span>
-0101             iparam.solver = data.info.solver;
-0102             iparam.EchoFlag = data.info.EchoFlag;
-0103 
-0104             <span class="comment">% data</span>
-0105             lparam.t = data.results.nmrproc.t;
-0106             lparam.s = data.results.nmrproc.s;
-0107             <span class="comment">% fit function</span>
-0108             lparam.func = @<a href="../../../nucleus/functions/inversion/fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>;
-0109             <span class="comment">% dimension (standard 1D)</span>
-0110             lparam.dim = 1;
+0064 <span class="comment">% before we start anything, check if the inversion would run for a</span>
+0065 <span class="comment">% reduced system (truncated or damped SVD regularization with a</span>
+0066 <span class="comment">% smoothness orer higher than 0)</span>
+0067 <span class="keyword">if</span> data.invstd.Lorder &gt; 0 &amp;&amp; <span class="keyword">...</span>
+0068         (strcmp(data.invstd.regtype,<span class="string">'gcv_trunc'</span>) || <span class="keyword">...</span>
+0069         strcmp(data.invstd.regtype,<span class="string">'gcv_damp'</span>))
+0070 
+0071     <span class="comment">% length of data vector</span>
+0072     nd = length(data.results.nmrproc.t);
+0073     <span class="comment">% length of model vector</span>
+0074     tstart = log10(data.invstd.time(1));
+0075     tend = log10(data.invstd.time(2));
+0076     N = data.invstd.Ntime;
+0077     nm = round((tend-tstart)*N);
+0078 
+0079     <span class="keyword">if</span> nd &lt; nm
+0080         warndlg({<span class="string">'Data space &lt; Model space.'</span>,<span class="keyword">...</span>
+0081             [<span class="string">'            '</span>,num2str(nd),<span class="string">' &lt; '</span>,num2str(nm),],<span class="keyword">...</span>
+0082             <span class="string">'Increase the number of gates or'</span>,<span class="keyword">...</span>
+0083             <span class="string">'decrease RTD points'</span>},<span class="keyword">...</span>
+0084              <span class="string">'Change Regularization Method'</span>);
+0085         <span class="keyword">return</span>
+0086     <span class="keyword">end</span>
+0087 <span class="keyword">end</span>
+0088 
+0089 <span class="keyword">if</span> ~isempty(id) &amp;&amp; ~isempty(INVdata)
+0090     <span class="comment">% remove temporary data fields</span>
+0091     data = <a href="removeInversionFields.html" class="code" title="function data = removeInversionFields(data)">removeInversionFields</a>(data);
+0092 
+0093     <span class="comment">% if joint inversion is enabled clear joint PSD and CPS axes because a</span>
+0094     <span class="comment">% new std inversion might change E0 and hence the saturation value of</span>
+0095     <span class="comment">% the NMR signal</span>
+0096     <span class="keyword">if</span> isjoint
+0097         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.psdj);
+0098         ph = findall(gui.axes_handles.cps,<span class="string">'Tag'</span>,<span class="string">'SatPoints'</span>);
+0099         <span class="keyword">if</span> ~isempty(ph)
+0100             set(ph,<span class="string">'HandleVisibility'</span>,<span class="string">'on'</span>)
+0101             delete(ph);
+0102         <span class="keyword">end</span>
+0103         <a href="clearSingleAxis.html" class="code" title="function clearSingleAxis(axh)">clearSingleAxis</a>(gui.axes_handles.cps);
+0104     <span class="keyword">end</span>
+0105 
+0106     <span class="comment">% switch depending on regularization method</span>
+0107     <span class="keyword">switch</span> data.invstd.regtype
+0108         <span class="keyword">case</span> <span class="string">'lcurve'</span> <span class="comment">% L-curve regularization</span>
+0109             <span class="comment">% clear inversion axes</span>
+0110             <a href="clearAllAxes.html" class="code" title="function clearAllAxes(figh)">clearAllAxes</a>(gui.figh);
 0111 
-0112             <span class="keyword">switch</span> data.info.LcurveMethod
-0113                 <span class="keyword">case</span> <span class="string">'iterative'</span>
-0114                     <span class="comment">% lambda range</span>
-0115                     lmin = data.invstd.lambdaR(1);
-0116                     lmax = data.invstd.lambdaR(2);
-0117                     lparam.lambda_range = [lmin lmax];
-0118                     
-0119                     <span class="comment">% call L-curve function</span>
-0120                     lc = <a href="../../../nucleus/functions/inversion/runLcurveIterative.html" class="code" title="function out = runLcurveIterative(lparam,iparam,gui)">runLcurveIterative</a>(lparam,iparam,gui);
-0121 
-0122                 <span class="keyword">case</span> <span class="string">'discrete'</span>
-0123                     <span class="comment">% lambda range</span>
-0124                     lmin = data.invstd.lambdaR(1);
-0125                     lmax = data.invstd.lambdaR(2);
-0126                     lN = data.invstd.NlambdaR;
-0127                     lparam.lambda_range = logspace(log10(lmin),log10(lmax),lN);
-0128 
-0129                     <span class="comment">% call L-curve function</span>
-0130                     lc = <a href="../../../nucleus/functions/inversion/runLcurveDiscrete.html" class="code" title="function out = runLcurveDiscrete(lparam,iparam,gui)">runLcurveDiscrete</a>(lparam,iparam,gui); 
-0131             <span class="keyword">end</span>
-0132 
-0133             <span class="comment">% save results</span>
-0134             data.results.lcurve = lc;
-0135             <span class="comment">% update GUI data</span>
-0136             setappdata(fig,<span class="string">'data'</span>,data);
-0137             <span class="comment">% update L-curve plots</span>
-0138             <a href="updatePlotsLcurve.html" class="code" title="function updatePlotsLcurve">updatePlotsLcurve</a>;
-0139             <span class="comment">% status bar information</span>
-0140             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[<span class="string">'L-curve calculation ... '</span>,<span class="string">' done'</span>]);
-0141 
-0142         <span class="keyword">otherwise</span> <span class="comment">% normal inversion</span>
-0143             <span class="comment">% time the whole inversion</span>
-0144             tic;
-0145             <span class="comment">% Do we want inversion output on the command line</span>
-0146             <span class="keyword">switch</span> data.info.InvInfo
-0147                 <span class="keyword">case</span> <span class="string">'on'</span>
-0148                     param.info = <span class="string">'final'</span>;
-0149                 <span class="keyword">case</span> <span class="string">'off'</span>
-0150                     param.info = <span class="string">'off'</span>;
-0151             <span class="keyword">end</span>
-0152 
-0153             <span class="comment">% disable the RUN button to indicate a running inversion</span>
-0154             set(gui.push_handles.invstd_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
-0155                 <span class="string">'BackgroundColor'</span>,[0.9400 0.9400 0.9400],<span class="keyword">...</span>
-0156                 <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
-0157             <span class="comment">% switch depending on inversion method</span>
-0158             <span class="keyword">switch</span> data.invstd.invtype
-0159                 <span class="keyword">case</span> <span class="string">'mono'</span> <span class="comment">% mono-exponential inversion</span>
-0160                     flag = data.results.nmrproc.T1T2;
-0161                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0162                     param.noise = data.results.nmrproc.noise;
-0163                     param.solver = data.info.solver;
-0164                     param.Tfixed_bool = data.invstd.Tfixed_bool;
-0165                     param.Tfixed_val = data.invstd.Tfixed_val;
-0166                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0167                         param.W = data.results.nmrproc.W;
-0168                     <span class="keyword">end</span>
-0169                     <span class="comment">% status bar information</span>
-0170                     <span class="keyword">switch</span> data.info.solver
-0171                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
-0172                             infostring = <span class="string">'Inversion using ''lsqnonlin'' ... '</span>;
-0173                         <span class="keyword">case</span> <span class="string">'internal'</span>
-0174                             infostring = <span class="string">'Inversion using ''fminsearchbnd'' ... '</span>;
-0175                     <span class="keyword">end</span>
-0176                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0177                     param.t_raw = data.results.nmrraw.t;
-0178                     param.s_raw = data.results.nmrraw.s;
-0179                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0180                         data.results.nmrproc.s,flag,param,1);
-0181                     data.invstd.Tfixed_val = [invstd.T zeros(1,4)];
-0182 
-0183                 <span class="keyword">case</span> <span class="string">'free'</span> <span class="comment">% N free single-exponential inversion</span>
-0184                     flag = data.results.nmrproc.T1T2;
-0185                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0186                     param.noise = data.results.nmrproc.noise;
-0187                     param.solver = data.info.solver;
-0188                     param.Tfixed_bool = data.invstd.Tfixed_bool;
-0189                     param.Tfixed_val = data.invstd.Tfixed_val;
-0190                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0191                         param.W = data.results.nmrproc.W;
-0192                     <span class="keyword">end</span>
-0193                     <span class="comment">% status bar information</span>
-0194                     <span class="keyword">switch</span> data.info.solver
-0195                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
-0196                             infostring = <span class="string">'Inversion using ''lsqnonlin'' ... '</span>;
-0197                         <span class="keyword">case</span> <span class="string">'internal'</span>
-0198                             infostring = <span class="string">'Inversion using ''fminsearchbnd'' ... '</span>;
-0199                     <span class="keyword">end</span>
-0200                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0201                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0202                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
-0203                     data.invstd.Tfixed_val = [invstd.T(1:data.invstd.freeDT)<span class="keyword">...</span>
-0204                         zeros(1,5-data.invstd.freeDT)];
-0205 
-0206                 <span class="keyword">case</span> <span class="string">'LU'</span> <span class="comment">% multi-exponential inversion</span>
-0207                     <span class="comment">% general parameter</span>
-0208                     param.T1T2 = data.results.nmrproc.T1T2;
-0209                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0210                     param.Tb = data.invstd.Tbulk;
-0211                     param.Td = data.invstd.Tdiff;
-0212                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-0213                     param.Lorder = data.invstd.Lorder;
-0214                     param.lambda = data.invstd.lambda;
-0215                     param.noise = data.results.nmrproc.noise;
-0216                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0217                         param.W = data.results.nmrproc.W;
-0218                         param.gate = data.results.nmrproc.gate;
-0219                     <span class="keyword">end</span>
-0220                     <span class="comment">% status bar information</span>
-0221                     infostring = <span class="string">'Inversion using LU decomposition ... '</span>;
-0222                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0223                     invstd = <a href="../../../nucleus/functions/inversion/fitDataLUdecomp.html" class="code" title="function fitdata = fitDataLUdecomp(time,signal,parameter)">fitDataLUdecomp</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0224                         data.results.nmrproc.s,param);
-0225 
-0226                 <span class="keyword">case</span> <span class="string">'NNLS'</span> <span class="comment">% multi-exponential inversion with manual regularization</span>
-0227                     <span class="comment">% general parameter</span>
-0228                     param.T1T2 = data.results.nmrproc.T1T2;
-0229                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0230                     param.Tb = data.invstd.Tbulk;
-0231                     param.Td = data.invstd.Tdiff;
-0232                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-0233                     param.regMethod = data.invstd.regtype;
-0234                     param.Lorder = data.invstd.Lorder;
-0235                     param.lambda = data.invstd.lambda;
-0236                     param.noise = data.results.nmrproc.noise;
-0237                     param.solver = data.info.solver;
-0238                     param.EchoFlag = data.info.EchoFlag;
-0239                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0240                         param.W = data.results.nmrproc.W;
-0241                         param.gate = data.results.nmrproc.gate;
-0242                     <span class="keyword">end</span>                    
-0243 
-0244                     <span class="comment">% status bar information</span>
-0245                     <span class="keyword">switch</span> data.info.solver
-0246                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
-0247                             infostring = <span class="string">'Inversion using ''lsqlin'' ... '</span>;
-0248                         <span class="keyword">case</span> <span class="string">'internal'</span>
-0249                             infostring = <span class="string">'Inversion using ''lsqnonneg'' ... '</span>;
-0250                     <span class="keyword">end</span>
-0251                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0252                     invstd = <a href="../../../nucleus/functions/inversion/fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0253                         data.results.nmrproc.s,param);
-0254 
-0255                 <span class="keyword">case</span> <span class="string">'MUMO'</span> <span class="comment">% N free distribution inversion</span>
-0256                     param.nModes = data.invstd.freeDT;
-0257                     param.T1T2 = data.results.nmrproc.T1T2;
-0258                     param.T1IRfac = data.results.nmrproc.T1IRfac;
-0259                     param.Tb = data.invstd.Tbulk;
-0260                     param.Td = data.invstd.Tdiff;
-0261                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
-0262                     param.noise = data.results.nmrproc.noise;
-0263                     param.solver = data.info.solver;
-0264                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
-0265                         param.W = data.results.nmrproc.W;
-0266                         param.gate = data.results.nmrproc.gate;
-0267                     <span class="keyword">end</span>
-0268 
-0269                     <span class="comment">% status bar information</span>
-0270                     <span class="keyword">switch</span> data.info.solver
-0271                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
-0272                             infostring = <span class="string">'Inversion using ''lsqnonlin'' ... '</span>;
-0273                         <span class="keyword">case</span> <span class="string">'internal'</span>
-0274                             infostring = <span class="string">'Inversion using ''fminsearchbnd'' ... '</span>;
-0275                     <span class="keyword">end</span>
-0276                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
-0277                     invstd = <a href="../../../nucleus/functions/inversion/fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter)">fitDataMultiModal</a>(data.results.nmrproc.t,<span class="keyword">...</span>
-0278                         data.results.nmrproc.s,param);
-0279             <span class="keyword">end</span>
-0280             <span class="comment">% normalize to 1</span>
-0281             <span class="keyword">if</span> data.process.norm == 1
-0282                 <span class="keyword">switch</span> data.invstd.invtype
-0283                     <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>,<span class="string">'MUMO'</span>}
-0284                         <span class="comment">% normalization with sum() -&gt; sum(f)=1</span>
-0285                         <span class="comment">% this is the standard way of doing it</span>
-0286                         invstd.T1T2f = invstd.T1T2f./sum(invstd.T1T2f);
-0287                         <span class="comment">% alternatives depending on the objective:</span>
-0288                         <span class="comment">% 1.) normalization with sum(f*dt) -&gt; area~=1</span>
-0289                         <span class="comment">% dt = log10(invstd.T1T2me(2))-log10(invstd.T1T2me(1));</span>
-0290                         <span class="comment">% invstd.T1T2f = invstd.T1T2f/sum(invstd.T1T2f*dt);</span>
-0291                         <span class="comment">% 2.) normalization with trapz() -&gt; area=1 but sum(f)&gt;1</span>
-0292                         <span class="comment">% invstd.T1T2f = invstd.T1T2f./trapz(invstd.T1T2me,invstd.T1T2f);</span>
-0293                     <span class="keyword">otherwise</span>
-0294                         <span class="comment">% nothing to do</span>
-0295                 <span class="keyword">end</span>
-0296             <span class="keyword">end</span>
-0297             runtime = toc;
-0298             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done | inversion took '</span>,<span class="keyword">...</span>
-0299                 sprintf(<span class="string">'%5.2f'</span>,runtime),<span class="string">' s'</span>]);
-0300             <span class="comment">% save inversion results</span>
-0301             data.results.invstd = invstd;
-0302             setappdata(fig,<span class="string">'data'</span>,data);
-0303     <span class="keyword">end</span>
-0304     <span class="comment">% as long as the &quot;UserData&quot; is 1 the STOP button was not pressed and</span>
-0305     <span class="comment">% the inversion result gets saved in &quot;INVdata&quot;</span>
-0306     <span class="keyword">if</span> get(gui.push_handles.invstd_run,<span class="string">'UserData'</span>) == 1 &amp;&amp; <span class="keyword">...</span>
-0307             ( isfield(data.results,<span class="string">'invstd'</span>) || <span class="keyword">...</span>
-0308             isfield(data.results,<span class="string">'lcurve'</span>) )
-0309         INVdata{id} = [];
-0310         INVdata{id} = data;
-0311         INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
-0312         INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
-0313         INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
-0314         INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
-0315 
-0316         <span class="comment">% color the list entries that already have an inversion result</span>
-0317         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
-0318         str1 = strL{id};
-0319         str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
-0320             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
-0321         strL{id} = str2;
-0322         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
-0323 
-0324         <span class="comment">% update GUI INVdata</span>
-0325         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
-0326 
-0327         <span class="comment">% ---</span>
-0328         <span class="comment">% special treatment for LIAG processing</span>
-0329         <span class="keyword">if</span> isfield(data.import,<span class="string">'LIAG'</span>) &amp;&amp; ~strcmp(data.invstd.regtype,<span class="string">'lcurve'</span>)
-0330             <span class="keyword">if</span> contains(str1,<span class="string">' - calibration'</span>)
-0331                 <span class="comment">% save Tbulk from the calibration sample</span>
-0332                 btn1 = <span class="string">'Yes keep it'</span>;
-0333                 btn2 = <span class="string">'No, reset to 1e6 [s]'</span>;
-0334                 <span class="keyword">if</span> data.results.invstd.T2 &lt; 0.2
-0335                     answer = questdlg([<span class="string">'Tbulk seems very short with '</span>,<span class="keyword">...</span>
-0336                         sprintf(<span class="string">'%4.3f'</span>,data.results.invstd.T2),<span class="string">' [s] '</span>,<span class="keyword">...</span>
-0337                         <span class="string">'Do you want to keep it?'</span>], <span class="keyword">...</span>
-0338                         <span class="string">'Keep relaxation time as Tbulk'</span>, <span class="keyword">...</span>
-0339                         btn1,btn2,btn2);
-0340                     <span class="comment">% Handle response</span>
-0341                     <span class="keyword">switch</span> answer
-0342                         <span class="keyword">case</span> btn1
-0343                             data.import.LIAG.Tbulk = data.results.invstd.T2;
-0344                         <span class="keyword">case</span> btn2
-0345                             data.import.LIAG.Tbulk = 1e6;
-0346                     <span class="keyword">end</span>
-0347                 <span class="keyword">else</span>
-0348                     data.import.LIAG.Tbulk = data.results.invstd.T2;
-0349                 <span class="keyword">end</span>
-0350                 <span class="comment">% update GUI data</span>
-0351                 setappdata(fig,<span class="string">'data'</span>,data);
-0352                 <span class="comment">% save calibration data</span>
-0353                 <a href="useSignalAsCalibration.html" class="code" title="function useSignalAsCalibration(id)">useSignalAsCalibration</a>(id);
-0354             <span class="keyword">else</span>
-0355                 <a href="calibratePorosity.html" class="code" title="function calibratePorosity">calibratePorosity</a>;
-0356             <span class="keyword">end</span>
-0357         <span class="keyword">end</span>
-0358         <span class="comment">% ---</span>
-0359     <span class="keyword">else</span>  <span class="comment">% STOP was pressed (because &quot;UserData&quot; is 0)</span>
-0360         <span class="comment">% reset &quot;UserData&quot;</span>
-0361         set(gui.push_handles.invstd_run,<span class="string">'UserData'</span>,1);
-0362     <span class="keyword">end</span>
-0363     <span class="comment">% update plots and INFO fields</span>
-0364     <a href="updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
-0365     <a href="updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
-0366     <a href="updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);
-0367     <span class="comment">% set focus on results</span>
-0368     set(gui.plots.SignalPanel,<span class="string">'Selection'</span>,1);
-0369     set(gui.plots.DistPanel,<span class="string">'Selection'</span>,1);
-0370     <span class="comment">% open INFO field</span>
-0371     set(gui.push_handles.info,<span class="string">'String'</span>,<span class="string">'&lt;'</span>);
-0372     <a href="../../../nucleus/callbacks/push/onPushShowHide.html" class="code" title="function onPushShowHide(src,~)">onPushShowHide</a>(gui.push_handles.info);
-0373     <span class="keyword">if</span> ~isempty(findobj(<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>))
-0374         <a href="showFitStatistics.html" class="code" title="function showFitStatistics">showFitStatistics</a>;
-0375     <span class="keyword">end</span>
-0376     <span class="keyword">if</span> ~isempty(findobj(<span class="string">'Tag'</span>,<span class="string">'FIXEDTIMEVIEW'</span>))
-0377         <a href="../../../nucleus/functions/interface/subGUIs/FixedTimeView.html" class="code" title="function FixedTimeView(src,~)">FixedTimeView</a>(gui.menu.extra_fixedtime);
-0378     <span class="keyword">end</span>
-0379     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
-0380 <span class="keyword">else</span>
-0381     helpdlg(<span class="string">'Cannot start inversion because no data set is selected!'</span>,<span class="keyword">...</span>
-0382         <span class="string">'Select NMR data first.'</span>);
-0383 <span class="keyword">end</span>
-0384 
-0385 <span class="comment">%% at the end, no matter what reset the RUN button</span>
-0386 set(gui.push_handles.invstd_run,<span class="string">'String'</span>,<span class="string">'RUN'</span>,<span class="keyword">...</span>
-0387     <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
-0388 setappdata(fig,<span class="string">'gui'</span>,gui);
-0389 
-0390 <span class="keyword">end</span>
-0391 
-0392 <span class="comment">%------------- END OF CODE --------------</span>
-0393 
-0394 <span class="comment">%% License:</span>
-0395 <span class="comment">% MIT License</span>
-0396 <span class="comment">%</span>
-0397 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0398 <span class="comment">%</span>
-0399 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0400 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0401 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0402 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0403 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0404 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0405 <span class="comment">%</span>
-0406 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0407 <span class="comment">% copies or substantial portions of the Software.</span>
-0408 <span class="comment">%</span>
-0409 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0410 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0411 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0412 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0413 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0414 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0415 <span class="comment">% SOFTWARE.</span></pre></div>
+0112             <span class="comment">% general inversion parameter</span>
+0113             iparam.info = <span class="string">'off'</span>;
+0114             iparam.T1T2 = data.results.nmrproc.T1T2;
+0115             iparam.T1IRfac = data.results.nmrproc.T1IRfac;
+0116             iparam.Tb = data.invstd.Tbulk;
+0117             iparam.Td = data.invstd.Tdiff;
+0118             iparam.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+0119             iparam.regMethod = <span class="string">'manual'</span>;
+0120             iparam.Lorder = data.invstd.Lorder;
+0121             iparam.noise = data.results.nmrproc.noise;
+0122             iparam.TE = data.results.nmrraw.t(2)-data.results.nmrraw.t(1);
+0123             <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0124                 iparam.W = data.results.nmrproc.W;
+0125                 <span class="comment">% same exactly gated kernel as the final NNLS inversion</span>
+0126                 <span class="comment">% (the L-curve must be computed for the same forward model)</span>
+0127                 iparam.gate = data.results.nmrproc.gate;
+0128             <span class="keyword">end</span>
+0129             iparam.solver = data.info.solver;
+0130             iparam.EchoFlag = data.info.EchoFlag;
+0131 
+0132             <span class="comment">% data</span>
+0133             lparam.t = data.results.nmrproc.t;
+0134             lparam.s = data.results.nmrproc.s;
+0135             <span class="comment">% fit function</span>
+0136             lparam.func = @<a href="../../../nucleus/functions/inversion/fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>;
+0137             <span class="comment">% dimension (standard 1D)</span>
+0138             lparam.dim = 1;
+0139 
+0140             <span class="keyword">switch</span> data.info.LcurveMethod
+0141                 <span class="keyword">case</span> <span class="string">'iterative'</span>
+0142                     <span class="comment">% lambda range</span>
+0143                     lmin = data.invstd.lambdaR(1);
+0144                     lmax = data.invstd.lambdaR(2);
+0145                     lparam.lambda_range = [lmin lmax];
+0146                     
+0147                     <span class="comment">% call L-curve function</span>
+0148                     lc = <a href="../../../nucleus/functions/inversion/runLcurveIterative.html" class="code" title="function out = runLcurveIterative(lparam,iparam,gui)">runLcurveIterative</a>(lparam,iparam,gui);
+0149 
+0150                 <span class="keyword">case</span> <span class="string">'discrete'</span>
+0151                     <span class="comment">% lambda range</span>
+0152                     lmin = data.invstd.lambdaR(1);
+0153                     lmax = data.invstd.lambdaR(2);
+0154                     lN = data.invstd.NlambdaR;
+0155                     lparam.lambda_range = logspace(log10(lmin),log10(lmax),lN);
+0156 
+0157                     <span class="comment">% call L-curve function</span>
+0158                     lc = <a href="../../../nucleus/functions/inversion/runLcurveDiscrete.html" class="code" title="function out = runLcurveDiscrete(lparam,iparam,gui)">runLcurveDiscrete</a>(lparam,iparam,gui); 
+0159             <span class="keyword">end</span>
+0160 
+0161             <span class="comment">% save results</span>
+0162             data.results.lcurve = lc;
+0163             <span class="comment">% update GUI data</span>
+0164             setappdata(fig,<span class="string">'data'</span>,data);
+0165             <span class="comment">% update L-curve plots</span>
+0166             <a href="updatePlotsLcurve.html" class="code" title="function updatePlotsLcurve">updatePlotsLcurve</a>;
+0167             <span class="comment">% status bar information</span>
+0168             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[<span class="string">'L-curve calculation ... '</span>,<span class="string">' done'</span>]);
+0169 
+0170         <span class="keyword">otherwise</span> <span class="comment">% normal inversion</span>
+0171             <span class="comment">% time the whole inversion</span>
+0172             tic;
+0173             <span class="comment">% Do we want inversion output on the command line</span>
+0174             <span class="keyword">switch</span> data.info.InvInfo
+0175                 <span class="keyword">case</span> <span class="string">'on'</span>
+0176                     param.info = <span class="string">'final'</span>;
+0177                 <span class="keyword">case</span> <span class="string">'off'</span>
+0178                     param.info = <span class="string">'off'</span>;
+0179             <span class="keyword">end</span>
+0180 
+0181             <span class="comment">% disable the RUN button to indicate a running inversion</span>
+0182             set(gui.push_handles.invstd_run,<span class="string">'String'</span>,<span class="string">'RUNNING ...'</span>,<span class="keyword">...</span>
+0183                 <span class="string">'BackgroundColor'</span>,[0.9400 0.9400 0.9400],<span class="keyword">...</span>
+0184                 <span class="string">'Enable'</span>,<span class="string">'inactive'</span>);
+0185             <span class="comment">% switch depending on inversion method</span>
+0186             <span class="keyword">switch</span> data.invstd.invtype
+0187                 <span class="keyword">case</span> <span class="string">'mono'</span> <span class="comment">% mono-exponential inversion</span>
+0188                     flag = data.results.nmrproc.T1T2;
+0189                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0190                     param.noise = data.results.nmrproc.noise;
+0191                     param.solver = data.info.solver;
+0192                     param.Tfixed_bool = data.invstd.Tfixed_bool;
+0193                     param.Tfixed_val = data.invstd.Tfixed_val;
+0194                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0195                         param.W = data.results.nmrproc.W;
+0196                     <span class="keyword">end</span>
+0197                     <span class="comment">% status bar information</span>
+0198                     <span class="keyword">switch</span> data.info.solver
+0199                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0200                             infostring = <span class="string">'Inversion using ''lsqnonlin'' ... '</span>;
+0201                         <span class="keyword">case</span> <span class="string">'internal'</span>
+0202                             infostring = <span class="string">'Inversion using ''fminsearchbnd'' ... '</span>;
+0203                     <span class="keyword">end</span>
+0204                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0205                     param.t_raw = data.results.nmrraw.t;
+0206                     param.s_raw = data.results.nmrraw.s;
+0207                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0208                         data.results.nmrproc.s,flag,param,1);
+0209                     data.invstd.Tfixed_val = [invstd.T zeros(1,4)];
+0210 
+0211                 <span class="keyword">case</span> <span class="string">'free'</span> <span class="comment">% N free single-exponential inversion</span>
+0212                     flag = data.results.nmrproc.T1T2;
+0213                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0214                     param.noise = data.results.nmrproc.noise;
+0215                     param.solver = data.info.solver;
+0216                     param.Tfixed_bool = data.invstd.Tfixed_bool;
+0217                     param.Tfixed_val = data.invstd.Tfixed_val;
+0218                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0219                         param.W = data.results.nmrproc.W;
+0220                     <span class="keyword">end</span>
+0221                     <span class="comment">% status bar information</span>
+0222                     <span class="keyword">switch</span> data.info.solver
+0223                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0224                             infostring = <span class="string">'Inversion using ''lsqnonlin'' ... '</span>;
+0225                         <span class="keyword">case</span> <span class="string">'internal'</span>
+0226                             infostring = <span class="string">'Inversion using ''fminsearchbnd'' ... '</span>;
+0227                     <span class="keyword">end</span>
+0228                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0229                     invstd = <a href="../../../nucleus/functions/inversion/fitDataFree.html" class="code" title="function [fitdata] = fitDataFree(time,signal,flag,parameter,nExp)">fitDataFree</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0230                         data.results.nmrproc.s,flag,param,data.invstd.freeDT);
+0231                     data.invstd.Tfixed_val = [invstd.T(1:data.invstd.freeDT)<span class="keyword">...</span>
+0232                         zeros(1,5-data.invstd.freeDT)];
+0233 
+0234                 <span class="keyword">case</span> <span class="string">'LU'</span> <span class="comment">% multi-exponential inversion</span>
+0235                     <span class="comment">% general parameter</span>
+0236                     param.T1T2 = data.results.nmrproc.T1T2;
+0237                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0238                     param.Tb = data.invstd.Tbulk;
+0239                     param.Td = data.invstd.Tdiff;
+0240                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+0241                     param.Lorder = data.invstd.Lorder;
+0242                     param.lambda = data.invstd.lambda;
+0243                     param.noise = data.results.nmrproc.noise;
+0244                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0245                         param.W = data.results.nmrproc.W;
+0246                         param.gate = data.results.nmrproc.gate;
+0247                     <span class="keyword">end</span>
+0248                     <span class="comment">% status bar information</span>
+0249                     infostring = <span class="string">'Inversion using LU decomposition ... '</span>;
+0250                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0251                     invstd = <a href="../../../nucleus/functions/inversion/fitDataLUdecomp.html" class="code" title="function fitdata = fitDataLUdecomp(time,signal,parameter)">fitDataLUdecomp</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0252                         data.results.nmrproc.s,param);
+0253 
+0254                 <span class="keyword">case</span> <span class="string">'NNLS'</span> <span class="comment">% multi-exponential inversion with manual regularization</span>
+0255                     <span class="comment">% general parameter</span>
+0256                     param.T1T2 = data.results.nmrproc.T1T2;
+0257                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0258                     param.Tb = data.invstd.Tbulk;
+0259                     param.Td = data.invstd.Tdiff;
+0260                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+0261                     param.regMethod = data.invstd.regtype;
+0262                     param.Lorder = data.invstd.Lorder;
+0263                     param.lambda = data.invstd.lambda;
+0264                     param.noise = data.results.nmrproc.noise;
+0265                     param.solver = data.info.solver;
+0266                     param.EchoFlag = data.info.EchoFlag;
+0267                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0268                         param.W = data.results.nmrproc.W;
+0269                         param.gate = data.results.nmrproc.gate;
+0270                     <span class="keyword">end</span>                    
+0271 
+0272                     <span class="comment">% status bar information</span>
+0273                     <span class="keyword">switch</span> data.info.solver
+0274                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0275                             infostring = <span class="string">'Inversion using ''lsqlin'' ... '</span>;
+0276                         <span class="keyword">case</span> <span class="string">'internal'</span>
+0277                             infostring = <span class="string">'Inversion using ''lsqnonneg'' ... '</span>;
+0278                     <span class="keyword">end</span>
+0279                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0280                     invstd = <a href="../../../nucleus/functions/inversion/fitDataLSQ.html" class="code" title="function fitdata = fitDataLSQ(time,signal,parameter)">fitDataLSQ</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0281                         data.results.nmrproc.s,param);
+0282 
+0283                 <span class="keyword">case</span> <span class="string">'MUMO'</span> <span class="comment">% N free distribution inversion</span>
+0284                     param.nModes = data.invstd.freeDT;
+0285                     param.T1T2 = data.results.nmrproc.T1T2;
+0286                     param.T1IRfac = data.results.nmrproc.T1IRfac;
+0287                     param.Tb = data.invstd.Tbulk;
+0288                     param.Td = data.invstd.Tdiff;
+0289                     param.Tint = [log10(data.invstd.time) data.invstd.Ntime];
+0290                     param.noise = data.results.nmrproc.noise;
+0291                     param.solver = data.info.solver;
+0292                     <span class="keyword">if</span> isfield(data.results.nmrproc,<span class="string">'W'</span>)
+0293                         param.W = data.results.nmrproc.W;
+0294                         param.gate = data.results.nmrproc.gate;
+0295                     <span class="keyword">end</span>
+0296 
+0297                     <span class="comment">% status bar information</span>
+0298                     <span class="keyword">switch</span> data.info.solver
+0299                         <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0300                             infostring = <span class="string">'Inversion using ''lsqnonlin'' ... '</span>;
+0301                         <span class="keyword">case</span> <span class="string">'internal'</span>
+0302                             infostring = <span class="string">'Inversion using ''fminsearchbnd'' ... '</span>;
+0303                     <span class="keyword">end</span>
+0304                     <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,infostring);
+0305                     invstd = <a href="../../../nucleus/functions/inversion/fitDataMultiModal.html" class="code" title="function [fitdata] = fitDataMultiModal(time,signal,parameter)">fitDataMultiModal</a>(data.results.nmrproc.t,<span class="keyword">...</span>
+0306                         data.results.nmrproc.s,param);
+0307             <span class="keyword">end</span>
+0308             <span class="comment">% normalize to 1</span>
+0309             <span class="keyword">if</span> data.process.norm == 1
+0310                 <span class="keyword">switch</span> data.invstd.invtype
+0311                     <span class="keyword">case</span> {<span class="string">'LU'</span>,<span class="string">'NNLS'</span>,<span class="string">'MUMO'</span>}
+0312                         <span class="comment">% normalization with sum() -&gt; sum(f)=1</span>
+0313                         <span class="comment">% this is the standard way of doing it</span>
+0314                         invstd.T1T2f = invstd.T1T2f./sum(invstd.T1T2f);
+0315                         <span class="comment">% alternatives depending on the objective:</span>
+0316                         <span class="comment">% 1.) normalization with sum(f*dt) -&gt; area~=1</span>
+0317                         <span class="comment">% dt = log10(invstd.T1T2me(2))-log10(invstd.T1T2me(1));</span>
+0318                         <span class="comment">% invstd.T1T2f = invstd.T1T2f/sum(invstd.T1T2f*dt);</span>
+0319                         <span class="comment">% 2.) normalization with trapz() -&gt; area=1 but sum(f)&gt;1</span>
+0320                         <span class="comment">% invstd.T1T2f = invstd.T1T2f./trapz(invstd.T1T2me,invstd.T1T2f);</span>
+0321                     <span class="keyword">otherwise</span>
+0322                         <span class="comment">% nothing to do</span>
+0323                 <span class="keyword">end</span>
+0324             <span class="keyword">end</span>
+0325             runtime = toc;
+0326             <a href="displayStatusText.html" class="code" title="function displayStatusText(gui,string)">displayStatusText</a>(gui,[infostring,<span class="string">'done | inversion took '</span>,<span class="keyword">...</span>
+0327                 sprintf(<span class="string">'%5.2f'</span>,runtime),<span class="string">' s'</span>]);
+0328             <span class="comment">% save inversion results</span>
+0329             data.results.invstd = invstd;
+0330             setappdata(fig,<span class="string">'data'</span>,data);
+0331     <span class="keyword">end</span>
+0332     <span class="comment">% as long as the &quot;UserData&quot; is 1 the STOP button was not pressed and</span>
+0333     <span class="comment">% the inversion result gets saved in &quot;INVdata&quot;</span>
+0334     <span class="keyword">if</span> get(gui.push_handles.invstd_run,<span class="string">'UserData'</span>) == 1 &amp;&amp; <span class="keyword">...</span>
+0335             ( isfield(data.results,<span class="string">'invstd'</span>) || <span class="keyword">...</span>
+0336             isfield(data.results,<span class="string">'lcurve'</span>) )
+0337         INVdata{id} = [];
+0338         INVdata{id} = data;
+0339         INVdata{id} = rmfield(INVdata{id},<span class="string">'import'</span>);
+0340         INVdata{id} = rmfield(INVdata{id},<span class="string">'info'</span>);
+0341         INVdata{id} = rmfield(INVdata{id},<span class="string">'calib'</span>);
+0342         INVdata{id} = rmfield(INVdata{id},<span class="string">'pressure'</span>);
+0343 
+0344         <span class="comment">% color the list entries that already have an inversion result</span>
+0345         strL = get(gui.listbox_handles.signal,<span class="string">'String'</span>);
+0346         str1 = strL{id};
+0347         str2 = [<span class="string">'&lt;HTML&gt;&lt;BODY bgcolor=&quot;rgb('</span>,<span class="keyword">...</span>
+0348             sprintf(<span class="string">'%d,%d,%d'</span>,gui.myui.colors.listINV.*255),<span class="string">')&quot;&gt;'</span>,str1,<span class="string">'&lt;/BODY&gt;&lt;/HTML&gt;'</span>];
+0349         strL{id} = str2;
+0350         set(gui.listbox_handles.signal,<span class="string">'String'</span>,strL);
+0351 
+0352         <span class="comment">% update GUI INVdata</span>
+0353         setappdata(fig,<span class="string">'INVdata'</span>,INVdata);
+0354 
+0355         <span class="comment">% ---</span>
+0356         <span class="comment">% special treatment for LIAG processing</span>
+0357         <span class="keyword">if</span> isfield(data.import,<span class="string">'LIAG'</span>) &amp;&amp; ~strcmp(data.invstd.regtype,<span class="string">'lcurve'</span>)
+0358             <span class="keyword">if</span> contains(str1,<span class="string">' - calibration'</span>)
+0359                 <span class="comment">% save Tbulk from the calibration sample</span>
+0360                 btn1 = <span class="string">'Yes keep it'</span>;
+0361                 btn2 = <span class="string">'No, reset to 1e6 [s]'</span>;
+0362                 <span class="keyword">if</span> data.results.invstd.T2 &lt; 0.2
+0363                     answer = questdlg([<span class="string">'Tbulk seems very short with '</span>,<span class="keyword">...</span>
+0364                         sprintf(<span class="string">'%4.3f'</span>,data.results.invstd.T2),<span class="string">' [s] '</span>,<span class="keyword">...</span>
+0365                         <span class="string">'Do you want to keep it?'</span>], <span class="keyword">...</span>
+0366                         <span class="string">'Keep relaxation time as Tbulk'</span>, <span class="keyword">...</span>
+0367                         btn1,btn2,btn2);
+0368                     <span class="comment">% Handle response</span>
+0369                     <span class="keyword">switch</span> answer
+0370                         <span class="keyword">case</span> btn1
+0371                             data.import.LIAG.Tbulk = data.results.invstd.T2;
+0372                         <span class="keyword">case</span> btn2
+0373                             data.import.LIAG.Tbulk = 1e6;
+0374                     <span class="keyword">end</span>
+0375                 <span class="keyword">else</span>
+0376                     data.import.LIAG.Tbulk = data.results.invstd.T2;
+0377                 <span class="keyword">end</span>
+0378                 <span class="comment">% update GUI data</span>
+0379                 setappdata(fig,<span class="string">'data'</span>,data);
+0380                 <span class="comment">% save calibration data</span>
+0381                 <a href="useSignalAsCalibration.html" class="code" title="function useSignalAsCalibration(id)">useSignalAsCalibration</a>(id);
+0382             <span class="keyword">else</span>
+0383                 <a href="calibratePorosity.html" class="code" title="function calibratePorosity">calibratePorosity</a>;
+0384             <span class="keyword">end</span>
+0385         <span class="keyword">end</span>
+0386         <span class="comment">% ---</span>
+0387     <span class="keyword">else</span>  <span class="comment">% STOP was pressed (because &quot;UserData&quot; is 0)</span>
+0388         <span class="comment">% reset &quot;UserData&quot;</span>
+0389         set(gui.push_handles.invstd_run,<span class="string">'UserData'</span>,1);
+0390     <span class="keyword">end</span>
+0391     <span class="comment">% update plots and INFO fields</span>
+0392     <a href="updatePlotsSignal.html" class="code" title="function updatePlotsSignal">updatePlotsSignal</a>;
+0393     <a href="updatePlotsDistribution.html" class="code" title="function updatePlotsDistribution">updatePlotsDistribution</a>;
+0394     <a href="updateInfo.html" class="code" title="function updateInfo(src,~) %#ok<INUSD>">updateInfo</a>(gui.plots.SignalPanel);
+0395     <span class="comment">% set focus on results</span>
+0396     set(gui.plots.SignalPanel,<span class="string">'Selection'</span>,1);
+0397     set(gui.plots.DistPanel,<span class="string">'Selection'</span>,1);
+0398     <span class="comment">% open INFO field</span>
+0399     set(gui.push_handles.info,<span class="string">'String'</span>,<span class="string">'&lt;'</span>);
+0400     <a href="../../../nucleus/callbacks/push/onPushShowHide.html" class="code" title="function onPushShowHide(src,~)">onPushShowHide</a>(gui.push_handles.info);
+0401     <span class="keyword">if</span> ~isempty(findobj(<span class="string">'Tag'</span>,<span class="string">'FITSTATS'</span>))
+0402         <a href="showFitStatistics.html" class="code" title="function showFitStatistics">showFitStatistics</a>;
+0403     <span class="keyword">end</span>
+0404     <span class="keyword">if</span> ~isempty(findobj(<span class="string">'Tag'</span>,<span class="string">'FIXEDTIMEVIEW'</span>))
+0405         <a href="../../../nucleus/functions/interface/subGUIs/FixedTimeView.html" class="code" title="function FixedTimeView(src,~)">FixedTimeView</a>(gui.menu.extra_fixedtime);
+0406     <span class="keyword">end</span>
+0407     <a href="../../../nucleus/NUCLEUSinv/NUCLEUSinv_updateInterface.html" class="code" title="function NUCLEUSinv_updateInterface">NUCLEUSinv_updateInterface</a>;
+0408 <span class="keyword">else</span>
+0409     helpdlg(<span class="string">'Cannot start inversion because no data set is selected!'</span>,<span class="keyword">...</span>
+0410         <span class="string">'Select NMR data first.'</span>);
+0411 <span class="keyword">end</span>
+0412 
+0413 <span class="comment">%% at the end, no matter what reset the RUN button</span>
+0414 set(gui.push_handles.invstd_run,<span class="string">'String'</span>,<span class="string">'RUN'</span>,<span class="keyword">...</span>
+0415     <span class="string">'BackgroundColor'</span>,<span class="string">'g'</span>,<span class="string">'Enable'</span>,<span class="string">'on'</span>,<span class="string">'Callback'</span>,@<a href="../../../nucleus/callbacks/push/onPushRun.html" class="code" title="function onPushRun(src,~)">onPushRun</a>);
+0416 setappdata(fig,<span class="string">'gui'</span>,gui);
+0417 
+0418 <span class="keyword">end</span>
+0419 
+0420 <span class="comment">%------------- END OF CODE --------------</span>
+0421 
+0422 <span class="comment">%% License:</span>
+0423 <span class="comment">% MIT License</span>
+0424 <span class="comment">%</span>
+0425 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0426 <span class="comment">%</span>
+0427 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0428 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0429 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0430 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0431 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0432 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0433 <span class="comment">%</span>
+0434 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0435 <span class="comment">% copies or substantial portions of the Software.</span>
+0436 <span class="comment">%</span>
+0437 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0438 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0439 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0440 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0441 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0442 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0443 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

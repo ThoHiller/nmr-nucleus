@@ -12,7 +12,8 @@ function [F,J] = fcn_fitFreeT2w(x,iparam)
 %       iparam - struct that holds additional settings:
 %                t : time vector
 %                s : signal vector
-%                e : noise vector / error weights (optional)
+%                e : error weights 1./sigma, sigma = standard error of each
+%                    data point (optional, default: ones)
 %
 % Outputs:
 %       F - residual

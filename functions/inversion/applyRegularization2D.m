@@ -1,11 +1,11 @@
 function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,noise_level)
-%applyRegularization applies regularization procedures from the
-%Regularization toolbox from P. Hansen -- for all methods (except "manual")
+%applyRegularization2D applies regularization procedures from the
+%Regularization toolbox from P. Hansen - for all methods (except "manual")
 %the regularization parameter lambda is determined by different criteria
 %and using a SVD
 %
 % Syntax:
-%       applyRegularization(K,g,LT2,LT1,lambda_in,flag,order,noise_level)
+%       applyRegularization2D(K,g,LT2,LT1,lambda_in,flag,order,noise_level)
 %
 % Inputs:
 %       K - Kernel matrix
@@ -18,14 +18,17 @@ function [Kreg,lambda] = applyRegularization2D(K,g,LT,LD,lambda_in,flag,order,no
 %       noise_level - noise level for 'discrep' method (discrepancy principle)
 %
 % Outputs:
-%       Kreg - expanded (regularized) Kernel matrix
-%       lambda - determined lambda
+%       Kreg - expanded (regularized) Kernel matrix; extend the data vector
+%              by size(Kreg,1)-length(g) zeros (the number of extra rows
+%              depends on the method)
+%       lambda - determined lambda (for 'gcv_trunc': truncation index k)
 %
 % Example:
-%       [Kr,lam] = applyRegularization(K,s,LT2,LT1,lambda_in,flag,Lorder,noise)
+%       [Kr,lam] = applyRegularization2D(K,s,LT2,LT1,lambda_in,flag,Lorder,noise)
 %
 % Other m-files required:
 %       Regularization Toolbox
+%       applyRegularization (GCV-based methods)
 %       csvd
 %       cgsvd
 %       gcv
@@ -54,20 +57,12 @@ switch flag
 
     case {'gcv_tikh','gcv_trunc','gcv_damp'}
         try
-            if order == 0
-                [U,s,~] = csvd(K);
-            else
-                [U,s,~,~,~] = cgsvd(K,L);
-            end
-            switch flag
-                case 'gcv_tikh'
-                    [lambda,~,~] = gcv(U,s,g,'tikh',0);
-                case 'gcv_trunc'
-                    [lambda,~,~] = gcv(U,s,g,'tsvd',0);
-                case 'gcv_damp'
-                    [lambda,~,~] = gcv(U,s,g,'dsvd',0);
-            end
-            Kreg = [K;lambda*L];
+            % same GCV methods as in the 1D case, applied to the combined
+            % smoothness matrix L = [LT;LD] (one common lambda):
+            % gcv_tikh  -> [K;lambda*L]
+            % gcv_trunc -> truncated SVD/GSVD (lambda = truncation index k)
+            % gcv_damp  -> damped SVD/GSVD
+            [Kreg,lambda] = applyRegularization(K,g,L,[],flag,order,[]);
         catch ME
             % show error message in case cgsvd fails
             errmsg = {ME.message;[ME.stack(1).name,' Line: ',num2str(ME.stack(1).line)];...

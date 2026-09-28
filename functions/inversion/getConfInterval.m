@@ -46,6 +46,13 @@ function CI = getConfInterval(resnorm,J,alpha)
 
 %------------- BEGIN CODE --------------
 
+%% Jacobian as full matrix
+% lsqnonlin / lsqcurvefit (trust-region-reflective) return a SPARSE
+% Jacobian, but svd does not support sparse matrices. Without this
+% conversion every call with a solver Jacobian fails (and callers that
+% wrap this function in try/catch silently return NaN intervals).
+J = full(J);
+
 %% dimensions and degrees of freedom
 [nData,nParam] = size(J);
 deg_free = nData - nParam;

@@ -328,116 +328,117 @@ This function is called by:
 0209     noise_inv = noise ./ scale;
 0210 <span class="keyword">end</span>
 0211 
-0212 
-0213 <span class="comment">%% Regularization</span>
-0214 <span class="comment">% applyRegularization receives exactly the system that will be solved.</span>
-0215 [KK,lambda_out] = <a href="applyRegularization.html" class="code" title="function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)">applyRegularization</a>(Kinv,ginv,L,lambda,regMethod,order,noise_inv);
-0216 
-0217 <span class="comment">%% extended data vector</span>
-0218 gg = [ginv; zeros(size(L,1),1)];
-0219 
-0220 <span class="comment">%% solve least-squares problem</span>
-0221 <span class="keyword">switch</span> parameter.solver
-0222     <span class="keyword">case</span> <span class="string">'optimTB'</span>
-0223         <span class="comment">% For older vrsions &quot;Algorithm&quot; maybe needs to be set to &quot;interior-point&quot;</span>
-0224         options = optimoptions(<span class="string">'lsqlin'</span>,<span class="string">'Algorithm'</span>,<span class="string">'active-set'</span>, <span class="keyword">...</span>
-0225             <span class="string">'Display'</span>,parameter.info,<span class="string">'OptimalityTolerance'</span>,1e-10, <span class="keyword">...</span>
-0226             <span class="string">'StepTolerance'</span>,1e-12,<span class="string">'MaxIterations'</span>,2000);
-0227 
-0228         f = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
-0229 
-0230     <span class="keyword">case</span> <span class="string">'internal'</span>
-0231         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'TolX'</span>,1e-12);
-0232 
-0233         f = lsqnonneg(KK,gg,options);
-0234     <span class="keyword">otherwise</span>
-0235         error(<span class="string">'Unknown LSQ solver &quot;%s&quot;.'</span>,parameter.solver);
-0236 <span class="keyword">end</span>
-0237 
-0238 <span class="comment">%% physical fitted signal</span>
-0239 <span class="comment">% K and f are both in physical amplitude units.</span>
-0240 <span class="comment">% No weighting or scaling is applied here.</span>
-0241 s_fit = K*f;
-0242 
-0243 <span class="comment">%% error measures in physical signal space</span>
-0244 <span class="keyword">if</span> hasWeights
-0245     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
-0246 <span class="keyword">else</span>
-0247     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
-0248 <span class="keyword">end</span>
-0249 
-0250 <span class="comment">%% L-curve quantities</span>
-0251 <span class="comment">% model norm</span>
-0252 xn = norm(L*f,2);
-0253 <span class="comment">% residual norm in the metric actually used by the inversion</span>
-0254 <span class="keyword">if</span> hasWeights
-0255     res_inv = (K*f-g) ./ sigma;
-0256 <span class="keyword">else</span>
-0257     res_inv = (K*f-g) ./ scale;
-0258 <span class="keyword">end</span>
-0259 <span class="comment">% rn = norm(res_inv,2);</span>
-0260 rn = norm(Kinv*f - ginv,2);
-0261 
-0262 <span class="comment">%% initial / equilibrium amplitude E0</span>
-0263 <span class="keyword">switch</span> flag
-0264     <span class="keyword">case</span> <span class="string">'T1'</span>
-0265         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
-0266     <span class="keyword">case</span> <span class="string">'T2'</span>
-0267         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
-0268 <span class="keyword">end</span>
-0269 E0 = K0*f;
-0270 
-0271 <span class="comment">%% output struct</span>
-0272 fitdata.fit_t = time;
-0273 fitdata.fit_s = s_fit;
-0274 fitdata.T1T2me = T1T2me;
-0275 fitdata.T1T2f = f;
-0276 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
-0277 fitdata.E0 = E0;
-0278 fitdata.ciE0 = NaN;
-0279 fitdata.resnorm = out.resnorm;
-0280 fitdata.residual = out.residual;
-0281 fitdata.chi2 = out.chi2;
-0282 fitdata.rms = out.rms;
-0283 fitdata.lambda_out = lambda_out;
-0284 <span class="comment">% regularized inversion kernel</span>
-0285 fitdata.KK = KK;
-0286 <span class="comment">% physical kernel</span>
-0287 fitdata.K = K;
-0288 fitdata.L = L;
-0289 fitdata.xn = xn;
-0290 fitdata.rn = rn;
-0291 fitdata.invtype = <span class="string">'NNLS'</span>;
-0292 fitdata.invparams = parameter;
-0293 <span class="comment">% inversion diagnostics</span>
-0294 fitdata.scale = scale;
-0295 
-0296 <span class="keyword">return</span>
-0297 
-0298 <span class="comment">%------------- END OF CODE --------------</span>
-0299 
-0300 <span class="comment">%% License:</span>
-0301 <span class="comment">% MIT License</span>
-0302 <span class="comment">%</span>
-0303 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
-0304 <span class="comment">%</span>
-0305 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
-0306 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
-0307 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
-0308 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
-0309 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
-0310 <span class="comment">% furnished to do so, subject to the following conditions:</span>
-0311 <span class="comment">%</span>
-0312 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
-0313 <span class="comment">% copies or substantial portions of the Software.</span>
-0314 <span class="comment">%</span>
-0315 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
-0316 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
-0317 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
-0318 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
-0319 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
-0320 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
-0321 <span class="comment">% SOFTWARE.</span></pre></div>
+0212 <span class="comment">%% Regularization</span>
+0213 <span class="comment">% applyRegularization receives exactly the system that will be solved.</span>
+0214 [KK,lambda_out] = <a href="applyRegularization.html" class="code" title="function [Kreg,lambda] = applyRegularization(K,g,L,lambda_in,flag,order,noise_level)">applyRegularization</a>(Kinv,ginv,L,lambda,regMethod,order,noise_inv);
+0215 
+0216 <span class="comment">%% extended data vector</span>
+0217 <span class="comment">% the number of regularization rows depends on the method (e.g. the</span>
+0218 <span class="comment">% truncated SVD adds one row per discarded component, not size(L,1))</span>
+0219 gg = [ginv; zeros(size(KK,1)-length(ginv),1)];
+0220 
+0221 <span class="comment">%% solve least-squares problem</span>
+0222 <span class="keyword">switch</span> parameter.solver
+0223     <span class="keyword">case</span> <span class="string">'optimTB'</span>
+0224         <span class="comment">% For older vrsions &quot;Algorithm&quot; maybe needs to be set to &quot;interior-point&quot;</span>
+0225         options = optimoptions(<span class="string">'lsqlin'</span>,<span class="string">'Algorithm'</span>,<span class="string">'active-set'</span>, <span class="keyword">...</span>
+0226             <span class="string">'Display'</span>,parameter.info,<span class="string">'OptimalityTolerance'</span>,1e-10, <span class="keyword">...</span>
+0227             <span class="string">'StepTolerance'</span>,1e-12,<span class="string">'MaxIterations'</span>,2000);
+0228 
+0229         f = lsqlin(KK,gg,[],[],[],[],f0_lb,f0_ub,f0,options);
+0230 
+0231     <span class="keyword">case</span> <span class="string">'internal'</span>
+0232         options = optimset(<span class="string">'Display'</span>,parameter.info,<span class="string">'TolX'</span>,1e-12);
+0233 
+0234         f = lsqnonneg(KK,gg,options);
+0235     <span class="keyword">otherwise</span>
+0236         error(<span class="string">'Unknown LSQ solver &quot;%s&quot;.'</span>,parameter.solver);
+0237 <span class="keyword">end</span>
+0238 
+0239 <span class="comment">%% physical fitted signal</span>
+0240 <span class="comment">% K and f are both in physical amplitude units.</span>
+0241 <span class="comment">% No weighting or scaling is applied here.</span>
+0242 s_fit = K*f;
+0243 
+0244 <span class="comment">%% error measures in physical signal space</span>
+0245 <span class="keyword">if</span> hasWeights
+0246     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise,parameter.W);
+0247 <span class="keyword">else</span>
+0248     out = <a href="getFitErrors.html" class="code" title="function out = getFitErrors(s,sfit,noise,varargin)">getFitErrors</a>(signal,s_fit,noise);
+0249 <span class="keyword">end</span>
+0250 
+0251 <span class="comment">%% L-curve quantities</span>
+0252 <span class="comment">% model norm</span>
+0253 xn = norm(L*f,2);
+0254 <span class="comment">% residual norm in the metric actually used by the inversion</span>
+0255 <span class="keyword">if</span> hasWeights
+0256     res_inv = (K*f-g) ./ sigma;
+0257 <span class="keyword">else</span>
+0258     res_inv = (K*f-g) ./ scale;
+0259 <span class="keyword">end</span>
+0260 <span class="comment">% rn = norm(res_inv,2);</span>
+0261 rn = norm(Kinv*f - ginv,2);
+0262 
+0263 <span class="comment">%% initial / equilibrium amplitude E0</span>
+0264 <span class="keyword">switch</span> flag
+0265     <span class="keyword">case</span> <span class="string">'T1'</span>
+0266         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(10*time(end),T1T2me,Tb,Td,flag,T1IRfac);
+0267     <span class="keyword">case</span> <span class="string">'T2'</span>
+0268         K0 = <a href="createKernelMatrix.html" class="code" title="function K = createKernelMatrix(t,T,Tbulk,Tdiff,Tflag,T1IRfac)">createKernelMatrix</a>(0,T1T2me,Tb,Td,flag,T1IRfac);
+0269 <span class="keyword">end</span>
+0270 E0 = K0*f;
+0271 
+0272 <span class="comment">%% output struct</span>
+0273 fitdata.fit_t = time;
+0274 fitdata.fit_s = s_fit;
+0275 fitdata.T1T2me = T1T2me;
+0276 fitdata.T1T2f = f;
+0277 fitdata.Tlgm = <a href="getTLogMean.html" class="code" title="function [TLGM,index] = getTLogMean(T,f,varargin)">getTLogMean</a>(T1T2me,f);
+0278 fitdata.E0 = E0;
+0279 fitdata.ciE0 = NaN;
+0280 fitdata.resnorm = out.resnorm;
+0281 fitdata.residual = out.residual;
+0282 fitdata.chi2 = out.chi2;
+0283 fitdata.rms = out.rms;
+0284 fitdata.lambda_out = lambda_out;
+0285 <span class="comment">% regularized inversion kernel</span>
+0286 fitdata.KK = KK;
+0287 <span class="comment">% physical kernel</span>
+0288 fitdata.K = K;
+0289 fitdata.L = L;
+0290 fitdata.xn = xn;
+0291 fitdata.rn = rn;
+0292 fitdata.invtype = <span class="string">'NNLS'</span>;
+0293 fitdata.invparams = parameter;
+0294 <span class="comment">% inversion diagnostics</span>
+0295 fitdata.scale = scale;
+0296 
+0297 <span class="keyword">return</span>
+0298 
+0299 <span class="comment">%------------- END OF CODE --------------</span>
+0300 
+0301 <span class="comment">%% License:</span>
+0302 <span class="comment">% MIT License</span>
+0303 <span class="comment">%</span>
+0304 <span class="comment">% Copyright (c) 2018 Thomas Hiller</span>
+0305 <span class="comment">%</span>
+0306 <span class="comment">% Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+0307 <span class="comment">% of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+0308 <span class="comment">% in the Software without restriction, including without limitation the rights</span>
+0309 <span class="comment">% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+0310 <span class="comment">% copies of the Software, and to permit persons to whom the Software is</span>
+0311 <span class="comment">% furnished to do so, subject to the following conditions:</span>
+0312 <span class="comment">%</span>
+0313 <span class="comment">% The above copyright notice and this permission notice shall be included in all</span>
+0314 <span class="comment">% copies or substantial portions of the Software.</span>
+0315 <span class="comment">%</span>
+0316 <span class="comment">% THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+0317 <span class="comment">% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+0318 <span class="comment">% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+0319 <span class="comment">% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+0320 <span class="comment">% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+0321 <span class="comment">% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+0322 <span class="comment">% SOFTWARE.</span></pre></div>
 <hr><address>Generated by <strong><a href="http://www.artefact.tk/software/matlab/m2html/" target="_parent">m2html</a></strong> &copy; 2005</address>
 </body>
 </html>

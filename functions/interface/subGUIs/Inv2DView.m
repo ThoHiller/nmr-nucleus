@@ -1518,6 +1518,13 @@ dat = struct;
 for n = 1:numel(T1T2map.t_recov)
     if data.prop.useLogGates
         dat(n).t = T1T2map.t2_gate;
+        % gate definition for the exactly gated kernel in fitData2D
+        % (not available e.g. for data imported from NUCLEUSmod 2D)
+        if isfield(T1T2map,'gate')
+            dat(n).gate = T1T2map.gate;
+        else
+            dat(n).gate = [];
+        end
     else
         dat(n).t = T1T2map.t2;
     end
@@ -2427,6 +2434,10 @@ if ~data.prop.useLogGates
     T1T2map.dcube = zeros(numel(T1T2map.t_recov),lastN-firstN+1);
     T1T2map.ecube = zeros(numel(T1T2map.t_recov),lastN-firstN+1);
 end
+% gate definition (raw indices per gate) -- needed by fitData2D for the
+% exactly gated kernel; all T2 signals share the same echo times and
+% therefore the same gates
+T1T2map.gate = [];
 
 for i = 1:numel(T1T2map.t_recov)
     id = id_recov(i);
@@ -2436,7 +2447,7 @@ for i = 1:numel(T1T2map.t_recov)
         si_tmp = imag(T1T2map.import{id}.signal(firstN:lastN));
         range = floor(numel(s_tmp)/2):numel(s_tmp);
         noise_tmp = std(si_tmp(range));
-        tmp = applyGatesToSignal(t_tmp,s_tmp,'type','logv2','Ng',data.prop.Ngates);
+        [tmp,gate_tmp] = applyGatesToSignal(t_tmp,s_tmp,'type','logv2','Ng',data.prop.Ngates);
         tmpi = applyGatesToSignal(t_tmp,si_tmp,'type','logv2','Ng',data.prop.Ngates);
         if i == 1
             Ngates_tmp = size(tmp,1);
@@ -2444,6 +2455,7 @@ for i = 1:numel(T1T2map.t_recov)
             T1T2map.ecube = zeros(numel(T1T2map.t_recov),Ngates_tmp);
             T1T2map.t2_gate = tmp(:,1);
             T1T2map.t2_gateN = tmp(:,3);
+            T1T2map.gate = gate_tmp;
         end
         s_gate = complex(tmp(:,2),tmpi(:,2));
         N = tmp(:,3);

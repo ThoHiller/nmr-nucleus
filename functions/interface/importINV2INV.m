@@ -171,7 +171,7 @@ if sum(Sessionpath) > 0
                             case {'mono','free'}
                                 invparams.T1IRfac = savedata.INVdata{i}.results.nmrproc.T1IRfac;
                                 invparams.noise = savedata.INVdata{i}.results.nmrproc.noise;
-                                invparams.has_optim = data.info.has_optim;
+                                invparams.solver = data.info.solver;
                                 invparams.Tfixed_bool = savedata.INVdata{i}.invstd.Tfixed_bool;
                                 invparams.Tfixed_val = savedata.INVdata{i}.invstd.Tfixed_val;
                                 if isfield(savedata.INVdata{i}.results.nmrproc,'W')
@@ -201,7 +201,7 @@ if sum(Sessionpath) > 0
                                         invparams.solver = savedata.data.info.solver;
                                     case 'MUMO'
                                         invparams.nModes = savedata.INVdata{i}.invstd.freeDT;
-                                        invparams.has_optim = data.info.has_optim;
+                                        invparams.solver = savedata.data.info.solver;
                                 end
                         end
                         % add the new field to the inversion results

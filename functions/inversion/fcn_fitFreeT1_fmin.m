@@ -1,9 +1,10 @@
-function SSE = fcn_fitFreeT1_fmin(x,t,s,IR)
+function SSE = fcn_fitFreeT1_fmin(x,t,s,IR,e)
 %fcn_fitFreeT1_fmin is the objective function for T1 mono- and free exponential
 %inversion that is minimized with 'fminsearchbnd' (hence the SSE output)
 %
 % Syntax:
-%       fcn_fitFreeT1_fmin(x,t,s)
+%       fcn_fitFreeT1_fmin(x,t,s,IR)
+%       fcn_fitFreeT1_fmin(x,t,s,IR,e)
 %
 % Inputs:
 %       x - parameter vector
@@ -12,6 +13,8 @@ function SSE = fcn_fitFreeT1_fmin(x,t,s,IR)
 %       t - time vector
 %       s - signal vector
 %       IR - inversion/saturation recovery factor
+%       e - error weights (optional), i.e. 1./sigma with sigma the
+%           standard error of each data point; default: ones
 %
 % Outputs:
 %       SSE - squared sum of errors
@@ -41,7 +44,11 @@ for i = 1:length(x)/2
 	F = F + tmp;
 end
 
-err = F - s;
+if nargin < 5 || isempty(e)
+    e = ones(size(s));
+end
+
+err = e.*(F - s);
 SSE = sum(err.^2);
 
 return
